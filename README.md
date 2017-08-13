@@ -16,11 +16,11 @@ I actually started this project on Arduino, using a packaged Arduino-based PLC f
 
 Ambitious contributors/forkers who have more need for Arduino could follow the suggestion in this [excellent Maker article](http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/) to piggy-back an Arduino to your RPi's serial port, and add a module supply JSON as output.
 
-# Some serving suggestions
-My original project assembled it all into a pretty simple web page delivered on the RPi via an Apache-based Python CGI, then by setting up the RPi as a thing on Amazon's IOT service and using a Lambda to re-generate an S3-based static page whenever the thing shadow is updated by my RPi, about once every few seconds. I know kinda sloppy but it works... That is where you could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for that version is at [HVAC-pi]().
+# Some Serving Suggestions
+My original project assembled it all into a pretty simple web page delivered on the RPi via an Apache-based Python CGI, then by setting up the RPi as a thing on Amazon's IOT service and using a Lambda to re-generate an S3-based static page whenever the thing shadow is updated by my RPi, about once every few seconds. I know kinda sloppy but it works... That is where you could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for that version is at [HVAC-pi](https://github.com/dglcinc/HVAC-pi).
 
-## Signal-K!
-I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). It's goal is strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out.
+## Signal K!
+I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). Its goal is strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out.
 
 # Example Project
 My example RPi project is to create a one-page app that allows me to monitor my HVAC system. It pulls (vacuums) data from four sources:
@@ -34,7 +34,9 @@ My example RPi project is to create a one-page app that allows me to monitor my 
 * I want to store time series data without interpolating
 * It makes it easy to dis-connect and reconnect to your aggregator and see the complete picture
 I suppose you could do some work to optimize by only generating output when state changes, but that gets a lot more complicated and I don't really see the benefit for my use case, so I didn't do it.
+
 ### Why not control too, not just monitoring?
+Enventually
 
 ## Example 1: TED 5000 (The Energy Detective)
 The TED5000 is a power panel monitor that allows you to monitor energy consumption in your home by placing CTs (current transformers) on your main feed or subcircuits in your home's power panel. A small gateway attached to the CTs runs a web server that publishes a website accessible on your local network, and also publishes XML-based data via HTTP GET.
