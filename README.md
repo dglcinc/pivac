@@ -1,59 +1,164 @@
 # pivac
-Python package to vacuum data from Raspberry-Pi(RPi)-based inputs, to support the assembly and delivery of RPi-based monitoring and control solutions (like HVAC and home automation, but could also be used for other  monitoring projects like home brewing and sous vide). These inputs include both RPi hardware inputs (like GPIO pins and GPIO-supported protocols like 1-Wire), as well as external sources useful for assembling a complete solution, such as HTTP-based data feeds and web sites (a.k.a. screen scraping.) This package is "input-only" - no provision is (currently) made to process updates.
+Python package to pull data from Raspberry-Pi(RPi)-based inputs, and output JSON data. Supports the assembly and delivery of RPi-based monitoring and control solutions, like HVAC and home automation. Could also be used for other  monitoring projects like home brewing and sous vide. These inputs include both RPi hardware inputs (like GPIO pins and GPIO-supported protocols like 1-Wire), as well as external sources useful for assembling a complete solution, such as HTTP-based data feeds and web sites (a.k.a. screen scraping.) This package is "input-only" - no provision is (currently) made to process updates.
 
 Currently supported inputs include:
-* 1-WireTherm: 1-Wire-based Dallas temperature sensors (thermometers)
-* GPIORead: Generic reads of RPi GPIO pins, pulled high using internal pullup resistors
-* RedLink: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
-* TED5000: Parsing of the live XML feed from the TED5000 home energy monitoring solution.
 
-The package is designed to be extensible, so if the supported inputs don't meet your needs, you can add your own.
+* **1-WireTherm**: 1-Wire-based Dallas temperature sensors (thermometers)
+* **GPIO**: Generic reads of RPi GPIO pins, pulled high or low using internal pullup resistors
+* **RedLink**: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
+* **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution.
+
+The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
+
+The package provides each input individually, so you can pick and choose which ones you want.
 
 # Overview
-This module has the modest aspiration of making it easier to solve a certain class of monitoring (and eventually control) use cases for Raspberry Pi based projects, by providing pre-built recipes for acquiring data for common HVAC and home automation use cases, and a framework for emitting readings in JSON format. It has no aspirations to replace more general RPi packages like GPIO and w1Therm (in fact it is built on top of them). Examples of upstream use:
-* Delivering a status website on your RPi, available for use on your local network
-* Modeling your RPi as an AWS IOT "thing", uploading your data as thing shadow "updates", and using AWS Lambdas to do stuff (store data, render static websites, etc.)
+This package has the modest aspiration of making it easier to solve a certain class of monitoring (and eventually control) use cases for Raspberry Pi based projects, by providing pre-built recipes for acquiring data in common HVAC and home automation use cases, and emitting readings in JSON format. It has no aspirations to replace more general RPi packages like GPIO and w1Therm (in fact it is built on top of them). Examples of downstream use:
+
+* Delivering a status website on your RPi, available on your local network
+* Modeling your RPi as an Amazon Web Services (AWS) IOT "thing", uploading your data as thing shadow "updates", and using AWS Lambdas to do stuff (store data, render static websites, etc.)
 * Inputting data to a [Signal K](http:/www.signalk.org) server running on your RPi, and leveraging the Signal K ecosystem to process and display your data
 
 ## Standard call interface, Diverse inputs, JSON output
-The core concept of this package is simple - go get some data from somewhere related to your use case (a piece of HVAC equipment or a home automation product website) and return it as a JSON-formatted data collection. You can then reformat it and deliver it in a number of different ways.
+The core concept of this package is simple - go get some data from somewhere related to your use case (a piece of HVAC equipment or a home automation product website) and return it as a JSON-formatted data collection. You can then reformat it and deliver it in a number of different ways. A standard call interface makes it easy to add new modules for new input types.
 
 ## Why Python?
-What can I say, I like Python. It's easy and fun to write some pretty fancy stuff. And supposedly that's [where the Pi in Raspberry Pi comes from](https://www.techspot.com/article/531-eben-upton-interview/) (Pi-thon, get it?).
+What can I say, I like Python. It's easy and fun to write some pretty fancy stuff. And supposedly it's [where the Pi in Raspberry Pi comes from](https://www.techspot.com/article/531-eben-upton-interview/) (Pi-thon, get it?).
 
 ## Why RPi and not Arduino
-I actually started this project on Arduino, using a packaged Arduino-based PLC from [Digital Loggers](http://www.digital-loggers.com). There are some advantages to using the Arduino in terms of analog inputs, PWM handling, performance, etc. and the DL PLC is pretty cool, with optical input isolators, open collector outputs, LCD screen, etc. I didn't really need the benefits of the Arduino and the programming model was not fun (e.g. coding in Lua on NodeMCU to do your Wi-Fi comms., serial-loading sketches constantly, etc.) Great if you need it, a pain if you don't. I abandoned this because the RPi is way simpler - I can SSH in headless, use a standard UNIX programming model and tools (which I know very well) code in fun languages like Python -- what's not to like? The code for the Arduino version is at [HVAC-plc](https://github.com/dglcinc/HVAC-plc).
+I actually started this project on Arduino, using a packaged Arduino-based PLC from [Digital Loggers](https://dlidirect.com/products/diy-programmable-controller). There are some advantages to using the Arduino in terms of analog inputs, PWM handling, performance, etc. and the DL PLC is pretty cool, with optical input isolators, open collector outputs, LCD screen, etc. I didn't really need these features, and the programming model was not fun (e.g. coding Lua on NodeMCU to do your Wi-Fi comms., serial-loading sketches constantly, etc.) Great if you need it, a pain if you don't. I abandoned this because the RPi is way simpler - I can SSH in headless, use a standard UNIX programming model and tools (which I know very well) code in fun languages like Python -- what's not to like? The code for the (archived) Arduino version is at [HVAC-plc](https://github.com/dglcinc/HVAC-plc).
 
-Ambitious contributors/forkers who have more need for Arduino could follow the suggestion in this [excellent Maker article](http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/) to piggy-back an Arduino to your RPi's serial port, and add a module to supply JSON as output.
+Ambitious contributors/forkers who like the RPi model and also have more need for Arduino features could follow the suggestion in this [excellent Maker article](http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/) to piggy-back an Arduino to your RPi's serial port, and add a module that reads the Arduino and supplies JSON as output.
 
-# Some Serving Suggestions
-My original project delivered the JSON from my data sources into a simple web page delivered on the RPi via an Apache-based Python CGI. I then internet-enabled it by setting up the RPi as a thing on Amazon's IOT service and using a Lambda to re-generate an S3-based static page whenever the thing shadow is updated by my RPi, about once every few seconds. I know kinda sloppy but it works... You could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for my current version is at [HVAC-pi](https://github.com/dglcinc/HVAC-pi), including the python cgi in the /local subdirectory, and the AWS thing code in /hvac-pi-aws.
-
-## Signal K!
-I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out.
-
-# Example Project
-The goal of my RPi project is to create a simple app (single responsive HTML dashboard) that allows me to monitor my HVAC system. It pulls data from four sources:
-* Several Dallas [DS18B20](https://www.amazon.com/gp/product/B00CHEZ250/ref=oh_aui_detailpage_o07_s00?ie=UTF8&psc=1) waterproof one-wire temperature sensors connected to the one-wire bus on the RPi, to monitor key control points in my hydronic heating and cooling system.
-* Several mechanical (4PDT) relays connected to GPIO pins, to monitor the operational status of the HVAC equipment (what is off or on, heating or cooling, making hot water, etc.)
-* A TED5000 power panel monitor, to show energy consumption related to the HVAC operation (mainly two five-ton chillers, that each consume about 8Kwh, and whose operation understandably I would like to optimize)
-* Several Honeywell RedLink IAQ 2.0 thermostats, so I can keep track of the conditions in each zone in my HVAC system by seeing current temperature and humidity, equipment status (heating, cooling, etc.), and eventually setpoints.
-
-### Why polling of the GPIO pins, rather than events?
+## Why polling of the GPIO pins, rather than events?
 * It's simpler
 * I want to store time series data without interpolating
 * It makes it easy to dis-connect and reconnect to your aggregator and still see the complete picture of current state
 I suppose you could do some work to optimize by only generating output when state changes, but that gets a lot more complicated and I don't really see the benefit for my use case, so I didn't do it.
 
-### Why not control too, not just monitoring?
+## Why not control too, not just monitoring?
 Eventually. For the HVAC use case specifically, I have shied away from making the correct operation of the HVAC system dependent on the RPi:
+
 * It means you can't condition your space if you have a problem with the RPi
 * It's very hard to find HVAC technicians that can or will work on RPi-based controls
 
 I'm pondering a design that allows some control or automation by the RPi, but fallback to full mechanical behavior if the RPi is down. When I have a good plan for that I'll reconsider having the RPi control the system.
 
-## Example 1: 1-Wire Dallas Temperature Sensors, DS18B20
-These are pretty commonly used sensors, because they are cheap and easy to use. There are plenty of tutorials on how to wire these (e.g. [this one](https://www.modmypi.com/blog/ds18b20-one-wire-digital-temperature-sensor-and-the-raspberry-pi), so I'm not going to cover. The best Python library I found for these is [w1thermsensor](https://github.com/timofurrer/w1thermsensor), so that's the one I use. Note that without some hacking the data line for the 1-wire bus must be GPIO pin 4. I prefer to power the sensors rather than use "parasitic" mode (which has some limitations), but that's just me.
+
+## Suggestions for Processing the Output
+My original project delivered the JSON from my data sources into a python script that dynamically generated a simple web page on the RPi as an Apache-based Python CGI. I then internet-enabled my project (to avoid doing port forwarding to my RPi, and to learn AWS IOT...) by setting up the RPi as a thing on Amazon's IOT service, and using a Lambda to generate an S3-based static page whenever the thing shadow is updated by my RPi, once every few seconds. I know kinda sloppy but it works... You could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for my current version is at [HVAC-pi](https://github.com/dglcinc/HVAC-pi), including the python cgi in the /local subdirectory, and the AWS thing code in /hvac-pi-aws.
+
+## Signal K!
+I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. The current version of [HVAC-pi](https://github.com/dglcinc/HVAC-pi) includes a [script](https://github.com/dglcinc/HVAC-pi/blob/master/sk-sensor-emit.py) that outputs Signal K deltas, for use with an execute provider. A separate repository will be launched shortly to generify this mechanism.
+
+# Installing the Package
+
+```
+<pip instructions forthcoming>
+<setup.py install instructions forthcoming>
+<config file editing instructions forthcoming>
+```
+
+# Using the Package
+The pivac package contains the following modules:
+
+* GPIO
+* OneWireTherm
+* TED5000
+* RedLink
+
+Each module can be included individually in your project. Each module supports one interface method, status(), which outputs a JSON object containing JSON state specific to the target being reported on, as follows:
+
+* **`GPIO.status()`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
+	* For pins configured with pull-down resistors, "on" or "true" means the pin is attached to voltage.
+	* The module configuration file provides options for specifying pull-up or pull-down, as well as names to map pins to in the JSON output.
+	* For pins configured with pull-up resistors, "on" or "true" means the pin is attached to ground. Example:
+
+```
+{
+    "Y2ON": false, 
+    "DEHUM": false, 
+    "RCHL": false, 
+    "BLR": false, 
+    "DHW": false, 
+    "Y2FAN": false, 
+    "ZV": false, 
+    "YOFF": false, 
+    "LCHL": false
+}
+```	
+
+
+* **`OneWireTherm.status(temp_type=DEG_FAHRENHEIT, round_digits=0)`**: the module will return the current temperature reported by every sensor on the 1-wire bus. `temp_type` can be `DEG_FAHRENHEIT`, `DEG_CELCIUS`, or `DEG_KELVIN`. `round_digits` indicates how many digits to the right of the decimal you would like in the result. If `round_digits` is `0`, the result will be an `int`. If `round_digits` is `-1`, no rounding will occur. Example (using defaults):
+
+```
+{
+    "CRW": 45, 
+    "OUT": 47, 
+    "AMB": 73, 
+    "IN": 40
+}
+```
+
+* **`TED5000.status()`**: Returns JSON for the current PowerNow values of MTUs 1-4 from the URL `<my_ted_gateway_ip_or_hostname>/LiveData.xml`. All TED data is available; if you want more, modify this script. Example:
+
+```
+{
+    "MTU1": 1161, 
+    "MTU2": 398, 
+    "MTU3": 30, 
+    "MTU4": 0
+}
+```
+
+* **`Redlink.status(verbose=False)`**: Returns the current temperature, humidity, status, and name (as set on the thermostat) for every thermostat associated with the location defined on mytotalconnectcomfort.com. Temperature will be defined as on the thermostat. Humidity will be a whole number. Status will be one of "cool", "heat", "fanOn", or "off". Outdoor humidity is returned as "outhum". The key for each object is the thermostat identifier used in the RedLink registry. `verbose = True` causes the scraper to navigate to the sub-page for each thermostat, collect all available detailed data like setpoints, and return it as a nested JSON object for each thermostat; this option is slower, so don't use it unless you need it. Example (`verbose=False`):
+
+```
+{
+    "2834229": {
+      "status": "fan", 
+      "hum": 51, 
+      "name": "KIDS ROOM", 
+      "temp": 74
+    }, 
+    "outhum": 100.0, 
+    "2528432": {
+      "status": "off", 
+      "hum": 47, 
+      "name": "KITCHEN", 
+      "temp": 75
+    }, 
+    "2842218": {
+      "status": "off", 
+      "hum": 50, 
+      "name": "MASTER BR", 
+      "temp": 74
+    }, 
+    "2417403": {
+      "status": "off", 
+      "hum": 51, 
+      "name": "DSTRS FAM ROOM", 
+      "temp": 74
+    }, 
+    "2834247": {
+      "status": "off", 
+      "hum": 49, 
+      "name": "GREAT ROOM", 
+      "temp": 75
+    }
+}
+```
+
+# Example Project
+The goal of my RPi project was to create a simple app (single responsive HTML dashboard) that allows me to monitor my HVAC system. It pulls data from four sources:
+
+* Several Dallas [DS18B20](https://www.amazon.com/gp/product/B00CHEZ250/ref=oh_aui_detailpage_o07_s00?ie=UTF8&psc=1) waterproof one-wire temperature sensors connected to the one-wire bus on the RPi, to monitor key control points in my hydronic heating and cooling system.
+* Several mechanical (4PDT) relays connected to GPIO pins, to monitor the operational status of the HVAC equipment (what is off or on, heating or cooling, making hot water, etc.)
+* A TED5000 power panel monitor, to show energy consumption related to the HVAC operation (mainly two five-ton chillers, that each consume about 8Kwh, and whose operation understandably I would like to optimize)
+* Several Honeywell RedLink IAQ 2.0 thermostats, so I can keep track of the conditions in each zone in my HVAC system by seeing current temperature and humidity, equipment status (heating, cooling, etc.), and eventually setpoints.
+
+## Example 1: 1-Wire DS18B20 Temperature Sensors
+These are pretty commonly used sensors, because they are cheap and easy to use. There are plenty of tutorials on how to wire these (e.g. [this one](https://www.modmypi.com/blog/ds18b20-one-wire-digital-temperature-sensor-and-the-raspberry-pi)), so I'm not going to cover here. The best Python library I found for these is [w1thermsensor](https://github.com/timofurrer/w1thermsensor), so that's the one I use. Note that without some hacking the data line for the 1-wire bus must be GPIO pin 4. I prefer to power the sensors rather than use "parasitic" mode (which has some limitations), but that's just me.
 
 ### Other RPi protocols
 The RPi supports several protocols out of the box, such as I2C and SPI. 1-Wire suited my needs, so that's the only one pivac currently supports. The module framework can be easily extended for these by following the 1-Wire Therm example.
@@ -73,3 +178,17 @@ The gateway can be a little flaky and also it's a closed ecosystem, all about TE
 I opted for using the "real time" interface, since that would allow me to control how often and where the data are reported. So my python script calls the real time interface URL, parses the response using the Python lxml parser, and prints the "PowerNow" values for the four possible MTUs (I have 3) to stdout as a JSON-formatted object.
 
 Others may be interested in more or different values from the real-time XML document. The script can easily be extended as desired.
+
+## Example 4: Honeywell mytotalconnectcomfort.com
+This is a website targeted specifically at owners of Honeywell WiFi thermostats, or RedLink thermostats connected to a RedLink gateway. Honeywell does not make the data APIs for this site publicly available. There are APIs called by the site, but more header spoofing would be required to get the server to generate a valid request. The same information can be retrieved by screen-scraping the site, so I didn't bother to decode the API headers.
+
+This code makes a number of assumptions, so if your personal use is different, you'll have to tweak the scraping code, which uses [Mechanize](https://github.com/python-mechanize/mechanize). Some points to keep in mind:
+
+* You must have a login account on the site.
+* You must have at least one supported thermostat configuration.
+* Not all thermostats support all options; for example, older thermostats do not support query of their state (are they cooling, heating, etc.)
+* The code maintains an active login session to improve performance and minimize booting due to "too many logins"
+* The code supports only one location. If you have multiple locations you will need to modify the scraping code.
+* The thermostats will report additional properties such as setpoint. These are output in the JSON as a nested JSON object.
+* The website supports the ability to change thermostat settings (setpoint, mode, etc.) This library does not currently implement that feature. You will need to change the scraping code.
+* Mechanize has its History object set to NoHistory in the code. Keep in mind if you change this, the history will cause the process to grow and eventually crash your RPi. If you do this, make sure you periodically call Browser's clear_history() method.
