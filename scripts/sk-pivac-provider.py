@@ -1,4 +1,5 @@
 import logging
+logger = logging.getLogger(__name__)
 import sys
 import argparse
 import json
@@ -6,132 +7,100 @@ import socket
 import time
 import pytemperature as pt
 import re
+import pkgutil
+from pydoc import safeimport
+import os
+
+# set logging temporarily before args parsing
+loglevel = os.getenv("LOG_CFG", "ERROR")
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=loglevel)
+
+# load pivac; it may be installed globally or running from a github clone...
+try:
+    spath = os.path.abspath(os.path.dirname(__file__))
+    sys.path.append("%s/.." % spath)
+    logger.debug("curdir: %s, path: %s" % (spath, sys.path))
+    import pivac
+except:
+    logger.exception("pivac package not in python path; trying safeimport.")
+
+#load config from config file
+config = pivac.config()
+packages = config["packages"]
+
+# get list of modules in pivac that implement status()
+pkglist = []
+for k in packages.keys():
+    if "enabled" not in packages[k] or packages[k]["enabled"]:
+        pkglist.append(k)
+logger.debug("Pivac Packagelist = %s" % pkglist)
+logger.debug("config = %s" % config)
 
 # handle arguments
-parser = argparse.ArgumentParser(description="Emit SignalK deltas for sensors and specialized data sources connected to a Raspberry Pi\n  1Wire: uses GPIO pin 4 (board pin 7) for data, with 4.7k ohm pullup to 3.3V\n  GPIO-IN: configures designated pins as INPUT_PULLUP\n  TED5000: scrapes real-time KWh usage from TED5000 MTUs\n  RedLink: scrapes thermostat info from designated mytotalconnectcomfort.com website and location", formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument("stype", choices=["1Wire","GPIO", "TED5000", "RedLink"], help="Specify source of sensors to emit from")
-parser.add_argument("lmode", nargs="?", choices=["DEBUG", "WARNING", "INFO", "ERROR", "CRITICAL"], default="WARNING", help="set logger debug level")
-parser.add_argument("--daemon", action="store_true", default=False,  help="run forever in a while loop")
+argdesc=""
+for i in pkglist:
+    desc = "[no description]"
+    if "description" in packages[i]:
+        desc = packages[i]["description"]
+    argdesc = argdesc + "%s: %s\n" % (i, desc)
+
+parser = argparse.ArgumentParser(description=argdesc, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument("stype", nargs="+", choices=pkglist, help="Specify source module(s) for JSON data (from %s); recommend one per invocation due to differing module processing times" % config["sourcefile"])
+parser.add_argument("--loglevel", choices=["DEBUG", "WARNING", "INFO", "ERROR", "CRITICAL"], default="WARNING", help="set logger debug level")
+parser.add_argument("--output", choices=["default","signalk"], default="default", help="specify format of JSON written to stdout; default is 'default'")
+parser.add_argument("--format", choices=["compact","pretty"], default="compact", help="specify whether output should be pretty-printed; default is 'compact'")
+parser.add_argument("--daemon", action="store_true", default=False,  help="run forever in a while loop; sleeptime is set in %s; if more than one input module default is used" % config["sourcefile"])
 args = parser.parse_args()
+logging.debug("Arguments = %s" % args)
+ 
+# Remove all handlers associated with the root logger object, to set final format and log level
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
 
-logging.basicConfig(format='%(name)s %(levelname)s:%(asctime)s %(message)s',datefmt='%m/%d/%Y %I:%M:%S',level=args.lmode)
+logging.basicConfig(format='%(name)s %(levelname)s:%(asctime)s %(message)s',datefmt='%m/%d/%Y %I:%M:%S',level=args.loglevel)
 
-logger = logging.getLogger(__name__)
+logging.debug("Arguments = %s" % args)
 
-logging.debug(args)
+# load referenced packages (loading here since below is in while loop)
+modfuncs = {}
+for p in args.stype:
+    try:
+        logger.debug("Loading module %s" % p)
+        statmod = safeimport(p)
+        statfn = getattr(statmod, "status")
+        modfuncs[p] = statfn
+    except:
+        logger.exception("Package %s in configfile %s not found or doesn't have status() function" % (p, config["sourcefile"]))
+        sys.exit(1)
+
+sleepytime = -1
+packages = config["packages"]
 
 while 1:
-    deltas = {
-        "updates": [
-            {
-                "source": {
-                    "label": "rpi:%s" % socket.gethostname()
-                },
-                "values": []
-            }
-        ]
-    }
+    data = ""
+    for p in args.stype:
+        try:
+            logger.debug("calling status for %s (%s)" % (p, packages[p]))
+            data = modfuncs[p](packages[p], args.output)
+            logger.debug("%s returned %s" % (p, data))
+        except:
+            logger.exception("Error getting data from module %s" % p)
+    
+        if args.format == "pretty":
+            print(json.dumps(data,indent=2))
+            sys.stdout.flush()
+        else:
+            print(json.dumps(data))
+            sys.stdout.flush()
 
-    try:
-        if args.stype == "1Wire":
-            import pivac.OneWireTherm
-            data = pivac.OneWireTherm.status(pivac.OneWireTherm.DEG_KELVIN)
-            logger.debug(str(data))
-    
-            for d in data:
-                logger.debug("value = %s" % str(d))
-                if d == "AMB":
-                    deltas["updates"][0]["values"].append({
-                        "path":  "environment.outside.thermostat.temperature",
-                        "value": data[d]
-                    })
-                else:
-                    deltas["updates"][0]["values"].append({
-                        "path":  "environment.inside.hvac.temperature.%s" % d,
-                        "value": data[d]
-                    })
-    
-        elif args.stype == "GPIO":
-            import pivac.GPIO
-            data = pivac.GPIO.status()
-            logger.debug(str(data))
-    
-            for d in data:
-                logger.debug("value = %s" % str(d))
-                deltas["updates"][0]["values"].append({
-                    "path": "electrical.ac.switch.utility.%s.state" % d,
-                    "value": data[d]
-                })
-                deltas["updates"][0]["values"].append({
-                    "path": "electrical.ac.switch.utility.%s.statenum" % d,
-                    "value": int(data[d])
-
-                })
-    
-        elif args.stype == "TED5000":
-            import pivac.TED5000
-            data = pivac.TED5000.status()
-            logger.debug(str(data))
-    
-            for d in data:
-                deltas["updates"][0]["values"].append({
-                    "path": "electrical.ac.ted5000.%s.power" % d,
-                    "value": data[d]
-                })
-    
-        elif args.stype == "RedLink":
-            import pivac.RedLink
-            data = pivac.RedLink.status()
-    #        logger.debug(str(data))
-    
-            if "outhum" in data:
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.outside.thermostat.humidity",
-                    "value": data["outhum"]
-                })
-            for d in data:
-                if d == "outhum":
-                    continue
-                fname = re.sub(r"[\s+]", '_', data[d]["name"])
-#                logger.debug("fname = %s" % fname)
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.inside.thermostat.%s.temperature" % fname,
-                    "value": pt.f2k(int(data[d]["temp"]))
-                })
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.inside.thermostat.%s.humidity" % fname,
-                    "value": int(data[d]["hum"])
-                })
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.inside.thermostat.%s.redlinkid" % fname,
-                    "value": d
-                })
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.inside.thermostat.%s.state" % fname,
-                    "value": data[d]["status"]
-                })
-                statenums = {
-                    "heat": 1,
-                    "cool": -1,
-                    "fan": 0.5,
-                    "off": 0
-                }
-                deltas["updates"][0]["values"].append({
-                    "path": "environment.inside.thermostat.%s.statenum" % fname,
-                    "value": statenums[data[d]["status"]]
-                })
-    except:
-        logger.exception("Unable to complete a deltas run due to exception.")
-
-    # output deltas and decide whether to continue looping
-    #logger.debug("Daemon mode = %i" % args.daemon)
     if args.daemon == True:
-        print(json.dumps(deltas))
-        sys.stdout.flush()
-        sleepytime = 0.5
-        if args.stype == "RedLink":
-            sleepytime = 2.0
+        if sleepytime < 0:
+            sleepytime = 0.5
+            if len(args.stype) == 1:
+                if "daemon_sleep" in packages[args.stype[0]]:
+                    sleepytime = packages[args.stype[0]]["daemon_sleep"]
+        logger.debug("sleepytime = %f" % sleepytime)
         time.sleep(sleepytime)
     else:
-        print(json.dumps(deltas,indent=2))
         sys.exit()

@@ -1,7 +1,6 @@
 import mechanize
 import urllib2 
 import cookielib
-import honeywellsecrets as hs
 import time
 import logging
 from bs4 import BeautifulSoup
@@ -39,13 +38,21 @@ try:
 except:
     logger.exception("Error prepping Redlink scrape")
 
-def status(verbose=False):
+def status(config={}, output="default"):
     global site_ready, logged_in, retrying, retry_count
     global locationId, locationId_prog
     global statsId_prog, statsData_prog, status_prog
     global cj, br
 
     result = {}
+
+    if "website" in config:
+        homepage = config["website"]
+    else:
+        homepage = HOMEPAGE
+    if not "uid" in config or not "pwd" in config:
+        logger.error("Credentials not specified in config file.")
+        raise ValueError
 
     # log in to mytotalconnectcomfort.com
     # NOTE: this code currently only works if you only have one location defined...
@@ -54,7 +61,7 @@ def status(verbose=False):
         try:
             if logged_in == False:
                 logger.debug("Not logged in; logging in...")
-                response = br.open(HOMEPAGE)
+                response = br.open(homepage)
 
                 # sometimes we get an exception but still logged in...
                 stats_page = response.read()
@@ -71,10 +78,10 @@ def status(verbose=False):
                         br = mechanize.Browser()
                         cj = cookielib.CookieJar()
                         br.set_cookiejar(cj)
-                        br.open(HOMEPAGE)
+                        br.open(homepage)
                         br.select_form(nr=0)
-                    br.form['UserName'] = hs.uid
-                    br.form['Password'] = hs.pwd
+                    br.form['UserName'] = config["uid"]
+                    br.form['Password'] = config["pwd"]
                     response = br.submit()
                     stats_page = response.read()
                 logger.debug("done logging in")
@@ -84,7 +91,7 @@ def status(verbose=False):
                 logger.debug("locationId=%s" % locationId)
                 logged_in = True
             else:
-                refresh_link = HOMEPAGE
+                refresh_link = homepage
                 logger.debug("Refresh link = %s" % refresh_link)
                 response = br.open(refresh_link)
                 stats_page = response.read()
@@ -97,7 +104,7 @@ def status(verbose=False):
             # recurse
             if retrying < retry_count:
                 retrying += 1
-                result = status(verbose)
+                result = status(config,output)
             else:
                 # reset for next time
                 retrying = 0
@@ -106,6 +113,9 @@ def status(verbose=False):
     # on first success, reset retry loop
     retrying = 0
 
+    verbose = False
+    if "verbose" in config:
+        verbose = config["verbose"]
     if verbose == True:
         logger.debug("Verbose mode...")
         # get stat list out of the home page
@@ -140,7 +150,7 @@ def status(verbose=False):
                 result["outhum"] = float(sdict["outdoorHumidity"])
     
     #            logger.debug("stat = %s %s %s" % (sname, sstat, sdict))
-                br.open("https://www.mytotalconnectcomfort.com/portal")
+                br.open(homepage)
         except:
             # too tricky to handle retries, just come back next time
             logger.exception("Error scraping stat page")
@@ -191,5 +201,38 @@ def status(verbose=False):
         except:
             # too tricky to handle retries, just come back next time
             logger.exception("Error scraping stat page")
+
+    if output == "signalk":
+        logger.debug("Composing signalk output...")
+        from pivac import sk_init_deltas, sk_add_delta
+        deltas = sk_init_deltas()
+
+        if "outhum" in result and "sk_outdoor_path" in config:
+            sk_add_delta(deltas,"%s.humidity" % config["sk_outdoor_path"], result["outhum"])
+        else:
+            logger.debug("Outdoor humidity not output for signalk, data or path not present")
+
+        for s in result.keys():
+            if s == "outhum":
+                continue
+            fname = re.sub(r"[\s+]", '_', result[s]["name"])
+#                logger.debug("fname = %s" % fname)
+            sk_add_delta(deltas, "%s.%s.temperature" % (config["sk_stat_path"], fname), result[s]["temp"])
+            sk_add_delta(deltas, "%s.%s.humidity" % (config["sk_stat_path"], fname), result[s]["hum"])
+            sk_add_delta(deltas, "%s.%s.redlinkid" % (config["sk_stat_path"], fname), s)
+            sk_add_delta(deltas, "%s.%s.state" % (config["sk_stat_path"], fname), result[s]["status"])
+            if "coolset" in result[s]:
+                sk_add_delta(deltas, "%s.%s.coolset" % (config["sk_stat_path"], fname), result[s]["coolset"])
+            if "heatset" in result[s]:
+                sk_add_delta(deltas, "%s.%s.heatset" % (config["sk_stat_path"], fname), result[s]["heatset"])
+
+            statenums = {
+                "heat": 1,
+                "cool": -1,
+                "fan": 0.5,
+                "off": 0
+            }
+            sk_add_delta(deltas, "%s.%s.statenum" % (config["sk_stat_path"], fname), statenums[result[s]["status"]])
+        return deltas
 
     return result
