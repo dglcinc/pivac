@@ -20,7 +20,10 @@ source_template = {
     "values": []
 }
 
-def config(file=""):
+def get_config():
+    return pconfig
+
+def set_config(file=""):
     global pconfig
     logger = logging.getLogger(__name__)
 

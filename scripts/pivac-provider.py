@@ -27,7 +27,7 @@ except:
 
 #load config from config file
 cfgfile = os.getenv("PIVAC_CFG", "")
-config = pivac.config(cfgfile)
+config = pivac.set_config(cfgfile)
 packages = config["packages"]
 
 # get list of modules in pivac that implement status()
