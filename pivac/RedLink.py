@@ -6,6 +6,7 @@ import logging
 from bs4 import BeautifulSoup
 import json
 import re
+import pytemperature
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +151,24 @@ def status(config={}, output="default"):
                 if stat != []:
                     sstat = stat[0]
                 sdict = dict(statdata)
+
+                if config["scale"] == "fahrenheit":
+                    scale = "fahrenheit"
+                    ktemp = pytemperature.f2k(sdict["dispTemperature"])
+                    if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "celsius":
+                        scale = "celsius"
+                        ktemp = pytemperature.c2k(sdict["dispTemperature"])
+                else:
+                    scale = "celsius"
+                    ktemp = pytemperature.c2k(sdict["dispTemperature"])
+                    if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "fahrenheit":
+                        scale = "fahrenheit"
+                        ktemp = pytemperature.f2k(sdict["dispTemperature"])
+
                 if output == "signalk":
                     fname = re.sub(r"[\s+]", '_', sname)
-                    sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["dispTemperature"])))
+                    sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), int(ktemp))
+                    sk_add_value(sk_source, "%s.%s.scale" % (config["inputs"]["thermostat"]["sk_path"], fname), ktemp)
                     sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["indoorHumidity"])))
                     sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), status_map[sstat])
                     sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[status_map[sstat]])
@@ -162,7 +178,8 @@ def status(config={}, output="default"):
                 else:
                     result[s] = {
                         "name": sname,
-                        "temp": float(sdict["dispTemperature"]),
+                        "temp": sdict["dispTemperature"],
+                        "scale": scale,
                         "hum": float(sdict["indoorHumidity"]),
                         "status": status_map[sstat],
                         "heatset": int(float(sdict["heatSetpoint"])),
@@ -208,9 +225,29 @@ def status(config={}, output="default"):
                         stat["status"] = "heat"
                     if "fanOnIcon" in f["class"] and f["style"] == "":
                         stat["status"] = "fan"
+
+            logger.debug("Stat = %s" % stat)
+            if config["scale"] == "fahrenheit":
+                stat["scale"] = "fahrenheit"
+                ktemp = pytemperature.f2k(stat["temp"])
+                logger.debug("name = %s, value = %s" % (stat["name"], config["inputs"]))
+                if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "celsius":
+                    logger.debug("celcius exception")
+                    stat["scale"] = "celsius"
+                    ktemp = pytemperature.c2k(stat["temp"])
+            else:
+                stat["scale"] = "celsius"
+                ktemp = pytemperature.c2k(stat["temp"])
+                logger.debug("name = %s, value = %s" % (stat["name"], config["inputs"]))
+                if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "fahrenheit":
+                    logger.debug("fahrenheit exception")
+                    stat["scale"] = "fahrenheit"
+                    ktemp = pytemperature.f2k(stat["temp"])
+                
             if output == "signalk":
                 fname = re.sub(r"[\s+]", '_', stat["name"])
-                sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["temp"])
+                sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), ktemp)
+                sk_add_value(sk_source, "%s.%s.scale" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["scale"])
                 sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["hum"])
                 sk_add_value(sk_source, "%s.%s.redlinkid" % (config["inputs"]["thermostat"]["sk_path"], fname), e["data-id"])
                 sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["status"])

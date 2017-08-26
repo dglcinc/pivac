@@ -63,6 +63,7 @@ def set_config(file=""):
                 logger.exception("Config file not specified or not accessible. You must call pivac.config(file) or edit /etc/pivac/config.yml.")
     except:
         logger.exception("Unable to load config file (%s)" % path )
+        raise ValueError
     
     return pconfig
 

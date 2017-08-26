@@ -39,7 +39,7 @@ def status(config = {}, output = "default"):
 
 #                logger.debug("xmlpaths = %s, i = %s, xmlpaths[i] = %s, name = %s" % (xmlpaths, i, xmlpaths[i], xmlpaths[i]["outname"]))
             if output == "signalk":
-                sk_add_value(sk_source,"%s.%s" % (xmlpaths[i]["sk_path"], xmlpaths[i]["outname"]), int(a.text))
+                sk_add_value(sk_source,"%s.%s.power" % (xmlpaths[i]["sk_path"], xmlpaths[i]["outname"]), int(a.text))
             else:
                 result[xmlpaths[i]["outname"]] = int(a.text)
     except:

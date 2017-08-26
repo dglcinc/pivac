@@ -8,12 +8,12 @@ pivac.GPIO:
     numbering: "bcm"
 
     # used to temporarily disable by setting false; if absent, enabled = true
-    enabled: false
+    enabled: true
 
     # names the path for the sk JSON output
     # puts both a .state boolean and .statenum int at this path: path.{outname}.{type}
     # sk_literal indicates whether outname will be part of the path
-    sk_path: "electrical.switch.ac.utility"
+    sk_path: "electrical.ac.switch.utility"
     sk_literal: false
 
     # "pullup|pulldown" for internal resistors
@@ -52,9 +52,9 @@ pivac.GPIO:
 
 pivac.OneWireTherm:
     description: Reports the current values of all temperature sensors on the 1-wire bus
-    enabled: false
+    enabled: true
 
-    # options for mode are: "fahrenheit", "kelvin", or "celcius"
+    # options for mode are: "fahrenheit", "kelvin", or "celsius"
     scale: "fahrenheit"
 
     # value is number of desired digits right of decimal for a temp value; 0 gets you an int; -1 gets no rounding
@@ -84,7 +84,7 @@ pivac.OneWireTherm:
 
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
-    enabled: false
+    enabled: true
     ipaddr: 192.168.1.124
     sk_path: electrical.ac.ted5000
 
@@ -94,15 +94,15 @@ pivac.TED5000:
         - sk_path
     inputs:
         Power/MTU1/PowerNow:
-            outname: MainPanel
+            outname: MTU1
         Power/MTU2/PowerNow:
-            outname: SubPanel
+            outname: MTU2
         Power/MTU3/PowerNow:
-            outname: HVAC
+            outname: MTU3
 
 pivac.RedLink:
     description: Reports thermostat info from mytotalconnectcomfort.com
-    enabled: false
+    enabled: true
 
     # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
     daemon_sleep: 2
@@ -117,6 +117,11 @@ pivac.RedLink:
     uid: xxx
     pwd: xxx
 
+    # no way to get the scale on the honeywell site; this scale is used for stats
+    # override stats by name in inputs
+    scale: fahrenheit
+    propagate:
+        - scale
     inputs:
         thermostat:
             sk_path: environment.inside.thermostat
@@ -124,7 +129,7 @@ pivac.RedLink:
             sk_path: environment.outside.thermostat
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera
-    enabled: false
+    enabled: true
     daemon_sleep: 5
 
     inputs:
@@ -139,5 +144,5 @@ pivac.FlirFX:
             # change to your password
             pwd: 'xxxxxxx'
 
-            # options for mode are: "fahrenheit", "kelvin", or "celcius"
+            # options for mode are: "fahrenheit", "kelvin", or "celsius"
             scale: "fahrenheit"
