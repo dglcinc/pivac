@@ -19,7 +19,7 @@ os.system('modprobe w1-gpio')  # Turns on the GPIO module
 # set up pins - index to pin numbering in relays lists
 pins_initted = False
 
-def init_pins(input_pins={}, pullmode=GPIO.PUD_UP, pinmode = GPIO.BCM):
+def init_pins(input_pins={}, pinmode = GPIO.BCM):
     logger.debug("Initializing pins")
 
     try:
@@ -31,54 +31,53 @@ def init_pins(input_pins={}, pullmode=GPIO.PUD_UP, pinmode = GPIO.BCM):
 
     chan_list = []
     logger.debug("pin list is %s" % input_pins)
-    for r in input_pins.keys():
-        logger.debug("pin is %s(%d)" % (r,input_pins[r]["pin"]))
-        chan_list.append(input_pins[r]["pin"])
+
+    chan_list = input_pins.keys()
     logger.debug("Chan list is: %s" % chan_list)
-    GPIO.setup(chan_list, GPIO.IN, pull_up_down=pullmode)
+
+    for i in chan_list:
+        pullmode = GPIO.PUD_DOWN
+        if input_pins[i]["pullmode"] == "pullup":
+            pullmode = GPIO.PUD_UP
+        GPIO.setup(i, GPIO.IN, pullmode)
     pins_initted = True
 
     return
 
-def status(config={},output_type="default"):
+def status(config={},output="default"):
     result = {}
-    if "input_pins" in config:
+    deltas = {}
+    if "inputs" in config:
         if not pins_initted:
-            if "numbering" in config:
-                pinmode = GPIO.BCM
-                if config["numbering"] == "board":
+            pinmode = GPIO.BCM
+            if "numbering" in config and config["numbering"] == "board":
                     pinmode = GPIO.BOARD
-            pullmode = GPIO.PUD_UP
-            if "pullmode" in config:
-                if config["pullmode"] == "pulldown":
-                    pullmode = GPIO.PUD_DOWN
-            init_pins(config["input_pins"],pullmode,pinmode)
+            init_pins(config["inputs"],pinmode)
 
-        for pin in config["input_pins"].keys():
-            result[pin] = GPIO.input(config["input_pins"][pin]["pin"]) == 0
+        if output == "signalk":
+            logger.debug("formatting signalk output...")
+            from pivac import sk_init_deltas, sk_add_value, sk_add_source
+            deltas = sk_init_deltas()
+            sk_source = sk_add_source(deltas)
+
+        for pinnum, pindict in config["inputs"].iteritems():
+            logger.debug("pin = %s, pindict = %s" % (pinnum, pindict))
+            presult = GPIO.input(pinnum) == (pindict["pullmode"] == "pulldown")
+            if output == "signalk":
+                if pindict["sk_literal"] == False:
+                    sk_add_value(sk_source, "%s.%s.state" % (pindict["sk_path"], pindict["outname"]), presult)
+                    sk_add_value(sk_source, "%s.%s.statenum" % (pindict["sk_path"], pindict["outname"]), int(presult))
+                else:
+                    sk_add_value(sk_source, "%s.name" % config["sk_path"], pindict["outname"])
+                    sk_add_value(sk_source, "%s.state" % config["sk_path"], presult)
+                    sk_add_value(sk_source, "%s.statenum" % config["sk_path"], int(presult))
+            else:
+                result[pindict["outname"]] = presult
     else:
         logger.exception("No input pins specified for GPIO")
         raise KeyError
 
-    if output_type == "signalk":
-        logger.debug("formatting signalk output...")
-        from pivac import sk_init_deltas, sk_add_delta
-        deltas = sk_init_deltas()
-
-        for p in config["input_pins"]:
-            logger.debug("p = %s" % p)
-
-        if "sk_formatted" in config:
-            logger.debug("formatted output")
-            for r in result.keys():
-                sk_add_delta(deltas, "%s.state" % (config["sk_formatted"] % r), result[r])
-                sk_add_delta(deltas, "%s.statenum" % (config["sk_formatted"] % r), int(result[r]))
-        elif "sk_literal" in config:
-            logger.debug("literal output")
-            for r in result.keys():
-                sk_add_delta(deltas, "%s.name" % config["sk_literal"], r)
-                sk_add_delta(deltas, "%s.state" % config["sk_literal"], result[r])
-                sk_add_delta(deltas, "%s.statenum" % config["sk_literal"], int(result[r]))
+    if output == "signalk":
         return deltas
     else:
         return result

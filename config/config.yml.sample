@@ -1,0 +1,143 @@
+# The name of each section is the name of the module it configures.
+# if a section is absent (commented out), or enabled is present and set to false, the module will not be used.
+
+# this module enables input to the designated GPIO pin(s). Pin status is read in GPIO.status() function.
+pivac.GPIO:
+    description: Reports current high/low status of specified input pin(s)
+    # options are "bcm" (GPIO numbers) or "board" (physical pin numbers); if absent, default is bcm
+    numbering: "bcm"
+
+    # used to temporarily disable by setting false; if absent, enabled = true
+    enabled: false
+
+    # names the path for the sk JSON output
+    # puts both a .state boolean and .statenum int at this path: path.{outname}.{type}
+    # sk_literal indicates whether outname will be part of the path
+    sk_path: "electrical.switch.ac.utility"
+    sk_literal: false
+
+    # "pullup|pulldown" for internal resistors
+    pullmode: "pullup"
+
+    # propagated values can be specified once at top level, for all input keys, or once at top level with key-level exceptions
+    propagate:
+        - sk_path
+        - pullmode
+        - sk_literal
+
+    # format is: pinnum: 
+    #              outname : myname
+    #              [sk_path: sk_pathstring]
+    #              [pullmode: {pullup|pulldown}]
+    inputs:
+        17:
+            outname: ZV
+        27:
+            outname: DHW
+        22:
+            outname: BLR
+        5:
+            outname: RCHL
+        6:
+            outname: LCHL
+        13:
+            outname: Y2ON
+        26:
+            outname: YOFF
+        16:
+            outname: Y2FAN
+        12:
+            outname: DEHUM
+
+
+pivac.OneWireTherm:
+    description: Reports the current values of all temperature sensors on the 1-wire bus
+    enabled: false
+
+    # options for mode are: "fahrenheit", "kelvin", or "celcius"
+    scale: "fahrenheit"
+
+    # value is number of desired digits right of decimal for a temp value; 0 gets you an int; -1 gets no rounding
+    rounding: 0
+
+    sk_path: environment.inside.hvac
+
+    propagate:
+        - sk_path
+        - rounding
+        - scale
+
+    # this is list of known sensors by ID, and the name mapping. If no mapping here, result will be named with the sensor ID
+    # sk_path, rounding, and scale be specified at sensor level. If not specified, top level value used.
+    inputs:
+        0516a36332ff:
+            outname: IN
+        0516a365d8ff:
+            outname: OUT
+        0316a00f04ff:
+            outname: CRW
+        0516a36816ff:
+            outname: AMB
+            sk_path: environment.outside.thermostat
+        0316a015e7ff:
+            outname: Unassigned
+
+pivac.TED5000:
+    description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
+    enabled: false
+    ipaddr: 192.168.1.124
+    sk_path: electrical.ac.ted5000
+
+    # takes the value at the specified path in LiveData.xml and returns it as the value for the specified name
+    # sk_path can be specified at input level
+    propagate:
+        - sk_path
+    inputs:
+        Power/MTU1/PowerNow:
+            outname: MainPanel
+        Power/MTU2/PowerNow:
+            outname: SubPanel
+        Power/MTU3/PowerNow:
+            outname: HVAC
+
+pivac.RedLink:
+    description: Reports thermostat info from mytotalconnectcomfort.com
+    enabled: false
+
+    # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
+    daemon_sleep: 2
+    
+    # website
+    site: "https://www.mytotalconnectcomfort.com/portal"
+    
+    # determines whether thermostat detail is browsed and scraped
+    verbose: false
+
+    # credentials
+    uid: xxx
+    pwd: xxx
+
+    inputs:
+        thermostat:
+            sk_path: environment.inside.thermostat
+        outdoor_sensor:
+            sk_path: environment.outside.thermostat
+pivac.FlirFX:
+    description: Reports temperature and humidity data from a FLIRfx camera
+    enabled: false
+    daemon_sleep: 5
+
+    inputs:
+        # IP address of camera
+        192.168.2.79:
+            # if fake is true, insert dummy values instead of calling camera
+            fake: true
+
+            # put values here
+            sk_path: environment.inside.temperature
+
+            # change to your password
+            pwd: 'xxxxxxx'
+
+            # options for mode are: "fahrenheit", "kelvin", or "celcius"
+            scale: "fahrenheit"

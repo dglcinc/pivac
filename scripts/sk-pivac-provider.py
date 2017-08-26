@@ -26,7 +26,8 @@ except:
     logger.exception("pivac package not in python path; trying safeimport.")
 
 #load config from config file
-config = pivac.config()
+cfgfile = os.getenv("PIVAC_CFG", "")
+config = pivac.config(cfgfile)
 packages = config["packages"]
 
 # get list of modules in pivac that implement status()
@@ -47,7 +48,7 @@ for i in pkglist:
 
 parser = argparse.ArgumentParser(description=argdesc, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument("stype", nargs="+", choices=pkglist, help="Specify source module(s) for JSON data (from %s); recommend one per invocation due to differing module processing times" % config["sourcefile"])
-parser.add_argument("--loglevel", choices=["DEBUG", "WARNING", "INFO", "ERROR", "CRITICAL"], default="WARNING", help="set logger debug level")
+parser.add_argument("--loglevel", choices=["DEBUG", "WARNING", "INFO", "ERROR", "CRITICAL"], default="ERROR", help="set logger debug level; default is ERROR")
 parser.add_argument("--output", choices=["default","signalk"], default="default", help="specify format of JSON written to stdout; default is 'default'")
 parser.add_argument("--format", choices=["compact","pretty"], default="compact", help="specify whether output should be pretty-printed; default is 'compact'")
 parser.add_argument("--daemon", action="store_true", default=False,  help="run forever in a while loop; sleeptime is set in %s; if more than one input module default is used" % config["sourcefile"])

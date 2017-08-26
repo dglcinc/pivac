@@ -28,29 +28,25 @@ def status(config = {}, output="default"):
     result = {}
     dnames = {}
 
-    if "rounding" in config:
-        round_digits = config["rounding"]
-
     # not an error if no sensors specified, you just won't get pretty names
-    if "sensors" in config:
-        dnames = config["sensors"]
+    if "inputs" in config:
+        dnames = config["inputs"]
+    for s in sensors:
+        if s.id not in dnames:
+            dnames[s.id] = {}
+    from pivac import propagate_defaults
+    logger.debug("before prop: %s" % dnames)
+    propagate_defaults(config, dnames, config["propagate"])
+    logger.debug("after prop: %s" % dnames)
 
     # prep for signalk output
     if output == "signalk":
         logger.debug("prepping sk output...")
-        from pivac import sk_init_deltas, sk_add_delta
-        dpath = ""
-        dformatted = False
+        from pivac import sk_init_deltas, sk_add_source, sk_add_value
         deltas = sk_init_deltas()
+        sk_source = sk_add_source(deltas)
 
-        # get signalk default format, if any
-        if "sk_formatted" in config:
-            dpath = config["sk_formatted"]
-            dformatted = True
-        elif "sk_literal" in config:
-            dpath = config["sk_literal"]
-        logger.debug("dpath = %s(%d)" % (dpath, dformatted))
-
+    logger.debug("sensors = %s" % sensors)
     for sensor in sensors:
         temp = 0
         sname = ""
@@ -58,59 +54,33 @@ def status(config = {}, output="default"):
         # read the sensor and prep for output (both types)
         temp_type = DEG_FAHRENHEIT
         temps = { "fahrenheit": DEG_FAHRENHEIT, "celsius": DEG_CELSIUS, "kelvin": DEG_KELVIN }
-        if "scale" in config and config["scale"] in temps:
-            temp_type = temps[config["scale"]]
+        if "scale" in dnames[sensor.id] and config["scale"] in temps:
+            temp_type = temps[dnames[sensor.id]["scale"]]
 
-        if temp_type == DEG_CELSIUS:
-            thermtemp = sensor.get_temperature(W1ThermSensor.DEGREES_C)
-        elif temp_type == DEG_KELVIN:
+        if output == "signalk" or temp_type == DEG_KELVIN:
             thermtemp = sensor.get_temperature(W1ThermSensor.KELVIN)
+        elif temp_type == DEG_CELSIUS:
+            thermtemp = sensor.get_temperature(W1ThermSensor.DEGREES_C)
         else:
             thermtemp = sensor.get_temperature(W1ThermSensor.DEGREES_F)
         logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
 
-        if sensor.id in dnames and "name" in dnames[sensor.id]:
-            sname = dnames[sensor.id]["name"]
+        if sensor.id in dnames and "outname" in dnames[sensor.id]:
+            sname = dnames[sensor.id]["outname"]
         else:
             # this will add a new member to the dict with the name of the sensor
             sname = sensor.id
 
+        round_digits = dnames[sensor.id]["rounding"]
         if round_digits == 0:
             result[sname] = int(round(thermtemp,0))
         elif round_digits > 0:
             result[sname] = round(thermtemp,round_digits)
         else:
             result[sname] = thermtemp
-
         if output == "signalk":
-            kpath = ""
-            kformatted = False
-            
-            # if there is config for this sensor, get it
-            if sensor.id in dnames:
-                if "sk_formatted" in dnames[sensor.id]:
-                    kformatted = True
-                    kpath = dnames[sensor.id]["sk_formatted"]
-                elif "sk_literal" in dnames[sensor.id]:
-                    kpath = dnames[sensor.id]["sk_literal"]
-            logger.debug("kpath = %s(%d) - sensor %s, name %s" % (kpath, kformatted, sensor.id, sname))
-
-            # set output values, favoring sensor-specific if found
-            opath = dpath
-            oformatted = dformatted
-            if len(kpath):
-                opath = kpath
-                oformatted = kformatted
-            if len(opath) == 0:
-                logger.exception("No signalk path specified for output")
-                raise ValueError
-            logger.debug("opath = %s(%d)" % (opath, oformatted))
-
             # output delta
-            if oformatted:
-                sk_add_delta(deltas, opath % sname, result[sname])
-            else:
-                sk_add_delta(deltas, opath, result[sname])
+            sk_add_value(sk_source, "%s.%s" % (dnames[sensor.id]["sk_path"], sname), result[sname])
 
     if output == "signalk":
         logger.debug(deltas)

@@ -1,0 +1,22 @@
+# The name of each section is the name of the module it configures.
+# if a section is absent (commented out), or enabled is present and set to false, the module will not be used.
+
+pivac.FlirFX:
+    description: Reports temperature and humidity data from a FLIRfx camera
+    enabled: true
+    daemon_sleep: 5
+
+    inputs:
+        # IP address of camera
+        192.168.2.79:
+            # if fake is true, insert dummy values instead of calling camera
+            fake: true
+
+            # put values here
+            sk_path: environment.inside.temperature
+
+            # change to your password
+            pwd: 'xxxxxxx'
+
+            # options for mode are: "fahrenheit", "kelvin", or "celcius"
+            scale: "fahrenheit"

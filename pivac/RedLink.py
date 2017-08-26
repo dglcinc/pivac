@@ -50,6 +50,7 @@ def status(config={}, output="default"):
         homepage = config["website"]
     else:
         homepage = HOMEPAGE
+
     if not "uid" in config or not "pwd" in config:
         logger.error("Credentials not specified in config file.")
         raise ValueError
@@ -113,9 +114,21 @@ def status(config={}, output="default"):
     # on first success, reset retry loop
     retrying = 0
 
+    if output == "signalk":
+        logger.debug("Composing signalk output...")
+        from pivac import sk_init_deltas, sk_add_source, sk_add_value
+        deltas = sk_init_deltas()
+        sk_source = sk_add_source(deltas)
+        statenums = {
+            "heat": 1,
+            "cool": -1,
+            "fan": 0.5,
+            "off": 0
+        }
     verbose = False
     if "verbose" in config:
         verbose = config["verbose"]
+
     if verbose == True:
         logger.debug("Verbose mode...")
         # get stat list out of the home page
@@ -137,17 +150,27 @@ def status(config={}, output="default"):
                 if stat != []:
                     sstat = stat[0]
                 sdict = dict(statdata)
-                result[s] = {
-                    "name": sname,
-                    "temp": float(sdict["dispTemperature"]),
-                    "hum": float(sdict["indoorHumidity"]),
-                    "status": status_map[sstat],
-                    "heatset": int(float(sdict["heatSetpoint"])),
-                    "coolset": int(float(sdict["coolSetpoint"])),
-                    "rawdata": sdict
-                }
-                # there is no way to get this from the outdoor sensor so it is set by every stat...
-                result["outhum"] = float(sdict["outdoorHumidity"])
+                if output == "signalk":
+                    fname = re.sub(r"[\s+]", '_', sname)
+                    sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["dispTemperature"])))
+                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["indoorHumidity"])))
+                    sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), status_map[sstat])
+                    sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[status_map[sstat]])
+                    sk_add_value(sk_source, "%s.%s.heatset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["heatSetpoint"])))
+                    sk_add_value(sk_source, "%s.%s.coolset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["coolSetpoint"])))
+                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["outdoor_sensor"]["sk_path"], fname), int(float(sdict["outdoorHumidity"])))
+                else:
+                    result[s] = {
+                        "name": sname,
+                        "temp": float(sdict["dispTemperature"]),
+                        "hum": float(sdict["indoorHumidity"]),
+                        "status": status_map[sstat],
+                        "heatset": int(float(sdict["heatSetpoint"])),
+                        "coolset": int(float(sdict["coolSetpoint"])),
+                        "rawdata": sdict
+                    }
+                    # there is no way to get this from the outdoor sensor so it is set by every stat...
+                    result["outhum"] = float(sdict["outdoorHumidity"])
     
     #            logger.debug("stat = %s %s %s" % (sname, sstat, sdict))
                 br.open(homepage)
@@ -185,7 +208,15 @@ def status(config={}, output="default"):
                         stat["status"] = "heat"
                     if "fanOnIcon" in f["class"] and f["style"] == "":
                         stat["status"] = "fan"
-            result[e["data-id"]] = stat
+            if output == "signalk":
+                fname = re.sub(r"[\s+]", '_', stat["name"])
+                sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["temp"])
+                sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["hum"])
+                sk_add_value(sk_source, "%s.%s.redlinkid" % (config["inputs"]["thermostat"]["sk_path"], fname), e["data-id"])
+                sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["status"])
+                sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[stat["status"]])
+            else:
+                result[e["data-id"]] = stat
             laststat = e["data-id"]
         try:
             logger.debug("getting outdoor humidity")
@@ -203,36 +234,6 @@ def status(config={}, output="default"):
             logger.exception("Error scraping stat page")
 
     if output == "signalk":
-        logger.debug("Composing signalk output...")
-        from pivac import sk_init_deltas, sk_add_delta
-        deltas = sk_init_deltas()
-
-        if "outhum" in result and "sk_outdoor_path" in config:
-            sk_add_delta(deltas,"%s.humidity" % config["sk_outdoor_path"], result["outhum"])
-        else:
-            logger.debug("Outdoor humidity not output for signalk, data or path not present")
-
-        for s in result.keys():
-            if s == "outhum":
-                continue
-            fname = re.sub(r"[\s+]", '_', result[s]["name"])
-#                logger.debug("fname = %s" % fname)
-            sk_add_delta(deltas, "%s.%s.temperature" % (config["sk_stat_path"], fname), result[s]["temp"])
-            sk_add_delta(deltas, "%s.%s.humidity" % (config["sk_stat_path"], fname), result[s]["hum"])
-            sk_add_delta(deltas, "%s.%s.redlinkid" % (config["sk_stat_path"], fname), s)
-            sk_add_delta(deltas, "%s.%s.state" % (config["sk_stat_path"], fname), result[s]["status"])
-            if "coolset" in result[s]:
-                sk_add_delta(deltas, "%s.%s.coolset" % (config["sk_stat_path"], fname), result[s]["coolset"])
-            if "heatset" in result[s]:
-                sk_add_delta(deltas, "%s.%s.heatset" % (config["sk_stat_path"], fname), result[s]["heatset"])
-
-            statenums = {
-                "heat": 1,
-                "cool": -1,
-                "fan": 0.5,
-                "off": 0
-            }
-            sk_add_delta(deltas, "%s.%s.statenum" % (config["sk_stat_path"], fname), statenums[result[s]["status"]])
         return deltas
-
-    return result
+    else:
+        return result
