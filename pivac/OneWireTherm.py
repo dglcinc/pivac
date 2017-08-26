@@ -80,7 +80,10 @@ def status(config = {}, output="default"):
             result[sname] = thermtemp
         if output == "signalk":
             # output delta
-            sk_add_value(sk_source, "%s.%s.temperature" % (dnames[sensor.id]["sk_path"], sname), result[sname])
+            if not dnames[sensor.id]["sk_literal"]:
+                sk_add_value(sk_source, "%s.%s.temperature" % (dnames[sensor.id]["sk_path"], sname), result[sname])
+            else:
+                sk_add_value(sk_source, "%s.temperature" % dnames[sensor.id]["sk_path"], result[sname])
 
     if output == "signalk":
         logger.debug(deltas)

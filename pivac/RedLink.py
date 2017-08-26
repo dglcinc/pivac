@@ -265,7 +265,10 @@ def status(config={}, output="default"):
             statdata = conciseStatData_prog.findall(stattext)
             sdict = dict(statdata)
 
-            result["outhum"] = float(sdict["outdoorHumidity"])
+            if output == "signalk":
+                sk_add_value(sk_source, "%s.humidity" % config["inputs"]["outdoor_sensor"]["sk_path"], int(float(sdict["outdoorHumidity"])))
+            else:
+                result["outhum"] = float(sdict["outdoorHumidity"])
         except:
             # too tricky to handle retries, just come back next time
             logger.exception("Error scraping stat page")

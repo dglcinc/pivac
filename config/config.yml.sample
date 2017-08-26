@@ -61,9 +61,11 @@ pivac.OneWireTherm:
     rounding: 0
 
     sk_path: environment.inside.hvac
+    sk_literal: false
 
     propagate:
         - sk_path
+        - sk_literal
         - rounding
         - scale
 
@@ -79,6 +81,7 @@ pivac.OneWireTherm:
         0516a36816ff:
             outname: AMB
             sk_path: environment.outside.thermostat
+            sk_literal: true
         0316a015e7ff:
             outname: Unassigned
 
