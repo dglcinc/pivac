@@ -5,13 +5,16 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+# Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
+with open(path.join(here, 'DESC.rst'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup (
   name='pivac',
-  version='0.6.0',
-  shortdesc='Raspberry Pi input utilities',
-  longdesc=read_file("DESC.rst"),
+  version='0.7.4',
+  description='Raspberry Pi input utilities',
+  long_description=long_description,
 
   url='https://github.com/dglcinc/pivac',
   license='MIT',
@@ -29,7 +32,7 @@ setup (
   packages=['pivac'],
   install_requires=['w1thermsensor','pytemperature','lxml','requests','mechanize','beautifulsoup4', 'PyYAML'],
 
-  scripts=['scripts/sk-provider.sh','scripts/sk-pivac-provider.sh','scripts/sk-pivac-provider.py'],
-  data_files=[('/etc/pivac', ['config/config.yml.sample'])],
+  scripts=['scripts/provider.sh','scripts/pivac-provider.sh','scripts/pivac-provider.py'],
+  data_files=[('/etc/pivac', ['config/config.yml.sample']),('/etc/pivac/signalk',['config/config.yml.flir','signalk/example_settings.json'])],
   python_requires='>=2.7'
 )
