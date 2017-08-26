@@ -10,7 +10,8 @@ here = path.abspath(path.dirname(__file__))
 setup (
   name='pivac',
   version='0.6.0',
-  description='Raspberry Pi input utilities',
+  shortdesc='Raspberry Pi input utilities',
+  longdesc=read_file("DESC.rst"),
 
   url='https://github.com/dglcinc/pivac',
   license='MIT',
