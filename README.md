@@ -7,20 +7,22 @@ Currently supported inputs include:
 * **GPIO**: Generic reads of RPi GPIO pins, pulled high or low using internal pullup resistors
 * **RedLink**: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
 * **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution.
+* **FlirFX**: Temperature and humidity from a FLIR camera
 
 The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
 
-The package provides each input individually, so you can pick and choose which ones you want.
+The package provides each input individually, so you can pick and choose which ones you want. Customization is possible via a configuration file.
 
 # Overview
-This package has the modest aspiration of making it easier to solve a certain class of monitoring (and eventually control) use cases for Raspberry Pi based projects, by providing pre-built recipes for acquiring data in common HVAC and home automation use cases, and emitting readings in JSON format. It has no aspirations to replace more general RPi packages like GPIO and w1Therm (in fact it is built on top of them). Examples of downstream use:
+This package has the modest aspiration of simplifying a certain class of monitoring (and eventually control) use cases for Raspberry Pi based projects, by providing pre-built recipes for acquiring data, and emitting the data in JSON format. It has no aspirations to replace more general RPi packages like GPIO and w1Therm (in fact it is built on top of them). Examples cases using JSON data:
 
 * Delivering a status website on your RPi, available on your local network
 * Modeling your RPi as an Amazon Web Services (AWS) IOT "thing", uploading your data as thing shadow "updates", and using AWS Lambdas to do stuff (store data, render static websites, etc.)
 * Inputting data to a [Signal K](http:/www.signalk.org) server running on your RPi, and leveraging the Signal K ecosystem to process and display your data
+* Capturing a time series collection of the data in a database such as InfluxDB, and analyzing in a charting tool such as Grafana
 
 ## Standard call interface, Diverse inputs, JSON output
-The core concept of this package is simple - go get some data from somewhere related to your use case (a piece of HVAC equipment or a home automation product website) and return it as a JSON-formatted data collection. You can then reformat it and deliver it in a number of different ways. A standard call interface makes it easy to add new modules for new input types.
+The core concept of this package is simple - go get some data from somewhere related to your use case (a piece of HVAC equipment or a home automation product website) and return it as a JSON-formatted data collection. You can then reformat it and deliver it in a number of different ways. A standard call interface and configuration file format makes it easy to add new modules for new input types.
 
 ## Why Python?
 What can I say, I like Python. It's easy and fun to write some pretty fancy stuff. And supposedly it's [where the Pi in Raspberry Pi comes from](https://www.techspot.com/article/531-eben-upton-interview/) (Pi-thon, get it?).
@@ -33,7 +35,8 @@ Ambitious contributors/forkers who like the RPi model and also have more need fo
 ## Why polling of the GPIO pins, rather than events?
 * It's simpler
 * I want to store time series data without interpolating
-* It makes it easy to dis-connect and reconnect to your aggregator and still see the complete picture of current state
+* It makes it easy to disconnect and reconnect to your aggregator and still see the complete picture of current state
+
 I suppose you could do some work to optimize by only generating output when state changes, but that gets a lot more complicated and I don't really see the benefit for my use case, so I didn't do it.
 
 ## Why not control too, not just monitoring?
@@ -52,44 +55,70 @@ My original project delivered the JSON from my data sources into a python script
 I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. The current version of [HVAC-pi](https://github.com/dglcinc/HVAC-pi) includes a [script](https://github.com/dglcinc/HVAC-pi/blob/master/sk-sensor-emit.py) that outputs Signal K deltas, for use with an execute provider. A separate repository will be launched shortly to generify this mechanism.
 
 # Installing the Package
+The package is published to PyPi, so you can install it with the following:
 
 ```
-<pip instructions forthcoming>
-<setup.py install instructions forthcoming>
-<config file editing instructions forthcoming>
+sudo pip install pivac
+
 ```
+If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac). The scripts and config will work properly using the local repository directory as the launch point.
+
+## Configuring the Package
+The only required configuration is to edit the /etc/pivac/config.yml file to reflect the modules and configuration you want to use. A complete, commented sample is provided as /etc/pivac/config.yml.sample.
+
+Each top level key in the config file is an actual Python package name, so if you create your own Python packages and name them in the config file, they will be used by the package and the scripts.
 
 # Using the Package
-The pivac package contains the following modules:
+
+Once the configuration file is set up, the easiest way to use the package is to use the scripts, which will be installed in /usr/local/bin unless you opt to clone the git repository:
+
+## The Scripts
+
+* **`pivac-provider.py`** - provides a variety of options for input, output, and formatting. --help option arguments and script behavior are dynamically configured using the contents of the configuration file. The --help option provides detailed documentation on how to use the script.
+* **`pivac-provider.sh`** - a wrapper for the .py script, that restarts it if it fails (e.g. when running with --daemon option) (this script execs to provider.sh and inherits its behavior).
+* **`provider.sh`** - a generic wrapper script that restarts a script if it fails, and catches the SIGHUP signal (kill -1) to restart the script. A standard kill (SIGINT) will stop the wrapper and the script.
+
+## The Modules
+The pivac package currently contains the following modules:
 
 * GPIO
 * OneWireTherm
 * TED5000
 * RedLink
+* FlirFX
 
-Each module can be included individually in your project. Each module supports one interface method, status(), which outputs a JSON object containing JSON state specific to the target being reported on, as follows:
+## Initialization
+* **`pivac.set_config(configfile="")`**: This method must be called before using any of the modules. It locates and reads the config file, first in `/etc/pivac/config.yml` then in `config/config.yml` relative to the parent directory of the scripts, if you do not specify it. Returns the `config` dictionary. This currently can only be set once, because the data read from the config file is used to load modules by the `pivac-provider.py` script. If you attempt to set again it will return the current config dict.
 
-* **`GPIO.status()`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
+* **`pivac.get_config()`**: Returns the config dictionary read from the config file.
+
+* **`[module].status(config={}, output="default")`**: Each module implements (at least) this method, and can be used individually in your project. Each module supports one interface method, status(). Status takes two arguments - a dictionary containing the configuration for the module read from the configuration file, and a string indicating the output type. outputs a JSON object containing JSON state specific to the target being reported on, as follows:
+
+## GPIO
+* **`GPIO.status(config={}, output="default")`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
 	* For pins configured with pull-down resistors, "on" or "true" means the pin is attached to voltage.
 	* The module configuration file provides options for specifying pull-up or pull-down, as well as names to map pins to in the JSON output.
-	* For pins configured with pull-up resistors, "on" or "true" means the pin is attached to ground. Example:
+	* For pins configured with pull-up resistors, "on" or "true" means the pin is attached to ground. 
+
+Example output using the sample yml file with `python pivac-provider.py pivac.GPIO --format "pretty"`:
 
 ```
 {
     "Y2ON": false, 
     "DEHUM": false, 
     "RCHL": false, 
-    "BLR": false, 
+    "BLR": true, 
     "DHW": false, 
     "Y2FAN": false, 
-    "ZV": false, 
+    "ZV": true, 
     "YOFF": false, 
     "LCHL": false
 }
 ```	
 
+##OneWireTherm
 
-* **`OneWireTherm.status(temp_type=DEG_FAHRENHEIT, round_digits=0)`**: the module will return the current temperature reported by every sensor on the 1-wire bus. `temp_type` can be `DEG_FAHRENHEIT`, `DEG_CELCIUS`, or `DEG_KELVIN`. `round_digits` indicates how many digits to the right of the decimal you would like in the result. If `round_digits` is `0`, the result will be an `int`. If `round_digits` is `-1`, no rounding will occur. Example (using defaults):
+* **`OneWireTherm.status(config={}, output="default")`**: the module will return the current temperature reported by every sensor on the 1-wire bus. Options in the config file allow you to assign names, and specify a temperature scale and rounding. Example output using the sample yml file with `python pivac-provider.py pivac.OneWireTherm --format "pretty"`:
 
 ```
 {
@@ -99,19 +128,20 @@ Each module can be included individually in your project. Each module supports o
     "IN": 40
 }
 ```
+##TED5000
 
-* **`TED5000.status()`**: Returns JSON for the current PowerNow values of MTUs 1-4 from the URL `<my_ted_gateway_ip_or_hostname>/LiveData.xml`. All TED data is available; if you want more, modify this script. Example:
+* **`TED5000.status()`**: Returns JSON for the current PowerNow values of MTUs 1-4 from the URL `<my_ted_gateway_ip_or_hostname>/LiveData.xml`. All TED data is available; The configuration file allows you to specify any path from the `LiveData.xml` url using an XPath-style path, and the "friendly" name it should be mapped to. Example output using the sample yml file with `python pivac-provider.py pivac.TED5000 --format "pretty"`:
 
 ```
 {
-    "MTU1": 1161, 
-    "MTU2": 398, 
-    "MTU3": 30, 
-    "MTU4": 0
+    "MainPanel": 1161, 
+    "SubPanel": 398, 
+    "HVAC": 30
 }
 ```
+##RedLink
 
-* **`Redlink.status(verbose=False)`**: Returns the current temperature, humidity, status, and name (as set on the thermostat) for every thermostat associated with the location defined on mytotalconnectcomfort.com. Temperature will be defined as on the thermostat. Humidity will be a whole number. Status will be one of "cool", "heat", "fanOn", or "off". Outdoor humidity is returned as "outhum". The key for each object is the thermostat identifier used in the RedLink registry. `verbose = True` causes the scraper to navigate to the sub-page for each thermostat, collect all available detailed data like setpoints, and return it as a nested JSON object for each thermostat; this option is slower, so don't use it unless you need it. Example (`verbose=False`):
+* **`Redlink.status(verbose=False)`**: Returns the current temperature, humidity, status, and name (as set on the thermostat) for every thermostat associated with the location defined on mytotalconnectcomfort.com. Temperature will be defined as on the thermostat. Humidity will be a whole number. Status will be one of "cool", "heat", "fanOn", or "off". Outdoor humidity is returned as "outhum". The key for each object is the thermostat identifier used in the RedLink registry. `verbose = True` causes the scraper to navigate to the sub-page for each thermostat, collect all available detailed data like setpoints, and return it as a nested JSON object for each thermostat; this option is slower, so don't use it unless you need it. Example output using the sample yml file with `python pivac-provider.py pivac.RedLink --format "pretty"`:
 
 ```
 {
@@ -148,7 +178,18 @@ Each module can be included individually in your project. Each module supports o
     }
 }
 ```
+##FlirFX
+The FLirFX module lets you collect temperature and humidity data from a FLIR camera. The config file format allows you to specify multiple cameras (inputs) and your login credentials. Example output using the sample yml file with `python pivac-provider.py pivac.FlirFX --format "pretty"`:
 
+```
+{
+  "192.168.2.79": {
+    "temperature": 67.98, 
+    "humidity": 49
+  }
+}
+
+```
 # Example Project
 The goal of my RPi project was to create a simple app (single responsive HTML dashboard) that allows me to monitor my HVAC system. It pulls data from four sources:
 
@@ -192,3 +233,5 @@ This code makes a number of assumptions, so if your personal use is different, y
 * The thermostats will report additional properties such as setpoint. These are output in the JSON as a nested JSON object.
 * The website supports the ability to change thermostat settings (setpoint, mode, etc.) This library does not currently implement that feature. You will need to change the scraping code.
 * Mechanize has its History object set to NoHistory in the code. Keep in mind if you change this, the history will cause the process to grow and eventually crash your RPi. If you do this, make sure you periodically call Browser's clear_history() method.
+
+There is a site that provides an undocumented way to access Honeywell's REST API interface, [here](http://dirkgroenen.nl/projects/2016-01-15/honeywell-API-endpoints-documentation/).
