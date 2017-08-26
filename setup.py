@@ -12,7 +12,7 @@ with open(path.join(here, 'DESC.rst'), encoding='utf-8') as f:
 
 setup (
   name='pivac',
-  version='0.7.4',
+  version='0.7.5',
   description='Raspberry Pi input utilities',
   long_description=long_description,
 
