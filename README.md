@@ -70,7 +70,7 @@ sudo python setup.py install
 If you prefer not to install or sudo, the scripts and config will work properly using the local repository directory as the launch point.
 
 ## Configuring the Package
-The only required configuration is to edit the /etc/pivac/config.yml file to reflect the modules and configuration you want to use. A complete, commented sample is provided as /etc/pivac/config.yml.sample.
+The only required configuration is to edit the /etc/pivac/config.yml file (or config/config.yml if you are running locally) to reflect the modules and configuration you want to use. A complete, commented sample is provided as /etc/pivac/config.yml.sample.
 
 Each top level key in the config file is an actual Python package name, so if you create your own Python packages and name them in the config file, they will be used by the package and the scripts.
 
