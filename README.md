@@ -55,13 +55,19 @@ My original project delivered the JSON from my data sources into a python script
 I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. The current version of [HVAC-pi](https://github.com/dglcinc/HVAC-pi) includes a [script](https://github.com/dglcinc/HVAC-pi/blob/master/sk-sensor-emit.py) that outputs Signal K deltas, for use with an execute provider. A separate repository will be launched shortly to generify this mechanism.
 
 # Installing the Package
-The package is published to PyPi, so you can install it with the following:
+The package is published to PyPi, so you can install it with the following [note: package not uploaded to public PyPi yet, clone the repository and use setup.py]:
 
 ```
 sudo pip install pivac
 
 ```
-If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac). The scripts and config will work properly using the local repository directory as the launch point.
+If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac), cd to the clone directory, and:
+
+'''
+sudo python setup.py install
+'''
+
+If you prefer not to install or sudo, the scripts and config will work properly using the local repository directory as the launch point.
 
 ## Configuring the Package
 The only required configuration is to edit the /etc/pivac/config.yml file to reflect the modules and configuration you want to use. A complete, commented sample is provided as /etc/pivac/config.yml.sample.
@@ -92,7 +98,18 @@ The pivac package currently contains the following modules:
 
 * **`pivac.get_config()`**: Returns the config dictionary read from the config file.
 
-* **`[module].status(config={}, output="default")`**: Each module implements (at least) this method, and can be used individually in your project. Each module supports one interface method, status(). Status takes two arguments - a dictionary containing the configuration for the module read from the configuration file, and a string indicating the output type. outputs a JSON object containing JSON state specific to the target being reported on, as follows:
+* **`[module].status(config={}, output="default")`**: Each module implements (at least) this method, and can be used individually in your project. Each module supports one interface method, status(). Status takes two arguments - a dictionary containing the configuration for the module read from the configuration file, and a string indicating the output type. outputs a JSON object containing JSON state specific to the target being reported on, as described in the sections below:
+
+### Configuration of RPi modbus OneWireTherm
+In order to use the OneWireTherm module, you need to enable the OneWire RPi driver. You can do this in either the GUI system configuration (if you're using the desktop) or on the command line:
+
+'''
+sudo raspi-config
+[select "Interfacing Options]
+[select "1-Wire]
+[select "<Yes>"]
+exit
+'''
 
 ## GPIO
 * **`GPIO.status(config={}, output="default")`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
