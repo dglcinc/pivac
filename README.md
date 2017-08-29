@@ -63,9 +63,9 @@ sudo pip install pivac
 ```
 If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac), cd to the clone directory, and:
 
-'''
+```
 sudo python setup.py install
-'''
+```
 
 If you prefer not to install or sudo, the scripts and config will work properly using the local repository directory as the launch point.
 
@@ -103,13 +103,13 @@ The pivac package currently contains the following modules:
 ### Configuration of RPi modbus OneWireTherm
 In order to use the OneWireTherm module, you need to enable the OneWire RPi driver. You can do this in either the GUI system configuration (if you're using the desktop) or on the command line:
 
-'''
+```
 sudo raspi-config
 [select "Interfacing Options]
 [select "1-Wire]
 [select "<Yes>"]
 exit
-'''
+```
 
 ## GPIO
 * **`GPIO.status(config={}, output="default")`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
