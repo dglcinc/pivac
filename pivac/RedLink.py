@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 # maintain session after site is loaded as module-level globals
 logged_in = False
-retry_count = 5
 locationId = ""
 locationId_prog = re.compile("GetZoneListData\?locationId=([0-9][0-9]*)&")
 statsId_prog = re.compile("data-id=\"([0-9][0-9]*)\"")
@@ -45,6 +44,33 @@ def init_site():
         cj = cookielib.CookieJar()
         br = mechanize.Browser(history=NoHistory())
         br.set_cookiejar(cj)
+        br.set_handle_equiv(True)
+        br.set_handle_gzip(True)
+        br.set_handle_redirect(True)
+        br.set_handle_referer(True)
+        br.set_handle_robots(False)
+        br.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.8'),
+            ('Referer', 'https://www.mytotalconnectcomfort.com/portal/?timeout=True'),
+            ('Connection', 'keep-alive'),
+            ('Origin', 'https://www.mytotalconnectcomfort.com'),
+            ('Accept-Language', 'en-us')]
+        br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
+        if logger.getEffectiveLevel() == logging.DEBUG:
+            # turn on mechanize debugging
+            br.set_debug_http(True)
+            br.set_debug_redirects(True)
+            br.set_debug_responses(True)
+
+            # disable ssl cert verification (to allow use of charles)
+            import ssl
+            try:
+                _create_unverified_https_context = ssl._create_unverified_context
+            except AttributeError:
+                # Legacy Python that doesn't verify HTTPS certificates by default
+                pass
+            else:
+                # Handle target environment that doesn't support HTTPS verification
+                ssl._create_default_https_context = _create_unverified_https_context
 
     except:
         logger.exception("Error prepping Redlink scrape")
@@ -53,7 +79,7 @@ def init_site():
 init_site()
 
 def status(config={}, output="default"):
-    global logged_in, retry_count
+    global logged_in
     global locationId, locationId_prog
     global statsId_prog, statsData_prog, status_prog
     global cj, br
@@ -143,6 +169,7 @@ def status(config={}, output="default"):
                 linktext = "/portal/Device/Control/%s?page=1" % s
     #            logger.debug("link text = %s" % linktext)
                 link = br.find_link(url=linktext)
+                br.click_link(link)
                 response = br.follow_link(link)
                 stattext = response.read()
                 statdata = statsData_prog.findall(stattext)
@@ -156,14 +183,14 @@ def status(config={}, output="default"):
 
                 if config["scale"] == "fahrenheit":
                     scale = "fahrenheit"
-                    ktemp = pytemperature.f2k(sdict["dispTemperature"])
-                    if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "celsius":
+                    ktemp = pytemperature.f2k(float(sdict["dispTemperature"]))
+                    if s in config["inputs"] and config["inputs"][s]["scale"] == "celsius":
                         scale = "celsius"
-                        ktemp = pytemperature.c2k(sdict["dispTemperature"])
+                        ktemp = pytemperature.c2k(float(sdict["dispTemperature"]))
                 else:
                     scale = "celsius"
                     ktemp = pytemperature.c2k(sdict["dispTemperature"])
-                    if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "fahrenheit":
+                    if s in config["inputs"] and config["inputs"][s]["scale"] == "fahrenheit":
                         scale = "fahrenheit"
                         ktemp = pytemperature.f2k(sdict["dispTemperature"])
 
