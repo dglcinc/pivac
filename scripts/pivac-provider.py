@@ -51,18 +51,23 @@ parser.add_argument("stype", nargs="+", choices=pkglist, help="Specify source mo
 parser.add_argument("--loglevel", choices=["DEBUG", "WARNING", "INFO", "ERROR", "CRITICAL"], default="ERROR", help="set logger debug level; default is ERROR")
 parser.add_argument("--output", choices=["default","signalk"], default="default", help="specify format of JSON written to stdout; default is 'default'")
 parser.add_argument("--format", choices=["compact","pretty"], default="compact", help="specify whether output should be pretty-printed; default is 'compact'")
-parser.add_argument("--daemon", action="store_true", default=False,  help="run forever in a while loop; sleeptime is set in %s; if more than one input module default is used" % config["sourcefile"])
+parser.add_argument("--daemon", nargs="?", default=0, type=int, help="run forever in a while loop; sleeptime is set in %s; if more than one input module default is used" % config["sourcefile"])
 args = parser.parse_args()
 logging.debug("Arguments = %s" % args)
- 
+
 # Remove all handlers associated with the root logger object, to set final format and log level
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
 logging.basicConfig(format='%(name)s %(levelname)s:%(asctime)s %(message)s',datefmt='%m/%d/%Y %I:%M:%S',level=args.loglevel)
+logger = logging.getLogger(__name__)
+logger.debug("Arguments = %s" % args)
 
-logging.debug("Arguments = %s" % args)
-
+loopcount = args.daemon
+if args.daemon == None:
+    loopcount = -1
+logger.debug("Loopcount = %d", loopcount)
+ 
 # load referenced packages (loading here since below is in while loop)
 modfuncs = {}
 for p in args.stype:
@@ -95,7 +100,7 @@ while 1:
             print(json.dumps(data))
             sys.stdout.flush()
 
-    if args.daemon == True:
+    if loopcount != 0:
         if sleepytime < 0:
             sleepytime = 0.5
             if len(args.stype) == 1:
@@ -103,5 +108,7 @@ while 1:
                     sleepytime = packages[args.stype[0]]["daemon_sleep"]
         logger.debug("sleepytime = %f" % sleepytime)
         time.sleep(sleepytime)
-    else:
+        if loopcount > 0:
+            loopcount = loopcount - 1
+    if loopcount == 0:
         sys.exit()

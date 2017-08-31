@@ -11,9 +11,7 @@ import pytemperature
 logger = logging.getLogger(__name__)
 
 # maintain session after site is loaded as module-level globals
-site_ready = False
 logged_in = False
-retrying = 0
 retry_count = 5
 locationId = ""
 locationId_prog = re.compile("GetZoneListData\?locationId=([0-9][0-9]*)&")
@@ -29,18 +27,33 @@ status_map = {
     "off": "off"
 }
 HOMEPAGE = "https://www.mytotalconnectcomfort.com/portal"
+cj = None
+br = None
 
-try:
-    cj = cookielib.CookieJar()
-    br = mechanize.Browser()
-    br.set_cookiejar(cj)
-    site_ready = True
+# prevent browser class from saving history
+class NoHistory(object):
+    def add(self, *a, **k): pass
+    def clear(self): pass
 
-except:
-    logger.exception("Error prepping Redlink scrape")
+def init_site():
+    global cj, br
+    global logged_in
+    logged_in = False
+
+    try:
+        logger.debug("Initializing mechanize...")
+        cj = cookielib.CookieJar()
+        br = mechanize.Browser(history=NoHistory())
+        br.set_cookiejar(cj)
+
+    except:
+        logger.exception("Error prepping Redlink scrape")
+    return
+
+init_site()
 
 def status(config={}, output="default"):
-    global site_ready, logged_in, retrying, retry_count
+    global logged_in, retry_count
     global locationId, locationId_prog
     global statsId_prog, statsData_prog, status_prog
     global cj, br
@@ -58,62 +71,51 @@ def status(config={}, output="default"):
 
     # log in to mytotalconnectcomfort.com
     # NOTE: this code currently only works if you only have one location defined...
-    if site_ready:
-        stats_page = ""
-        try:
-            if logged_in == False:
-                logger.debug("Not logged in; logging in...")
-                response = br.open(homepage)
+    stats_page = ""
+    try:
+        if logged_in == False:
+            logger.debug("Not logged in; logging in...")
+            response = br.open(homepage)
 
-                # sometimes we get an exception but still logged in...
-                stats_page = response.read()
-                if locationId_prog.findall(stats_page):
-                    logger.debug("Already logged in %s" % locationId)
-                    logged_in == True
-                else:
-                    logger.debug("filling login form...")
-                    try:
-                        br.select_form(nr=0)
-                    except:
-                        # try retsetting Mechanize
-                        logger.exception("form error on: %s" % hp.read())
-                        br = mechanize.Browser()
-                        cj = cookielib.CookieJar()
-                        br.set_cookiejar(cj)
-                        br.open(homepage)
-                        br.select_form(nr=0)
-                    br.form['UserName'] = config["uid"]
-                    br.form['Password'] = config["pwd"]
-                    response = br.submit()
-                    stats_page = response.read()
-                logger.debug("done logging in")
-                list = locationId_prog.findall(stats_page)
-                logger.debug("loclist= %s" % list)
-                locationId = list[0]
-                logger.debug("locationId=%s" % locationId)
+            # sometimes we get an exception but still logged in...
+            stats_page = response.read()
+            if locationId_prog.findall(stats_page):
+                logger.debug("Already logged in %s" % locationId)
                 logged_in = True
             else:
-                refresh_link = homepage
-                logger.debug("Refresh link = %s" % refresh_link)
-                response = br.open(refresh_link)
+                logger.debug("filling login form...")
+                try:
+                    br.select_form(nr=0)
+                except:
+                    # try retsetting Mechanize
+                    logger.exception("form error on: %s" % stats_page)
+                    init_site()
+                    br.open(homepage)
+                    br.select_form(nr=0)
+                br.form['UserName'] = config["uid"]
+                br.form['Password'] = config["pwd"]
+                response = br.submit()
                 stats_page = response.read()
-#            logger.debug("Stats page = %s" % stats_page)
-        except:    
-            logger.exception("Error scraping MyTotalConnectComfort.com")
-            logger.debug("Failed on page: %s" % stats_page)
-            logged_in = False
-            
-            # recurse
-            if retrying < retry_count:
-                retrying += 1
-                result = status(config,output)
+            logger.debug("done logging in")
+            list = locationId_prog.findall(stats_page)
+            logger.debug("loclist= %s" % list)
+            if len(list):
+                locationId = list[0]
             else:
-                # reset for next time
-                retrying = 0
-            return result
-
-    # on first success, reset retry loop
-    retrying = 0
+                raise IOError
+            logger.debug("locationId=%s" % locationId)
+            logged_in = True
+        else:
+            refresh_link = homepage
+            logger.debug("Refresh link = %s" % refresh_link)
+            response = br.open(refresh_link)
+            stats_page = response.read()
+#            logger.debug("Stats page = %s" % stats_page)
+    except:    
+        logger.exception("Error scraping MyTotalConnectComfort.com")
+        logger.debug("Failed on page: %s" % stats_page)
+        init_site()
+        raise IOError
 
     if output == "signalk":
         logger.debug("Composing signalk output...")
@@ -194,6 +196,8 @@ def status(config={}, output="default"):
         except:
             # too tricky to handle retries, just come back next time
             logger.exception("Error scraping stat page")
+            init_site()
+            raise IOError
     else:
         logger.debug("concise mode")
         soup = BeautifulSoup(stats_page, "lxml")
@@ -272,6 +276,8 @@ def status(config={}, output="default"):
         except:
             # too tricky to handle retries, just come back next time
             logger.exception("Error scraping stat page")
+            init_site()
+            raise IOError
 
     if output == "signalk":
         return deltas
