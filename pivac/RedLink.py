@@ -130,13 +130,14 @@ def status(config={}, output="default"):
             else:
                 raise IOError
             logger.debug("locationId=%s" % locationId)
+            logger.debug("Stats page = %s" % stats_page)
             logged_in = True
         else:
             refresh_link = homepage
             logger.debug("Refresh link = %s" % refresh_link)
             response = br.open(refresh_link)
             stats_page = response.read()
-#            logger.debug("Stats page = %s" % stats_page)
+            logger.debug("Stats page = %s" % stats_page)
     except:    
         logger.exception("Error scraping MyTotalConnectComfort.com")
         logger.debug("Failed on page: %s" % stats_page)
@@ -229,8 +230,8 @@ def status(config={}, output="default"):
         logger.debug("concise mode")
         soup = BeautifulSoup(stats_page, "lxml")
         laststat = ""
-        for e in soup.find_all("tr", "gray-capsule pointerCursor"):
-#            logger.debug(str(e))
+        for e in soup.find_all("tr", attrs={'class': re.compile(r".*\capsule pointerCursor\b.*")}):
+            logger.debug("e = %s" %str(e))
             stat = {}
             stat["status"] = "off"
 
@@ -286,10 +287,14 @@ def status(config={}, output="default"):
             else:
                 result[e["data-id"]] = stat
             laststat = e["data-id"]
+            logger.debug("laststat = %s", laststat)
         try:
+            if not laststat:
+                logger.exception("No stats found")
+                raise IOError
             logger.debug("getting outdoor humidity")
             linktext = "/portal/Device/Control/%s?page=1" % laststat
-#            logger.debug("link text = %s" % linktext)
+            logger.debug("link text = %s" % linktext)
             link = br.find_link(url=linktext)
             response = br.follow_link(link)
             stattext = response.read()
