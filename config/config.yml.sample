@@ -132,7 +132,7 @@ pivac.RedLink:
             sk_path: environment.outside.thermostat
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera
-    enabled: true
+    enabled: false
     daemon_sleep: 5
 
     inputs:
