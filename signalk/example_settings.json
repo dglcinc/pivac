@@ -1,0 +1,68 @@
+{
+  "interfaces": {},
+
+  "ssl": false,
+
+  "pipedProviders": [
+      {
+        "id": "pi-1wire",
+        "pipeElements": [
+           { 
+             "type": "providers/execute",
+             "options": {
+               "command": "/home/pi/github/pivac/scripts/pivac-provider.sh pivac.OneWireTherm --loglevel ERROR --output signalk --format compact --daemon"
+             }
+           },
+           {
+             "type": "providers/from_json"
+           }
+        ]
+      },
+      {
+        "id": "pi-RedLink",
+        "pipeElements": [
+           { 
+             "type": "providers/execute",
+             "options": {
+               "command": "/home/pi/github/pivac/scripts/pivac-provider.sh pivac.RedLink --loglevel ERROR --output signalk --format compact --daemon 1000"
+             }
+           },
+           {
+             "type": "providers/from_json"
+           }
+        ]
+      },
+      {
+        "id": "pi-TED5000",
+        "pipeElements": [
+           { 
+             "type": "providers/execute",
+             "options": {
+               "command": "/home/pi/github/pivac/scripts/pivac-provider.sh pivac.TED5000 --loglevel ERROR --output signalk --format compact --daemon"
+             }
+           },
+           {
+             "type": "providers/from_json"
+           }
+        ]
+      },
+      {
+        "id": "pi-GPIO",
+        "pipeElements": [
+           { 
+             "type": "providers/execute",
+             "options": {
+               "command": "/home/pi/github/pivac/scripts/pivac-provider.sh pivac.GPIO --loglevel ERROR --output signalk --format compact --daemon"
+             }
+           },
+           {
+             "type": "providers/from_json"
+           }
+        ]
+      }
+    ],
+
+  "security": {
+    "strategy": "@signalk/sk-simple-token-security"
+  }
+}
