@@ -32,7 +32,7 @@ setup (
   packages=['pivac'],
   install_requires=['w1thermsensor','pytemperature','lxml','requests','mechanize','beautifulsoup4', 'PyYAML'],
 
-  scripts=['scripts/provider.sh','scripts/pivac-provider.sh','scripts/pivac-provider.py'],
+  scripts=['scripts/provider.sh','scripts/pivac-provider.sh','scripts/pivac-provider.py','scripts/pivac'],
   data_files=[('/etc/pivac', ['config/config.yml.sample']),('/etc/pivac/signalk',['config/config.yml.flir','signalk/example_settings.json'])],
   python_requires='>=2.7'
 )
