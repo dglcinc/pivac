@@ -199,12 +199,12 @@ def status(config={}, output="default"):
                     fname = re.sub(r"[\s+]", '_', sname)
                     sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), int(ktemp))
                     sk_add_value(sk_source, "%s.%s.scale" % (config["inputs"]["thermostat"]["sk_path"], fname), ktemp)
-                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["indoorHumidity"])))
+                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["indoorHumidity"]))/100)
                     sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), status_map[sstat])
                     sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[status_map[sstat]])
                     sk_add_value(sk_source, "%s.%s.heatset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["heatSetpoint"])))
                     sk_add_value(sk_source, "%s.%s.coolset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["coolSetpoint"])))
-                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["outdoor_sensor"]["sk_path"], fname), int(float(sdict["outdoorHumidity"])))
+                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["outdoor_sensor"]["sk_path"], fname), int(float(sdict["outdoorHumidity"]))/100)
                 else:
                     result[s] = {
                         "name": sname,
