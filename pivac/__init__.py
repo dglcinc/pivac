@@ -51,7 +51,7 @@ def set_config(file=""):
         logger.debug("loading config file...%s" % path)
         if len(path):
             with open(path,"r") as fp:
-                pconfig["packages"] = yaml.load(fp.read())
+                pconfig["packages"] = yaml.load(fp.read(), Loader=yaml.FullLoader)
                 pconfig["sourcefile"] = path
                 fp.close()
                 for p in pconfig["packages"].values():
