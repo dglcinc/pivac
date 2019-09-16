@@ -29,8 +29,9 @@ setup (
   author='David Lewis',
   author_email='david@dglc.com',
 
-  packages=['pivac'],
-  install_requires=['w1thermsensor','pytemperature','lxml','requests','mechanize','beautifulsoup4', 'PyYAML'],
+# before running this setup, apt install libxml2-dev libxslt-dev
+packages=['pivac'],
+  install_requires=['w1thermsensor','pytemperature','lxml','requests','mechanize','beautifulsoup4', 'PyYAML', 'soupsieve'],
 
   scripts=['scripts/provider.sh','scripts/pivac-provider.sh','scripts/pivac-provider.py','scripts/pivac'],
   data_files=[('/etc/pivac', ['config/config.yml.sample']),('/etc/pivac/signalk',['config/config.yml.flir','signalk/example_settings.json'])],

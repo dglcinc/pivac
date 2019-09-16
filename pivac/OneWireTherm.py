@@ -7,8 +7,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Initialize the GPIO Pins
-os.system('modprobe w1-gpio')  # Turns on the GPIO module
-os.system('modprobe w1-therm') # Turns on the Temperature module
+#os.system('modprobe w1-gpio')  # Turns on the GPIO module
+#os.system('modprobe w1-therm') # Turns on the Temperature module
 
 DEG_FAHRENHEIT = 0
 DEG_CELSIUS = 1
