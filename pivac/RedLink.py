@@ -1,11 +1,11 @@
+import regex as re
 import mechanize
-import urllib2 
-import cookielib
+# import urllib2 
+import http.cookiejar as cookielib
 import time
 import logging
 from bs4 import BeautifulSoup
 import json
-import re
 import pytemperature
 
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ def status(config={}, output="default"):
             response = br.open(homepage)
 
             # sometimes we get an exception but still logged in...
-            stats_page = response.read()
+            stats_page = response.read().decode('utf-8')
             if locationId_prog.findall(stats_page):
                 logger.debug("Already logged in %s" % locationId)
                 logged_in = True
@@ -121,7 +121,7 @@ def status(config={}, output="default"):
                 br.form['UserName'] = config["uid"]
                 br.form['Password'] = config["pwd"]
                 response = br.submit()
-                stats_page = response.read()
+                stats_page = response.read().decode('utf-8')
             logger.debug("done logging in")
             list = locationId_prog.findall(stats_page)
             logger.debug("loclist= %s" % list)
@@ -136,7 +136,7 @@ def status(config={}, output="default"):
             refresh_link = homepage
             logger.debug("Refresh link = %s" % refresh_link)
             response = br.open(refresh_link)
-            stats_page = response.read()
+            stats_page = response.read().decode('utf-8')
             logger.debug("Stats page = %s" % stats_page)
     except:    
         logger.exception("Error scraping MyTotalConnectComfort.com")
@@ -172,7 +172,7 @@ def status(config={}, output="default"):
                 link = br.find_link(url=linktext)
                 br.click_link(link)
                 response = br.follow_link(link)
-                stattext = response.read()
+                stattext = response.read().decode('utf-8')
                 statdata = statsData_prog.findall(stattext)
                 statname = statname_prog.findall(stattext)
                 stat = status_prog.findall(stattext)
@@ -297,7 +297,7 @@ def status(config={}, output="default"):
             logger.debug("link text = %s" % linktext)
             link = br.find_link(url=linktext)
             response = br.follow_link(link)
-            stattext = response.read()
+            stattext = response.read().decode('utf-8')
             statdata = conciseStatData_prog.findall(stattext)
             sdict = dict(statdata)
 

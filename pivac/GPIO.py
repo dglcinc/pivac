@@ -61,7 +61,7 @@ def status(config={},output="default"):
             deltas = sk_init_deltas()
             sk_source = sk_add_source(deltas)
 
-        for pinnum, pindict in config["inputs"].iteritems():
+        for pinnum, pindict in config["inputs"].items():
             logger.debug("pin = %s, pindict = %s" % (pinnum, pindict))
             presult = GPIO.input(pinnum) == (pindict["pullmode"] == "pulldown")
             if output == "signalk":

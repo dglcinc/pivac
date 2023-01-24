@@ -1,5 +1,5 @@
 # Import Libraries
-from w1thermsensor import W1ThermSensor
+from w1thermsensor import W1ThermSensor, Unit
 import os
 import time
 import logging
@@ -58,11 +58,11 @@ def status(config = {}, output="default"):
             temp_type = temps[dnames[sensor.id]["scale"]]
 
         if output == "signalk" or temp_type == DEG_KELVIN:
-            thermtemp = sensor.get_temperature(W1ThermSensor.KELVIN)
+            thermtemp = sensor.get_temperature(Unit.KELVIN)
         elif temp_type == DEG_CELSIUS:
-            thermtemp = sensor.get_temperature(W1ThermSensor.DEGREES_C)
+            thermtemp = sensor.get_temperature(Unit.DEGREES_C)
         else:
-            thermtemp = sensor.get_temperature(W1ThermSensor.DEGREES_F)
+            thermtemp = sensor.get_temperature(Unit.DEGREES_F)
         logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
 
         if sensor.id in dnames and "outname" in dnames[sensor.id]:
