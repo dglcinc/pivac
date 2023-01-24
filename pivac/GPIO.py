@@ -25,6 +25,7 @@ def init_pins(input_pins={}, pinmode = GPIO.BCM):
     try:
         GPIO.setmode(pinmode)
         pm = pinmode
+        logger.debug("Pin mode is %d" % pinmode)
     except:
         logger.exception("unknown board mode")
         raise ValueError
