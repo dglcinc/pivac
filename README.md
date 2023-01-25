@@ -52,12 +52,23 @@ I'm pondering a design that allows some control or automation by the RPi, but fa
 My original project delivered the JSON from my data sources into a python script that dynamically generated a simple web page on the RPi as an Apache-based Python CGI. I then internet-enabled my project (to avoid doing port forwarding to my RPi, and to learn AWS IOT...) by setting up the RPi as a thing on Amazon's IOT service, and using a Lambda to generate an S3-based static page whenever the thing shadow is updated by my RPi, once every few seconds. I know kinda sloppy but it works... You could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for the archived version is at [HVAC-pi](https://github.com/dglcinc/HVAC-pi), including the python cgi in the /local subdirectory, and the AWS thing code in /hvac-pi-aws.
 
 ## Signal K!
-I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. Here are screenshots from the Wilhelm SK iPhone and iPad app. The first screen is the real-time gauges to monitor all my vital statistics, and the second screen is a Grafana dashboard visualizing time series data for all the inputs, stored in an Influx database.
+	I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. Here are screenshots from the Wilhelm SK iPhone and iPad app. The first screen is the real-time gauges to monitor all my vital statistics, and the second screen is a Grafana dashboard visualizing time series data for all the inputs, stored in an Influx database.
 
 ![Wilhelm SK dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/WilhelmSK-dashboard.PNG?raw=true)
 ![Grafana dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/Grafana-dashboard.PNG?raw=true)
 ![Wilhelm SK dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/WilhelmSK-dashboard-ipad.PNG?raw=true)
 ![Grafana dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/Grafana-dashboard-ipad.PNG?raw=true)
+
+# Architecture
+The features of the architecture are:
+
+* **Isolated Operation**: Doesn't impact operation of the HVAC equipment (no direct control, to avoid HVAC downtime due to RPI and sensor issues)
+* **Real Time and Historical**:Displays status of all the equipment, stores and plots historical data automatically for all modules
+* **Modular Sensor Inputs**: Modular sensor feeds so it can be adapted to different systems with minimal coding
+* **User-Configurable Display**: Easily configurable user interface for personal preferences, mobile display works on-premise or remote
+
+The data flow and component view of the architecture is as follows:
+![Pivac Architecture](./Pivac Architecture.pdf)
 
 # Installing the Package
 The package is published to PyPi, so you can install it with the following [note: package not uploaded to public PyPi yet, clone the repository and use setup.py]:
@@ -95,6 +106,7 @@ The pivac package currently contains the following modules:
 * GPIO
 * OneWireTherm
 * TED5000
+* Vue2
 * RedLink
 * FlirFX
 
