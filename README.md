@@ -63,7 +63,7 @@ I serendipitously stumbled on a project targeted at the boating community, [Sign
 The features of the architecture are:
 
 * **Isolated Operation**: Doesn't impact operation of the HVAC equipment (no direct control, to avoid HVAC downtime due to RPI and sensor issues)
-* **Real Time and Historical**:Displays status of all the equipment, stores and plots historical data automatically for all modules
+* **Real Time and Historical Data**: Displays status of all the equipment, stores and plots historical data automatically for all modules
 * **Modular Sensor Inputs**: Modular sensor feeds so it can be adapted to different systems with minimal coding
 * **User-Configurable Display**: Easily configurable user interface for personal preferences, mobile display works on-premise or remote
 
@@ -77,7 +77,7 @@ The package is published to PyPi, so you can install it with the following [note
 sudo pip install pivac
 
 ```
-If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac), cd to the clone directory, and:
+If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config.yml in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac), cd to the clone directory, and:
 
 ```
 sudo python setup.py install
@@ -252,16 +252,18 @@ The RPi provides both pull-up and pull-down resistors for the pins (if you don't
 ## Example 3: TED 5000 (The Energy Detective)
 The TED5000 is a power panel monitor that allows you to monitor energy consumption in your home by placing CTs (current transformers) on your main feed or subcircuits in your home's power panel. A small gateway attached to the CTs runs a web server that publishes a website accessible on your local network, that allows you to view a dashboard for current and historical data, charting, and also publishes XML-based data via HTTP GET.
 
-The gateway can be a little flaky and also it's a closed ecosystem, all about TED. You can't easily integrate it with anything else, except by using a couple of APIs it provides. One is a built in capability to publish historical data in one-minute intervals. Another is the "real time" HTTP URL that allows you to collect the current values of all the system parameters in a structured HTML document.
+The gateway can be a little flaky and also it's a closed ecosystem. You can't easily integrate it with anything else, except by using a couple of APIs it provides. One is a built in capability to publish historical data in one-minute intervals. Another is the "real time" HTTP URL that allows you to collect the current values of all the system parameters in a structured HTML document.
 
 I opted for using the "real time" interface, since that would allow me to control how often and where the data are reported. So my python script calls the real time interface URL, parses the response using the Python lxml parser, and prints the "PowerNow" values for the four possible MTUs (I have 3) to stdout as a JSON-formatted object.
 
-Others may be interested in more or different values from the real-time XML document. The script can easily be extended as desired.
+Others may be interested in more or different values from the real-time XML document. The script can easily be extended as desired. NOTE: TED5000 has been discontinued and is pretty much impossible to get, and mine is dying, so I'm switching to Emporia Vue 2.
 
 ## Example 4: Honeywell mytotalconnectcomfort.com
 This is a website targeted specifically at owners of Honeywell WiFi thermostats, or RedLink thermostats connected to a RedLink gateway. Honeywell does not make the data APIs for this site publicly available. There are APIs called by the site, but more header spoofing would be required to get the server to generate a valid request. The same information can be retrieved by screen-scraping the site, so I didn't bother to decode the API headers.
 
-This code makes a number of assumptions, so if your personal use is different, you'll have to tweak the scraping code, which uses [Mechanize](https://github.com/python-mechanize/mechanize). Some points to keep in mind:
+This code makes a number of assumptions, so if your personal use is different, you'll have to tweak the scraping code, which uses [Mechanize](https://github.com/python-mechanize/mechanize).
+
+Some points to keep in mind:
 
 * You must have a login account on the site.
 * You must have at least one supported thermostat configuration.
@@ -271,5 +273,6 @@ This code makes a number of assumptions, so if your personal use is different, y
 * The thermostats will report additional properties such as setpoint. These are output in the JSON as a nested JSON object.
 * The website supports the ability to change thermostat settings (setpoint, mode, etc.) This library does not currently implement that feature. You will need to change the scraping code.
 * Mechanize has its History object set to NoHistory in the code. Keep in mind if you change this, the history will cause the process to grow and eventually crash your RPi. If you do this, make sure you periodically call Browser's clear_history() method.
+* Mechanize and the libraries it uses went through some changes from Python 2 to Python 3. Pivac has been fully converted. Make sure you get the right stuff. Also, the regex library it uses changed behavior with Python 3.9. My code requires regex=2022.3.2 to avoid the crazy escape sequence updates.
 
 There is a site that provides an undocumented way to access Honeywell's REST API interface, [here](http://dirkgroenen.nl/projects/2016-01-15/honeywell-API-endpoints-documentation/).
