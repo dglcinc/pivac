@@ -230,7 +230,7 @@ def status(config={}, output="default"):
         logger.debug("concise mode")
         soup = BeautifulSoup(stats_page, "lxml")
         laststat = ""
-        for e in soup.find_all("tr", attrs={'class': re.compile(r".*\capsule pointerCursor\b.*")}):
+        for e in soup.find_all("tr", attrs={'class': re.compile(r".*capsule pointerCursor\b.*")}):
             logger.debug("e = %s" %str(e))
             stat = {}
             stat["status"] = "off"
