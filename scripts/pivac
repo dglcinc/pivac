@@ -1,2 +1,2 @@
 #!/bin/bash
-python /usr/local/bin/pivac-provider.py --output default --format compact pivac.TED5000 pivac.OneWireTherm pivac.GPIO pivac.RedLink
+/home/pi/pivac-venv/bin/python3 $DIR/pivac-provider.py --output default --format compact pivac.TED5000 pivac.OneWireTherm pivac.GPIO pivac.RedLink

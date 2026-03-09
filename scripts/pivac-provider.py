@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/home/pi/pivac-venv/bin/python3
 import logging
 logger = logging.getLogger(__name__)
 import sys
