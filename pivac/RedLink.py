@@ -116,7 +116,11 @@ def status(config={}, output="default"):
                     br.select_form(nr=0)
                 br.form['UserName'] = config["uid"]
                 br.form['Password'] = config["pwd"]
-                response = br.submit()
+                # mechanize passes POST data as str but Python 3.13 requires bytes
+                request = br.click()
+                if isinstance(request.data, str):
+                    request.data = request.data.encode('utf-8')
+                response = br.open(request)
                 stats_page = response.read().decode('utf-8')
             logger.debug("done logging in")
             list = locationId_prog.findall(stats_page)
