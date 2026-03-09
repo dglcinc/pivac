@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 # maintain session after site is loaded as module-level globals
 logged_in = False
 locationId = ""
-locationId_prog = re.compile("GetZoneListData\?locationId=([0-9][0-9]*)&")
-statsId_prog = re.compile("data-id=\"([0-9][0-9]*)\"")
-statsData_prog = re.compile("Control.Model.set\(Control.Model.Property.([A-Za-z0-9]+), *([A-Za-z0-9.]+)\)")
-conciseStatData_prog = re.compile("Control.Model.set\(Control.Model.Property.(outdoorHumidity), *([A-Za-z0-9.]+)\)")
+locationId_prog = re.compile(r"GetZoneListData\?locationId=([0-9][0-9]*)&")
+statsId_prog = re.compile(r"data-id=\"([0-9][0-9]*)\"")
+statsData_prog = re.compile(r"Control.Model.set\(Control.Model.Property.([A-Za-z0-9]+), *([A-Za-z0-9.]+)\)")
+conciseStatData_prog = re.compile(r"Control.Model.set\(Control.Model.Property.(outdoorHumidity), *([A-Za-z0-9.]+)\)")
 statname_prog = re.compile("ZoneName.*>([A-Za-z0-9 ]+) Control<")
 status_prog = re.compile("id=\"eqStatus([A-Za-z]+)\" *class=\"\">")
 status_map = {
@@ -58,13 +58,9 @@ def init_site():
 
         # disable ssl cert verification (workaround for mechanize/Python 3.13 compatibility)
         import ssl
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        except AttributeError:
-            # Legacy Python that doesn't verify HTTPS certificates by default
-            pass
-        else:
-            ssl._create_default_https_context = _create_unverified_https_context
+        import urllib.request
+        context = ssl._create_unverified_context()
+        br.add_handler(urllib.request.HTTPSHandler(context=context))
 
         if logger.getEffectiveLevel() == logging.DEBUG:
             # turn on mechanize debugging
