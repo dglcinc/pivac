@@ -27,6 +27,7 @@ dependencies = [
     "PyYAML",
     "soupsieve",
     "RPi.GPIO",
+    "regex",
 ]
 
 [project.urls]
