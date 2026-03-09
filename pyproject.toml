@@ -7,14 +7,13 @@ name = "pivac"
 version = "0.7.7"
 description = "Raspberry Pi input utilities"
 readme = "DESC.rst"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "David Lewis", email = "david@dglc.com"}
 ]
 keywords = ["rpi", "raspberry", "pi", "signalk", "ted", "ted5000", "redlink", "honeywell"]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
 ]
 requires-python = ">=3.8"
