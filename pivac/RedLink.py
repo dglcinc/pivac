@@ -55,22 +55,22 @@ def init_site():
             ('Origin', 'https://www.mytotalconnectcomfort.com'),
             ('Accept-Language', 'en-us')]
         br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
+
+        # disable ssl cert verification (workaround for mechanize/Python 3.13 compatibility)
+        import ssl
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+            ssl._create_default_https_context = _create_unverified_https_context
+
         if logger.getEffectiveLevel() == logging.DEBUG:
             # turn on mechanize debugging
             br.set_debug_http(True)
             br.set_debug_redirects(True)
             br.set_debug_responses(True)
-
-            # disable ssl cert verification (to allow use of charles)
-            import ssl
-            try:
-                _create_unverified_https_context = ssl._create_unverified_context
-            except AttributeError:
-                # Legacy Python that doesn't verify HTTPS certificates by default
-                pass
-            else:
-                # Handle target environment that doesn't support HTTPS verification
-                ssl._create_default_https_context = _create_unverified_https_context
 
     except:
         logger.exception("Error prepping Redlink scrape")
