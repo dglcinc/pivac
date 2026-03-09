@@ -26,6 +26,7 @@ dependencies = [
     "beautifulsoup4",
     "PyYAML",
     "soupsieve",
+    "RPi.GPIO",
 ]
 
 [project.urls]
