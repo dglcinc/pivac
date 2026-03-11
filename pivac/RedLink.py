@@ -1,6 +1,16 @@
 import ssl
-# workaround for mechanize/Python 3.13 SSL compatibility - must be set before any HTTPS connections
+import http.client
+
+# workaround for mechanize/Python 3.13 SSL compatibility
+# patch at the lowest level so all connections including redirects and follow_link use unverified SSL
 ssl._create_default_https_context = ssl._create_unverified_context
+
+_orig_https_init = http.client.HTTPSConnection.__init__
+def _patched_https_init(self, host, port=None, **kwargs):
+    if kwargs.get('context') is None:
+        kwargs['context'] = ssl._create_unverified_context()
+    _orig_https_init(self, host, port, **kwargs)
+http.client.HTTPSConnection.__init__ = _patched_https_init
 
 import regex as re
 import mechanize
