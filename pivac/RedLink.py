@@ -1,6 +1,10 @@
+import ssl
+# workaround for mechanize/Python 3.13 SSL compatibility - must be set before any HTTPS connections
+ssl._create_default_https_context = ssl._create_unverified_context
+
 import regex as re
 import mechanize
-# import urllib2 
+# import urllib2
 import http.cookiejar as cookielib
 import time
 import logging
@@ -55,12 +59,6 @@ def init_site():
             ('Origin', 'https://www.mytotalconnectcomfort.com'),
             ('Accept-Language', 'en-us')]
         br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
-
-        # disable ssl cert verification (workaround for mechanize/Python 3.13 compatibility)
-        import ssl
-        import urllib.request
-        context = ssl._create_unverified_context()
-        br.add_handler(urllib.request.HTTPSHandler(context=context))
 
         if logger.getEffectiveLevel() == logging.DEBUG:
             # turn on mechanize debugging
