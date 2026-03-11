@@ -35,7 +35,7 @@ def status(config = {}, output = "default"):
         else:
             result["outname"] = psi
     except:
-        logger.exception("Exception collecting data from Arduino")
+        logger.warning("Arduino at %s unreachable (timeout)" % config["ipaddr"])
 
     if output == "signalk":
         logger.debug("deltas = %s" % deltas)
