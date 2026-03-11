@@ -138,6 +138,7 @@ def status(config={}, output="default"):
             if len(list):
                 locationId = list[0]
             else:
+                logger.debug("locationId not found in page: %s" % stats_page)
                 raise IOError
             logger.debug("locationId=%s" % locationId)
             logger.debug("Stats page = %s" % stats_page)
