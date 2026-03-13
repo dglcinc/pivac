@@ -28,6 +28,7 @@ dependencies = [
     "soupsieve",
     "RPi.GPIO",
     "regex",
+    "websocket-client",
 ]
 
 [project.urls]
