@@ -2,13 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Working Style
+## Working Style (pivac-specific exceptions)
 
-- Do not ask for permission before running individual commands — just run them.
-- Before starting a multi-step task, briefly state the plan and confirm once. Then execute all steps without further prompts.
-- **Keep CLAUDE.md current**: After any commit that involves significant code changes, architecture decisions, new devices, bug fixes, or deployment procedure changes — update this file and include it in the commit. This file is the persistent memory for both Cowork and Claude Code across sessions.
-- When making code changes, always create a feature branch, push it, and open a pull request for the user to review and merge.
-- Exception: CLAUDE.md updates may be committed and pushed directly to `master`.
+- **Keep CLAUDE.md current**: After any commit that involves significant code changes, architecture decisions, new devices, bug fixes, or deployment procedure changes — update this file and include it in the commit. It is the persistent memory for both Cowork and Claude Code across sessions.
+- Exception to PR workflow: CLAUDE.md updates may be committed and pushed directly to `master`.
 
 ## What This Project Does
 
