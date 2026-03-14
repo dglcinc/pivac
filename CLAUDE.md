@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Do not ask for permission before running individual commands — just run them.
 - Before starting a multi-step task, briefly state the plan and confirm once. Then execute all steps without further prompts.
+- **Keep CLAUDE.md current**: After any commit that involves significant code changes, architecture decisions, new devices, bug fixes, or deployment procedure changes — update this file and include it in the commit. This file is the persistent memory for both Cowork and Claude Code across sessions.
 
 ## What This Project Does
 
