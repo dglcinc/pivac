@@ -1,12 +1,14 @@
 # pivac
-Python package to pull data from Raspberry-Pi(RPi)-based inputs, and output JSON data. Supports the assembly and delivery of RPi-based monitoring and control solutions, like HVAC and home automation. Could also be used for other  monitoring projects like home brewing and sous vide. These inputs include both RPi hardware inputs (like GPIO pins and GPIO-supported protocols like 1-Wire), as well as external sources useful for assembling a complete solution, such as HTTP-based data feeds and web sites (a.k.a. screen scraping.) This package is "input-only" - no provision is (currently) made to process updates.
+Python package to pull data from Raspberry-Pi (RPi)-based inputs, and output JSON data. Supports the assembly and delivery of RPi-based monitoring and control solutions, like HVAC and home automation. Could also be used for other monitoring projects like home brewing and sous vide. These inputs include both RPi hardware inputs (like GPIO pins and GPIO-supported protocols like 1-Wire), as well as external sources useful for assembling a complete solution, such as HTTP-based data feeds and web sites (a.k.a. screen scraping.) This package is "input-only" - no provision is (currently) made to process updates.
 
 Currently supported inputs include:
 
 * **1-WireTherm**: 1-Wire-based Dallas temperature sensors (thermometers)
 * **GPIO**: Generic reads of RPi GPIO pins, pulled high or low using internal pullup resistors
 * **RedLink**: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
-* **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution.
+* **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution
+* **ArduinoPSI**: Pressure sensor data from an Arduino over HTTP (e.g. Fusch 100PSI sensor)
+* **ArduinoThermPSI**: Combined pressure and temperature from an Arduino over HTTP (e.g. Fusch 200PSI sensor)
 * **FlirFX**: Temperature and humidity from a FLIR camera
 
 The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
@@ -18,7 +20,7 @@ This package has the modest aspiration of simplifying a certain class of monitor
 
 * Delivering a status website on your RPi, available on your local network
 * Modeling your RPi as an Amazon Web Services (AWS) IOT "thing", uploading your data as thing shadow "updates", and using AWS Lambdas to do stuff (store data, render static websites, etc.)
-* Inputting data to a [Signal K](http:/www.signalk.org) server running on your RPi, and leveraging the Signal K ecosystem to process and display your data
+* Inputting data to a [Signal K](http://www.signalk.org) server running on your RPi, and leveraging the Signal K ecosystem to process and display your data
 * Capturing a time series collection of the data in a database such as InfluxDB, and analyzing in a charting tool such as Grafana
 
 ## Standard call interface, Diverse inputs, JSON output
@@ -52,11 +54,7 @@ I'm pondering a design that allows some control or automation by the RPi, but fa
 My original project delivered the JSON from my data sources into a python script that dynamically generated a simple web page on the RPi as an Apache-based Python CGI. I then internet-enabled my project (to avoid doing port forwarding to my RPi, and to learn AWS IOT...) by setting up the RPi as a thing on Amazon's IOT service, and using a Lambda to generate an S3-based static page whenever the thing shadow is updated by my RPi, once every few seconds. I know kinda sloppy but it works... You could optimize your updating to minimize charges for Lambda, etc., but at the volume I consume (low and cheap) it's not a priority. The github repository for the archived version is at [HVAC-pi](https://github.com/dglcinc/HVAC-pi), including the python cgi in the /local subdirectory, and the AWS thing code in /hvac-pi-aws.
 
 ## Signal K!
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
-I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent IOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. Here are screenshots from the Wilhelm SK iPhone and iPad app. The first screen is the real-time gauges to monitor all my vital statistics, and the second screen is a Grafana dashboard visualizing time series data for all the inputs, stored in an Influx database.
+I serendipitously stumbled on a project targeted at the boating community, [Signal K](http://www.signalk.org). Some features of that project are strikingly similar to mine (gather data from a variety of disparate sources and protocols and rationalize them into a JSON-based data stream). They have more and better developers, and a pretty highly evolved ecosystem. So I've converted to outputting my JSON to a Signal K server, and then using the tools in that ecosystem (such as the excellent iOS app [WilhelmSK](http://www.wilhelmsk.com)) to store and render my data. It's very cool. Check it out. Here are screenshots from the WilhelmSK iPhone and iPad app. The first screen is the real-time gauges to monitor all my vital statistics, and the second screen is a Grafana dashboard visualizing time series data for all the inputs, stored in an InfluxDB database.
 
 ![Wilhelm SK dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/WilhelmSK-dashboard.PNG?raw=true)
 ![Grafana dashboard](https://github.com/dglcinc/HVAC-pi/blob/master/Grafana-dashboard.PNG?raw=true)
@@ -72,37 +70,84 @@ The features of the architecture are:
 * **User-Configurable Display**: Easily configurable user interface for personal preferences, mobile display works on-premise or remote
 
 The data flow and component view of the architecture is as follows:
-![Pivac Architecture](./Pivac Architecture.pdf)
+![Pivac Architecture](./Pivac%20Architecture.pdf)
 
 # Installing the Package
-The package is published to PyPi, so you can install it with the following [note: package not uploaded to public PyPi yet, clone the repository and use setup.py]:
 
-```
-sudo pip install pivac
+Clone the repository and install into a Python virtual environment:
 
+```bash
+git clone https://github.com/dglcinc/pivac
+cd pivac
+python3 -m venv ~/pivac-venv
+source ~/pivac-venv/bin/activate
+pip install -e .
 ```
-If you prefer not to run the install as sudo (which puts scripts in /usr/local/bin, config.yml in /etc/pivac, and a python module in your default Python install directory), then clone the [github repository](https://github.com/dglcinc/pivac), cd to the clone directory, and:
 
-```
-sudo python setup.py install
+If you need the RPi-specific hardware dependencies (GPIO, 1-wire), also run:
+```bash
+pip install RPi.GPIO w1thermsensor --break-system-packages
 ```
 
-If you prefer not to install or sudo, the scripts and config will work properly using the local repository directory as the launch point.
+If you prefer not to install at all, the scripts and config will work properly using the local repository directory as the launch point — just run `python scripts/pivac-provider.py` directly from the clone.
 
 ## Configuring the Package
-The only required configuration is to edit the /etc/pivac/config.yml file (or config/config.yml if you are running locally) to reflect the modules and configuration you want to use. A complete, commented sample is provided as /etc/pivac/config.yml.sample.
+Copy the sample config and edit it for your setup:
 
-Each top level key in the config file is an actual Python package name, so if you create your own Python packages and name them in the config file, they will be used by the package and the scripts.
+```bash
+sudo mkdir -p /etc/pivac
+sudo cp config/config.yml.sample /etc/pivac/config.yml
+sudo nano /etc/pivac/config.yml
+```
+
+Each top-level key in the config file is an actual Python package name — so if you create your own Python packages and name them in the config file, they will be automatically discovered and used by the scripts. Enable or disable modules by setting `enabled: true/false`. A complete, commented sample is provided as `config/config.yml.sample`.
+
+**Signal K integration** requires a `signalk:` section in your config file with the host, port, and credentials for your Signal K server:
+
+```yaml
+signalk:
+    host: localhost
+    port: 3000
+    username: admin
+    password: yourpassword
+```
 
 # Using the Package
 
-Once the configuration file is set up, the easiest way to use the package is to use the scripts, which will be installed in /usr/local/bin unless you opt to clone the git repository:
-
 ## The Scripts
 
-* **`pivac-provider.py`** - provides a variety of options for input, output, and formatting. --help option arguments and script behavior are dynamically configured using the contents of the configuration file. The --help option provides detailed documentation on how to use the script.
-* **`pivac-provider.sh`** - a wrapper for the .py script, that restarts it if it fails (e.g. when running with --daemon option) (this script execs to provider.sh and inherits its behavior).
-* **`provider.sh`** - a generic wrapper script that restarts a script if it fails, and catches the SIGHUP signal (kill -1) to restart the script. A standard kill (SIGINT) will stop the wrapper and the script.
+* **`pivac-provider.py`** — the main script. It dynamically loads modules from your config file and either pushes data to Signal K via WebSocket (daemon mode) or outputs JSON to stdout (useful for testing). The `--help` option provides full documentation; arguments and choices are dynamically configured from the contents of the config file.
+* **`pivac-provider.sh`** — a wrapper for the .py script that restarts it if it fails (e.g. when running with `--daemon`). This script execs to `provider.sh` and inherits its behavior.
+* **`provider.sh`** — a generic wrapper script that restarts a script if it fails and catches the SIGHUP signal (`kill -1`) to restart the script. A standard kill (SIGINT) will stop both the wrapper and the script.
+
+```bash
+# Test a module - outputs JSON to stdout
+python scripts/pivac-provider.py pivac.GPIO
+
+# Pretty-print output for debugging
+python scripts/pivac-provider.py pivac.OneWireTherm --format pretty
+
+# Run continuously (daemon mode) - connects to Signal K via WebSocket
+python scripts/pivac-provider.py pivac.RedLink --daemon
+
+# Options
+#   --loglevel DEBUG|INFO|WARNING|ERROR|CRITICAL
+#   --format compact|pretty
+#   --daemon [N]   (run forever, or N iterations)
+```
+
+## Process Management
+
+In production, each module runs as a dedicated systemd service. Service files are provided in `scripts/systemd/`. To install:
+
+```bash
+sudo cp scripts/systemd/*.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
+sudo systemctl start pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
+```
+
+Each service connects independently to Signal K via WebSocket and restarts automatically on failure.
 
 ## The Modules
 The pivac package currently contains the following modules:
@@ -110,24 +155,25 @@ The pivac package currently contains the following modules:
 * GPIO
 * OneWireTherm
 * TED5000
-* Vue2
 * RedLink
-* FlirFX
+* ArduinoPSI
+* ArduinoThermPSI
+* FlirFX (disabled by default)
 
 ## Initialization
 * **`pivac.set_config(configfile="")`**: This method must be called before using any of the modules. It locates and reads the config file, first in `/etc/pivac/config.yml` then in `config/config.yml` relative to the parent directory of the scripts, if you do not specify it. Returns the `config` dictionary. This currently can only be set once, because the data read from the config file is used to load modules by the `pivac-provider.py` script. If you attempt to set again it will return the current config dict.
 
 * **`pivac.get_config()`**: Returns the config dictionary read from the config file.
 
-* **`[module].status(config={}, output="default")`**: Each module implements (at least) this method, and can be used individually in your project. Each module supports one interface method, status(). Status takes two arguments - a dictionary containing the configuration for the module read from the configuration file, and a string indicating the output type. outputs a JSON object containing JSON state specific to the target being reported on, as described in the sections below:
+* **`[module].status(config={}, output="default")`**: Each module implements (at least) this method, and can be used individually in your project. Each module supports one interface method, status(). Status takes two arguments - a dictionary containing the configuration for the module read from the configuration file, and a string indicating the output type (`"default"` for plain JSON dict, `"signalk"` for a Signal K delta structure).
 
-### Configuration of RPi modbus OneWireTherm
+### Configuration of RPi 1-Wire (OneWireTherm)
 In order to use the OneWireTherm module, you need to enable the OneWire RPi driver. You can do this in either the GUI system configuration (if you're using the desktop) or on the command line:
 
 ```
 sudo raspi-config
-[select "Interfacing Options]
-[select "1-Wire]
+[select "Interfacing Options"]
+[select "1-Wire"]
 [select "<Yes>"]
 exit
 ```
@@ -136,98 +182,103 @@ exit
 * **`GPIO.status(config={}, output="default")`**: each pin included in the configuration file will be reported as "true" if on and "false" if off.
 	* For pins configured with pull-down resistors, "on" or "true" means the pin is attached to voltage.
 	* The module configuration file provides options for specifying pull-up or pull-down, as well as names to map pins to in the JSON output.
-	* For pins configured with pull-up resistors, "on" or "true" means the pin is attached to ground. 
+	* For pins configured with pull-up resistors, "on" or "true" means the pin is attached to ground.
 
-Example output using the sample yml file with `python pivac-provider.py pivac.GPIO --format "pretty"`:
+Example output using the sample yml file with `python pivac-provider.py pivac.GPIO --format pretty`:
 
 ```
 {
-    "Y2ON": false, 
-    "DEHUM": false, 
-    "RCHL": false, 
-    "BLR": true, 
-    "DHW": false, 
-    "Y2FAN": false, 
-    "ZV": true, 
-    "YOFF": false, 
+    "Y2ON": false,
+    "DEHUM": false,
+    "RCHL": false,
+    "BLR": true,
+    "DHW": false,
+    "Y2FAN": false,
+    "ZV": true,
+    "YOFF": false,
     "LCHL": false
 }
-```	
+```
 
-##OneWireTherm
+## OneWireTherm
 
-* **`OneWireTherm.status(config={}, output="default")`**: the module will return the current temperature reported by every sensor on the 1-wire bus. Options in the config file allow you to assign names, and specify a temperature scale and rounding. Example output using the sample yml file with `python pivac-provider.py pivac.OneWireTherm --format "pretty"`:
+* **`OneWireTherm.status(config={}, output="default")`**: the module will return the current temperature reported by every sensor on the 1-wire bus. Options in the config file allow you to assign names, and specify a temperature scale and rounding. Example output using the sample yml file with `python pivac-provider.py pivac.OneWireTherm --format pretty`:
 
 ```
 {
-    "CRW": 45, 
-    "OUT": 47, 
-    "AMB": 73, 
+    "CRW": 45,
+    "OUT": 47,
+    "AMB": 73,
     "IN": 40
 }
 ```
-##TED5000
 
-* **`TED5000.status()`**: Returns JSON for the current PowerNow values of MTUs 1-4 from the URL `<my_ted_gateway_ip_or_hostname>/LiveData.xml`. All TED data is available; The configuration file allows you to specify any path from the `LiveData.xml` url using an XPath-style path, and the "friendly" name it should be mapped to. Example output using the sample yml file with `python pivac-provider.py pivac.TED5000 --format "pretty"`:
+## TED5000
+
+* **`TED5000.status()`**: Returns JSON for the current PowerNow values of MTUs 1-4 from the URL `<my_ted_gateway_ip_or_hostname>/LiveData.xml`. All TED data is available; The configuration file allows you to specify any path from the `LiveData.xml` url using an XPath-style path, and the "friendly" name it should be mapped to. Example output using the sample yml file with `python pivac-provider.py pivac.TED5000 --format pretty`:
 
 ```
 {
-    "MainPanel": 1161, 
-    "SubPanel": 398, 
+    "MainPanel": 1161,
+    "SubPanel": 398,
     "HVAC": 30
 }
 ```
-##RedLink
 
-* **`Redlink.status(verbose=False)`**: Returns the current temperature, humidity, status, and name (as set on the thermostat) for every thermostat associated with the location defined on mytotalconnectcomfort.com. Temperature will be defined as on the thermostat. Humidity will be a whole number. Status will be one of "cool", "heat", "fanOn", or "off". Outdoor humidity is returned as "outhum". The key for each object is the thermostat identifier used in the RedLink registry. `verbose = True` causes the scraper to navigate to the sub-page for each thermostat, collect all available detailed data like setpoints, and return it as a nested JSON object for each thermostat; this option is slower, so don't use it unless you need it. Example output using the sample yml file with `python pivac-provider.py pivac.RedLink --format "pretty"`:
+## ArduinoPSI
+
+* **`ArduinoPSI.status(config={}, output="default")`**: Polls an Arduino over HTTP and returns the pressure reading in PSI. The Arduino serves a simple JSON response containing a `psi` key. Designed for use with ratiometric pressure sensors (e.g. Fusch 100PSI, 0.5–4.5V output). Example output:
+
+```
+{
+    "psi": 18.4
+}
+```
+
+## ArduinoThermPSI
+
+* **`ArduinoThermPSI.status(config={}, output="default")`**: Same as ArduinoPSI but for combined pressure and temperature sensors (e.g. Fusch 200PSI). Example output:
+
+```
+{
+    "psi": 42.1
+}
+```
+
+## RedLink
+
+* **`Redlink.status(verbose=False)`**: Returns the current temperature, humidity, status, and name (as set on the thermostat) for every thermostat associated with the location defined on mytotalconnectcomfort.com. Temperature will be defined as on the thermostat. Humidity will be a whole number. Status will be one of "cool", "heat", "fanOn", or "off". Outdoor humidity is returned as "outhum". The key for each object is the thermostat identifier used in the RedLink registry. `verbose = True` causes the scraper to navigate to the sub-page for each thermostat, collect all available detailed data like setpoints, and return it as a nested JSON object for each thermostat; this option is slower, so don't use it unless you need it. Example output using the sample yml file with `python pivac-provider.py pivac.RedLink --format pretty`:
 
 ```
 {
     "2834229": {
-      "status": "fan", 
-      "hum": 51, 
-      "name": "KIDS ROOM", 
+      "status": "fan",
+      "hum": 51,
+      "name": "KIDS ROOM",
       "temp": 74
-    }, 
-    "outhum": 100.0, 
+    },
+    "outhum": 100.0,
     "2528432": {
-      "status": "off", 
-      "hum": 47, 
-      "name": "KITCHEN", 
-      "temp": 75
-    }, 
-    "2842218": {
-      "status": "off", 
-      "hum": 50, 
-      "name": "MASTER BR", 
-      "temp": 74
-    }, 
-    "2417403": {
-      "status": "off", 
-      "hum": 51, 
-      "name": "DSTRS FAM ROOM", 
-      "temp": 74
-    }, 
-    "2834247": {
-      "status": "off", 
-      "hum": 49, 
-      "name": "GREAT ROOM", 
+      "status": "off",
+      "hum": 47,
+      "name": "KITCHEN",
       "temp": 75
     }
 }
 ```
-##FlirFX
-The FLirFX module lets you collect temperature and humidity data from a FLIR camera. The config file format allows you to specify multiple cameras (inputs) and your login credentials. Example output using the sample yml file with `python pivac-provider.py pivac.FlirFX --format "pretty"`:
+
+## FlirFX
+The FlirFX module lets you collect temperature and humidity data from a FLIR camera. The config file format allows you to specify multiple cameras (inputs) and your login credentials. Example output using the sample yml file with `python pivac-provider.py pivac.FlirFX --format pretty`:
 
 ```
 {
   "192.168.2.79": {
-    "temperature": 67.98, 
+    "temperature": 67.98,
     "humidity": 49
   }
 }
-
 ```
+
 # Example Project
 The goal of my RPi project was to create a simple app (single responsive HTML dashboard) that allows me to monitor my HVAC system. It pulls data from four sources:
 
@@ -260,7 +311,7 @@ The gateway can be a little flaky and also it's a closed ecosystem. You can't ea
 
 I opted for using the "real time" interface, since that would allow me to control how often and where the data are reported. So my python script calls the real time interface URL, parses the response using the Python lxml parser, and prints the "PowerNow" values for the four possible MTUs (I have 3) to stdout as a JSON-formatted object.
 
-Others may be interested in more or different values from the real-time XML document. The script can easily be extended as desired. NOTE: TED5000 has been discontinued and is pretty much impossible to get, and mine is dying, so I'm switching to Emporia Vue 2.
+Others may be interested in more or different values from the real-time XML document. The script can easily be extended as desired. Note: TED5000 has been discontinued and is difficult to source; the module remains in pivac for existing users.
 
 ## Example 4: Honeywell mytotalconnectcomfort.com
 This is a website targeted specifically at owners of Honeywell WiFi thermostats, or RedLink thermostats connected to a RedLink gateway. Honeywell does not make the data APIs for this site publicly available. There are APIs called by the site, but more header spoofing would be required to get the server to generate a valid request. The same information can be retrieved by screen-scraping the site, so I didn't bother to decode the API headers.
@@ -280,3 +331,12 @@ Some points to keep in mind:
 * Mechanize and the libraries it uses went through some changes from Python 2 to Python 3. Pivac has been fully converted. Make sure you get the right stuff. Also, the regex library it uses changed behavior with Python 3.9. My code requires regex=2022.3.2 to avoid the crazy escape sequence updates.
 
 There is a site that provides an undocumented way to access Honeywell's REST API interface, [here](http://dirkgroenen.nl/projects/2016-01-15/honeywell-API-endpoints-documentation/).
+
+## Example 5: Arduino Pressure Sensors
+The ArduinoPSI and ArduinoThermPSI modules poll a small Arduino web server over HTTP. The Arduino reads a ratiometric pressure sensor (0.5–4.5V output), converts the voltage to PSI, and returns it as a simple JSON response. This approach is useful when you need analog inputs that the RPi doesn't natively support well.
+
+Two sensor configurations are supported:
+* **ArduinoPSI**: Single pressure reading (e.g. Fusch 100PSI sensor for hydronic loop pressure)
+* **ArduinoThermPSI**: Pressure reading with optional temperature (e.g. Fusch 200PSI sensor for domestic hot water pressure)
+
+The Arduinos are configured with static IP addresses in your config file. If an Arduino is unreachable (timeout), a warning is logged and the module returns an empty delta — the service continues running and retries on the next poll interval.
