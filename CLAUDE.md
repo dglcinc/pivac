@@ -1,41 +1,99 @@
-# Pivac Project — Claude Code Instructions
+# CLAUDE.md
 
-## What This Project Is
-Pivac is a Python application running on a Raspberry Pi (hostname: `pivac`) that reads data from
-various sensors and devices and pushes it to a SignalK v2 server via WebSocket. SignalK stores
-data in InfluxDB and it is visualized in Grafana and the WilhelmSK mobile app.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What This Project Does
+
+**pivac** collects data from Raspberry Pi sensors and outputs standardized JSON. It's a read-only monitoring tool for HVAC/home automation, feeding downstream systems (Signal K, InfluxDB, Grafana, WilhelmSK mobile app).
+
+## Running the Project
+
+```bash
+# From a git clone (no install needed)
+python scripts/pivac-provider.py [module_names] [options]
+
+# Examples
+python scripts/pivac-provider.py pivac.GPIO --format pretty
+python scripts/pivac-provider.py pivac.OneWireTherm pivac.TED5000 --daemon
+
+# Options: --loglevel DEBUG|INFO|WARNING|ERROR|CRITICAL
+#          --daemon [N]   (run forever, or N iterations)
+```
+
+**Config file lookup order:**
+1. `$PIVAC_CFG` (env var)
+2. `/etc/pivac/config.yml` (system install)
+3. `config/config.yml` (git clone)
 
 ## Architecture
-- **pivac-provider.py**: Main daemon. Loads a sensor module, calls its `status()` function in a
-  loop, and sends SignalK delta JSON over WebSocket to the local SignalK server.
-- **pivac/ modules**: One Python module per device type. Each implements `status(config, output)`
-  and returns a SignalK delta dict.
-- **config**: `/etc/pivac/config.yml` — one section per module plus a `signalk:` section with
-  connection credentials.
-- **SignalK**: Runs as `signalk` systemd service on localhost:3000.
 
-## Active Sensor Modules and Services
-| systemd service         | Module                  | Device                          | IP           |
-|-------------------------|-------------------------|---------------------------------|--------------|
-| pivac-1wire             | pivac.OneWireTherm      | 1-wire temperature sensors      | GPIO         |
-| pivac-redlink           | pivac.RedLink           | Honeywell thermostat (web)      | internet     |
-| pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO        |
-| pivac-arduino-psi       | pivac.ArduinoPSI        | Hydronic pressure (Fusch 100PSI)| 10.0.0.114   |
-| pivac-arduino-therm-psi | pivac.ArduinoThermPSI   | DHW pressure (Fusch 200PSI)     | 10.0.0.219   |
+### Module System
+
+Each sensor type is a standalone module in `pivac/`. The orchestrator (`scripts/pivac-provider.py`) dynamically loads modules listed in `config.yml` using `pydoc.safeimport()` and calls their `status()` function.
+
+**Every module must implement:**
+```python
+def status(config={}, output="default") -> dict:
+    ...
+```
+
+Modules return a plain dict (default output) or Signal K delta structure.
+
+### Data Flow
+
+```
+config.yml → pivac.set_config() → pivac-provider.py → module.status() → WebSocket → Signal K
+```
+
+Each service authenticates to Signal K via HTTP JWT (`/signalk/v1/auth/login`), then pushes delta messages over a persistent WebSocket connection (`/signalk/v1/stream`). Falls back to stdout if Signal K is unavailable.
+
+### Core Utilities (`pivac/__init__.py`)
+
+- `set_config(file)` — load YAML config
+- `propagate_defaults(config)` — copy top-level config keys down to each input entry (used by most modules)
+- `sk_init_deltas()`, `sk_add_source()`, `sk_add_value()` — Signal K delta helpers
+
+### Signal K Output
+
+Modules always emit Signal K delta messages:
+```json
+{"updates": [{"source": {"label": "rpi:hostname"}, "values": [...]}]}
+```
+
+### Config `propagate` Key
+
+Modules support a `propagate` list — config keys listed there are copied from the top-level module config into each entry under `inputs:`, unless overridden at the input level.
+
+### Process Management
+
+Each module runs as a dedicated systemd service (`scripts/systemd/pivac-*.service`), installed to `/etc/systemd/system/`. All services run as user `pi`, use `PIVAC_CFG=/etc/pivac/config.yml`, and have `Restart=always` with `RestartSec=10`.
+
+Signal K settings are at `/home/pi/.signalk/settings.json` — `pipedProviders` is intentionally empty (pivac now self-manages via WebSocket).
+
+## Active Services and Devices
+
+| systemd service         | Module                  | Device                           | IP / Source  |
+|-------------------------|-------------------------|----------------------------------|--------------|
+| pivac-1wire             | pivac.OneWireTherm      | DS18B20 1-wire temperature sensors | GPIO       |
+| pivac-redlink           | pivac.RedLink           | Honeywell thermostat             | internet     |
+| pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO         |
+| pivac-arduino-psi       | pivac.ArduinoPSI        | Hydronic pressure (Fusch 100PSI) | 10.0.0.114   |
+| pivac-arduino-therm-psi | pivac.ArduinoThermPSI   | DHW pressure (Fusch 200PSI)      | 10.0.0.219   |
 
 ## Key File Locations
+
 - Pivac code: `~/github/pivac/`
-- Config: `/etc/pivac/config.yml`
+- Live config: `/etc/pivac/config.yml`
 - Systemd services: `/etc/systemd/system/pivac-*.service`
-- SignalK config: `~/.signalk/`
-- Python venv: `~/pivac-venv/`
+- Signal K config: `~/.signalk/settings.json`
+- Python venv: `~/pivac-venv/` (always use this)
 
 ## Standard Deployment Procedure
-After a `git pull`, run the following to deploy changes:
+
+After a `git pull`:
 ```bash
 sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
-sudo systemctl status pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
 ```
 
 If systemd service files were changed:
@@ -45,26 +103,45 @@ sudo systemctl daemon-reload
 ```
 
 ## Checking Logs
+
 ```bash
-# All pivac services together
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50
+# All pivac services
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
 
 # Single service
-journalctl -u pivac-redlink -n 50
+journalctl -u pivac-redlink -n 50 --no-pager
 
-# SignalK server
-journalctl -u signalk -n 50
+# Signal K server
+journalctl -u signalk -n 50 --no-pager
 ```
 
 ## Known Operational Behaviours (Not Bugs)
-- **Arduino timeouts**: Both Arduinos (10.0.0.114 and 10.0.0.219) occasionally go unresponsive.
-  Logged as a single WARNING line. Self-recover; occasional power cycle needed.
-- **RedLink ConnectionResetError**: Honeywell's server occasionally drops HTTPS connections.
-  Self-recovering. Logged as ERROR but normal.
-- **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion.
-  Transient, self-recovering.
 
-## SignalK Upgrade (if needed)
+- **Arduino timeouts**: Both Arduinos (10.0.0.114 and 10.0.0.219) occasionally go unresponsive. Logged as a single WARNING. Self-recover; occasional power cycle needed.
+- **RedLink ConnectionResetError**: Honeywell's server occasionally drops HTTPS connections. Self-recovering. Logged as ERROR but normal.
+- **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
+
+## Adding a New Module
+
+1. Create `pivac/MyModule.py` implementing `status(config={}, output="default")`
+2. Add a section to `config.yml` named `pivac.MyModule`
+3. Create a systemd service file in `scripts/systemd/`
+4. The provider script will auto-discover it
+
+## Current Modules
+
+| Module | Source |
+|--------|--------|
+| `GPIO` | RPi GPIO pin state |
+| `OneWireTherm` | DS18B20 1-Wire temperature sensors |
+| `TED5000` | Energy monitor (XML over HTTP) — currently disabled |
+| `RedLink` | Honeywell thermostat (web scraping) |
+| `FlirFX` | FLIR camera temperature/humidity — currently disabled |
+| `ArduinoPSI` | Arduino hydronic pressure sensor (HTTP) |
+| `ArduinoThermPSI` | Arduino DHW pressure + temp sensor (HTTP) |
+
+## Signal K Upgrade (if needed)
+
 The admin console upgrade fails with ENOTEMPTY. Use the manual procedure:
 ```bash
 sudo systemctl stop signalk
@@ -74,8 +151,13 @@ sudo systemctl start signalk
 ```
 
 ## Python Environment
+
 Always use the pivac venv:
 ```bash
 source ~/pivac-venv/bin/activate
 pip install <package> --break-system-packages
 ```
+
+## Dependencies
+
+Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`
