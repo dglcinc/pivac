@@ -156,8 +156,7 @@ journalctl -u signalk -n 50 --no-pager
 | `TED5000` | Energy monitor (XML over HTTP) — currently disabled |
 | `RedLink` | Honeywell thermostat (web scraping) |
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
-| `ArduinoPSI` | Arduino hydronic pressure sensor (HTTP) |
-| `ArduinoThermPSI` | Arduino DHW pressure + temp sensor (HTTP) |
+| `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
 
 ## Signal K Upgrade (if needed)
 
