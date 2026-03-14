@@ -38,7 +38,7 @@ python scripts/pivac-provider.py pivac.OneWireTherm pivac.TED5000 --daemon
 **Testing a module standalone** (no Signal K needed — outputs plain JSON to stdout):
 ```bash
 source ~/pivac-venv/bin/activate
-python -c "import pivac.ArduinoPSI as m; import json; print(json.dumps(m.status(), indent=2))"
+python -c "import pivac.ArduinoSensor as m; import json; print(json.dumps(m.status(), indent=2))"
 ```
 
 ## Architecture
