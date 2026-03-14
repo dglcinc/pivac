@@ -28,7 +28,7 @@ def status(config = {}, output = "default"):
         logger.debug("Parsing pressure response...")
         r = requests.get("http://%s" % config["ipaddr"], timeout=2)
         logger.debug("Got request: %s" % r.text)
-        psi = ast.literal_eval(re.findall('.*\\{.*\}',r.text)[0])['psi']
+        psi = ast.literal_eval(re.findall(r'.*\{.*\}',r.text)[0])['psi']
 
         if output == "signalk":
             sk_add_value(sk_source,"%s.%s" % (sensors["psi"]["sk_path"], sensors["psi"]["outname"]), psi)
