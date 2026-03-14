@@ -100,7 +100,21 @@ sudo cp config/config.yml.sample /etc/pivac/config.yml
 sudo nano /etc/pivac/config.yml
 ```
 
-Each top-level key in the config file is an actual Python package name — so if you create your own Python packages and name them in the config file, they will be automatically discovered and used by the scripts. Enable or disable modules by setting `enabled: true/false`. A complete, commented sample is provided as `config/config.yml.sample`.
+Each top-level key in the config file (starting with `pivac.`) is a provider instance name. By default, it is also the Python module that gets loaded. If you want multiple instances of the same module (e.g. two sensors of the same type with different IPs), add a `module:` key to point to the shared implementation:
+
+```yaml
+pivac.Sensor1:
+    module: pivac.ArduinoSensor
+    ipaddr: 10.0.0.10
+    ...
+
+pivac.Sensor2:
+    module: pivac.ArduinoSensor
+    ipaddr: 10.0.0.11
+    ...
+```
+
+Enable or disable modules by setting `enabled: true/false`. A complete, commented sample is provided as `config/config.yml.sample`.
 
 **Signal K integration** requires a `pivac_config:` section in your config file containing the SignalK host, port, and credentials:
 
@@ -203,6 +217,18 @@ pivac.MyModule:
     enabled: true
     daemon_sleep: 5
     # ... module-specific config keys ...
+```
+
+If you need multiple independent instances of the same module (e.g. two sensors with different IPs), give each a unique key and use the `module:` key to point them both at the same implementation:
+
+```yaml
+pivac.MySensor1:
+    module: pivac.MyModule
+    ipaddr: 10.0.0.10
+
+pivac.MySensor2:
+    module: pivac.MyModule
+    ipaddr: 10.0.0.11
 ```
 
 **3. Test standalone**

@@ -72,18 +72,21 @@ if args.daemon == None:
 logger.debug("Loopcount = %d", loopcount)
 
 # load referenced packages (loading here since below is in while loop)
+# If a config section has a 'module:' key, use that as the import path instead of
+# the config key name — allowing multiple config sections to share one implementation.
 modfuncs = {}
 for p in args.stype:
     try:
-        logger.debug("Loading module %s" % p)
-        statmod = importlib.import_module(p)
+        module_name = packages[p].get("module", p)
+        logger.debug("Loading module %s (implementation: %s)" % (p, module_name))
+        statmod = importlib.import_module(module_name)
         statfn = getattr(statmod, "status")
         modfuncs[p] = statfn
     except ImportError as e:
-        logger.error("Module %s not found: %s" % (p, e))
+        logger.error("Module %s not found: %s" % (module_name, e))
         sys.exit(1)
     except AttributeError:
-        logger.error("Module %s does not implement a status() function" % p)
+        logger.error("Module %s does not implement a status() function" % module_name)
         sys.exit(1)
 
 # SignalK WebSocket connection helpers

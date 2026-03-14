@@ -142,6 +142,28 @@ pivac_config:
         username: admin
         password: xxx
 
+pivac.ArduinoPSI:
+    description: Reports hydronic pressure from an Arduino HTTP sensor
+    # 'module' tells the framework which Python module to load for this config section.
+    # Multiple config sections can share one implementation this way.
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.114
+    inputs:
+        psi:
+            sk_path: propulsion.mainEngine.coolant
+            outname: pressure
+
+pivac.ArduinoThermPSI:
+    description: Reports DHW pressure from an Arduino HTTP sensor
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.219
+    inputs:
+        psi:
+            sk_path: propulsion.mainEngine.fuel
+            outname: pressure
+
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera
     enabled: false
