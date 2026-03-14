@@ -124,14 +124,10 @@ def reconnect_sk_ws(sk_cfg, current_ws):
     logger.error("All SignalK reconnect attempts failed.")
     return None
 
-# Establish initial SignalK WebSocket connection
+# Establish initial SignalK WebSocket connection (with retries to handle boot race)
 ws = None
 if sk_config:
-    try:
-        token = get_sk_token(sk_config)
-        ws = connect_sk_ws(sk_config, token)
-    except Exception as e:
-        logger.error("Initial SignalK connection failed: %s" % e)
+    ws = reconnect_sk_ws(sk_config, None)
 else:
     logger.warning("No 'signalk' section in config — falling back to stdout output.")
 

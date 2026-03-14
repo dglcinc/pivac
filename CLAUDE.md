@@ -120,6 +120,7 @@ journalctl -u signalk -n 50 --no-pager
 - **Arduino timeouts**: Both Arduinos (10.0.0.114 and 10.0.0.219) occasionally go unresponsive. Logged as a single WARNING. Self-recover; occasional power cycle needed.
 - **RedLink ConnectionResetError**: Honeywell's server occasionally drops HTTPS connections. Self-recovering. Logged as ERROR but normal.
 - **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
+- **Boot-time WebSocket race**: Pivac services start before Signal K is fully ready. The provider retries the initial WebSocket connection with exponential backoff (up to 6 attempts). No intervention needed.
 
 ## Adding a New Module
 
