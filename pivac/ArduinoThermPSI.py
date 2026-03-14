@@ -1,50 +1,9 @@
-import requests
-import logging
-import re
-import ast
-
-logger = logging.getLogger(__name__)
-
-def status(config = {}, output = "default"):
-    result = {}
-    sensors = {}
-
-    if "ipaddr" not in config:
-        logger.error("No IP address specified in config file.")
-        raise ValueError
-    if "inputs" not in config:
-        logger.error("No inputs specified in config file.")
-        raise ValueError
-    else:
-        sensors = config["inputs"]
-
-    if output == "signalk":
-        logger.debug("prepping sk output...")
-        from pivac import sk_init_deltas, sk_add_source, sk_add_value
-        deltas = sk_init_deltas()
-        sk_source = sk_add_source(deltas)
-
-    try:
-        logger.debug("Parsing pressure response...")
-        r = requests.get("http://%s" % config["ipaddr"], timeout=2)
-        logger.debug("Got request: %s" % r.text)
-        psi = ast.literal_eval(re.findall('.*\\{.*\}',r.text)[0])['psi']
-
-        if output == "signalk":
-            sk_add_value(sk_source,"%s.%s" % (sensors["psi"]["sk_path"], sensors["psi"]["outname"]), psi)
-        else:
-            result["outname"] = psi
-    except:
-        logger.warning("Arduino at %s unreachable (timeout)" % config["ipaddr"])
-
-    if output == "signalk":
-        logger.debug("deltas = %s" % deltas)
-        return deltas
-    else:
-        logger.debug("result = %s" % result)
-        return result
+# Thin wrapper for backward compatibility.
+# All implementation is in pivac.ArduinoSensor.
+# New configs should use: module: pivac.ArduinoSensor
+from pivac.ArduinoSensor import status  # noqa: F401
 
 if __name__ == "__main__":
+    import logging
     logging.basicConfig(format='%(name)s %(levelname)s:%(asctime)s %(message)s',datefmt='%m/%d/%Y %I:%M:%S',level="DEBUG")
-
     status()
