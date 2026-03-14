@@ -20,6 +20,7 @@ os.system('modprobe w1-gpio')  # Turns on the GPIO module
 pins_initted = False
 
 def init_pins(input_pins={}, pinmode = GPIO.BCM):
+    global pins_initted
     logger.debug("Initializing pins")
 
     try:
@@ -75,7 +76,7 @@ def status(config={},output="default"):
             else:
                 result[pindict["outname"]] = presult
     else:
-        logger.exception("No input pins specified for GPIO")
+        logger.error("No input pins specified for GPIO")
         raise KeyError
 
     if output == "signalk":

@@ -10,10 +10,10 @@ def status(config = {}, output = "default"):
     sensors = {}
 
     if "ipaddr" not in config:
-        logger.exception("No IP address specified in config file.")
+        logger.error("No IP address specified in config file.")
         raise ValueError
     if "inputs" not in config:
-        logger.exception("No inputs specified in config file.")
+        logger.error("No inputs specified in config file.")
         raise ValueError
     else:
         sensors = config["inputs"]

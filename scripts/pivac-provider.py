@@ -146,6 +146,10 @@ while 1:
 
         if data is not None:
             payload = json.dumps(data)
+            if sk_config and not ws:
+                # SignalK is configured but connection is down — try to reconnect
+                logger.warning("SignalK WebSocket is down, attempting to reconnect...")
+                ws = reconnect_sk_ws(sk_config, None)
             if ws:
                 try:
                     ws.send(payload)
@@ -157,6 +161,7 @@ while 1:
                             ws.send(payload)
                         except Exception as e2:
                             logger.error("Send failed after reconnect: %s" % e2)
+                            ws = None
             else:
                 # No WebSocket configured or all reconnects failed — fall back to stdout
                 print(payload)
