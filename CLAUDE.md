@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Working Style
+
+- Do not ask for permission before running individual commands — just run them.
+- Before starting a multi-step task, briefly state the plan and confirm once. Then execute all steps without further prompts.
+
 ## What This Project Does
 
 **pivac** collects data from Raspberry Pi sensors and outputs standardized JSON. It's a read-only monitoring tool for HVAC/home automation, feeding downstream systems (Signal K, InfluxDB, Grafana, WilhelmSK mobile app).
