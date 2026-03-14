@@ -47,6 +47,8 @@ python -c "import pivac.ArduinoPSI as m; import json; print(json.dumps(m.status(
 
 Each sensor type is a standalone module in `pivac/`. The orchestrator (`scripts/pivac-provider.py`) dynamically loads modules listed in `config.yml` using `importlib.import_module()` and calls their `status()` function. Only keys starting with `pivac.` are treated as modules; `pivac_config:` is reserved for framework settings.
 
+If a config section includes a `module:` key, that value is used as the Python import path instead of the section name — allowing multiple config sections to share a single implementation (e.g., two Arduino sensors with different IPs both pointing to `pivac.ArduinoSensor`).
+
 **Every module must implement:**
 ```python
 def status(config={}, output="default") -> dict:
