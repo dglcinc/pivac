@@ -33,7 +33,7 @@ python scripts/pivac-provider.py pivac.OneWireTherm pivac.TED5000 --daemon
 2. `/etc/pivac/config.yml` (system install)
 3. `config/config.yml` (git clone)
 
-**Important:** `/etc/pivac/config.yml` must include a `signalk:` section with `host`, `port`, `username`, and `password` for the WebSocket connection to work. See `config/config.yml.sample` for the format.
+**Important:** `/etc/pivac/config.yml` must include a `pivac_config:` section containing a nested `signalk:` block with `host`, `port`, `username`, and `password` for the WebSocket connection to work. See `config/config.yml.sample` for the format.
 
 **Testing a module standalone** (no Signal K needed — outputs plain JSON to stdout):
 ```bash
@@ -45,7 +45,7 @@ python -c "import pivac.ArduinoPSI as m; import json; print(json.dumps(m.status(
 
 ### Module System
 
-Each sensor type is a standalone module in `pivac/`. The orchestrator (`scripts/pivac-provider.py`) dynamically loads modules listed in `config.yml` using `pydoc.safeimport()` and calls their `status()` function.
+Each sensor type is a standalone module in `pivac/`. The orchestrator (`scripts/pivac-provider.py`) dynamically loads modules listed in `config.yml` using `importlib.import_module()` and calls their `status()` function. Only keys starting with `pivac.` are treated as modules; `pivac_config:` is reserved for framework settings.
 
 **Every module must implement:**
 ```python

@@ -130,14 +130,17 @@ pivac.RedLink:
             sk_path: environment.inside.thermostat
         outdoor_sensor:
             sk_path: environment.outside.thermostat
-# SignalK WebSocket connection settings.
-# pivac-provider.py uses these to push delta messages directly to SignalK via WebSocket,
-# replacing the v1 pipedProviders model. Create an admin user in SignalK if needed.
-signalk:
-    host: localhost
-    port: 3000
-    username: admin
-    password: xxx
+# Framework settings — not a module. Holds non-module configuration such as
+# the SignalK WebSocket connection. Keys here will not be treated as provider modules.
+pivac_config:
+    # SignalK WebSocket connection settings.
+    # pivac-provider.py uses these to push delta messages directly to SignalK via WebSocket.
+    # Create an admin user in SignalK if needed.
+    signalk:
+        host: localhost
+        port: 3000
+        username: admin
+        password: xxx
 
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera

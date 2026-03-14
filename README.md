@@ -102,15 +102,18 @@ sudo nano /etc/pivac/config.yml
 
 Each top-level key in the config file is an actual Python package name — so if you create your own Python packages and name them in the config file, they will be automatically discovered and used by the scripts. Enable or disable modules by setting `enabled: true/false`. A complete, commented sample is provided as `config/config.yml.sample`.
 
-**Signal K integration** requires a `signalk:` section in your config file with the host, port, and credentials for your Signal K server:
+**Signal K integration** requires a `pivac_config:` section in your config file containing the SignalK host, port, and credentials:
 
 ```yaml
-signalk:
-    host: localhost
-    port: 3000
-    username: admin
-    password: yourpassword
+pivac_config:
+    signalk:
+        host: localhost
+        port: 3000
+        username: admin
+        password: yourpassword
 ```
+
+Note: `pivac_config` is a reserved key for framework settings — it is not treated as a provider module.
 
 # Using the Package
 
@@ -159,6 +162,102 @@ The pivac package currently contains the following modules:
 * ArduinoPSI
 * ArduinoThermPSI
 * FlirFX (disabled by default)
+
+## Adding a New Provider Module
+
+Pivac is designed so that new data providers can be added without modifying any framework code. The steps are:
+
+**1. Write the module**
+
+Create `pivac/MyModule.py`. The module must implement a `status()` function with this signature:
+
+```python
+def status(config={}, output="default"):
+    ...
+```
+
+- When `output="default"`: return a plain Python dict of sensor readings (used for command-line testing)
+- When `output="signalk"`: return a Signal K delta dict built using the pivac helper functions:
+
+```python
+from pivac import sk_init_deltas, sk_add_source, sk_add_value
+
+deltas = sk_init_deltas()
+source = sk_add_source(deltas)
+sk_add_value(source, "environment.inside.myreading", value)
+return deltas
+```
+
+- On error: log a warning and return an empty delta — don't raise an exception, so the service keeps running
+- The module name must start with `pivac.` (e.g. `pivac.MyModule`)
+
+You can use the `propagate_defaults()` helper to copy top-level config values down to each entry in `inputs:` — see `GPIO.py` or `OneWireTherm.py` for examples.
+
+**2. Add a config section**
+
+Add a section to `/etc/pivac/config.yml` using the module's full Python name as the key:
+
+```yaml
+pivac.MyModule:
+    description: My new sensor module
+    enabled: true
+    daemon_sleep: 5
+    # ... module-specific config keys ...
+```
+
+**3. Test standalone**
+
+Verify the module works before connecting it to Signal K:
+
+```bash
+source ~/pivac-venv/bin/activate
+python scripts/pivac-provider.py pivac.MyModule --format pretty
+```
+
+This outputs the raw JSON to stdout without needing Signal K running.
+
+**4. Create a systemd service file**
+
+Copy an existing service file and adapt it:
+
+```bash
+cp scripts/systemd/pivac-gpio.service scripts/systemd/pivac-mymodule.service
+```
+
+Edit the new file — change the `Description` and the module name in `ExecStart`:
+
+```ini
+[Unit]
+Description=Pivac MyModule provider
+After=network.target signalk.service
+Requires=signalk.service
+
+[Service]
+Type=simple
+User=pi
+Environment=PIVAC_CFG=/etc/pivac/config.yml
+ExecStart=/home/pi/pivac-venv/bin/python3 /home/pi/github/pivac/scripts/pivac-provider.py pivac.MyModule --loglevel ERROR --daemon
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**5. Install and start the service**
+
+```bash
+sudo cp scripts/systemd/pivac-mymodule.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable pivac-mymodule
+sudo systemctl start pivac-mymodule
+```
+
+**6. Verify**
+
+```bash
+journalctl -u pivac-mymodule -n 50 --no-pager
+```
 
 ## Initialization
 * **`pivac.set_config(configfile="")`**: This method must be called before using any of the modules. It locates and reads the config file, first in `/etc/pivac/config.yml` then in `config/config.yml` relative to the parent directory of the scripts, if you do not specify it. Returns the `config` dictionary. This currently can only be set once, because the data read from the config file is used to load modules by the `pivac-provider.py` script. If you attempt to set again it will return the current config dict.

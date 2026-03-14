@@ -4,11 +4,8 @@ logger = logging.getLogger(__name__)
 import sys
 import argparse
 import json
-import socket
 import time
-import re
-import pkgutil
-from pydoc import safeimport
+import importlib
 import os
 import urllib.request
 import websocket
@@ -33,10 +30,13 @@ config = pivac.set_config(cfgfile)
 packages = config["packages"]
 
 # get list of modules in pivac that implement status()
-# skip the reserved "signalk" key which holds connection config
+# skip the reserved "pivac_config" key which holds framework settings
 pkglist = []
 for k in packages.keys():
-    if k == "signalk":
+    if k == "pivac_config":
+        continue
+    if not k.startswith("pivac."):
+        logger.warning("Config key '%s' does not start with 'pivac.' — skipping (not a pivac module)" % k)
         continue
     if "enabled" not in packages[k] or packages[k]["enabled"]:
         pkglist.append(k)
@@ -76,15 +76,18 @@ modfuncs = {}
 for p in args.stype:
     try:
         logger.debug("Loading module %s" % p)
-        statmod = safeimport(p)
+        statmod = importlib.import_module(p)
         statfn = getattr(statmod, "status")
         modfuncs[p] = statfn
-    except:
-        logger.exception("Package %s in configfile %s not found or doesn't have status() function" % (p, config["sourcefile"]))
+    except ImportError as e:
+        logger.error("Module %s not found: %s" % (p, e))
+        sys.exit(1)
+    except AttributeError:
+        logger.error("Module %s does not implement a status() function" % p)
         sys.exit(1)
 
 # SignalK WebSocket connection helpers
-sk_config = packages.get("signalk", {})
+sk_config = packages.get("pivac_config", {}).get("signalk", {})
 
 def get_sk_token(sk_cfg):
     """Fetch a JWT token from the SignalK auth endpoint."""
@@ -129,7 +132,7 @@ ws = None
 if sk_config:
     ws = reconnect_sk_ws(sk_config, None)
 else:
-    logger.warning("No 'signalk' section in config — falling back to stdout output.")
+    logger.warning("No 'pivac_config.signalk' section in config — falling back to stdout output.")
 
 sleepytime = -1
 packages = config["packages"]
