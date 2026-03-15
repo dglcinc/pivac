@@ -92,6 +92,10 @@ Each module runs as a dedicated systemd service (`scripts/systemd/pivac-*.servic
 
 Signal K settings are at `/home/pi/.signalk/settings.json` — `pipedProviders` is intentionally empty (pivac now self-manages via WebSocket).
 
+## Related Repositories
+
+The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a separate repo at `~/github/Arduino`. Each is an Arduino UNO R4 WiFi running a minimal HTTP server. See that repo's CLAUDE.md for hardware details, known issues (including hardcoded WiFi credentials), and deployment notes.
+
 ## Active Services and Devices
 
 | systemd service         | Module                  | Device                           | IP / Source  |
