@@ -164,6 +164,39 @@ pivac.ArduinoThermPSI:
             sk_path: propulsion.mainEngine.fuel
             outname: pressure
 
+# ---------------------------------------------------------------------------
+# Template for a new module — copy and adapt this block.
+# The key (pivac.MyModule) must match your Python file name (pivac/MyModule.py),
+# or set `module:` to point to a shared implementation.
+# ---------------------------------------------------------------------------
+# pivac.MyModule:
+#     description: One-line description of what this module does
+#     enabled: true
+#
+#     # Optional: seconds to sleep between polls in daemon mode (default 0.5)
+#     daemon_sleep: 5
+#
+#     # Optional: override the Python module to load (for multi-instance sharing)
+#     # module: pivac.SharedImplementation
+#
+#     # Optional: top-level config keys to copy down into each input entry
+#     propagate:
+#         - sk_path
+#         - scale
+#
+#     # Signal K path prefix for this module's output values
+#     sk_path: environment.inside.mymodule
+#     sk_literal: false   # true = sk_path is the full path; false = path.outname.measurement
+#
+#     # For modules that poll a remote device:
+#     # ipaddr: 10.0.0.x
+#
+#     # Named sensor inputs — each becomes a separate Signal K value
+#     inputs:
+#         my_sensor:
+#             outname: reading_name   # used in Signal K path and default JSON output
+#             sk_path: environment.inside.mymodule   # override top-level sk_path if needed
+
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera
     enabled: false
