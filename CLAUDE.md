@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Working Style (pivac-specific exceptions)
 
 - **Keep CLAUDE.md current**: After any commit that involves significant code changes, architecture decisions, new devices, bug fixes, or deployment procedure changes — update this file and include it in the commit. It is the persistent memory for both Cowork and Claude Code across sessions.
-- Exception to PR workflow: CLAUDE.md updates may be committed and pushed directly to `master`.
+- Exception to PR workflow: CLAUDE.md updates may be committed and pushed directly to `master`. All other files (including README.md, source code, config samples, etc.) must go through a feature branch and PR.
 
 ## What This Project Does
 
