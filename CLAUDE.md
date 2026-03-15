@@ -92,8 +92,8 @@ Signal K settings are at `/home/pi/.signalk/settings.json` — `pipedProviders` 
 | pivac-1wire             | pivac.OneWireTherm      | DS18B20 1-wire temperature sensors | GPIO       |
 | pivac-redlink           | pivac.RedLink           | Honeywell thermostat             | internet     |
 | pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO         |
-| pivac-arduino-psi       | pivac.ArduinoPSI        | Hydronic pressure (Fusch 100PSI) | 10.0.0.114   |
-| pivac-arduino-therm-psi | pivac.ArduinoThermPSI   | DHW pressure (Fusch 200PSI)      | 10.0.0.219   |
+| pivac-arduino-psi       | pivac.ArduinoSensor     | Hydronic pressure (Fusch 100PSI) | 10.0.0.114   |
+| pivac-arduino-therm-psi | pivac.ArduinoSensor     | DHW pressure (Fusch 200PSI)      | 10.0.0.219   |
 
 ## Key File Locations
 

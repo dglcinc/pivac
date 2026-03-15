@@ -7,8 +7,7 @@ Currently supported inputs include:
 * **GPIO**: Generic reads of RPi GPIO pins, pulled high or low using internal pullup resistors
 * **RedLink**: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
 * **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution
-* **ArduinoPSI**: Pressure sensor data from an Arduino over HTTP (e.g. Fusch 100PSI sensor)
-* **ArduinoThermPSI**: Combined pressure and temperature from an Arduino over HTTP (e.g. Fusch 200PSI sensor)
+* **ArduinoSensor**: Pressure sensor data from an Arduino over HTTP (e.g. Fusch 100PSI, Fusch 200PSI) — a single implementation used by multiple config sections via the `module:` key
 * **FlirFX**: Temperature and humidity from a FLIR camera
 
 The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
@@ -173,8 +172,7 @@ The pivac package currently contains the following modules:
 * OneWireTherm
 * TED5000
 * RedLink
-* ArduinoPSI
-* ArduinoThermPSI
+* ArduinoSensor
 * FlirFX (disabled by default)
 
 ## Adding a New Provider Module
@@ -321,7 +319,10 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
     "Y2FAN": false,
     "ZV": true,
     "YOFF": false,
-    "LCHL": false
+    "LCHL": false,
+    "SCALA": false,
+    "BOS1": false,
+    "BOS2": false
 }
 ```
 
@@ -350,23 +351,13 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
 }
 ```
 
-## ArduinoPSI
+## ArduinoSensor
 
-* **`ArduinoPSI.status(config={}, output="default")`**: Polls an Arduino over HTTP and returns the pressure reading in PSI. The Arduino serves a simple JSON response containing a `psi` key. Designed for use with ratiometric pressure sensors (e.g. Fusch 100PSI, 0.5–4.5V output). Example output:
+* **`ArduinoSensor.status(config={}, output="default")`**: Polls an Arduino over HTTP and returns the pressure reading in PSI. The Arduino serves a simple JSON response containing a `psi` key. Designed for use with ratiometric pressure sensors (e.g. Fusch 100PSI, Fusch 200PSI, 0.5–4.5V output). Multiple config sections can share this implementation using the `module:` key — for example, `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` both point to `pivac.ArduinoSensor` with different `ipaddr` values. Example output:
 
 ```
 {
     "psi": 18.4
-}
-```
-
-## ArduinoThermPSI
-
-* **`ArduinoThermPSI.status(config={}, output="default")`**: Same as ArduinoPSI but for combined pressure and temperature sensors (e.g. Fusch 200PSI). Example output:
-
-```
-{
-    "psi": 42.1
 }
 ```
 
@@ -458,10 +449,8 @@ Some points to keep in mind:
 There is a site that provides an undocumented way to access Honeywell's REST API interface, [here](http://dirkgroenen.nl/projects/2016-01-15/honeywell-API-endpoints-documentation/).
 
 ## Example 5: Arduino Pressure Sensors
-The ArduinoPSI and ArduinoThermPSI modules poll a small Arduino web server over HTTP. The Arduino reads a ratiometric pressure sensor (0.5–4.5V output), converts the voltage to PSI, and returns it as a simple JSON response. This approach is useful when you need analog inputs that the RPi doesn't natively support well.
+The `ArduinoSensor` module polls a small Arduino web server over HTTP. The Arduino reads a ratiometric pressure sensor (0.5–4.5V output), converts the voltage to PSI, and returns it as a simple JSON response. This approach is useful when you need analog inputs that the RPi doesn't natively support well.
 
-Two sensor configurations are supported:
-* **ArduinoPSI**: Single pressure reading (e.g. Fusch 100PSI sensor for hydronic loop pressure)
-* **ArduinoThermPSI**: Pressure reading with optional temperature (e.g. Fusch 200PSI sensor for domestic hot water pressure)
+A single module implementation can serve multiple sensor instances by using the `module:` key in each config section. For example, the hydronic loop and DHW pressure sensors each have their own config section (`pivac.ArduinoPSI` and `pivac.ArduinoThermPSI`) with different IP addresses, both pointing to `module: pivac.ArduinoSensor`.
 
 The Arduinos are configured with static IP addresses in your config file. If an Arduino is unreachable (timeout), a warning is logged and the module returns an empty delta — the service continues running and retries on the next poll interval.
