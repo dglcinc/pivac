@@ -80,6 +80,8 @@ Modules always emit Signal K delta messages:
 {"updates": [{"source": {"label": "rpi:hostname"}, "values": [...]}]}
 ```
 
+The spec-reviewed omissions are intentional: `context` is omitted (server correctly defaults to `vessels.self`), `timestamp` is omitted (server fills it in on receipt), and `source.type` is omitted (no standard type value exists for RPi providers). These are not bugs.
+
 ### Config `propagate` Key
 
 Modules support a `propagate` list — config keys listed there are copied from the top-level module config into each entry under `inputs:`, unless overridden at the input level.
