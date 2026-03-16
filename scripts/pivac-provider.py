@@ -136,11 +136,34 @@ if sk_config:
     ws = reconnect_sk_ws(sk_config, None)
 else:
     logger.warning("No 'pivac_config.signalk' section in config — falling back to stdout output.")
+ws_connected_at = time.time() if ws else 0
+last_ping_time = time.time() if ws else 0
+PING_INTERVAL = 45      # seconds between keepalive pings
+MAX_CONNECTION_AGE = 43200  # 12 hours; force reconnect for token refresh
 
 sleepytime = -1
 packages = config["packages"]
 
 while 1:
+    if sk_config and ws:
+        now = time.time()
+        if (now - ws_connected_at) > MAX_CONNECTION_AGE:
+            logger.info("Forcing WebSocket reconnect for token refresh (>12h)")
+            ws = reconnect_sk_ws(sk_config, ws)
+            if ws:
+                ws_connected_at = now
+                last_ping_time = now
+        elif (now - last_ping_time) >= PING_INTERVAL:
+            try:
+                ws.ping()
+                last_ping_time = now
+            except Exception as e:
+                logger.warning("WebSocket ping failed, reconnecting: %s" % e)
+                ws = reconnect_sk_ws(sk_config, ws)
+                if ws:
+                    ws_connected_at = now
+                    last_ping_time = now
+
     for p in args.stype:
         data = None
         try:
@@ -152,10 +175,13 @@ while 1:
 
         if data is not None:
             payload = json.dumps(data)
-            if sk_config and not ws:
+            if sk_config and (not ws or not ws.connected):
                 # SignalK is configured but connection is down — try to reconnect
                 logger.warning("SignalK WebSocket is down, attempting to reconnect...")
-                ws = reconnect_sk_ws(sk_config, None)
+                ws = reconnect_sk_ws(sk_config, ws)
+                if ws:
+                    ws_connected_at = time.time()
+                    last_ping_time = time.time()
             if ws:
                 try:
                     ws.send(payload)
@@ -163,6 +189,8 @@ while 1:
                     logger.warning("WebSocket send failed: %s" % e)
                     ws = reconnect_sk_ws(sk_config, ws)
                     if ws:
+                        ws_connected_at = time.time()
+                        last_ping_time = time.time()
                         try:
                             ws.send(payload)
                         except Exception as e2:
