@@ -1,5 +1,6 @@
 import ssl
 import http.client
+import socket
 
 # workaround for mechanize/Python 3.13 SSL compatibility
 # patch connect() so SSL verification is disabled immediately before the handshake,
@@ -96,6 +97,8 @@ def status(config={}, output="default"):
         homepage = config["website"]
     else:
         homepage = HOMEPAGE
+
+    socket.setdefaulttimeout(config.get("request_timeout", 30))
 
     if not "uid" in config or not "pwd" in config:
         logger.error("Credentials not specified in config file.")

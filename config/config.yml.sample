@@ -109,7 +109,13 @@ pivac.RedLink:
 
     # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
     daemon_sleep: 2
-    
+
+    # socket timeout in seconds per HTTP request to the Honeywell site. Default is 30.
+    # Prevents indefinite hangs when the server accepts a connection but stalls mid-response.
+    # Each scrape cycle makes 2 HTTP requests, so worst-case stall before giving up is
+    # request_timeout * 2. Keep this well above daemon_sleep.
+    request_timeout: 30
+
     # website
     site: "https://www.mytotalconnectcomfort.com/portal"
     
