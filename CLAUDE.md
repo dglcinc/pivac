@@ -115,7 +115,6 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Signal K config: `~/.signalk/settings.json`
 - Python venv: `~/pivac-venv/` (always use this)
 - nginx site config: `/etc/nginx/sites-available/pivac`
-- nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
 
@@ -129,12 +128,12 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 
 | URL | Service | Auth |
 |-----|---------|------|
-| `https://68lookout.dglc.com/admin/` | Signal K admin UI | nginx Basic Auth |
+| `https://68lookout.dglc.com/admin/` | Signal K admin UI | Signal K own auth |
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
-| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
+| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | none |
 
-**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
+**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled.
 
 **Signal K behind proxy — Trust Proxy:** The `/signalk/` nginx location block passes `X-Forwarded-Proto: https` and `X-Forwarded-For`. Signal K's "Trust Proxy" setting (Server → Settings in the admin UI) must be enabled for Signal K to use these headers when constructing endpoint URLs. Without it, Signal K advertises `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, breaking WilhelmSK's WebSocket connection. Verify with: `curl -s https://68lookout.dglc.com/signalk/ | python3 -m json.tool` — `signalk-ws` should show `wss://68lookout.dglc.com/signalk/v1/stream`.
 
