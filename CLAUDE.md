@@ -113,6 +113,42 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Systemd services: `/etc/systemd/system/pivac-*.service`
 - Signal K config: `~/.signalk/settings.json`
 - Python venv: `~/pivac-venv/` (always use this)
+- nginx site config: `/etc/nginx/sites-available/pivac`
+- nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
+- TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
+- Grafana config: `/etc/grafana/grafana.ini`
+- WireGuard keys (unused, kept for reference): `/etc/wireguard/`
+
+## Remote Access
+
+All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN required.
+
+**External hostname:** `68lookout.dglc.com` → public IP `74.89.220.182` (DNS on AWS Route53; update manually if ISP IP changes)
+
+**Network topology (double-NAT):** Internet → fiber router (`192.168.1.x`) → Unifi router (`10.0.0.x`) → Pi (`10.0.0.82`). TCP ports 80 and 443 are forwarded at both hops.
+
+| URL | Service | Auth |
+|-----|---------|------|
+| `https://68lookout.dglc.com/admin/` | Signal K admin UI | nginx Basic Auth |
+| `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
+| `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
+| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
+
+**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
+
+**nginx reload after config changes:**
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+## Grafana Sub-path Configuration
+
+Grafana is configured to serve from `/grafana/` sub-path. Key settings in `/etc/grafana/grafana.ini`:
+```ini
+root_url = https://68lookout.dglc.com/grafana/
+serve_from_sub_path = true
+```
+If these are lost, Grafana will redirect to `/login` with an internal URL and break the proxy.
 
 ## Standard Deployment Procedure
 
