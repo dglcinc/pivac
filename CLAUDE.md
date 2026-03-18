@@ -131,7 +131,7 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 | `https://68lookout.dglc.com/admin/` | Signal K admin UI | Signal K own auth |
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
-| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | none |
+| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | OpenSprinkler own auth |
 
 **WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled.
 
