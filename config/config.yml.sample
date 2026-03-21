@@ -203,6 +203,30 @@ pivac.ArduinoThermPSI:
 #             outname: reading_name   # used in Signal K path and default JSON output
 #             sk_path: environment.inside.mymodule   # override top-level sk_path if needed
 
+pivac.Emporia:
+    description: Reports power consumption from Emporia Vue energy monitors
+    enabled: true
+
+    # How long to sleep between polls in daemon mode. Emporia data at 1-minute
+    # scale doesn't update faster than once per minute, so 60s is appropriate.
+    daemon_sleep: 60
+
+    # Emporia account credentials. Token is cached at token_file so the
+    # password is only used on first run or when the cached token expires.
+    username: user@example.com
+    password: xxx
+    token_file: /etc/pivac/emporia-tokens.json
+
+    # Signal K base path. Each panel and circuit appends to this:
+    #   electrical.emporia.<panel_name>.<circuit_name>
+    sk_path: electrical.emporia
+
+    # Map device GIDs (from scripts/emporia-discover.py) to panel names.
+    # Panel names become part of the Signal K path.
+    panels:
+        "123456789": house        # 200A main panel
+        "987654321": apartment    # 100A apartment panel
+
 pivac.FlirFX:
     description: Reports temperature and humidity data from a FLIRfx camera
     enabled: false

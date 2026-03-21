@@ -96,6 +96,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO         |
 | pivac-arduino-psi       | pivac.ArduinoSensor     | Hydronic pressure (Fusch 100PSI) | 10.0.0.114   |
 | pivac-arduino-therm-psi | pivac.ArduinoSensor     | DHW pressure (Fusch 200PSI)      | 10.0.0.219   |
+| pivac-emporia           | pivac.Emporia           | Emporia Vue Gen 2 (house + apt)  | Emporia cloud |
 
 ## Key File Locations
 
@@ -142,6 +143,17 @@ root_url = https://68lookout.dglc.com/grafana/
 serve_from_sub_path = true
 ```
 If these are lost, Grafana will redirect to `/login` with an internal URL and break the proxy.
+
+## Emporia Setup (first time only)
+
+Before enabling `pivac-emporia.service`, run the discovery script to get device GIDs:
+```bash
+source ~/pivac-venv/bin/activate
+python ~/github/pivac/scripts/emporia-discover.py --username YOUR_EMAIL --password YOUR_PASSWORD
+```
+Copy the suggested config block into `/etc/pivac/config.yml`, replacing the GID placeholders with real values.
+
+Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login.
 
 ## Standard Deployment Procedure
 
@@ -195,6 +207,7 @@ journalctl -u signalk -n 50 --no-pager
 | `RedLink` | Honeywell thermostat (web scraping) |
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
 | `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
+| `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
 
 ## Signal K Upgrade (if needed)
 
