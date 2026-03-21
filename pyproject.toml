@@ -29,6 +29,7 @@ dependencies = [
     "RPi.GPIO",
     "regex",
     "websocket-client",
+    "pyemvue",
 ]
 
 [project.urls]
