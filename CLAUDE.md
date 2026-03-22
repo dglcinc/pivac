@@ -90,7 +90,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 ## Active Services and Devices
 
 | systemd service         | Module                  | Device                           | IP / Source  |
-|-------------------------|-------------------------|----------------------------------|--------------||
+|-------------------------|-------------------------|----------------------------------|--------------|
 | pivac-1wire             | pivac.OneWireTherm      | DS18B20 1-wire temperature sensors | GPIO       |
 | pivac-redlink           | pivac.RedLink           | Honeywell thermostat             | internet     |
 | pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO         |
@@ -244,6 +244,96 @@ journalctl -u signalk -n 50 --no-pager
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
 | `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
+| `Sentry` | **PLANNED** — NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera (see section below) |
+
+## Planned: pivac.Sentry Module
+
+**Status:** Architecture designed, not yet implemented. Waiting on RTSP credentials and reference frame from camera before coding begins.
+
+### Purpose
+
+Read the Sentry 2100 controller display on the NTI Trinity Ti-200 boiler using a Tapo C120 IP camera and emit values as Signal K deltas. The display shows boiler operating data via a 3-digit 7-segment LED, four green LED indicators, and four indicator lights.
+
+### Sentry 2100 Display Hardware
+
+- **3-digit 7-segment LED display**: Shows water temp (°F), outdoor air temp (°F), gas input value (40–240 scale for Ti-200), DHW temp (°F), or error/menu codes (`ER1`–`ER6`, `ER9`, `ASO`, `ASC`, `RUN`, `LO`, `HI`, `dIF`, etc.)
+- **4 green LED indicators** (right side of display): Burner/Bruleur, Circ., Circ. Aux., Thermostat Demand — reflect live state regardless of display mode
+- **4 indicator lights** (below display): Water Temp, Air, Gas Input Value, DHW Temp — tell you which value the 3-digit display is currently showing
+- **Display cycling**: When active, display cycles through modes roughly every 5 seconds (water temp → gas input → outdoor air → DHW temp). Indicator lights identify which mode is active in any given frame.
+- **Gas Input Value scale**: 40–240 maps to BTU/hr via the Ti-200 conversion chart in the boiler manual (NTI Trinity Ti100-200 Boiler Installation and Operation Manual, pages 38–50, 61–66).
+
+### Capture Strategy
+
+On each poll cycle, the module opens the RTSP stream and captures frames every ~2.5 seconds for up to 15 seconds (configurable). Each frame is processed immediately — indicator lights determine the display mode, then the digit value is read. The loop exits early once all expected modes have been seen. This ensures all four value types are updated on every poll cycle, giving Grafana clean time series without sparse data gaps. If the boiler is idle and only one mode is visible, the loop times out and emits whatever was captured.
+
+### Computer Vision Approach
+
+**7-segment digit recognition** uses segment state detection (not general-purpose OCR): for each of the three digit positions, the seven segment bounding boxes are checked for brightness against a threshold. The 7-bit segment pattern maps to a character. This handles digits 0–9 and all special LED characters (E, r, A, S, O, C, etc.) needed for error codes.
+
+**LED and indicator detection** uses HSV color space: green LEDs are isolated by hue/saturation range, and brightness in each ROI determines on/off state.
+
+**One-time calibration required**: The module config must specify pixel coordinates for the display ROI, each digit's segment boxes, each LED, and each indicator light. These are stable as long as the camera doesn't move. A calibration utility (`scripts/sentry-calibrate.py`) will save a reference frame from the RTSP stream and help identify coordinates.
+
+### Signal K Paths
+
+| SK path | Type | Notes |
+|---------|------|-------|
+| `hvac.boiler.sentry.waterTemp` | number | °K (converted from °F); emitted when display shows water temp |
+| `hvac.boiler.sentry.outdoorTemp` | number | °K; emitted when display shows outdoor air temp |
+| `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
+| `hvac.boiler.sentry.dhwTemp` | number | °K; emitted when display shows DHW temp |
+| `hvac.boiler.sentry.errorCode` | string | e.g. `ER3`; null when no error |
+| `hvac.boiler.sentry.burnerOn` | boolean | Green LED state |
+| `hvac.boiler.sentry.circOn` | boolean | Green LED state |
+| `hvac.boiler.sentry.circAuxOn` | boolean | Green LED state |
+| `hvac.boiler.sentry.thermostatDemand` | boolean | Green LED state |
+
+Temperature values follow Signal K convention (Kelvin). Gas input value is emitted as the raw controller scale (40–240); conversion to BTU/hr can be done in Grafana or a downstream transform.
+
+### Config Format
+
+```yaml
+pivac.Sentry:
+  rtsp_url: "rtsp://user:pass@10.0.0.x:554/stream1"
+  cycle_timeout: 15          # seconds to wait for full display cycle
+  frame_interval: 2.5        # seconds between captured frames
+  brightness_threshold: 150  # 0-255, min brightness for a lit segment/LED
+  display_roi:               # pixel coords in full camera frame — set during calibration
+    x: 120
+    y: 80
+    w: 200
+    h: 60
+  digit_positions:           # relative to display_roi — left, middle, right digits
+    - {x: 10, y: 5, w: 55, h: 50}
+    - {x: 75, y: 5, w: 55, h: 50}
+    - {x: 140, y: 5, w: 55, h: 50}
+  leds:                      # pixel coords in full frame
+    burner:            {x: 350, y: 100}
+    circ:              {x: 350, y: 125}
+    circ_aux:          {x: 350, y: 150}
+    thermostat_demand: {x: 350, y: 175}
+  indicators:
+    water_temp:        {x: 130, y: 155}
+    air:               {x: 160, y: 155}
+    gas_input:         {x: 190, y: 155}
+    dhw_temp:          {x: 220, y: 155}
+```
+
+Note: all coordinate values above are placeholders — real values come from calibration.
+
+### Dependencies
+
+- `opencv-python-headless` — frame capture and image processing (headless avoids GUI deps on Pi)
+- `numpy` — already in venv
+
+### To Begin Implementation
+
+1. User provides RTSP URL and credentials for the Tapo C120
+2. Capture a reference frame: `python scripts/sentry-calibrate.py --capture`
+3. Use the reference frame to identify pixel coordinates for all ROIs
+4. Populate config with real coordinates
+5. Implement `pivac/Sentry.py` and `scripts/sentry-calibrate.py`
+6. Create `scripts/systemd/pivac-sentry.service`
 
 ## Signal K Upgrade (if needed)
 
