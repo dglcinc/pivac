@@ -111,12 +111,12 @@ def status(config={}, output="default"):
         sk_base = config.get('sk_path', 'electrical.emporia')
 
         gids = list(cache.keys())
-        devices_usage, timestamp = vue.get_device_list_usage(
+        devices_usage = vue.get_device_list_usage(
             deviceGids=gids,
             instant=datetime.now(timezone.utc),
             scale=Scale.MINUTE.value,
             unit=Unit.KWH.value
-        )
+        )  # returns dict[int, VueUsageDevice] directly (no timestamp) since pyemvue API update
 
         for gid, usage_device in devices_usage.items():
             if gid not in cache:
