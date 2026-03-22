@@ -60,9 +60,12 @@ def main():
     print("Authenticating with Emporia API...")
     vue = pyemvue.PyEmVue()
     try:
-        vue.login(username=username, password=password)
+        ok = vue.login(username=username, password=password)
     except Exception as e:
         print("ERROR: Authentication failed: %s" % e)
+        sys.exit(1)
+    if not ok:
+        print("ERROR: Authentication failed: incorrect username or password?")
         sys.exit(1)
 
     print("Fetching devices...\n")
