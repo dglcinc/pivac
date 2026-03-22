@@ -148,6 +148,8 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 ## Grafana Dashboard Provisioning
 
+**Already completed on this Pi** — provisioning config and systemd override are in place. Dashboards auto-update within 30 seconds of a `git pull`.
+
 Dashboards are version-controlled in `grafana/dashboards/` and loaded automatically by Grafana via a provisioning config. Two one-time setup steps are required on a new Pi:
 
 **1. Copy the provisioning config:**
