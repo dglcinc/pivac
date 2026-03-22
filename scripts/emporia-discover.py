@@ -60,14 +60,18 @@ def main():
     print("Authenticating with Emporia API...")
     vue = pyemvue.PyEmVue()
     try:
-        vue.login(username=username, password=password)
+        ok = vue.login(username=username, password=password)
     except Exception as e:
         print("ERROR: Authentication failed: %s" % e)
+        sys.exit(1)
+    if not ok:
+        print("ERROR: Authentication failed: incorrect username or password?")
         sys.exit(1)
 
     print("Fetching devices...\n")
     devices = vue.get_devices()
-    vue.populate_device_properties(devices)
+    for device in devices:
+        vue.populate_device_properties(device)
 
     if not devices:
         print("No devices found on this account.")
@@ -81,7 +85,7 @@ def main():
         print("  GID:            %s" % device.device_gid)
         print("  Model:          %s" % (device.model or "unknown"))
         print("  Firmware:       %s" % (device.firmware or "unknown"))
-        print("  Location:       %s" % (device.location_name or "unknown"))
+        print("  Location type:  %s" % (device.location_type or "unknown"))
         print()
 
         if device.channels:
@@ -105,7 +109,7 @@ def main():
     print("    sk_path: electrical.emporia")
     print("    panels:")
     for device in devices:
-        suggested_name = (device.location_name or device.device_name or 'panel').lower().replace(' ', '_')
+        suggested_name = (device.device_name or 'panel').lower().replace(' ', '_')
         print('        "%s": %s  # %s' % (
             device.device_gid,
             suggested_name,

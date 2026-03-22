@@ -54,7 +54,8 @@ def _get_device_cache(vue, config):
 
     panels = config.get('panels', {})
     devices = vue.get_devices()
-    vue.populate_device_properties(devices)
+    for device in devices:
+        vue.populate_device_properties(device)
 
     for device in devices:
         gid = device.device_gid
@@ -110,12 +111,12 @@ def status(config={}, output="default"):
         sk_base = config.get('sk_path', 'electrical.emporia')
 
         gids = list(cache.keys())
-        devices_usage, timestamp = vue.get_device_list_usage(
+        devices_usage = vue.get_device_list_usage(
             deviceGids=gids,
             instant=datetime.now(timezone.utc),
             scale=Scale.MINUTE.value,
-            unit=Unit.WATTS.value
-        )
+            unit=Unit.KWH.value
+        )  # returns dict[int, VueUsageDevice] directly (no timestamp) since pyemvue API update
 
         for gid, usage_device in devices_usage.items():
             if gid not in cache:
@@ -133,7 +134,9 @@ def status(config={}, output="default"):
                 if channel is None or channel.usage is None:
                     continue
 
-                watts = round(channel.usage, 1)
+                # API returns kWh over the scale interval (1 minute); convert to watts.
+                # kWh/min * 60 min/hr * 1000 W/kW = W
+                watts = round(channel.usage * 60 * 1000, 1)
 
                 # Use the cached channel name from populate_device_properties; fall back
                 # to the name on the usage object, then a generic label.

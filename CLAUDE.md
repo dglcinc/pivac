@@ -1,7 +1,16 @@
-# CLAUDE.md — pivac (project-specific)
+# CLAUDE.md
 
-> Working style, machine detection, and GitHub conventions are in the global context:
-> `<github-dir>/claude-contexts/CLAUDE.md`
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Working Style
+
+- **Execute without repeated check-ins.** Before a multi-step task, state the plan briefly and confirm once. Then carry out all steps without asking permission at each one.
+- **Targeted edits, not rewrites.** When modifying an existing file, make surgical changes to the relevant lines. Do not rewrite or reorder content that isn't changing — it creates noise in diffs and risks dropping things accidentally.
+- **PR workflow for code.** Always create a feature branch and open a pull request for code and documentation changes. Only push directly to `master` for meta/context files (CLAUDE.md).
+- **Keep CLAUDE.md current.** After significant changes — new architecture, bug fixes, new devices, deployment changes — update this file and include it in the commit.
+- **No unnecessary confirmation loops.** Don't ask "should I proceed?" or "does this look right?" mid-task. Finish the work, then summarize what was done.
+- **Commit message quality.** Write commit messages that explain why, not just what. Reference the problem being solved, not just the files changed.
+- **Prose over bullets in explanations.** When explaining an approach or decision, write in sentences rather than fragmenting everything into bullet lists.
 
 ## What This Project Does
 
@@ -106,10 +115,8 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Signal K config: `~/.signalk/settings.json`
 - Python venv: `~/pivac-venv/` (always use this)
 - nginx site config: `/etc/nginx/sites-available/pivac`
-- nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
-- WireGuard keys (unused, kept for reference): `/etc/wireguard/`
 
 ## Remote Access
 
@@ -121,14 +128,14 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 
 | URL | Service | Auth |
 |-----|---------|------|
-| `https://68lookout.dglc.com/admin/` | Signal K admin UI | nginx Basic Auth |
+| `https://68lookout.dglc.com/admin/` | Signal K admin UI | Signal K own auth |
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
-| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
+| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | OpenSprinkler own auth |
 
-**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
+**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled.
 
-**Important — Signal K behind nginx:** The `/signalk/` location block must include `proxy_set_header X-Forwarded-Proto https` and `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`. Without these, Signal K constructs its WebSocket discovery URL as `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, causing WilhelmSK to attempt a plain WebSocket connection on port 80, which nginx redirects (301) and breaks the handshake. Signal K's "Trust Proxy" setting must also be enabled in the admin UI.
+**Signal K behind proxy — Trust Proxy:** The `/signalk/` nginx location block passes `X-Forwarded-Proto: https` and `X-Forwarded-For`. Signal K's "Trust Proxy" setting (Server → Settings in the admin UI) must be enabled for Signal K to use these headers when constructing endpoint URLs. Without it, Signal K advertises `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, breaking WilhelmSK's WebSocket connection. Verify with: `curl -s https://68lookout.dglc.com/signalk/ | python3 -m json.tool` — `signalk-ws` should show `wss://68lookout.dglc.com/signalk/v1/stream`.
 
 **nginx reload after config changes:**
 ```bash
