@@ -8,6 +8,7 @@ Currently supported inputs include:
 * **RedLink**: Screen scraping of Honeywell's website for RedLink thermostats, mytotalconnectcomfort.com (requires an account and installed RedLink equipment)
 * **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution
 * **ArduinoSensor**: Pressure sensor data from an Arduino over HTTP (e.g. Fusch 100PSI, Fusch 200PSI) — a single implementation used by multiple config sections via the `module:` key
+* **Emporia**: Per-circuit power readings in Watts from an Emporia Vue Gen 2 energy monitor, via the PyEmVue cloud API
 * **FlirFX**: Temperature and humidity from a FLIR camera
 
 The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
@@ -159,8 +160,8 @@ In production, each module runs as a dedicated systemd service. Service files ar
 ```bash
 sudo cp scripts/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
-sudo systemctl start pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
+sudo systemctl enable pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
+sudo systemctl start pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
 ```
 
 Each service connects independently to Signal K via WebSocket and restarts automatically on failure.
@@ -173,6 +174,7 @@ The pivac package currently contains the following modules:
 * TED5000
 * RedLink
 * ArduinoSensor
+* Emporia
 * FlirFX (disabled by default)
 
 ## Adding a New Provider Module
@@ -380,6 +382,39 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
       "name": "KITCHEN",
       "temp": 75
     }
+}
+```
+
+## Emporia
+
+* **`Emporia.status(config={}, output="default")`**: Polls an Emporia Vue Gen 2 energy monitor via the PyEmVue cloud API and returns per-circuit power readings in Watts. Each circuit in the Emporia app becomes a separate value in the output, keyed by `<panel_name>.<circuit_name>`. Circuit names are taken from the Emporia app labels and sanitized to lowercase with underscores.
+
+The module authenticates with the Emporia cloud using your account credentials and caches the auth token locally. On first run it discovers all devices on the account; the device list is cached in memory for the lifetime of the process.
+
+**Config keys:**
+
+| Key | Required | Default | Description |
+|-----|----------|---------|-------------|
+| `username` | Yes | — | Emporia account email |
+| `password` | Yes | — | Emporia account password |
+| `token_file` | No | `/etc/pivac/emporia-tokens.json` | Path for cached auth token |
+| `sk_path` | No | `electrical.emporia` | Signal K base path for all readings |
+| `panels` | No | all panels, auto-named | Dict mapping device GID strings to friendly panel names |
+| `daemon_sleep` | No | `0` | Seconds between polls — recommended `60` to match the 1-minute API window |
+
+Run `scripts/emporia-discover.py` to find your device GIDs and generate a suggested config block.
+
+Example output with two panels configured:
+
+```json
+{
+  "house.main": 3020.4,
+  "house.utility_sub_panel": 331.4,
+  "house.wall_oven": 0.0,
+  "house.bosch_bova": 6.5,
+  "apartment.main": 268.7,
+  "apartment.furnace": 10.4,
+  "apartment.clothes_washer": 0.0
 }
 ```
 
