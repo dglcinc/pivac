@@ -153,21 +153,21 @@ If these are lost, Grafana will redirect to `/login` with an internal URL and br
 
 ## Emporia Setup (first time only)
 
-Before enabling `pivac-emporia.service`, run the discovery script to get device GIDs:
+**Already completed on this Pi** — `pivac-emporia.service` is installed, enabled, and running. Device GIDs: house = `194331`, apartment = `265129`. Token cached at `/etc/pivac/emporia-tokens.json`.
+
+If setting up on a new system, run the discovery script to find GIDs:
 ```bash
 source ~/pivac-venv/bin/activate
 python ~/github/pivac/scripts/emporia-discover.py --username YOUR_EMAIL --password YOUR_PASSWORD
 ```
-Copy the suggested config block into `/etc/pivac/config.yml`, replacing the GID placeholders with real values.
-
-Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login.
+Copy the suggested config block into `/etc/pivac/config.yml`, then install and start the service.
 
 ## Standard Deployment Procedure
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -n 50 --no-pager
 ```
 
 If systemd service files were changed:
@@ -180,7 +180,7 @@ sudo systemctl daemon-reload
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -196,6 +196,7 @@ journalctl -u signalk -n 50 --no-pager
 - **RedLink TimeoutError**: Honeywell's server occasionally accepts a connection but stalls mid-response. The 30-second socket timeout (`request_timeout` in config) causes these to fail fast and retry. Logged as ERROR but normal; recovers on the next poll cycle.
 - **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
 - **Boot-time WebSocket race**: Pivac services start before Signal K is fully ready. The provider retries the initial WebSocket connection with exponential backoff (up to 6 attempts). No intervention needed.
+- **Emporia / PyEmVue API compatibility**: PyEmVue has had multiple undocumented breaking changes (Unit.WATTS removed, get_device_list_usage return type changed, populate_device_properties takes a single device). All fixed in PR #17 against pyemvue 0.18.9. If Emporia starts failing after a `pip upgrade pyemvue`, check those call sites first.
 
 ## Adding a New Module
 
@@ -236,4 +237,4 @@ pip install <package> --break-system-packages
 
 ## Dependencies
 
-Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`
+Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`, `pyemvue`
