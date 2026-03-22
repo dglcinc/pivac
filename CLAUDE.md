@@ -248,11 +248,20 @@ journalctl -u signalk -n 50 --no-pager
 
 ## Planned: pivac.Sentry Module
 
-**Status:** Architecture designed, not yet implemented. Waiting on RTSP credentials and reference frame from camera before coding begins.
+**Status:** Architecture designed and camera details known. Next step: capture a reference frame, identify ROI coordinates via calibration utility, then implement the module.
+
+### Camera Hardware
+
+- **Device:** Tapo C120 IP camera
+- **IP address:** `10.0.0.19`
+- **RTSP stream URLs:**
+  - High quality: `rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1`
+  - Standard quality: `rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream2`
+- **Authentication:** Requires a dedicated RTSP username/password set in the Tapo app under Advanced Settings → Camera Account. These credentials are **not** the Tapo cloud account login. Store them only in `/etc/pivac/config.yml` on the Pi — never in the repo or in chat.
 
 ### Purpose
 
-Read the Sentry 2100 controller display on the NTI Trinity Ti-200 boiler using a Tapo C120 IP camera and emit values as Signal K deltas. The display shows boiler operating data via a 3-digit 7-segment LED, four green LED indicators, and four indicator lights.
+Read the Sentry 2100 controller display on the NTI Trinity Ti-200 boiler using the Tapo C120 and emit values as Signal K deltas. The display shows boiler operating data via a 3-digit 7-segment LED, four green LED indicators, and four indicator lights.
 
 ### Sentry 2100 Display Hardware
 
@@ -272,7 +281,7 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 
 **LED and indicator detection** uses HSV color space: green LEDs are isolated by hue/saturation range, and brightness in each ROI determines on/off state.
 
-**One-time calibration required**: The module config must specify pixel coordinates for the display ROI, each digit's segment boxes, each LED, and each indicator light. These are stable as long as the camera doesn't move. A calibration utility (`scripts/sentry-calibrate.py`) will save a reference frame from the RTSP stream and help identify coordinates.
+**One-time calibration required**: The module config must specify pixel coordinates for the display ROI, each digit's segment boxes, each LED, and each indicator light. These are stable as long as the camera doesn't move. A calibration utility (`scripts/sentry-calibrate.py`) saves a reference frame from the RTSP stream and helps identify coordinates.
 
 ### Signal K Paths
 
@@ -294,7 +303,7 @@ Temperature values follow Signal K convention (Kelvin). Gas input value is emitt
 
 ```yaml
 pivac.Sentry:
-  rtsp_url: "rtsp://user:pass@10.0.0.x:554/stream1"
+  rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
   cycle_timeout: 15          # seconds to wait for full display cycle
   frame_interval: 2.5        # seconds between captured frames
   brightness_threshold: 150  # 0-255, min brightness for a lit segment/LED
@@ -319,21 +328,23 @@ pivac.Sentry:
     dhw_temp:          {x: 220, y: 155}
 ```
 
-Note: all coordinate values above are placeholders — real values come from calibration.
+Note: coordinate values above are placeholders — real values come from calibration.
 
 ### Dependencies
 
 - `opencv-python-headless` — frame capture and image processing (headless avoids GUI deps on Pi)
 - `numpy` — already in venv
 
-### To Begin Implementation
+### Implementation Checklist
 
-1. User provides RTSP URL and credentials for the Tapo C120
-2. Capture a reference frame: `python scripts/sentry-calibrate.py --capture`
-3. Use the reference frame to identify pixel coordinates for all ROIs
-4. Populate config with real coordinates
-5. Implement `pivac/Sentry.py` and `scripts/sentry-calibrate.py`
-6. Create `scripts/systemd/pivac-sentry.service`
+- [ ] Set RTSP camera account credentials in Tapo app (Advanced Settings → Camera Account)
+- [ ] Add RTSP credentials to `/etc/pivac/config.yml` on Pi
+- [ ] Implement `scripts/sentry-calibrate.py` — captures reference frame and annotates ROIs
+- [ ] Run calibration: `python scripts/sentry-calibrate.py --capture` → transfer image to Mac, identify pixel coordinates
+- [ ] Populate config with real ROI coordinates
+- [ ] Implement `pivac/Sentry.py`
+- [ ] Create `scripts/systemd/pivac-sentry.service`
+- [ ] Install and test on Pi
 
 ## Signal K Upgrade (if needed)
 
