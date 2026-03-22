@@ -54,7 +54,8 @@ def _get_device_cache(vue, config):
 
     panels = config.get('panels', {})
     devices = vue.get_devices()
-    vue.populate_device_properties(devices)
+    for device in devices:
+        vue.populate_device_properties(device)
 
     for device in devices:
         gid = device.device_gid

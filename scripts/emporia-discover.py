@@ -67,7 +67,8 @@ def main():
 
     print("Fetching devices...\n")
     devices = vue.get_devices()
-    vue.populate_device_properties(devices)
+    for device in devices:
+        vue.populate_device_properties(device)
 
     if not devices:
         print("No devices found on this account.")
