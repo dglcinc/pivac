@@ -1,16 +1,7 @@
-# CLAUDE.md
+# CLAUDE.md — pivac (project-specific)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Working Style
-
-- **Execute without repeated check-ins.** Before a multi-step task, state the plan briefly and confirm once. Then carry out all steps without asking permission at each one.
-- **Targeted edits, not rewrites.** When modifying an existing file, make surgical changes to the relevant lines. Do not rewrite or reorder content that isn't changing — it creates noise in diffs and risks dropping things accidentally.
-- **PR workflow for code and docs.** Always create a feature branch and open a pull request for code changes, README updates, and module documentation. Only push directly to `master` for meta/context files (CLAUDE.md files). When in doubt, use a PR.
-- **Keep CLAUDE.md current.** After significant changes — new architecture, bug fixes, new devices, deployment changes — update this file and include it in the commit.
-- **No unnecessary confirmation loops.** Don't ask "should I proceed?" or "does this look right?" mid-task. Finish the work, then summarize what was done.
-- **Commit message quality.** Write commit messages that explain why, not just what. Reference the problem being solved, not just the files changed.
-- **Prose over bullets in explanations.** When explaining an approach or decision, write in sentences rather than fragmenting everything into bullet lists.
+> Working style, machine detection, and GitHub conventions are in the global context:
+> `<github-dir>/claude-contexts/CLAUDE.md`
 
 ## What This Project Does
 
@@ -99,7 +90,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 ## Active Services and Devices
 
 | systemd service         | Module                  | Device                           | IP / Source  |
-|-------------------------|-------------------------|----------------------------------|--------------|
+|-------------------------|-------------------------|----------------------------------|--------------||
 | pivac-1wire             | pivac.OneWireTherm      | DS18B20 1-wire temperature sensors | GPIO       |
 | pivac-redlink           | pivac.RedLink           | Honeywell thermostat             | internet     |
 | pivac-gpio              | pivac.GPIO              | GPIO input pins (relays/switches)| GPIO         |
@@ -115,8 +106,10 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Signal K config: `~/.signalk/settings.json`
 - Python venv: `~/pivac-venv/` (always use this)
 - nginx site config: `/etc/nginx/sites-available/pivac`
+- nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
+- WireGuard keys (unused, kept for reference): `/etc/wireguard/`
 
 ## Remote Access
 
@@ -128,19 +121,43 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 
 | URL | Service | Auth |
 |-----|---------|------|
-| `https://68lookout.dglc.com/admin/` | Signal K admin UI | Signal K own auth |
+| `https://68lookout.dglc.com/admin/` | Signal K admin UI | nginx Basic Auth |
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
-| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | OpenSprinkler own auth |
+| `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
 
-**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled.
+**WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
 
-**Signal K behind proxy — Trust Proxy:** The `/signalk/` nginx location block passes `X-Forwarded-Proto: https` and `X-Forwarded-For`. Signal K's "Trust Proxy" setting (Server → Settings in the admin UI) must be enabled for Signal K to use these headers when constructing endpoint URLs. Without it, Signal K advertises `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, breaking WilhelmSK's WebSocket connection. Verify with: `curl -s https://68lookout.dglc.com/signalk/ | python3 -m json.tool` — `signalk-ws` should show `wss://68lookout.dglc.com/signalk/v1/stream`.
+**Important — Signal K behind nginx:** The `/signalk/` location block must include `proxy_set_header X-Forwarded-Proto https` and `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`. Without these, Signal K constructs its WebSocket discovery URL as `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, causing WilhelmSK to attempt a plain WebSocket connection on port 80, which nginx redirects (301) and breaks the handshake. Signal K's "Trust Proxy" setting must also be enabled in the admin UI.
 
 **nginx reload after config changes:**
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
+
+## InfluxDB Version
+
+The Pi runs **InfluxDB 2** (not v1). Use the `influx` CLI with Flux queries — InfluxQL `SHOW MEASUREMENTS` / `SHOW DATABASES` syntax does not apply. Key commands:
+
+```bash
+influx bucket list
+influx query 'import "influxdata/influxdb/schema" schema.measurements(bucket: "pivac")'
+```
+
+Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compatibility mode (`dbName: pivac`). Panel queries use InfluxQL syntax (measurement = full SK path, field = `value`).
+
+## Grafana Dashboard Provisioning
+
+Dashboards are version-controlled in `grafana/dashboards/` and loaded automatically by Grafana via a provisioning config. The provisioning config lives at `grafana/provisioning/dashboards/pivac.yaml` and must be symlinked or copied to `/etc/grafana/provisioning/dashboards/` on the Pi (one-time setup):
+
+```bash
+sudo cp ~/github/pivac/grafana/provisioning/dashboards/pivac.yaml /etc/grafana/provisioning/dashboards/
+sudo systemctl restart grafana-server
+```
+
+After that, any `git pull` on the Pi will automatically update dashboards within 30 seconds (Grafana polls the directory). To update dashboards: edit the JSON in `grafana/dashboards/`, commit, and pull on the Pi. Since `allowUiUpdates: true`, you can also edit in the Grafana UI — but those changes won't persist unless you export the JSON and commit it back.
+
+The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chiller Time, DHW panels) is a Signal K-managed InfluxDB datasource. It does not appear in the Grafana datasources API but is still functional.
 
 ## Grafana Sub-path Configuration
 
@@ -153,21 +170,21 @@ If these are lost, Grafana will redirect to `/login` with an internal URL and br
 
 ## Emporia Setup (first time only)
 
-**Already completed on this Pi** — `pivac-emporia.service` is installed, enabled, and running. Device GIDs: house = `194331`, apartment = `265129`. Token cached at `/etc/pivac/emporia-tokens.json`.
-
-If setting up on a new system, run the discovery script to find GIDs:
+Before enabling `pivac-emporia.service`, run the discovery script to get device GIDs:
 ```bash
 source ~/pivac-venv/bin/activate
 python ~/github/pivac/scripts/emporia-discover.py --username YOUR_EMAIL --password YOUR_PASSWORD
 ```
-Copy the suggested config block into `/etc/pivac/config.yml`, then install and start the service.
+Copy the suggested config block into `/etc/pivac/config.yml`, replacing the GID placeholders with real values.
+
+Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login.
 
 ## Standard Deployment Procedure
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
 ```
 
 If systemd service files were changed:
@@ -180,7 +197,7 @@ sudo systemctl daemon-reload
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -196,7 +213,6 @@ journalctl -u signalk -n 50 --no-pager
 - **RedLink TimeoutError**: Honeywell's server occasionally accepts a connection but stalls mid-response. The 30-second socket timeout (`request_timeout` in config) causes these to fail fast and retry. Logged as ERROR but normal; recovers on the next poll cycle.
 - **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
 - **Boot-time WebSocket race**: Pivac services start before Signal K is fully ready. The provider retries the initial WebSocket connection with exponential backoff (up to 6 attempts). No intervention needed.
-- **Emporia / PyEmVue API compatibility**: PyEmVue has had multiple undocumented breaking changes (Unit.WATTS removed, get_device_list_usage return type changed, populate_device_properties takes a single device). All fixed in PR #17 against pyemvue 0.18.9. If Emporia starts failing after a `pip upgrade pyemvue`, check those call sites first.
 
 ## Adding a New Module
 
@@ -237,4 +253,4 @@ pip install <package> --break-system-packages
 
 ## Dependencies
 
-Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`, `pyemvue`
+Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`
