@@ -148,11 +148,21 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 ## Grafana Dashboard Provisioning
 
-Dashboards are version-controlled in `grafana/dashboards/` and loaded automatically by Grafana via a provisioning config. The provisioning config lives at `grafana/provisioning/dashboards/pivac.yaml` and must be symlinked or copied to `/etc/grafana/provisioning/dashboards/` on the Pi (one-time setup):
+Dashboards are version-controlled in `grafana/dashboards/` and loaded automatically by Grafana via a provisioning config. Two one-time setup steps are required on a new Pi:
 
+**1. Copy the provisioning config:**
 ```bash
 sudo cp ~/github/pivac/grafana/provisioning/dashboards/pivac.yaml /etc/grafana/provisioning/dashboards/
-sudo systemctl restart grafana-server
+```
+
+**2. Create a systemd override so Grafana can read `/home/pi` (blocked by default via `ProtectHome=true`):**
+```bash
+sudo mkdir -p /etc/systemd/system/grafana-server.service.d
+sudo tee /etc/systemd/system/grafana-server.service.d/pivac-dashboards.conf <<'EOF'
+[Service]
+ProtectHome=read-only
+EOF
+sudo systemctl daemon-reload && sudo systemctl restart grafana-server
 ```
 
 After that, any `git pull` on the Pi will automatically update dashboards within 30 seconds (Grafana polls the directory). To update dashboards: edit the JSON in `grafana/dashboards/`, commit, and pull on the Pi. Since `allowUiUpdates: true`, you can also edit in the Grafana UI — but those changes won't persist unless you export the JSON and commit it back.
