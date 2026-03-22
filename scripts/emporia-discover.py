@@ -85,7 +85,7 @@ def main():
         print("  GID:            %s" % device.device_gid)
         print("  Model:          %s" % (device.model or "unknown"))
         print("  Firmware:       %s" % (device.firmware or "unknown"))
-        print("  Location:       %s" % (device.location_name or "unknown"))
+        print("  Location type:  %s" % (device.location_type or "unknown"))
         print()
 
         if device.channels:
@@ -109,7 +109,7 @@ def main():
     print("    sk_path: electrical.emporia")
     print("    panels:")
     for device in devices:
-        suggested_name = (device.location_name or device.device_name or 'panel').lower().replace(' ', '_')
+        suggested_name = (device.device_name or 'panel').lower().replace(' ', '_')
         print('        "%s": %s  # %s' % (
             device.device_gid,
             suggested_name,
