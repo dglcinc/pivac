@@ -81,13 +81,27 @@ def status(config={}, output="default"):
     Each channel (main feed legs + individual circuit clamps) becomes a separate
     Signal K value at path:  <sk_path>.<panel_name>.<circuit_name>
 
-    Config keys:
+    Circuit names are taken from the Emporia app labels, sanitized to lowercase
+    with spaces and punctuation replaced by underscores.
+
+    Required config keys:
         username       Emporia account email
         password       Emporia account password
-        token_file     Path for token cache (default: /etc/pivac/emporia-tokens.json)
-        sk_path        Signal K base path (default: electrical.emporia)
-        panels         Dict mapping GID strings to panel names
-                         e.g. {"123456789": "house", "987654321": "apartment"}
+
+    Optional config keys:
+        token_file     Path for cached auth token
+                         default: /etc/pivac/emporia-tokens.json
+        sk_path        Signal K base path for all readings
+                         default: electrical.emporia
+        panels         Dict mapping device GID strings to friendly panel names.
+                         If omitted, all panels are included with auto-generated
+                         names (panel_<gid>). Run scripts/emporia-discover.py to
+                         find GIDs.
+                         e.g. {"194331": "house", "265129": "apartment"}
+        daemon_sleep   Seconds between polls (framework-level key, not read by
+                         this module directly). Should match the API scale window;
+                         60 seconds pairs with the hardcoded Scale.MINUTE query.
+                         default: 0 (framework default — set to 60 in config)
     """
     global _vue, _device_cache
 
