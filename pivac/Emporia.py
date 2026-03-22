@@ -115,7 +115,7 @@ def status(config={}, output="default"):
             deviceGids=gids,
             instant=datetime.now(timezone.utc),
             scale=Scale.MINUTE.value,
-            unit=Unit.WATTS.value
+            unit=Unit.KWH.value
         )
 
         for gid, usage_device in devices_usage.items():
@@ -134,7 +134,9 @@ def status(config={}, output="default"):
                 if channel is None or channel.usage is None:
                     continue
 
-                watts = round(channel.usage, 1)
+                # API returns kWh over the scale interval (1 minute); convert to watts.
+                # kWh/min * 60 min/hr * 1000 W/kW = W
+                watts = round(channel.usage * 60 * 1000, 1)
 
                 # Use the cached channel name from populate_device_properties; fall back
                 # to the name on the usage object, then a generic label.
