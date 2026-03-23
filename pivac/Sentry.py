@@ -4,8 +4,18 @@ pivac.Sentry — NTI Trinity Ti-200 boiler monitor via Tapo C120 / Sentry 2100 d
 Reads the 3-digit 7-segment LED display and 4 indicator LEDs on the Sentry 2100
 controller by capturing frames from an RTSP camera stream.  On each poll cycle
 the module opens the stream, collects one stable reading per display mode
-(water_temp, air, gas_input, dhw_temp), reads LED states from the last frame,
+(water_temp, air, gas_input), reads LED states from the last frame,
 releases the stream, and returns the results.
+
+The display cycles through three modes: water_temp → air → gas_input, then loops.
+Water temp is only valid when the water_temp indicator is explicitly lit; when no
+mode indicators are lit the display still shows the last mode's value (gas_input)
+during the cycling gap.
+
+The dhw_temp indicator is a boiler-status light, not a display-mode indicator.
+It is lit when the boiler is in DHW priority and stays lit during the cycling gap,
+independent of what the display is showing.  It is emitted as the boolean
+hvac.boiler.sentry.dhwPriority.
 
 Required config keys:
     rtsp_url            RTSP stream URL (include camera credentials)
@@ -15,7 +25,7 @@ Required config keys:
     indicators          Centre-pixel coords for water_temp/air/gas_input/dhw_temp
 
 Optional config keys:
-    cycle_timeout       Seconds to poll for all four modes   (default: 30)
+    cycle_timeout       Seconds to poll for all three modes  (default: 30)
     mode_stable_frames  Consecutive stable frames before accepting a reading (default: 3)
     led_ratio           Spot/background brightness ratio for LED detection (default: 1.15)
     digit_threshold_factor  Threshold = mean + factor*(max-mean) per digit (default: 0.50)
@@ -25,8 +35,8 @@ Signal K paths emitted:
     hvac.boiler.sentry.waterTemp        °K (from °F display when water_temp indicator lit)
     hvac.boiler.sentry.outdoorTemp      °K (from °F display when air indicator lit)
     hvac.boiler.sentry.gasInputValue    Raw 40–240 scale (when gas_input indicator lit)
-    hvac.boiler.sentry.dhwTemp          °K (from °F display when dhw_temp indicator lit)
     hvac.boiler.sentry.errorCode        String e.g. "ER3" (non-numeric display, no indicator)
+    hvac.boiler.sentry.dhwPriority      bool (dhw_temp indicator state — DHW priority active)
     hvac.boiler.sentry.burnerOn         bool
     hvac.boiler.sentry.circOn           bool
     hvac.boiler.sentry.circAuxOn        bool
@@ -225,12 +235,32 @@ def _read_leds(frame, config: dict) -> dict:
     }
 
 
+_DISPLAY_MODES = {"water_temp", "air", "gas_input"}
+
+
 def _read_indicators(frame, config: dict):
+    """Return the active display mode (water_temp/air/gas_input), or None.
+
+    dhw_temp is intentionally excluded: it is a boiler-status light that stays
+    lit whenever DHW priority is active, independent of what the display shows.
+    Use _read_dhw_priority() to read it as a boolean.
+    """
     ratio = config.get("led_ratio", 1.15)
     for mode, coord in config.get("indicators", {}).items():
+        if mode not in _DISPLAY_MODES:
+            continue
         if _roi_is_lit(frame, coord, ratio=ratio):
             return mode
     return None
+
+
+def _read_dhw_priority(frame, config: dict) -> bool:
+    """Return True if the DHW priority indicator is lit."""
+    ratio = config.get("led_ratio", 1.15)
+    coord = config.get("indicators", {}).get("dhw_temp")
+    if coord is None:
+        return False
+    return _roi_is_lit(frame, coord, ratio=ratio)
 
 
 # ---------------------------------------------------------------------------
@@ -251,11 +281,11 @@ def _poll_cycle(config: dict) -> dict:
     states, release the stream, and return a raw dict:
 
         {
-            "water_temp": "179",   # raw display string, or absent if not seen
-            "air": "42",
-            "gas_input": "168",
-            "dhw_temp": "168",
-            "error_code": "ER3",  # present only if a non-numeric display was seen
+            "water_temp":  "179",   # raw display string, or absent if not seen
+            "air":         "42",
+            "gas_input":   "168",
+            "error_code":  "ER3",   # present only if a non-numeric display was seen
+            "dhw_priority": True,   # DHW priority indicator state
             "leds": {"burnerOn": True, ...},
         }
     """
@@ -279,7 +309,7 @@ def _poll_cycle(config: dict) -> dict:
     prev_mode   = None
     stable_count = 0
     deadline    = time.time() + cycle_timeout
-    expected    = set(config.get("indicators", {}).keys())
+    expected    = _DISPLAY_MODES & set(config.get("indicators", {}).keys())
 
     try:
         while time.time() < deadline:
@@ -318,8 +348,10 @@ def _poll_cycle(config: dict) -> dict:
         result["error_code"] = error_code
     if last_frame is not None:
         result["leds"] = _read_leds(last_frame, config)
+        result["dhw_priority"] = _read_dhw_priority(last_frame, config)
     else:
         result["leds"] = {}
+        result["dhw_priority"] = False
 
     return result
 
@@ -332,7 +364,6 @@ _MODE_SK = {
     "water_temp": "hvac.boiler.sentry.waterTemp",
     "air":        "hvac.boiler.sentry.outdoorTemp",
     "gas_input":  "hvac.boiler.sentry.gasInputValue",
-    "dhw_temp":   "hvac.boiler.sentry.dhwTemp",
 }
 
 _LED_SK = {
@@ -388,6 +419,14 @@ def status(config={}, output="default"):
         else:
             result[sk_path] = raw["error_code"]
         logger.info("Sentry: error/status code: %s", raw["error_code"])
+
+    dhw_priority = raw.get("dhw_priority", False)
+    sk_path = "hvac.boiler.sentry.dhwPriority"
+    if output == "signalk":
+        sk_add_value(sk_source, sk_path, dhw_priority)
+    else:
+        result[sk_path] = dhw_priority
+    logger.debug("Sentry: %s = %s", sk_path, dhw_priority)
 
     for led_key, sk_path in _LED_SK.items():
         val = raw["leds"].get(led_key, False)
