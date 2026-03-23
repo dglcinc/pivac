@@ -1,0 +1,15 @@
+[Unit]
+Description=Pivac Sentry 2100 boiler display reader (Tapo C120 / NTI Trinity Ti-200)
+After=network.target signalk.service
+Requires=signalk.service
+
+[Service]
+Type=simple
+User=pi
+Environment=PIVAC_CFG=/etc/pivac/config.yml
+ExecStart=/home/pi/pivac-venv/bin/python3 /home/pi/github/pivac/scripts/pivac-provider.py pivac.Sentry --loglevel ERROR --daemon
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
