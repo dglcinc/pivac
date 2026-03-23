@@ -1605,14 +1605,6 @@
             },
             "properties": [
               {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "custom.axisLabel",
-                "value": "Gas Input"
-              },
-              {
                 "id": "color",
                 "value": {
                   "fixedColor": "orange",
