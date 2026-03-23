@@ -3,27 +3,27 @@
 sentry-calibrate.py — Tapo C120 / Sentry 2100 calibration utility
 
 Usage:
-  # Capture a reference frame and save it as a JPEG
+  # Capture a reference frame
   python scripts/sentry-calibrate.py --capture --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1"
+
+  # Interactive click-to-calibrate (opens image window, click all corners/centres)
+  python scripts/sentry-calibrate.py --calibrate --image sentry-reference.jpg
+  python scripts/sentry-calibrate.py --calibrate --rtsp-url "rtsp://..."
 
   # Annotate a saved frame with ROI boxes from config
   python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
 
   # Debug: grab one live frame, save crops + annotated overlay, print brightness values
-  python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
+  python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://..." --config config/config.sentry-sample.yml
 
-  # Test live reading without Signal K (prints parsed values to stdout)
-  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
+  # Test live reading without Signal K
+  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://..." --config config/config.sentry-sample.yml
 
 Notes:
-  - Uses adaptive thresholds so it works in any lighting / camera mode:
-      * Digit recognition uses Otsu's method per digit crop (not the full
-        display ROI), giving clean bimodal separation between the black LED
-        substrate and the lit segment pixels.
-      * LED detection compares spot brightness against local background ratio.
-  - The camera can be left in Auto day/night mode; no manual setting needed.
-  - Open a captured frame in Preview (Cmd+I shows pixel coords on hover) to
-    identify ROI coordinates for config.
+  - --calibrate requires matplotlib: pip install matplotlib --break-system-packages
+  - Digit recognition uses per-digit Otsu thresholding.
+  - LED detection uses spot-vs-background brightness ratio.
+  - Camera can stay in Auto day/night mode.
 """
 
 import argparse
@@ -52,7 +52,6 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 def open_stream(rtsp_url: str, timeout_sec: int = 10):
-    """Open an RTSP stream and return a VideoCapture object, or raise."""
     cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
     deadline = time.time() + timeout_sec
@@ -65,7 +64,6 @@ def open_stream(rtsp_url: str, timeout_sec: int = 10):
 
 
 def grab_frame(cap) -> np.ndarray:
-    """Grab the most recent frame from an open VideoCapture."""
     for _ in range(5):
         cap.grab()
     ret, frame = cap.retrieve()
@@ -75,7 +73,6 @@ def grab_frame(cap) -> np.ndarray:
 
 
 def to_gray(img: np.ndarray) -> np.ndarray:
-    """Convert BGR or already-gray image to single-channel grayscale."""
     if len(img.shape) == 2:
         return img
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -146,14 +143,8 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
-    """Read the 3-digit display value from a full frame.
-
-    Otsu thresholding is applied per digit crop rather than on the full
-    display_roi.  The full ROI includes bright panel background material
-    that skews the global histogram and raises the threshold well above
-    actual segment pixel values.  Per-digit Otsu separates the dark LED
-    substrate from the lit segments far more reliably.
-    """
+    """Read the 3-digit display.  Per-digit Otsu avoids the bright panel
+    background skewing the global threshold."""
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
@@ -194,7 +185,6 @@ def _roi_is_lit(frame: np.ndarray, coord: dict,
 
 def _roi_brightness_info(frame: np.ndarray, coord: dict,
                          spot_radius: int = 8, bg_radius: int = 25) -> dict:
-    """Return brightness diagnostics for a single LED/indicator position."""
     x, y = coord["x"], coord["y"]
     h, w = frame.shape[:2]
     gray = to_gray(frame)
@@ -241,7 +231,6 @@ def f_to_k(f: float) -> float:
 # ---------------------------------------------------------------------------
 
 def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
-    """Draw display ROI, digit boxes, LED circles, and indicator circles."""
     annotated = frame.copy()
     roi = config.get("display_roi", {})
     if roi:
@@ -258,17 +247,14 @@ def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
                           (255, 255, 0), 2)
             cv2.putText(annotated, f"d{i}", (ax, ay - 6),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-
     for name, coord in config.get("leds", {}).items():
         cv2.circle(annotated, (coord["x"], coord["y"]), 14, (0, 200, 0), 2)
         cv2.putText(annotated, name, (coord["x"] + 16, coord["y"] + 6),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
-
     for name, coord in config.get("indicators", {}).items():
         cv2.circle(annotated, (coord["x"], coord["y"]), 14, (0, 100, 255), 2)
         cv2.putText(annotated, name, (coord["x"] + 16, coord["y"] + 6),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 255), 2)
-
     return annotated
 
 
@@ -289,8 +275,187 @@ def cmd_capture(args):
     logger.info("Open in Preview — hover to get pixel coords (Cmd+I for inspector).")
 
 
+def cmd_calibrate(args):
+    """Interactive: open frame in a window, click all corners/centres, print YAML."""
+    try:
+        import platform
+        import matplotlib
+        # Choose a backend that opens a real window on the current OS
+        if platform.system() == "Darwin":
+            matplotlib.use("MacOSX")
+        else:
+            matplotlib.use("TkAgg")
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Rectangle
+    except ImportError:
+        sys.exit(
+            "ERROR: matplotlib is required for --calibrate.\n"
+            "Run: pip install matplotlib --break-system-packages"
+        )
+
+    # --- Load or capture frame -------------------------------------------
+    if args.image:
+        frame = cv2.imread(args.image)
+        if frame is None:
+            sys.exit(f"ERROR: Could not read image: {args.image}")
+        logger.info(f"Using image: {args.image}")
+    elif args.rtsp_url:
+        logger.info(f"Capturing frame from {args.rtsp_url} ...")
+        cap = open_stream(args.rtsp_url)
+        frame = grab_frame(cap)
+        cap.release()
+        saved = (args.output or "sentry-calibrate") + "-frame.jpg"
+        cv2.imwrite(saved, frame)
+        logger.info(f"Frame saved to {saved} (use --image {saved} to recalibrate)")
+    else:
+        sys.exit("ERROR: --image or --rtsp-url required for --calibrate")
+
+    img_h, img_w = frame.shape[:2]
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) if len(frame.shape) == 3 \
+          else cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
+    fig, ax = plt.subplots(figsize=(16, 9))
+    ax.imshow(rgb, extent=[0, img_w, img_h, 0], aspect='equal')
+    ax.set_xlim(0, img_w)
+    ax.set_ylim(img_h, 0)
+    ax.axis('off')
+    plt.tight_layout(pad=0)
+
+    def _set_title(msg):
+        ax.set_title(msg, fontsize=11, loc='center',
+                     color='white', backgroundcolor='#222', pad=6)
+        fig.canvas.draw()
+
+    def collect(n, msg, color, marker='+'):
+        """Show prompt, collect n clicks, draw markers, return list of (int,int)."""
+        _set_title(msg)
+        pts = plt.ginput(n, timeout=0)
+        out = []
+        for x, y in pts:
+            ix, iy = int(round(x)), int(round(y))
+            ax.plot(ix, iy, marker, color=color,
+                    markersize=16, markeredgewidth=2.5)
+            out.append((ix, iy))
+        fig.canvas.draw()
+        return out
+
+    def draw_box(p1, p2, color, label=''):
+        x1, y1 = p1
+        x2, y2 = p2
+        ax.add_patch(Rectangle(
+            (min(x1, x2), min(y1, y2)),
+            abs(x2 - x1), abs(y2 - y1),
+            linewidth=2, edgecolor=color, facecolor='none'
+        ))
+        if label:
+            ax.text(min(x1, x2), min(y1, y2) - 8, label,
+                    color=color, fontsize=9, fontweight='bold')
+        fig.canvas.draw()
+
+    print("\n" + "=" * 60)
+    print("INTERACTIVE CALIBRATION")
+    print("  Read each prompt in the WINDOW TITLE BAR, then click.")
+    print("  DO NOT close the window until all steps are done.")
+    print("=" * 60)
+
+    results = {}
+
+    # Step 1 — display_roi (2 clicks)
+    pts = collect(2,
+        "STEP 1/3 — LED GLASS:  click TOP-LEFT corner  then  BOTTOM-RIGHT corner",
+        color="lime")
+    (x1, y1), (x2, y2) = pts
+    roi_x, roi_y = min(x1, x2), min(y1, y2)
+    roi_w, roi_h = abs(x2 - x1), abs(y2 - y1)
+    results["display_roi"] = dict(x=roi_x, y=roi_y, w=roi_w, h=roi_h)
+    draw_box(pts[0], pts[1], "lime", "display_roi")
+    print(f"  display_roi: x={roi_x} y={roi_y} w={roi_w} h={roi_h}")
+
+    # Step 2 — digit boxes (2 clicks each)
+    digits = []
+    digit_labels = [
+        ("HUNDREDS (d0)", "blank when value < 100; click approximate position"),
+        ("TENS     (d1)", ""),
+        ("UNITS    (d2)", ""),
+    ]
+    colors_d = ["#ffff00", "#ffcc00", "#ff9900"]
+    for i, (dlabel, hint) in enumerate(digit_labels):
+        hint_str = f"  ({hint})" if hint else ""
+        pts = collect(2,
+            f"STEP 2{'ABC'[i]}/3 — DIGIT {dlabel}{hint_str}:"
+            f"  TOP-LEFT  then  BOTTOM-RIGHT",
+            color=colors_d[i])
+        (dx1, dy1), (dx2, dy2) = pts
+        rel_x = min(dx1, dx2) - roi_x
+        rel_y = min(dy1, dy2) - roi_y
+        rel_w = abs(dx2 - dx1)
+        rel_h = abs(dy2 - dy1)
+        digits.append(dict(x=rel_x, y=rel_y, w=rel_w, h=rel_h))
+        draw_box(pts[0], pts[1], colors_d[i], f"d{i}")
+        print(f"  d{i}: x={rel_x} y={rel_y} w={rel_w} h={rel_h}  (relative to display_roi)")
+    results["digit_positions"] = digits
+
+    # Step 3a — LED indicator centres (4 clicks)
+    led_names = ["burner", "circ", "circ_aux", "thermostat_demand"]
+    pts = collect(4,
+        "STEP 3A/3 — LEDs: click centre of each dot in order: "
+        "burner → circ → circ_aux → thermostat_demand",
+        color="cyan", marker="x")
+    results["leds"] = {}
+    for name, (x, y) in zip(led_names, pts):
+        results["leds"][name] = dict(x=x, y=y)
+        ax.annotate(name, (x, y), xytext=(x + 12, y),
+                    color="cyan", fontsize=7)
+        print(f"  led {name}: x={x} y={y}")
+    fig.canvas.draw()
+
+    # Step 3b — mode indicator centres (4 clicks)
+    ind_names = ["water_temp", "air", "gas_input", "dhw_temp"]
+    pts = collect(4,
+        "STEP 3B/3 — MODE INDICATORS: click centre of each bottom light: "
+        "water_temp → air → gas_input → dhw_temp",
+        color="orange", marker="x")
+    results["indicators"] = {}
+    for name, (x, y) in zip(ind_names, pts):
+        results["indicators"][name] = dict(x=x, y=y)
+        ax.annotate(name, (x, y), xytext=(x + 12, y),
+                    color="orange", fontsize=7)
+        print(f"  indicator {name}: x={x} y={y}")
+    fig.canvas.draw()
+
+    _set_title("Done! Close this window.")
+    plt.show(block=True)
+
+    # --- Print YAML block -------------------------------------------------
+    r = results["display_roi"]
+    print("\n" + "=" * 60)
+    print("  Paste this block into config/config.sentry-sample.yml")
+    print("  (replace the existing display_roi / digit_positions / leds / indicators)")
+    print("=" * 60)
+    print(f"""
+  display_roi:
+    x: {r['x']}
+    y: {r['y']}
+    w: {r['w']}
+    h: {r['h']}
+
+  digit_positions:""")
+    lbl = ["hundreds", "tens", "units"]
+    for i, d in enumerate(results["digit_positions"]):
+        print(f"    - {{x: {d['x']:4d}, y: {d['y']:4d}, "
+              f"w: {d['w']:4d}, h: {d['h']:4d}}}  # {lbl[i]}")
+    print(f"""
+  leds:""")
+    for name, c in results["leds"].items():
+        print(f"    {name+':':22s} {{x: {c['x']}, y: {c['y']}}}")
+    print(f"""
+  indicators:""")
+    for name, c in results["indicators"].items():
+        print(f"    {name+':':12s} {{x: {c['x']}, y: {c['y']}}}")
+    print()
+
+
 def cmd_debug(args):
-    """Grab one live frame, save crops + annotated overlay, print all brightness diagnostics."""
     if not yaml:
         sys.exit("ERROR: PyYAML required. pip install pyyaml")
     with open(args.config) as f:
@@ -307,17 +472,14 @@ def cmd_debug(args):
     frame = grab_frame(cap)
     cap.release()
 
-    # Save plain full frame
     full_path = f"{prefix}-frame.jpg"
     cv2.imwrite(full_path, frame)
     logger.info(f"Full frame saved: {full_path}")
 
-    # Save annotated full frame — shows all ROI boxes on the live image
     ann_path = f"{prefix}-annotated.jpg"
     cv2.imwrite(ann_path, draw_annotations(frame, config))
     logger.info(f"Annotated overlay saved: {ann_path}  <-- check this first")
 
-    # Analyse display_roi crop
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
@@ -334,7 +496,6 @@ def cmd_debug(args):
     print(f"  Mean brightness:      {mean_brightness:.1f}  Max: {max_brightness:.1f}")
     print(f"  Global Otsu:          {global_otsu}  (NOT used — per-digit Otsu shown below)")
 
-    # Analyse each digit crop with its own Otsu threshold
     print("\n=== Digit crops (per-digit Otsu) ===")
     for i, pos in enumerate(config.get("digit_positions", [])):
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
@@ -349,7 +510,7 @@ def cmd_debug(args):
               f"saved: {dp}")
         if dmean > 80 and dmax < 180:
             print(f"       *** WARN: d{i} looks like panel background (no bright LED pixels).")
-            print(f"       ***   If display shows 2 digits, this is expected for the hundreds.")
+            print(f"       ***   If display shows 2 digits, expected for hundreds.")
             print(f"       ***   If display shows 3 digits, increase d{i}.x in digit_positions.")
         print(f"       segments: ", end="")
         for seg in ["a", "b", "c", "d", "e", "f", "g"]:
@@ -358,7 +519,6 @@ def cmd_debug(args):
             print(f"{seg}={b:.0f}{lit} ", end="")
         print()
 
-    # LED brightness diagnostics
     print("\n=== LED brightness (spot / background / ratio) ===")
     print(f"  (need ratio >= {config.get('led_ratio', 1.4)} to register as lit)")
     for name, coord in config.get("leds", {}).items():
@@ -374,7 +534,7 @@ def cmd_debug(args):
         print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
               f"ratio={info['ratio']:.2f}  -> {lit}")
 
-    print(f"\nNext step: open {ann_path} to verify all ROI boxes land on the right areas.")
+    print(f"\nNext step: open {ann_path} to verify ROI boxes, or run --calibrate to redo.")
 
 
 def cmd_annotate(args):
@@ -469,6 +629,8 @@ def main():
         description="Sentry 2100 / Tapo C120 calibration utility")
     parser.add_argument("--capture", action="store_true",
                         help="Capture a reference frame from the RTSP stream")
+    parser.add_argument("--calibrate", action="store_true",
+                        help="Interactive: click corners/centres in a window to set all ROIs")
     parser.add_argument("--annotate", action="store_true",
                         help="Draw ROI boxes on a saved reference frame")
     parser.add_argument("--debug", action="store_true",
@@ -479,20 +641,20 @@ def main():
     parser.add_argument("--rtsp-url", metavar="URL")
     parser.add_argument("--config", default="/etc/pivac/config.yml", metavar="FILE")
     parser.add_argument("--image", metavar="FILE",
-                        help="Reference image for --annotate")
+                        help="Saved frame for --annotate or --calibrate")
     parser.add_argument("--output", "-o", metavar="FILE",
-                        help="Output file / prefix (--debug uses it as a prefix)")
+                        help="Output file / prefix")
     args = parser.parse_args()
 
     if args.capture:
         if not args.rtsp_url:
             parser.error("--rtsp-url required for --capture")
         cmd_capture(args)
+    elif args.calibrate:
+        cmd_calibrate(args)
     elif args.annotate:
         cmd_annotate(args)
     elif args.debug:
-        if not args.rtsp_url and not args.config:
-            parser.error("--rtsp-url or --config with rtsp_url required for --debug")
         cmd_debug(args)
     elif args.test:
         cmd_test(args)
