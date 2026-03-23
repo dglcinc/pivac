@@ -143,6 +143,12 @@ SEGMENT_MAP = {
     0b0111101: "d",   # b,c,d,e,g
     0b0000001: "-",   # g
     0b0000000: " ",   # blank
+    # Single/double-segment ghost patterns from H.264 P-frame artefacts.
+    # These appear on blank digit positions when compression noise pushes
+    # one segment rect slightly over threshold.  Not valid characters.
+    0b0010000: " ",   # c only     (lower-right ghost)
+    0b0010001: " ",   # c+g        (lower-right + middle ghost)
+    0b0010010: " ",   # c+f        (lower-right + upper-left ghost)
 }
 
 
@@ -707,8 +713,11 @@ def cmd_test(args):
     for _ in range(5):
         cap.grab()
 
+    mode_stable_min = config.get("mode_stable_frames", 3)
     collected = {}
     last_frame = None
+    prev_mode = None
+    mode_stable_count = 0
     deadline = time.time() + cycle_timeout
 
     while time.time() < deadline:
@@ -721,8 +730,19 @@ def cmd_test(args):
         value = read_display(frame, config)
         logger.info(f"  frame: display='{value}'  mode={mode}")
 
-        # Only record a clean read — skip frames where any digit is unrecognised.
-        if mode and mode not in collected and "?" not in value:
+        # Track consecutive same-mode frames to skip transition artefacts
+        # (the display may show the previous mode's value for a frame or two
+        # while the indicator light and digit segments switch simultaneously).
+        if mode == prev_mode:
+            mode_stable_count += 1
+        else:
+            prev_mode = mode
+            mode_stable_count = 0
+
+        # Only record once mode is stable and value has no unrecognised digits.
+        if (mode and mode not in collected
+                and "?" not in value
+                and mode_stable_count >= mode_stable_min):
             collected[mode] = value
             logger.info(f"  -> captured '{mode}' = '{value}'")
 
@@ -734,7 +754,7 @@ def cmd_test(args):
 
     print("\n=== Parsed display values ===")
     for mode, raw in collected.items():
-        print(f"  {mode}: raw='{raw}'", end="")
+        print(f"  {mode}: raw='{raw}", end="")
         try:
             val = float(raw)
             if mode in ("water_temp", "dhw_temp", "air"):
