@@ -6,14 +6,19 @@ Usage:
   # Capture a reference frame and save it as a JPEG
   python scripts/sentry-calibrate.py --capture --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1"
 
-  # Capture and annotate: draw ROI boxes from a config file onto the saved frame
-  python scripts/sentry-calibrate.py --annotate --config /etc/pivac/config.yml
+  # Annotate a saved frame with ROI boxes from config
+  python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.yml
 
   # Test live reading without Signal K (prints parsed values to stdout)
-  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config /etc/pivac/config.yml
+  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.yml
 
-The --capture output is saved to ./sentry-reference.jpg in the current directory.
-Transfer it to your Mac to identify pixel coordinates for config.yml.
+Notes:
+  - The Tapo C120 uses IR night mode in low light, producing a grayscale image.
+    LED detection uses brightness only (not HSV green), so it works in both
+    colour and IR modes.
+  - The --capture output is saved to ./sentry-reference.jpg by default.
+    Transfer it to your Mac, open it in Preview (Tools > Show Inspector shows
+    pixel coords as you hover), and identify ROI coordinates for config.yml.
 """
 
 import argparse
@@ -45,26 +50,30 @@ def open_stream(rtsp_url: str, timeout_sec: int = 10):
     """Open an RTSP stream and return a VideoCapture object, or raise."""
     cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
         if cap.isOpened():
             return cap
         time.sleep(0.5)
-
     cap.release()
     raise RuntimeError(f"Could not open RTSP stream: {rtsp_url}")
 
 
 def grab_frame(cap) -> np.ndarray:
     """Grab the most recent frame from an open VideoCapture."""
-    # Drain the buffer so we get the freshest frame
     for _ in range(5):
         cap.grab()
     ret, frame = cap.retrieve()
     if not ret or frame is None:
         raise RuntimeError("Failed to retrieve frame from stream")
     return frame
+
+
+def to_gray(img: np.ndarray) -> np.ndarray:
+    """Convert BGR or already-gray image to single-channel grayscale."""
+    if len(img.shape) == 2:
+        return img
+    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +90,6 @@ def grab_frame(cap) -> np.ndarray:
 #  e   c
 #   ddd
 #
-# Each entry is (x_frac, y_frac, w_frac, h_frac) — fraction of digit bbox.
 SEGMENT_RECTS = {
     "a": (0.15, 0.00, 0.70, 0.12),  # top horizontal
     "b": (0.80, 0.07, 0.15, 0.38),  # upper right vertical
@@ -105,12 +113,11 @@ SEGMENT_MAP = {
     0b1010010: "7",
     0b1111111: "8",
     0b1111011: "9",
-    # Special characters for Sentry error/menu codes
     0b1101101: "E",  # used in ER codes
     0b0000101: "r",
     0b1100111: "A",  # used in ASO/ASC
     0b1100000: "F",
-    0b0001101: "C",  # lower C (used in ASC)
+    0b0001101: "C",
     0b0001111: "c",
     0b1111110: "O",  # used in ASO
     0b0111110: "U",
@@ -131,18 +138,15 @@ def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
     region = digit_roi[y1:y2, x1:x2]
     if region.size == 0:
         return 0.0
-    gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY) if len(region.shape) == 3 else region
-    return float(np.mean(gray))
+    return float(np.mean(to_gray(region)))
 
 
 def read_digit(digit_roi: np.ndarray, threshold: int = 150) -> str:
     """Recognise a single 7-segment digit from its ROI crop."""
     bits = 0
     for i, seg in enumerate(["a", "b", "c", "d", "e", "f", "g"]):
-        brightness = _segment_brightness(digit_roi, seg)
-        if brightness >= threshold:
+        if _segment_brightness(digit_roi, seg) >= threshold:
             bits |= (1 << (6 - i))
-
     return SEGMENT_MAP.get(bits, f"?{bits:07b}")
 
 
@@ -151,14 +155,12 @@ def read_display(frame: np.ndarray, config: dict) -> str:
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
-
-    result = ""
     threshold = config.get("brightness_threshold", 150)
+    result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
         result += read_digit(digit_crop, threshold)
-
     return result.strip()
 
 
@@ -166,28 +168,27 @@ def read_display(frame: np.ndarray, config: dict) -> str:
 # LED / indicator detection
 # ---------------------------------------------------------------------------
 
-def _roi_is_lit(frame: np.ndarray, coord: dict, threshold: int = 80,
-                radius: int = 6) -> bool:
-    """Return True if the LED/indicator at (x, y) is illuminated."""
+def _roi_is_lit(frame: np.ndarray, coord: dict, threshold: int = 150,
+                radius: int = 8) -> bool:
+    """Return True if the spot at (x, y) is brighter than threshold.
+
+    Works in both colour and IR/grayscale mode because it uses luminance only.
+    LEDs appear as bright spots in IR night mode; threshold should be set above
+    the background brightness of the panel surface (~100-120 in IR mode).
+    """
     x, y = coord["x"], coord["y"]
     h, w = frame.shape[:2]
-    x1 = max(0, x - radius)
-    y1 = max(0, y - radius)
-    x2 = min(w, x + radius)
-    y2 = min(h, y + radius)
+    x1, y1 = max(0, x - radius), max(0, y - radius)
+    x2, y2 = min(w, x + radius), min(h, y + radius)
     region = frame[y1:y2, x1:x2]
     if region.size == 0:
         return False
-    hsv = cv2.cvtColor(region, cv2.COLOR_BGR2HSV)
-    # Green hue range: 40–80 in OpenCV (0–180 scale)
-    green_mask = cv2.inRange(hsv, np.array([40, 40, threshold]),
-                             np.array([80, 255, 255]))
-    return float(np.mean(green_mask)) > 10.0
+    return float(np.mean(to_gray(region))) >= threshold
 
 
 def read_leds(frame: np.ndarray, config: dict) -> dict:
     """Read the 4 green LED indicator states."""
-    threshold = config.get("brightness_threshold", 150)
+    threshold = config.get("led_threshold", 160)
     leds = config.get("leds", {})
     return {
         "burnerOn":         _roi_is_lit(frame, leds["burner"], threshold),
@@ -199,7 +200,7 @@ def read_leds(frame: np.ndarray, config: dict) -> dict:
 
 def read_indicators(frame: np.ndarray, config: dict) -> str | None:
     """Return the active display mode based on which indicator light is lit."""
-    threshold = config.get("brightness_threshold", 150)
+    threshold = config.get("led_threshold", 160)
     indicators = config.get("indicators", {})
     for mode, coord in indicators.items():
         if _roi_is_lit(frame, coord, threshold):
@@ -221,33 +222,32 @@ def f_to_k(f: float) -> float:
 
 def cmd_capture(args):
     """Capture a single reference frame and save to JPEG."""
-    logger.info(f"Connecting to {args.rtsp_url} …")
+    logger.info(f"Connecting to {args.rtsp_url} ...")
     cap = open_stream(args.rtsp_url)
-    logger.info("Connected. Grabbing frame …")
+    logger.info("Connected. Grabbing frame ...")
     frame = grab_frame(cap)
     cap.release()
-
     out = args.output or "sentry-reference.jpg"
     cv2.imwrite(out, frame)
     h, w = frame.shape[:2]
-    logger.info(f"Saved {w}×{h} frame to: {out}")
+    logger.info(f"Saved {w}x{h} frame to: {out}")
     logger.info("")
-    logger.info("Open the image and note the pixel coordinates of:")
-    logger.info("  display_roi   — bounding box around all 3 digits (x, y, w, h)")
-    logger.info("  digit_positions[0,1,2] — each digit within that box (x, y, w, h)")
-    logger.info("  leds.burner / circ / circ_aux / thermostat_demand — centre pixel (x, y)")
-    logger.info("  indicators.water_temp / air / gas_input / dhw_temp — centre pixel (x, y)")
+    logger.info("To identify pixel coordinates, open the image in Preview on Mac")
+    logger.info("and use Tools > Show Inspector (Cmd+I) - it shows pixel coords as you hover.")
     logger.info("")
-    logger.info("Then update pivac.Sentry config in /etc/pivac/config.yml")
+    logger.info("Identify and record:")
+    logger.info("  display_roi   - bounding box around all 3 digits (x, y, w, h)")
+    logger.info("  digit_positions[0,1,2] - each digit within that box (x, y, w, h)")
+    logger.info("  leds.burner/circ/circ_aux/thermostat_demand - centre pixel (x, y)")
+    logger.info("  indicators.water_temp/air/gas_input/dhw_temp - centre pixel (x, y)")
 
 
 def cmd_annotate(args):
     """Draw ROI boxes on a saved reference frame using config coords."""
     if not yaml:
-        sys.exit("ERROR: PyYAML required for --annotate. pip install pyyaml")
+        sys.exit("ERROR: PyYAML required. pip install pyyaml")
     if not args.image:
         sys.exit("ERROR: --image required for --annotate")
-
     with open(args.config) as f:
         full_config = yaml.safe_load(f)
     config = full_config.get("pivac.Sentry", {})
@@ -256,7 +256,6 @@ def cmd_annotate(args):
     if frame is None:
         sys.exit(f"ERROR: Could not read image: {args.image}")
 
-    # Draw display ROI
     roi = config.get("display_roi", {})
     if roi:
         cv2.rectangle(frame,
@@ -264,29 +263,23 @@ def cmd_annotate(args):
                       (roi["x"] + roi["w"], roi["y"] + roi["h"]),
                       (0, 255, 0), 2)
         cv2.putText(frame, "display_roi", (roi["x"], roi["y"] - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-
-        # Draw digit positions (relative to display_roi)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         for i, pos in enumerate(config.get("digit_positions", [])):
-            ax = roi["x"] + pos["x"]
-            ay = roi["y"] + pos["y"]
-            cv2.rectangle(frame, (ax, ay),
-                          (ax + pos["w"], ay + pos["h"]),
-                          (255, 255, 0), 1)
-            cv2.putText(frame, f"d{i}", (ax, ay - 3),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1)
+            ax, ay = roi["x"] + pos["x"], roi["y"] + pos["y"]
+            cv2.rectangle(frame, (ax, ay), (ax + pos["w"], ay + pos["h"]),
+                          (255, 255, 0), 2)
+            cv2.putText(frame, f"d{i}", (ax, ay - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
-    # Draw LEDs
     for name, coord in config.get("leds", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 8, (0, 200, 0), 2)
-        cv2.putText(frame, name, (coord["x"] + 10, coord["y"] + 4),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 200, 0), 1)
+        cv2.circle(frame, (coord["x"], coord["y"]), 12, (0, 200, 0), 2)
+        cv2.putText(frame, name, (coord["x"] + 14, coord["y"] + 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 0), 2)
 
-    # Draw indicators
     for name, coord in config.get("indicators", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 8, (200, 100, 0), 2)
-        cv2.putText(frame, name, (coord["x"] + 10, coord["y"] + 4),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (200, 100, 0), 1)
+        cv2.circle(frame, (coord["x"], coord["y"]), 12, (0, 100, 255), 2)
+        cv2.putText(frame, name, (coord["x"] + 14, coord["y"] + 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 100, 255), 2)
 
     out = args.output or "sentry-annotated.jpg"
     cv2.imwrite(out, frame)
@@ -296,12 +289,10 @@ def cmd_annotate(args):
 def cmd_test(args):
     """Capture a full display cycle and print parsed values."""
     if not yaml:
-        sys.exit("ERROR: PyYAML required for --test. pip install pyyaml")
-
+        sys.exit("ERROR: PyYAML required. pip install pyyaml")
     with open(args.config) as f:
         full_config = yaml.safe_load(f)
     config = full_config.get("pivac.Sentry", {})
-
     rtsp_url = args.rtsp_url or config.get("rtsp_url")
     if not rtsp_url:
         sys.exit("ERROR: --rtsp-url required (or set rtsp_url in config)")
@@ -309,9 +300,9 @@ def cmd_test(args):
     cycle_timeout = config.get("cycle_timeout", 15)
     frame_interval = config.get("frame_interval", 2.5)
 
-    logger.info(f"Connecting to {rtsp_url} …")
+    logger.info(f"Connecting to {rtsp_url} ...")
     cap = open_stream(rtsp_url)
-    logger.info(f"Capturing frames for up to {cycle_timeout}s …")
+    logger.info(f"Capturing frames for up to {cycle_timeout}s ...")
 
     collected = {}
     last_frame = None
@@ -332,10 +323,10 @@ def cmd_test(args):
 
         if mode and mode not in collected:
             collected[mode] = value
-            logger.info(f"  → captured mode '{mode}' = '{value}'")
+            logger.info(f"  -> captured '{mode}' = '{value}'")
 
         if len(collected) >= len(config.get("indicators", {})):
-            logger.info("All display modes captured — stopping early.")
+            logger.info("All display modes captured.")
             break
 
         time.sleep(frame_interval)
@@ -348,13 +339,13 @@ def cmd_test(args):
         try:
             val = float(raw)
             if mode in ("water_temp", "dhw_temp", "air"):
-                print(f"  →  {val}°F  =  {f_to_k(val):.2f} K")
+                print(f"  ->  {val}F  =  {f_to_k(val):.2f} K")
             elif mode == "gas_input":
-                print(f"  →  gas input scale {int(val)}")
+                print(f"  ->  gas input scale {int(val)}")
             else:
                 print()
         except ValueError:
-            print(f"  (non-numeric — error/menu code?)")
+            print(f"  (non-numeric)")
 
     if last_frame is not None:
         leds = read_leds(last_frame, config)
@@ -369,21 +360,18 @@ def cmd_test(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Sentry 2100 / Tapo C120 calibration and test utility")
+        description="Sentry 2100 / Tapo C120 calibration utility")
     parser.add_argument("--capture", action="store_true",
-                        help="Capture a reference frame and save as JPEG")
+                        help="Capture a reference frame from the RTSP stream")
     parser.add_argument("--annotate", action="store_true",
                         help="Draw ROI boxes on a saved reference frame")
     parser.add_argument("--test", action="store_true",
                         help="Capture a live display cycle and print parsed values")
-    parser.add_argument("--rtsp-url", metavar="URL",
-                        help="RTSP stream URL (overrides config)")
-    parser.add_argument("--config", default="/etc/pivac/config.yml",
-                        metavar="FILE", help="Path to pivac config.yml")
+    parser.add_argument("--rtsp-url", metavar="URL")
+    parser.add_argument("--config", default="/etc/pivac/config.yml", metavar="FILE")
     parser.add_argument("--image", metavar="FILE",
                         help="Reference image for --annotate")
-    parser.add_argument("--output", "-o", metavar="FILE",
-                        help="Output filename (default: sentry-reference.jpg / sentry-annotated.jpg)")
+    parser.add_argument("--output", "-o", metavar="FILE")
     args = parser.parse_args()
 
     if args.capture:

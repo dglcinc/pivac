@@ -1,0 +1,54 @@
+# pivac.Sentry sample config — initial ROI coordinates estimated from
+# reference frame captured 2026-03-22 (2560x1440, IR night mode).
+# Run sentry-calibrate.py --annotate to verify these visually, then
+# fine-tune as needed.
+#
+# Copy the pivac.Sentry block into /etc/pivac/config.yml and fill in
+# the rtsp_url with real credentials.
+
+pivac.Sentry:
+  rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
+
+  # How long to wait for the display to cycle through all modes (seconds)
+  cycle_timeout: 15
+  # Seconds between frame grabs during a cycle capture
+  frame_interval: 2.5
+
+  # Minimum brightness (0-255) for a 7-segment LED segment to be considered lit.
+  # The display reads bright white in IR mode; background is ~80-100.
+  brightness_threshold: 150
+
+  # Minimum brightness for LED/indicator dots to be considered lit.
+  # Set slightly above background panel brightness in IR mode.
+  led_threshold: 160
+
+  # Bounding box of the entire 3-digit display in the full camera frame.
+  # Coordinates are in the original 2560x1440 image.
+  display_roi:
+    x: 1020
+    y: 688
+    w: 315
+    h: 135
+
+  # Each digit's bounding box, relative to display_roi.
+  # Left digit first (hundreds), then tens, then units.
+  digit_positions:
+    - {x: 5,   y: 5, w: 80,  h: 125}  # hundreds (often dim/blank when < 100)
+    - {x: 100, y: 5, w: 90,  h: 125}  # tens
+    - {x: 210, y: 5, w: 95,  h: 125}  # units
+
+  # Centre pixel of each green LED indicator (right side of display panel).
+  # In IR mode these appear as bright spots; adjust if --annotate shows them off.
+  leds:
+    burner:            {x: 1378, y: 523}
+    circ:              {x: 1378, y: 558}
+    circ_aux:          {x: 1378, y: 593}
+    thermostat_demand: {x: 1378, y: 628}
+
+  # Centre pixel of each display-mode indicator light (below the digits).
+  # Whichever one is lit tells us what value the display is currently showing.
+  indicators:
+    water_temp: {x: 985,  y: 858}
+    air:        {x: 1060, y: 858}
+    gas_input:  {x: 1148, y: 858}
+    dhw_temp:   {x: 1238, y: 858}
