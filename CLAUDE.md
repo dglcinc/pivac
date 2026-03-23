@@ -97,6 +97,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | pivac-arduino-psi       | pivac.ArduinoSensor     | Hydronic pressure (Fusch 100PSI) | 10.0.0.114   |
 | pivac-arduino-therm-psi | pivac.ArduinoSensor     | DHW pressure (Fusch 200PSI)      | 10.0.0.219   |
 | pivac-emporia           | pivac.Emporia           | Emporia Vue Gen 2 (house + apt)  | Emporia cloud |
+| pivac-sentry            | pivac.Sentry            | NTI Trinity Ti-200 boiler (Tapo C120 RTSP) | 10.0.0.19 |
 
 ## Key File Locations
 
@@ -195,8 +196,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -n 50 --no-pager
 ```
 
 If systemd service files were changed:
@@ -209,7 +210,7 @@ sudo systemctl daemon-reload
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -244,11 +245,11 @@ journalctl -u signalk -n 50 --no-pager
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
 | `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
-| `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — implemented, pending service install (see section below) |
+| `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — reads display via 7-segment CV, emits boiler state to `hvac.boiler.sentry.*` |
 
-## Planned: pivac.Sentry Module
+## pivac.Sentry Module
 
-**Status:** Implemented and standalone-tested on Pi. Service file written. Next step: install and enable `pivac-sentry.service`.
+**Status:** Fully deployed. `pivac-sentry.service` installed, enabled, and running (2026-03-23).
 
 ### Camera Hardware
 
@@ -290,7 +291,7 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 | `hvac.boiler.sentry.waterTemp` | number | °K (converted from °F); emitted when display shows water temp |
 | `hvac.boiler.sentry.outdoorTemp` | number | °K; emitted when display shows outdoor air temp |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
-| `hvac.boiler.sentry.dhwTemp` | number | °K; emitted when display shows DHW temp |
+| `hvac.boiler.sentry.dhwPriority` | boolean | True when DHW priority indicator is lit (boiler in DHW priority mode) |
 | `hvac.boiler.sentry.errorCode` | string | e.g. `ER3`; null when no error |
 | `hvac.boiler.sentry.burnerOn` | boolean | Green LED state |
 | `hvac.boiler.sentry.circOn` | boolean | Green LED state |
@@ -344,7 +345,7 @@ Note: coordinate values above are placeholders — real values come from calibra
 - [x] Populate config with real ROI coordinates (`mode_stable_frames: 3`, `cycle_timeout: 30`)
 - [x] Implement `pivac/Sentry.py`
 - [x] Create `scripts/systemd/pivac-sentry.service`
-- [ ] Install service on Pi (`sudo cp`, `daemon-reload`, `enable`, `start`) and verify logs
+- [x] Install service on Pi (`sudo cp`, `daemon-reload`, `enable`, `start`) and verify logs
 
 ## Signal K Upgrade (if needed)
 
