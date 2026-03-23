@@ -5,10 +5,10 @@
 pivac.Sentry:
   rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
 
-  # How long to wait for the display to cycle through all modes (seconds)
-  cycle_timeout: 15
-  # Seconds between frame grabs during a cycle capture
-  frame_interval: 2.5
+  # How long to poll the live stream waiting for all four display modes (seconds).
+  # The Sentry 2100 cycles through modes ~0.5s each with ~1-2s pauses.
+  # 30s gives two full cycles with comfortable margin.
+  cycle_timeout: 30
 
   # LED brightness ratio: how much brighter a lit LED must be vs surrounding
   # panel background.  Live data: lit LEDs ratio ~1.21-1.23, off LEDs ~0.79.
