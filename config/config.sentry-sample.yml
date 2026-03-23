@@ -1,5 +1,5 @@
 # pivac.Sentry sample config — ROI coordinates set by --calibrate interactive
-# session on 2026-03-22 against a 2560x1440 frame.  Run --debug to verify,
+# session on 2026-03-23 against a 2560x1440 frame.  Run --debug to verify,
 # then copy the pivac.Sentry block into /etc/pivac/config.yml.
 
 pivac.Sentry:
@@ -14,32 +14,36 @@ pivac.Sentry:
   # panel background. 1.4 = 40% brighter. Works in IR and colour modes.
   led_ratio: 1.4
 
-  # Bounding box of the LED digit glass in the full 2560x1440 frame.
-  # Shifted 2px left of the raw click so that d0.x stays >= 0.
-  display_roi:
-    x: 1135
-    y: 642
-    w: 199
-    h: 95
+  # Perspective warp: 4 corners of the LED glass in the original 2560x1440 frame.
+  # Order: TL -> TR -> BR -> BL
+  # Digit positions below are relative to the de-skewed rectified display.
+  display_warp:
+    corners:
+      - {x: 1156, y: 655}  # TL
+      - {x: 1324, y: 647}  # TR
+      - {x: 1313, y: 719}  # BR
+      - {x: 1148, y: 730}  # BL
+    dst_w: 168
+    dst_h: 75
 
-  # Each digit's bounding box, relative to display_roi.
-  # Measured by clicking corners directly on the live frame.
+  # Each digit's bounding box, relative to the RECTIFIED (de-skewed) display.
   digit_positions:
-    - {x:   0, y:  0, w:  64, h:  93}  # hundreds
-    - {x:  62, y:  1, w:  65, h:  92}  # tens
-    - {x: 125, y:  1, w:  71, h:  90}  # units
+    - {x:    1, y:    1, w:   39, h:   73}  # hundreds
+    - {x:   62, y:    1, w:   41, h:   73}  # tens
+    - {x:  124, y:    1, w:   43, h:   73}  # units
 
   # Centre pixel of each green LED indicator (right of display panel).
+  # Coordinates are in the original full frame.
   leds:
-    burner:            {x: 1355, y: 644}
-    circ:              {x: 1355, y: 671}
-    circ_aux:          {x: 1349, y: 698}
-    thermostat_demand: {x: 1349, y: 723}
+    burner:            {x: 1355, y: 643}
+    circ:              {x: 1352, y: 669}
+    circ_aux:          {x: 1353, y: 696}
+    thermostat_demand: {x: 1350, y: 723}
 
   # Centre pixel of each display-mode indicator light (bottom of panel).
   # Whichever is lit identifies what value the 3-digit display is showing.
   indicators:
-    water_temp: {x: 1154, y: 755}
-    air:        {x: 1209, y: 750}
-    gas_input:  {x: 1262, y: 743}
-    dhw_temp:   {x: 1316, y: 746}
+    water_temp: {x: 1156, y: 755}
+    air:        {x: 1210, y: 749}
+    gas_input:  {x: 1261, y: 744}
+    dhw_temp:   {x: 1316, y: 743}
