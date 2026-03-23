@@ -32,8 +32,8 @@ Optional config keys:
     daemon_sleep        Seconds between poll cycles (framework key; recommend >= 30)
 
 Signal K paths emitted:
-    hvac.boiler.sentry.waterTemp        °K (from °F display when water_temp indicator lit)
-    hvac.boiler.sentry.outdoorTemp      °K (from °F display when air indicator lit)
+    hvac.boiler.sentry.waterTemp        °F as shown on display (when water_temp indicator lit)
+    hvac.boiler.sentry.outdoorTemp      °F as shown on display (when air indicator lit)
     hvac.boiler.sentry.gasInputValue    Raw 40–240 scale (when gas_input indicator lit)
     hvac.boiler.sentry.errorCode        String e.g. "ER3" (non-numeric display, no indicator)
     hvac.boiler.sentry.dhwPriority      bool (dhw_temp indicator state — DHW priority active)
@@ -404,7 +404,7 @@ def status(config={}, output="default"):
         if mode == "gas_input":
             sk_val = int(val)
         else:
-            sk_val = _f_to_k(val)
+            sk_val = val  # raw °F as shown on display — no conversion
 
         if output == "signalk":
             sk_add_value(sk_source, sk_path, sk_val)

@@ -447,8 +447,8 @@ Digit recognition uses 7-segment pattern matching (not OCR). LED and indicator s
 
 | Path | Type | Description |
 |------|------|-------------|
-| `hvac.boiler.sentry.waterTemp` | number | °K — boiler supply water temperature |
-| `hvac.boiler.sentry.outdoorTemp` | number | °K — outdoor air temperature |
+| `hvac.boiler.sentry.waterTemp` | number | °F as shown on display — boiler supply water temperature |
+| `hvac.boiler.sentry.outdoorTemp` | number | °F as shown on display — outdoor air temperature |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale (see boiler manual for BTU/hr conversion) |
 | `hvac.boiler.sentry.dhwPriority` | boolean | True when boiler is in DHW priority mode |
 | `hvac.boiler.sentry.errorCode` | string | Error/status code e.g. `ER3` (only when displayed) |
