@@ -9,7 +9,7 @@ Usage:
   # Annotate a saved frame with ROI boxes from config
   python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
 
-  # Debug: grab one live frame, save crops, print brightness values
+  # Debug: grab one live frame, save crops + annotated overlay, print brightness values
   python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
 
   # Test live reading without Signal K (prints parsed values to stdout)
@@ -17,7 +17,9 @@ Usage:
 
 Notes:
   - Uses adaptive thresholds so it works in any lighting / camera mode:
-      * Digit recognition uses Otsu's method on the display ROI each frame.
+      * Digit recognition uses Otsu's method per digit crop (not the full
+        display ROI), giving clean bimodal separation between the black LED
+        substrate and the lit segment pixels.
       * LED detection compares spot brightness against local background ratio.
   - The camera can be left in Auto day/night mode; no manual setting needed.
   - Open a captured frame in Preview (Cmd+I shows pixel coords on hover) to
@@ -144,15 +146,24 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
+    """Read the 3-digit display value from a full frame.
+
+    Otsu thresholding is applied per digit crop rather than on the full
+    display_roi.  The full ROI includes bright panel background material
+    that skews the global histogram and raises the threshold well above
+    actual segment pixel values.  Per-digit Otsu separates the dark LED
+    substrate from the lit segments far more reliably.
+    """
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
-    threshold = _otsu_threshold(to_gray(display_crop))
-    logger.debug(f"Otsu threshold for display: {threshold}")
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
+        gray = to_gray(digit_crop)
+        threshold = _otsu_threshold(gray)
+        logger.debug(f"Per-digit Otsu threshold: {threshold}")
         result += read_digit(digit_crop, threshold)
     return result.strip()
 
@@ -226,6 +237,42 @@ def f_to_k(f: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Annotation helper (shared by --annotate and --debug)
+# ---------------------------------------------------------------------------
+
+def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
+    """Draw display ROI, digit boxes, LED circles, and indicator circles."""
+    annotated = frame.copy()
+    roi = config.get("display_roi", {})
+    if roi:
+        cv2.rectangle(annotated,
+                      (roi["x"], roi["y"]),
+                      (roi["x"] + roi["w"], roi["y"] + roi["h"]),
+                      (0, 255, 0), 3)
+        cv2.putText(annotated, "display_roi", (roi["x"], roi["y"] - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+        for i, pos in enumerate(config.get("digit_positions", [])):
+            ax, ay = roi["x"] + pos["x"], roi["y"] + pos["y"]
+            cv2.rectangle(annotated, (ax, ay),
+                          (ax + pos["w"], ay + pos["h"]),
+                          (255, 255, 0), 2)
+            cv2.putText(annotated, f"d{i}", (ax, ay - 6),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+
+    for name, coord in config.get("leds", {}).items():
+        cv2.circle(annotated, (coord["x"], coord["y"]), 14, (0, 200, 0), 2)
+        cv2.putText(annotated, name, (coord["x"] + 16, coord["y"] + 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
+
+    for name, coord in config.get("indicators", {}).items():
+        cv2.circle(annotated, (coord["x"], coord["y"]), 14, (0, 100, 255), 2)
+        cv2.putText(annotated, name, (coord["x"] + 16, coord["y"] + 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 255), 2)
+
+    return annotated
+
+
+# ---------------------------------------------------------------------------
 # CLI commands
 # ---------------------------------------------------------------------------
 
@@ -239,10 +286,11 @@ def cmd_capture(args):
     cv2.imwrite(out, frame)
     h, w = frame.shape[:2]
     logger.info(f"Saved {w}x{h} frame to: {out}")
+    logger.info("Open in Preview — hover to get pixel coords (Cmd+I for inspector).")
 
 
 def cmd_debug(args):
-    """Grab one live frame, save crops, print all brightness diagnostics."""
+    """Grab one live frame, save crops + annotated overlay, print all brightness diagnostics."""
     if not yaml:
         sys.exit("ERROR: PyYAML required. pip install pyyaml")
     with open(args.config) as f:
@@ -259,12 +307,17 @@ def cmd_debug(args):
     frame = grab_frame(cap)
     cap.release()
 
-    # Save full frame
+    # Save plain full frame
     full_path = f"{prefix}-frame.jpg"
     cv2.imwrite(full_path, frame)
     logger.info(f"Full frame saved: {full_path}")
 
-    # Save and analyse display_roi crop
+    # Save annotated full frame — shows all ROI boxes on the live image
+    ann_path = f"{prefix}-annotated.jpg"
+    cv2.imwrite(ann_path, draw_annotations(frame, config))
+    logger.info(f"Annotated overlay saved: {ann_path}  <-- check this first")
+
+    # Analyse display_roi crop
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
@@ -272,29 +325,36 @@ def cmd_debug(args):
     cv2.imwrite(crop_path, display_crop)
 
     gray_display = to_gray(display_crop)
-    threshold = _otsu_threshold(gray_display)
     mean_brightness = float(np.mean(gray_display))
     max_brightness = float(np.max(gray_display))
+    global_otsu = _otsu_threshold(gray_display)
 
     print(f"\n=== display_roi (x={roi['x']} y={roi['y']} w={roi['w']} h={roi['h']}) ===")
-    print(f"  Saved crop:      {crop_path}")
-    print(f"  Mean brightness: {mean_brightness:.1f}  Max: {max_brightness:.1f}")
-    print(f"  Otsu threshold:  {threshold}")
-    print(f"  (If mean < 50 and max < 100, the ROI is probably not on the display)")
+    print(f"  Saved crop:           {crop_path}")
+    print(f"  Mean brightness:      {mean_brightness:.1f}  Max: {max_brightness:.1f}")
+    print(f"  Global Otsu:          {global_otsu}  (NOT used — per-digit Otsu shown below)")
 
-    # Save and analyse each digit crop
-    print("\n=== Digit crops ===")
+    # Analyse each digit crop with its own Otsu threshold
+    print("\n=== Digit crops (per-digit Otsu) ===")
     for i, pos in enumerate(config.get("digit_positions", [])):
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
         dp = f"{prefix}-digit-{i}.jpg"
         cv2.imwrite(dp, digit_crop)
         g = to_gray(digit_crop)
-        print(f"  d{i}: mean={np.mean(g):.1f}  max={np.max(g):.1f}  saved: {dp}")
+        dmean, dmax = float(np.mean(g)), float(np.max(g))
+        digit_otsu = _otsu_threshold(g)
+        char = read_digit(digit_crop, digit_otsu)
+        print(f"  d{i}: mean={dmean:.1f}  max={dmax:.1f}  otsu={digit_otsu}  reads='{char}'  "
+              f"saved: {dp}")
+        if dmean > 80 and dmax < 180:
+            print(f"       *** WARN: d{i} looks like panel background (no bright LED pixels).")
+            print(f"       ***   If display shows 2 digits, this is expected for the hundreds.")
+            print(f"       ***   If display shows 3 digits, increase d{i}.x in digit_positions.")
         print(f"       segments: ", end="")
         for seg in ["a", "b", "c", "d", "e", "f", "g"]:
             b = _segment_brightness(digit_crop, seg)
-            lit = "*" if b >= threshold else "."
+            lit = "*" if b >= digit_otsu else "."
             print(f"{seg}={b:.0f}{lit} ", end="")
         print()
 
@@ -314,8 +374,7 @@ def cmd_debug(args):
         print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
               f"ratio={info['ratio']:.2f}  -> {lit}")
 
-    print(f"\nOpen {crop_path} to see what the algorithm sees for the digit area.")
-    print("If it looks dark/wrong, adjust display_roi in config and re-run --debug.")
+    print(f"\nNext step: open {ann_path} to verify all ROI boxes land on the right areas.")
 
 
 def cmd_annotate(args):
@@ -329,34 +388,8 @@ def cmd_annotate(args):
     frame = cv2.imread(args.image)
     if frame is None:
         sys.exit(f"ERROR: Could not read image: {args.image}")
-
-    roi = config.get("display_roi", {})
-    if roi:
-        cv2.rectangle(frame,
-                      (roi["x"], roi["y"]),
-                      (roi["x"] + roi["w"], roi["y"] + roi["h"]),
-                      (0, 255, 0), 3)
-        cv2.putText(frame, "display_roi", (roi["x"], roi["y"] - 8),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-        for i, pos in enumerate(config.get("digit_positions", [])):
-            ax, ay = roi["x"] + pos["x"], roi["y"] + pos["y"]
-            cv2.rectangle(frame, (ax, ay), (ax + pos["w"], ay + pos["h"]),
-                          (255, 255, 0), 2)
-            cv2.putText(frame, f"d{i}", (ax, ay - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-
-    for name, coord in config.get("leds", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 14, (0, 200, 0), 2)
-        cv2.putText(frame, name, (coord["x"] + 16, coord["y"] + 6),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
-
-    for name, coord in config.get("indicators", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 14, (0, 100, 255), 2)
-        cv2.putText(frame, name, (coord["x"] + 16, coord["y"] + 6),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 255), 2)
-
     out = args.output or "sentry-annotated.jpg"
-    cv2.imwrite(out, frame)
+    cv2.imwrite(out, draw_annotations(frame, config))
     logger.info(f"Annotated image saved to: {out}")
 
 
@@ -439,7 +472,8 @@ def main():
     parser.add_argument("--annotate", action="store_true",
                         help="Draw ROI boxes on a saved reference frame")
     parser.add_argument("--debug", action="store_true",
-                        help="Grab one live frame, save crops, print brightness diagnostics")
+                        help="Grab one live frame, save crops + annotated overlay, "
+                             "print brightness diagnostics")
     parser.add_argument("--test", action="store_true",
                         help="Capture a live display cycle and print parsed values")
     parser.add_argument("--rtsp-url", metavar="URL")
