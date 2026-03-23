@@ -6,29 +6,29 @@ Usage:
   # Capture a reference frame
   python scripts/sentry-calibrate.py --capture --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1"
 
-  # Interactive click-to-calibrate (opens image window, click all corners/centres)
+  # Interactive click-to-calibrate (perspective-aware: click 4 display corners,
+  # then digit/LED positions on the de-skewed rectified image)
   python scripts/sentry-calibrate.py --calibrate --image sentry-reference.jpg
   python scripts/sentry-calibrate.py --calibrate --rtsp-url "rtsp://..."
 
-  # Annotate a saved frame with ROI boxes from config
-  python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
+  # Annotate a saved frame with current config overlay
+  python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config ...
 
-  # Debug: grab one live frame, save crops + annotated overlay + segment vis
-  python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://..." --config config/config.sentry-sample.yml
+  # Debug: grab one live frame, save crops + segment visualisations
+  python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://..." --config ...
 
-  # Test live reading without Signal K
-  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://..." --config config/config.sentry-sample.yml
+  # Test live reading (no Signal K)
+  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://..." --config ...
 
 Notes:
   - --calibrate requires matplotlib: pip install matplotlib --break-system-packages
-  - Digit recognition uses 90th-percentile brightness per segment rectangle
-    with threshold = mean + 35% * (max - mean).  This handles thin LED
-    segment lines that would be diluted into near-background by a mean.
-  - LED detection uses spot-vs-background brightness ratio.
+  - Digit recognition: p90 per-segment brightness, threshold = mean+35%*(max-mean).
+  - LED/indicator detection: spot-vs-background brightness ratio.
   - Camera can stay in Auto day/night mode.
 """
 
 import argparse
+import math
 import sys
 import time
 import logging
@@ -81,6 +81,25 @@ def to_gray(img: np.ndarray) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
+# Display extraction (rectangle crop OR perspective warp)
+# ---------------------------------------------------------------------------
+
+def _get_display_crop(frame: np.ndarray, config: dict) -> np.ndarray:
+    """Return the display area, applying perspective de-skew when available."""
+    if "display_warp" in config:
+        warp = config["display_warp"]
+        src = np.float32([[c["x"], c["y"]] for c in warp["corners"]])
+        dst_w, dst_h = warp["dst_w"], warp["dst_h"]
+        dst = np.float32([[0, 0], [dst_w, 0], [dst_w, dst_h], [0, dst_h]])
+        M = cv2.getPerspectiveTransform(src, dst)
+        return cv2.warpPerspective(frame, M, (dst_w, dst_h))
+    # Legacy rectangle crop
+    roi = config["display_roi"]
+    return frame[roi["y"]:roi["y"] + roi["h"],
+                 roi["x"]:roi["x"] + roi["w"]]
+
+
+# ---------------------------------------------------------------------------
 # 7-segment digit recognition
 # ---------------------------------------------------------------------------
 
@@ -120,32 +139,20 @@ SEGMENT_MAP = {
 
 
 def _otsu_threshold(gray: np.ndarray) -> int:
-    """Otsu threshold (kept for reference / display in --debug output)."""
     otsu_val, _ = cv2.threshold(gray, 0, 255,
                                 cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return int(otsu_val)
 
 
 def _digit_threshold(gray: np.ndarray) -> int:
-    """Threshold for segment-lit detection within a digit crop.
-
-    Placed 35% of the way from the crop mean to the crop maximum.  More
-    reliable than Otsu when lit segments occupy only a small fraction of
-    the crop (Otsu then splits on dark-substrate vs mid-gray background
-    instead of background vs lit-segment).
-    """
+    """35% of the way from crop mean to crop max.  Robust for thin LED lines."""
     mean_val = float(np.mean(gray))
     max_val = float(np.max(gray))
     return int(mean_val + 0.35 * (max_val - mean_val))
 
 
 def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
-    """90th-percentile brightness within a segment's measurement rectangle.
-
-    Using p90 rather than mean handles thin LED segment lines: even when a
-    segment is only a few pixels wide, p90 reliably captures those bright
-    pixels rather than averaging them into the surrounding background.
-    """
+    """90th-percentile brightness in a segment rectangle."""
     h, w = digit_roi.shape[:2]
     xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
     x1, y1 = int(xf * w), int(yf * h)
@@ -165,17 +172,13 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
-    """Read the 3-digit display value from a full frame."""
-    roi = config["display_roi"]
-    display_crop = frame[roi["y"]:roi["y"] + roi["h"],
-                         roi["x"]:roi["x"] + roi["w"]]
+    display_crop = _get_display_crop(frame, config)
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
         gray = to_gray(digit_crop)
         threshold = _digit_threshold(gray)
-        logger.debug(f"digit threshold: {threshold}")
         result += read_digit(digit_crop, threshold)
     return result.strip()
 
@@ -248,26 +251,62 @@ def f_to_k(f: float) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Annotation helpers
+# Annotation helper
 # ---------------------------------------------------------------------------
 
 def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
+    """Draw display boundary, digit boxes (back-projected if warped), LEDs."""
     annotated = frame.copy()
-    roi = config.get("display_roi", {})
-    if roi:
-        cv2.rectangle(annotated,
-                      (roi["x"], roi["y"]),
-                      (roi["x"] + roi["w"], roi["y"] + roi["h"]),
-                      (0, 255, 0), 3)
-        cv2.putText(annotated, "display_roi", (roi["x"], roi["y"] - 8),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
+    if "display_warp" in config:
+        warp = config["display_warp"]
+        src = np.float32([[c["x"], c["y"]] for c in warp["corners"]])
+        dst_w, dst_h = warp["dst_w"], warp["dst_h"]
+        dst = np.float32([[0, 0], [dst_w, 0], [dst_w, dst_h], [0, dst_h]])
+
+        # Draw warp quadrilateral
+        corners_int = [(int(c["x"]), int(c["y"])) for c in warp["corners"]]
+        for j in range(4):
+            cv2.line(annotated, corners_int[j], corners_int[(j + 1) % 4],
+                     (0, 255, 0), 3)
+        cv2.putText(annotated, "display",
+                    (corners_int[0][0], corners_int[0][1] - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+        # Back-project digit boxes from warped to original coords
+        M_inv = cv2.getPerspectiveTransform(dst, src)
+        d_colors = [(255, 255, 0), (255, 200, 0), (255, 150, 0)]
         for i, pos in enumerate(config.get("digit_positions", [])):
-            ax, ay = roi["x"] + pos["x"], roi["y"] + pos["y"]
-            cv2.rectangle(annotated, (ax, ay),
-                          (ax + pos["w"], ay + pos["h"]),
-                          (255, 255, 0), 2)
-            cv2.putText(annotated, f"d{i}", (ax, ay - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+            box = np.float32([[
+                [pos["x"],              pos["y"]],
+                [pos["x"] + pos["w"],  pos["y"]],
+                [pos["x"] + pos["w"],  pos["y"] + pos["h"]],
+                [pos["x"],             pos["y"] + pos["h"]],
+            ]])
+            proj = cv2.perspectiveTransform(box, M_inv)
+            pts = proj.reshape(-1, 2).astype(np.int32)
+            cv2.polylines(annotated, [pts], True, d_colors[i], 2)
+            cv2.putText(annotated, f"d{i}", tuple(pts[0]),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, d_colors[i], 2)
+    else:
+        roi = config.get("display_roi", {})
+        if roi:
+            cv2.rectangle(annotated,
+                          (roi["x"], roi["y"]),
+                          (roi["x"] + roi["w"], roi["y"] + roi["h"]),
+                          (0, 255, 0), 3)
+            cv2.putText(annotated, "display_roi",
+                        (roi["x"], roi["y"] - 8),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+            d_colors = [(255, 255, 0), (255, 200, 0), (255, 150, 0)]
+            for i, pos in enumerate(config.get("digit_positions", [])):
+                ax2, ay2 = roi["x"] + pos["x"], roi["y"] + pos["y"]
+                cv2.rectangle(annotated, (ax2, ay2),
+                              (ax2 + pos["w"], ay2 + pos["h"]),
+                              d_colors[i], 2)
+                cv2.putText(annotated, f"d{i}", (ax2, ay2 - 6),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, d_colors[i], 2)
+
     for name, coord in config.get("leds", {}).items():
         cv2.circle(annotated, (coord["x"], coord["y"]), 14, (0, 200, 0), 2)
         cv2.putText(annotated, name, (coord["x"] + 16, coord["y"] + 6),
@@ -279,14 +318,12 @@ def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
     return annotated
 
 
+# ---------------------------------------------------------------------------
+# Segment visualisation (debug helper)
+# ---------------------------------------------------------------------------
+
 def _save_segment_vis(digit_roi: np.ndarray, threshold: int,
                       prefix: str, idx: int) -> str:
-    """Save a 4x upscaled digit crop with segment rectangles colour-coded.
-
-    Green rectangle = segment detected as lit (p90 >= threshold).
-    Red rectangle   = segment detected as off.
-    Brightness value shown is the p90 used for the decision.
-    """
     gray = to_gray(digit_roi)
     vis = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
     h, w = vis.shape[:2]
@@ -295,18 +332,14 @@ def _save_segment_vis(digit_roi: np.ndarray, threshold: int,
                      interpolation=cv2.INTER_NEAREST)
     for seg_name in ["a", "b", "c", "d", "e", "f", "g"]:
         xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
-        x1 = int(xf * w * scale)
-        y1 = int(yf * h * scale)
-        x2 = int((xf + wf) * w * scale)
-        y2 = int((yf + hf) * h * scale)
+        x1, y1 = int(xf * w * scale), int(yf * h * scale)
+        x2, y2 = int((xf + wf) * w * scale), int((yf + hf) * h * scale)
         p90 = _segment_brightness(digit_roi, seg_name)
-        lit = p90 >= threshold
-        color = (0, 220, 0) if lit else (0, 60, 220)
+        color = (0, 220, 0) if p90 >= threshold else (0, 60, 220)
         cv2.rectangle(vis, (x1, y1), (x2, y2), color, 1)
         cv2.putText(vis, f"{seg_name}:{p90:.0f}",
                     (x1 + 2, y1 + 11),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.32, color, 1)
-    # Mark the threshold
     cv2.putText(vis, f"thr={threshold}",
                 (2, vis.shape[0] - 4),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 200, 200), 1)
@@ -329,11 +362,19 @@ def cmd_capture(args):
     cv2.imwrite(out, frame)
     h, w = frame.shape[:2]
     logger.info(f"Saved {w}x{h} frame to: {out}")
-    logger.info("Open in Preview — hover to get pixel coords (Cmd+I for inspector).")
 
 
 def cmd_calibrate(args):
-    """Interactive: open frame in a window, click all corners/centres, print YAML."""
+    """Perspective-aware interactive calibration.
+
+    Step 1 — original frame: click the 4 corners of the LED display glass
+              in order TL → TR → BR → BL.  A warpPerspective de-skews it.
+    Step 2 — rectified frame: click top-left + bottom-right of each digit
+              (d0 hundreds, d1 tens, d2 units).  Coordinates are in the
+              de-skewed space and go straight into digit_positions.
+    Step 3 — original frame: click centres of the 4 LED dots, then the
+              4 mode-indicator lights.
+    """
     try:
         import platform
         import matplotlib
@@ -342,13 +383,12 @@ def cmd_calibrate(args):
         else:
             matplotlib.use("TkAgg")
         import matplotlib.pyplot as plt
-        from matplotlib.patches import Rectangle
+        from matplotlib.patches import Polygon
     except ImportError:
-        sys.exit(
-            "ERROR: matplotlib is required for --calibrate.\n"
-            "Run: pip install matplotlib --break-system-packages"
-        )
+        sys.exit("ERROR: matplotlib required.\n"
+                 "Run: pip install matplotlib --break-system-packages")
 
+    # --- Load frame -------------------------------------------------------
     if args.image:
         frame = cv2.imread(args.image)
         if frame is None:
@@ -361,143 +401,181 @@ def cmd_calibrate(args):
         cap.release()
         saved = (args.output or "sentry-calibrate") + "-frame.jpg"
         cv2.imwrite(saved, frame)
-        logger.info(f"Frame saved to {saved} (use --image {saved} to recalibrate)")
+        logger.info(f"Frame saved: {saved}")
     else:
-        sys.exit("ERROR: --image or --rtsp-url required for --calibrate")
+        sys.exit("ERROR: --image or --rtsp-url required")
 
     img_h, img_w = frame.shape[:2]
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) if len(frame.shape) == 3 \
-          else cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
+    def to_rgb(img):
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB) if len(img.shape) == 3 \
+               else cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
     fig, ax = plt.subplots(figsize=(16, 9))
-    ax.imshow(rgb, extent=[0, img_w, img_h, 0], aspect='equal')
-    ax.set_xlim(0, img_w)
-    ax.set_ylim(img_h, 0)
-    ax.axis('off')
     plt.tight_layout(pad=0)
 
-    def _set_title(msg):
+    def show_image(img, w, h):
+        ax.cla()
+        ax.imshow(to_rgb(img), extent=[0, w, h, 0], aspect='equal')
+        ax.set_xlim(0, w)
+        ax.set_ylim(h, 0)
+        ax.axis('off')
+        fig.canvas.draw()
+
+    def set_title(msg):
         ax.set_title(msg, fontsize=11, loc='center',
                      color='white', backgroundcolor='#222', pad=6)
         fig.canvas.draw()
 
     def collect(n, msg, color, marker='+'):
-        _set_title(msg)
+        set_title(msg)
         pts = plt.ginput(n, timeout=0)
-        out = []
+        result = []
         for x, y in pts:
             ix, iy = int(round(x)), int(round(y))
             ax.plot(ix, iy, marker, color=color,
                     markersize=16, markeredgewidth=2.5)
-            out.append((ix, iy))
+            result.append((ix, iy))
         fig.canvas.draw()
-        return out
-
-    def draw_box(p1, p2, color, label=''):
-        x1, y1 = p1
-        x2, y2 = p2
-        ax.add_patch(Rectangle(
-            (min(x1, x2), min(y1, y2)),
-            abs(x2 - x1), abs(y2 - y1),
-            linewidth=2, edgecolor=color, facecolor='none'
-        ))
-        if label:
-            ax.text(min(x1, x2), min(y1, y2) - 8, label,
-                    color=color, fontsize=9, fontweight='bold')
-        fig.canvas.draw()
+        return result
 
     print("\n" + "=" * 60)
-    print("INTERACTIVE CALIBRATION")
-    print("  Read each prompt in the WINDOW TITLE BAR, then click.")
-    print("  DO NOT close the window until all steps are done.")
+    print("INTERACTIVE CALIBRATION  (read title bar for each step)")
+    print("  Do NOT close the window until all steps complete.")
     print("=" * 60)
 
-    results = {}
+    # ---- Step 1: warp corners on original image --------------------------
+    show_image(frame, img_w, img_h)
+    corner_pts = collect(
+        4,
+        "STEP 1/3 — LED GLASS CORNERS (original frame): "
+        "click  TOP-LEFT → TOP-RIGHT → BOTTOM-RIGHT → BOTTOM-LEFT",
+        color="lime"
+    )
+    # Draw the quadrilateral
+    from matplotlib.patches import Polygon as MPoly
+    poly = MPoly(corner_pts, closed=True,
+                 linewidth=2, edgecolor="lime", facecolor="none")
+    ax.add_patch(poly)
+    fig.canvas.draw()
 
-    pts = collect(2,
-        "STEP 1/3 — LED GLASS:  click TOP-LEFT corner  then  BOTTOM-RIGHT corner",
-        color="lime")
-    (x1, y1), (x2, y2) = pts
-    roi_x, roi_y = min(x1, x2), min(y1, y2)
-    roi_w, roi_h = abs(x2 - x1), abs(y2 - y1)
-    results["display_roi"] = dict(x=roi_x, y=roi_y, w=roi_w, h=roi_h)
-    draw_box(pts[0], pts[1], "lime", "display_roi")
-    print(f"  display_roi: x={roi_x} y={roi_y} w={roi_w} h={roi_h}")
+    # Compute perspective transform
+    src = np.float32(corner_pts)
+    def _dist(a, b):
+        return math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2)
+    dst_w = int(max(_dist(corner_pts[0], corner_pts[1]),
+                    _dist(corner_pts[3], corner_pts[2])))
+    dst_h = int(max(_dist(corner_pts[0], corner_pts[3]),
+                    _dist(corner_pts[1], corner_pts[2])))
+    dst = np.float32([[0,0],[dst_w,0],[dst_w,dst_h],[0,dst_h]])
+    M     = cv2.getPerspectiveTransform(src, dst)
+    M_inv = cv2.getPerspectiveTransform(dst, src)
+    warped = cv2.warpPerspective(frame, M, (dst_w, dst_h))
+
+    warp_path = (args.output or "sentry-calibrate") + "-rectified.jpg"
+    cv2.imwrite(warp_path, warped)
+    logger.info(f"Rectified display saved: {warp_path}  "
+                f"(size {dst_w}x{dst_h})")
+    print(f"  Warp corners: {corner_pts}")
+    print(f"  Rectified size: {dst_w}x{dst_h}  (saved: {warp_path})")
+
+    # ---- Step 2: digit positions on RECTIFIED image ---------------------
+    show_image(warped, dst_w, dst_h)
+    set_title("Switched to RECTIFIED view — ready for digit calibration")
+    fig.canvas.draw()
 
     digits = []
-    digit_labels = [
-        ("HUNDREDS (d0)", "blank when value < 100; click approximate position"),
+    d_colors = ["#ffff00", "#ffcc00", "#ff9900"]
+    dlabels  = [
+        ("HUNDREDS (d0)", "blank when value < 100; click approx position"),
         ("TENS     (d1)", ""),
         ("UNITS    (d2)", ""),
     ]
-    colors_d = ["#ffff00", "#ffcc00", "#ff9900"]
-    for i, (dlabel, hint) in enumerate(digit_labels):
+    for i, (dlabel, hint) in enumerate(dlabels):
         hint_str = f"  ({hint})" if hint else ""
-        pts = collect(2,
-            f"STEP 2{'ABC'[i]}/3 — DIGIT {dlabel}{hint_str}:"
-            f"  TOP-LEFT  then  BOTTOM-RIGHT",
-            color=colors_d[i])
+        pts = collect(
+            2,
+            f"STEP 2{'ABC'[i]}/3 — DIGIT {dlabel} (RECTIFIED){hint_str}: "
+            f"TOP-LEFT then BOTTOM-RIGHT",
+            color=d_colors[i]
+        )
         (dx1, dy1), (dx2, dy2) = pts
-        rel_x = min(dx1, dx2) - roi_x
-        rel_y = min(dy1, dy2) - roi_y
+        rel_x = min(dx1, dx2)
+        rel_y = min(dy1, dy2)
         rel_w = abs(dx2 - dx1)
         rel_h = abs(dy2 - dy1)
         digits.append(dict(x=rel_x, y=rel_y, w=rel_w, h=rel_h))
-        draw_box(pts[0], pts[1], colors_d[i], f"d{i}")
-        print(f"  d{i}: x={rel_x} y={rel_y} w={rel_w} h={rel_h}  (relative to display_roi)")
-    results["digit_positions"] = digits
+        from matplotlib.patches import Rectangle
+        ax.add_patch(Rectangle((rel_x, rel_y), rel_w, rel_h,
+                               linewidth=2, edgecolor=d_colors[i],
+                               facecolor='none'))
+        ax.text(rel_x, rel_y - 6, f"d{i}",
+                color=d_colors[i], fontsize=9, fontweight='bold')
+        fig.canvas.draw()
+        print(f"  d{i}: x={rel_x} y={rel_y} w={rel_w} h={rel_h}  (rectified coords)")
+
+    # ---- Step 3: LEDs and indicators on ORIGINAL image ------------------
+    show_image(frame, img_w, img_h)
 
     led_names = ["burner", "circ", "circ_aux", "thermostat_demand"]
-    pts = collect(4,
-        "STEP 3A/3 — LEDs: click centre of each dot in order: "
+    pts = collect(
+        4,
+        "STEP 3A/3 — LEDs (original frame): click CENTRE of each dot: "
         "burner → circ → circ_aux → thermostat_demand",
-        color="cyan", marker="x")
-    results["leds"] = {}
+        color="cyan", marker="x"
+    )
+    leds = {}
     for name, (x, y) in zip(led_names, pts):
-        results["leds"][name] = dict(x=x, y=y)
-        ax.annotate(name, (x, y), xytext=(x + 12, y), color="cyan", fontsize=7)
+        leds[name] = dict(x=x, y=y)
+        ax.annotate(name, (x, y), xytext=(x+12, y), color="cyan", fontsize=7)
         print(f"  led {name}: x={x} y={y}")
     fig.canvas.draw()
 
     ind_names = ["water_temp", "air", "gas_input", "dhw_temp"]
-    pts = collect(4,
-        "STEP 3B/3 — MODE INDICATORS: click centre of each bottom light: "
+    pts = collect(
+        4,
+        "STEP 3B/3 — INDICATORS (original frame): click CENTRE of each light: "
         "water_temp → air → gas_input → dhw_temp",
-        color="orange", marker="x")
-    results["indicators"] = {}
+        color="orange", marker="x"
+    )
+    indicators = {}
     for name, (x, y) in zip(ind_names, pts):
-        results["indicators"][name] = dict(x=x, y=y)
-        ax.annotate(name, (x, y), xytext=(x + 12, y), color="orange", fontsize=7)
+        indicators[name] = dict(x=x, y=y)
+        ax.annotate(name, (x, y), xytext=(x+12, y), color="orange", fontsize=7)
         print(f"  indicator {name}: x={x} y={y}")
     fig.canvas.draw()
 
-    _set_title("Done! Close this window.")
+    set_title("Done! Close this window.")
     plt.show(block=True)
 
-    r = results["display_roi"]
+    # ---- Print YAML block -----------------------------------------------
     print("\n" + "=" * 60)
     print("  Paste this block into config/config.sentry-sample.yml")
-    print("  (replace display_roi / digit_positions / leds / indicators)")
+    print("  (replaces display_roi / display_warp / digit_positions / leds / indicators)")
     print("=" * 60)
     print(f"""
-  display_roi:
-    x: {r['x']}
-    y: {r['y']}
-    w: {r['w']}
-    h: {r['h']}
-
-  digit_positions:""")
+  # Perspective warp: 4 corners of the LED glass in the original frame
+  # Order: TL -> TR -> BR -> BL
+  display_warp:
+    corners:""")
+    labels = ["TL", "TR", "BR", "BL"]
+    for j, (x, y) in enumerate(corner_pts):
+        print(f"      - {{x: {x}, y: {y}}}  # {labels[j]}")
+    print(f"    dst_w: {dst_w}")
+    print(f"    dst_h: {dst_h}")
+    print(f"""
+  digit_positions:  # relative to RECTIFIED display""")
     lbl = ["hundreds", "tens", "units"]
-    for i, d in enumerate(results["digit_positions"]):
+    for i, d in enumerate(digits):
         print(f"    - {{x: {d['x']:4d}, y: {d['y']:4d}, "
               f"w: {d['w']:4d}, h: {d['h']:4d}}}  # {lbl[i]}")
     print(f"""
   leds:""")
-    for name, c in results["leds"].items():
+    for name, c in leds.items():
         print(f"    {name+':':22s} {{x: {c['x']}, y: {c['y']}}}")
     print(f"""
   indicators:""")
-    for name, c in results["indicators"].items():
+    for name, c in indicators.items():
         print(f"    {name+':':12s} {{x: {c['x']}, y: {c['y']}}}")
     print()
 
@@ -520,20 +598,19 @@ def cmd_debug(args):
     cap.release()
 
     cv2.imwrite(f"{prefix}-frame.jpg", frame)
-    logger.info(f"Full frame saved: {prefix}-frame.jpg")
+    logger.info(f"Full frame: {prefix}-frame.jpg")
 
     ann_path = f"{prefix}-annotated.jpg"
     cv2.imwrite(ann_path, draw_annotations(frame, config))
     logger.info(f"Annotated overlay: {ann_path}")
 
-    roi = config["display_roi"]
-    display_crop = frame[roi["y"]:roi["y"] + roi["h"],
-                         roi["x"]:roi["x"] + roi["w"]]
-    cv2.imwrite(f"{prefix}-display-roi.jpg", display_crop)
+    display_crop = _get_display_crop(frame, config)
+    rect_path = f"{prefix}-display-rectified.jpg"
+    cv2.imwrite(rect_path, display_crop)
+    logger.info(f"Rectified display: {rect_path}")
 
     gray_display = to_gray(display_crop)
-    print(f"\n=== display_roi (x={roi['x']} y={roi['y']} "
-          f"w={roi['w']} h={roi['h']}) ===")
+    print(f"\n=== Rectified display ({display_crop.shape[1]}x{display_crop.shape[0]}) ===")
     print(f"  Mean: {np.mean(gray_display):.1f}  "
           f"Max: {np.max(gray_display):.1f}  "
           f"Otsu: {_otsu_threshold(gray_display)}")
@@ -551,7 +628,7 @@ def cmd_debug(args):
         seg_vis = _save_segment_vis(digit_crop, thr, prefix, i)
         print(f"  d{i}: mean={dmean:.1f}  max={dmax:.1f}  "
               f"threshold={thr}  reads='{char}'")
-        print(f"       crop: {dp}   segments: {seg_vis}")
+        print(f"       crop: {dp}   segs: {seg_vis}")
         print(f"       ", end="")
         for seg in ["a", "b", "c", "d", "e", "f", "g"]:
             p90 = _segment_brightness(digit_crop, seg)
@@ -574,7 +651,7 @@ def cmd_debug(args):
         print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
               f"ratio={info['ratio']:.2f}  -> {lit}")
 
-    print(f"\nOpen {ann_path} and the *-segs.jpg files to diagnose alignment.")
+    print(f"\nKey file: {rect_path}  (de-skewed display used for recognition)")
 
 
 def cmd_annotate(args):
@@ -601,7 +678,7 @@ def cmd_test(args):
     config = full_config.get("pivac.Sentry", {})
     rtsp_url = args.rtsp_url or config.get("rtsp_url")
     if not rtsp_url:
-        sys.exit("ERROR: --rtsp-url required (or set rtsp_url in config)")
+        sys.exit("ERROR: --rtsp-url required")
 
     cycle_timeout = config.get("cycle_timeout", 15)
     frame_interval = config.get("frame_interval", 2.5)
@@ -667,15 +744,16 @@ def cmd_test(args):
 def main():
     parser = argparse.ArgumentParser(
         description="Sentry 2100 / Tapo C120 calibration utility")
-    parser.add_argument("--capture", action="store_true")
+    parser.add_argument("--capture",   action="store_true")
     parser.add_argument("--calibrate", action="store_true",
-                        help="Interactive: click corners/centres in a window")
-    parser.add_argument("--annotate", action="store_true")
-    parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--test", action="store_true")
-    parser.add_argument("--rtsp-url", metavar="URL")
-    parser.add_argument("--config", default="/etc/pivac/config.yml", metavar="FILE")
-    parser.add_argument("--image", metavar="FILE")
+                        help="Interactive perspective-aware calibration")
+    parser.add_argument("--annotate",  action="store_true")
+    parser.add_argument("--debug",     action="store_true")
+    parser.add_argument("--test",      action="store_true")
+    parser.add_argument("--rtsp-url",  metavar="URL")
+    parser.add_argument("--config",    default="/etc/pivac/config.yml",
+                        metavar="FILE")
+    parser.add_argument("--image",     metavar="FILE")
     parser.add_argument("--output", "-o", metavar="FILE")
     args = parser.parse_args()
 
