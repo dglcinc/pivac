@@ -420,7 +420,7 @@ def status(config={}, output="default"):
             result[sk_path] = raw["error_code"]
         logger.info("Sentry: error/status code: %s", raw["error_code"])
 
-    dhw_priority = raw.get("dhw_priority", False)
+    dhw_priority = int(raw.get("dhw_priority", False))
     sk_path = "hvac.boiler.sentry.dhwPriority"
     if output == "signalk":
         sk_add_value(sk_source, sk_path, dhw_priority)
@@ -429,7 +429,7 @@ def status(config={}, output="default"):
     logger.debug("Sentry: %s = %s", sk_path, dhw_priority)
 
     for led_key, sk_path in _LED_SK.items():
-        val = raw["leds"].get(led_key, False)
+        val = int(raw["leds"].get(led_key, False))
         if output == "signalk":
             sk_add_value(sk_source, sk_path, val)
         else:
