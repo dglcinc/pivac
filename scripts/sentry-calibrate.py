@@ -122,6 +122,7 @@ SEGMENT_MAP = {
     # Digits
     0b1111110: "0",   # a,b,c,d,e,f
     0b0110000: "1",   # b,c
+    0b0000110: "1",   # e,f  (left-side "1" — Sentry 2100 uses left verticals, not right)
     0b1101101: "2",   # a,b,d,e,g
     0b1111001: "3",   # a,b,c,d,g
     0b0110011: "4",   # b,c,f,g
@@ -696,39 +697,38 @@ def cmd_test(args):
     if not rtsp_url:
         sys.exit("ERROR: --rtsp-url required")
 
-    cycle_timeout = config.get("cycle_timeout", 15)
-    frame_interval = config.get("frame_interval", 2.5)
+    cycle_timeout = config.get("cycle_timeout", 30)
 
     logger.info(f"Connecting to {rtsp_url} ...")
     cap = open_stream(rtsp_url)
-    logger.info(f"Capturing frames for up to {cycle_timeout}s ...")
+    logger.info(f"Polling at camera frame rate for up to {cycle_timeout}s ...")
+
+    # Drain the initial buffer once so we start on a fresh frame.
+    for _ in range(5):
+        cap.grab()
 
     collected = {}
     last_frame = None
     deadline = time.time() + cycle_timeout
 
     while time.time() < deadline:
-        try:
-            frame = grab_frame(cap)
-            last_frame = frame
-        except RuntimeError as e:
-            logger.warning(f"Frame grab failed: {e}")
-            time.sleep(frame_interval)
+        ret, frame = cap.read()
+        if not ret or frame is None:
             continue
+        last_frame = frame
 
         mode = read_indicators(frame, config)
         value = read_display(frame, config)
         logger.info(f"  frame: display='{value}'  mode={mode}")
 
-        if mode and mode not in collected:
+        # Only record a clean read — skip frames where any digit is unrecognised.
+        if mode and mode not in collected and "?" not in value:
             collected[mode] = value
             logger.info(f"  -> captured '{mode}' = '{value}'")
 
         if len(collected) >= len(config.get("indicators", {})):
             logger.info("All display modes captured.")
             break
-
-        time.sleep(frame_interval)
 
     cap.release()
 
