@@ -291,14 +291,14 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 | `hvac.boiler.sentry.waterTemp` | number | °F as shown on display; emitted when water_temp indicator lit |
 | `hvac.boiler.sentry.outdoorTemp` | number | °F as shown on display; emitted when air indicator lit |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
-| `hvac.boiler.sentry.dhwPriority` | boolean | True when DHW priority indicator is lit (boiler in DHW priority mode) |
+| `hvac.boiler.sentry.dhwPriority` | number (0/1) | 1 when DHW priority indicator is lit |
 | `hvac.boiler.sentry.errorCode` | string | e.g. `ER3`; null when no error |
-| `hvac.boiler.sentry.burnerOn` | boolean | Green LED state |
-| `hvac.boiler.sentry.circOn` | boolean | Green LED state |
-| `hvac.boiler.sentry.circAuxOn` | boolean | Green LED state |
-| `hvac.boiler.sentry.thermostatDemand` | boolean | Green LED state |
+| `hvac.boiler.sentry.burnerOn` | number (0/1) | Burner LED state |
+| `hvac.boiler.sentry.circOn` | number (0/1) | Circ pump LED state |
+| `hvac.boiler.sentry.circAuxOn` | number (0/1) | Circ aux LED state |
+| `hvac.boiler.sentry.thermostatDemand` | number (0/1) | Thermostat demand LED state |
 
-Temperature values follow Signal K convention (Kelvin). Gas input value is emitted as the raw controller scale (40–240); conversion to BTU/hr can be done in Grafana or a downstream transform.
+Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation. **Important:** if you ever need to reset these measurements in InfluxDB, you must also restart Signal K after reseeding — the `signalk-to-influxdb2` plugin caches field types in memory and will re-write booleans until the process restarts.
 
 ### Config Format
 
