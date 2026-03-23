@@ -11,8 +11,9 @@ pivac.Sentry:
   frame_interval: 2.5
 
   # LED brightness ratio: how much brighter a lit LED must be vs surrounding
-  # panel background. 1.4 = 40% brighter. Works in IR and colour modes.
-  led_ratio: 1.4
+  # panel background.  Live data: lit LEDs ratio ~1.21-1.23, off LEDs ~0.79.
+  # 1.15 splits the gap cleanly.  Raise if off LEDs are false-triggering.
+  led_ratio: 1.15
 
   # Digit threshold factor: threshold = mean + factor*(max-mean) per digit crop.
   # Higher values reduce false positives on blank/dim digit positions.

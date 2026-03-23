@@ -105,7 +105,10 @@ def _get_display_crop(frame: np.ndarray, config: dict) -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 SEGMENT_RECTS = {
-    "a": (0.15, 0.00, 0.70, 0.12),  # top horizontal
+    # Fractional coords: (x_start, y_start, width, height) relative to digit crop.
+    # 'a' is narrowed to the centre of the top bar to avoid brightness spillover
+    # from the tops of the adjacent b (upper-right) and f (upper-left) verticals.
+    "a": (0.25, 0.00, 0.50, 0.12),  # top horizontal (centre only)
     "b": (0.80, 0.07, 0.15, 0.38),  # upper right vertical
     "c": (0.80, 0.55, 0.15, 0.38),  # lower right vertical
     "d": (0.15, 0.88, 0.70, 0.12),  # bottom horizontal
@@ -115,27 +118,30 @@ SEGMENT_RECTS = {
 }
 
 SEGMENT_MAP = {
-    0b1111110: "0",
-    0b0010010: "1",
-    0b1011101: "2",
-    0b1011011: "3",
-    0b0111010: "4",
-    0b1101011: "5",
-    0b1101111: "6",
-    0b1010010: "7",
-    0b1111111: "8",
-    0b1111011: "9",
-    0b1101101: "E",
-    0b0000101: "r",
-    0b1100111: "A",
-    0b1100000: "F",
-    0b0001101: "C",
-    0b0001111: "c",
-    0b1111110: "0",
-    0b0111110: "U",
-    0b0101111: "d",
-    0b0000001: "-",
-    0b0000000: " ",
+    # Standard 7-segment patterns. Bit order: a=bit6(MSB) … g=bit0(LSB).
+    # Digits
+    0b1111110: "0",   # a,b,c,d,e,f
+    0b0110000: "1",   # b,c
+    0b1101101: "2",   # a,b,d,e,g
+    0b1111001: "3",   # a,b,c,d,g
+    0b0110011: "4",   # b,c,f,g
+    0b1110011: "4",   # a,b,c,f,g  (fallback: 'a' corner spillover from b+f)
+    0b1011011: "5",   # a,c,d,f,g
+    0b1011111: "6",   # a,c,d,e,f,g
+    0b1110000: "7",   # a,b,c
+    0b1111111: "8",   # all segments
+    0b1111011: "9",   # a,b,c,d,f,g
+    # Error / status characters
+    0b1001111: "E",   # a,d,e,f,g
+    0b0000101: "r",   # e,g
+    0b1110111: "A",   # a,b,c,e,f,g
+    0b1000011: "F",   # a,f,g
+    0b1001110: "C",   # a,d,e,f
+    0b0001110: "c",   # d,e,f
+    0b0111110: "U",   # b,c,d,e,f
+    0b0111101: "d",   # b,c,d,e,g
+    0b0000001: "-",   # g
+    0b0000000: " ",   # blank
 }
 
 
