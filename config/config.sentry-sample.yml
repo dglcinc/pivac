@@ -1,0 +1,47 @@
+# pivac.Sentry sample config — initial ROI coordinates estimated from
+# reference frame captured 2026-03-22 (2560x1440).
+# Run sentry-calibrate.py --annotate to verify visually, then fine-tune.
+# Copy the pivac.Sentry block into /etc/pivac/config.yml.
+
+pivac.Sentry:
+  rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
+
+  # How long to wait for the display to cycle through all modes (seconds)
+  cycle_timeout: 15
+  # Seconds between frame grabs during a cycle capture
+  frame_interval: 2.5
+
+  # LED brightness detection: how much brighter a lit LED must be vs the
+  # surrounding panel background. 1.4 = 40% brighter than background.
+  # Increase if false positives in bright room; decrease if LEDs not detected.
+  # Works in both IR night mode and colour day mode.
+  led_ratio: 1.4
+
+  # Bounding box of the entire 3-digit display in the full 2560x1440 frame.
+  display_roi:
+    x: 1020
+    y: 688
+    w: 315
+    h: 135
+
+  # Each digit's bounding box, relative to display_roi.
+  # Left = hundreds (often dim/blank when value < 100), then tens, units.
+  digit_positions:
+    - {x: 5,   y: 5, w: 80,  h: 125}  # hundreds
+    - {x: 100, y: 5, w: 90,  h: 125}  # tens
+    - {x: 210, y: 5, w: 95,  h: 125}  # units
+
+  # Centre pixel of each green LED indicator (right side of display panel).
+  leds:
+    burner:            {x: 1378, y: 523}
+    circ:              {x: 1378, y: 558}
+    circ_aux:          {x: 1378, y: 593}
+    thermostat_demand: {x: 1378, y: 628}
+
+  # Centre pixel of each display-mode indicator light (below the digits).
+  # Whichever is lit tells us what value the 3-digit display is showing.
+  indicators:
+    water_temp: {x: 985,  y: 858}
+    air:        {x: 1060, y: 858}
+    gas_input:  {x: 1148, y: 858}
+    dhw_temp:   {x: 1238, y: 858}
