@@ -1,7 +1,6 @@
-# pivac.Sentry sample config — initial ROI coordinates estimated from
-# reference frame captured 2026-03-22 (2560x1440).
-# Run sentry-calibrate.py --annotate to verify visually, then fine-tune.
-# Copy the pivac.Sentry block into /etc/pivac/config.yml.
+# pivac.Sentry sample config — ROI coordinates verified against reference
+# frame 2026-03-22 (2560x1440). Run --annotate again to confirm adjustments,
+# then copy the pivac.Sentry block into /etc/pivac/config.yml.
 
 pivac.Sentry:
   rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
@@ -11,37 +10,39 @@ pivac.Sentry:
   # Seconds between frame grabs during a cycle capture
   frame_interval: 2.5
 
-  # LED brightness detection: how much brighter a lit LED must be vs the
-  # surrounding panel background. 1.4 = 40% brighter than background.
-  # Increase if false positives in bright room; decrease if LEDs not detected.
-  # Works in both IR night mode and colour day mode.
+  # LED brightness ratio: how much brighter a lit LED must be vs surrounding
+  # panel background. 1.4 = 40% brighter. Works in IR and colour modes.
+  # Increase if false positives; decrease if lit LEDs aren't detected.
   led_ratio: 1.4
 
   # Bounding box of the entire 3-digit display in the full 2560x1440 frame.
+  # Moved y up 48px from initial estimate to stop clipping digit tops.
   display_roi:
     x: 1020
-    y: 688
+    y: 640
     w: 315
-    h: 135
+    h: 140
 
   # Each digit's bounding box, relative to display_roi.
-  # Left = hundreds (often dim/blank when value < 100), then tens, units.
+  # Left = hundreds (dim/blank when value < 100), then tens, then units.
   digit_positions:
     - {x: 5,   y: 5, w: 80,  h: 125}  # hundreds
     - {x: 100, y: 5, w: 90,  h: 125}  # tens
     - {x: 210, y: 5, w: 95,  h: 125}  # units
 
   # Centre pixel of each green LED indicator (right side of display panel).
+  # Moved y down 110px from initial estimate — first pass was too high.
   leds:
-    burner:            {x: 1378, y: 523}
-    circ:              {x: 1378, y: 558}
-    circ_aux:          {x: 1378, y: 593}
-    thermostat_demand: {x: 1378, y: 628}
+    burner:            {x: 1350, y: 633}
+    circ:              {x: 1350, y: 668}
+    circ_aux:          {x: 1350, y: 703}
+    thermostat_demand: {x: 1350, y: 738}
 
-  # Centre pixel of each display-mode indicator light (below the digits).
-  # Whichever is lit tells us what value the 3-digit display is showing.
+  # Centre pixel of each display-mode indicator light (below the digits,
+  # still inside the white panel). Moved y up 83px — first pass was below panel.
+  # Whichever is lit identifies what value the 3-digit display is showing.
   indicators:
-    water_temp: {x: 985,  y: 858}
-    air:        {x: 1060, y: 858}
-    gas_input:  {x: 1148, y: 858}
-    dhw_temp:   {x: 1238, y: 858}
+    water_temp: {x: 985,  y: 775}
+    air:        {x: 1060, y: 775}
+    gas_input:  {x: 1148, y: 775}
+    dhw_temp:   {x: 1238, y: 775}
