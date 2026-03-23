@@ -1542,7 +1542,7 @@
       "datasource": {
         "default": true,
         "type": "influxdb",
-        "uid": "bdj9fji0j5logc"
+        "uid": "bdxaqnfllu5fkf"
       },
       "fieldConfig": {
         "defaults": {
@@ -1676,7 +1676,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -1717,7 +1717,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -1758,7 +1758,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -1804,7 +1804,7 @@
       "datasource": {
         "default": true,
         "type": "influxdb",
-        "uid": "bdj9fji0j5logc"
+        "uid": "bdxaqnfllu5fkf"
       },
       "fieldConfig": {
         "defaults": {
@@ -1897,7 +1897,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -1938,7 +1938,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -1979,7 +1979,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -2020,7 +2020,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
@@ -2061,7 +2061,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
+            "uid": "bdxaqnfllu5fkf"
           },
           "groupBy": [
             {
