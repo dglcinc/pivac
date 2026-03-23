@@ -13,7 +13,7 @@ Usage:
   # Annotate a saved frame with ROI boxes from config
   python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
 
-  # Debug: grab one live frame, save crops + annotated overlay, print brightness values
+  # Debug: grab one live frame, save crops + annotated overlay + segment vis
   python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://..." --config config/config.sentry-sample.yml
 
   # Test live reading without Signal K
@@ -21,7 +21,9 @@ Usage:
 
 Notes:
   - --calibrate requires matplotlib: pip install matplotlib --break-system-packages
-  - Digit recognition uses per-digit Otsu thresholding.
+  - Digit recognition uses 90th-percentile brightness per segment rectangle
+    with threshold = mean + 35% * (max - mean).  This handles thin LED
+    segment lines that would be diluted into near-background by a mean.
   - LED detection uses spot-vs-background brightness ratio.
   - Camera can stay in Auto day/night mode.
 """
@@ -118,12 +120,32 @@ SEGMENT_MAP = {
 
 
 def _otsu_threshold(gray: np.ndarray) -> int:
+    """Otsu threshold (kept for reference / display in --debug output)."""
     otsu_val, _ = cv2.threshold(gray, 0, 255,
                                 cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return int(otsu_val)
 
 
+def _digit_threshold(gray: np.ndarray) -> int:
+    """Threshold for segment-lit detection within a digit crop.
+
+    Placed 35% of the way from the crop mean to the crop maximum.  More
+    reliable than Otsu when lit segments occupy only a small fraction of
+    the crop (Otsu then splits on dark-substrate vs mid-gray background
+    instead of background vs lit-segment).
+    """
+    mean_val = float(np.mean(gray))
+    max_val = float(np.max(gray))
+    return int(mean_val + 0.35 * (max_val - mean_val))
+
+
 def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
+    """90th-percentile brightness within a segment's measurement rectangle.
+
+    Using p90 rather than mean handles thin LED segment lines: even when a
+    segment is only a few pixels wide, p90 reliably captures those bright
+    pixels rather than averaging them into the surrounding background.
+    """
     h, w = digit_roi.shape[:2]
     xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
     x1, y1 = int(xf * w), int(yf * h)
@@ -131,7 +153,7 @@ def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
     region = digit_roi[y1:y2, x1:x2]
     if region.size == 0:
         return 0.0
-    return float(np.mean(to_gray(region)))
+    return float(np.percentile(to_gray(region), 90))
 
 
 def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
@@ -143,8 +165,7 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
-    """Read the 3-digit display.  Per-digit Otsu avoids the bright panel
-    background skewing the global threshold."""
+    """Read the 3-digit display value from a full frame."""
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
@@ -153,8 +174,8 @@ def read_display(frame: np.ndarray, config: dict) -> str:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
         gray = to_gray(digit_crop)
-        threshold = _otsu_threshold(gray)
-        logger.debug(f"Per-digit Otsu threshold: {threshold}")
+        threshold = _digit_threshold(gray)
+        logger.debug(f"digit threshold: {threshold}")
         result += read_digit(digit_crop, threshold)
     return result.strip()
 
@@ -227,7 +248,7 @@ def f_to_k(f: float) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Annotation helper (shared by --annotate and --debug)
+# Annotation helpers
 # ---------------------------------------------------------------------------
 
 def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
@@ -258,6 +279,42 @@ def draw_annotations(frame: np.ndarray, config: dict) -> np.ndarray:
     return annotated
 
 
+def _save_segment_vis(digit_roi: np.ndarray, threshold: int,
+                      prefix: str, idx: int) -> str:
+    """Save a 4x upscaled digit crop with segment rectangles colour-coded.
+
+    Green rectangle = segment detected as lit (p90 >= threshold).
+    Red rectangle   = segment detected as off.
+    Brightness value shown is the p90 used for the decision.
+    """
+    gray = to_gray(digit_roi)
+    vis = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+    h, w = vis.shape[:2]
+    scale = 5
+    vis = cv2.resize(vis, (w * scale, h * scale),
+                     interpolation=cv2.INTER_NEAREST)
+    for seg_name in ["a", "b", "c", "d", "e", "f", "g"]:
+        xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
+        x1 = int(xf * w * scale)
+        y1 = int(yf * h * scale)
+        x2 = int((xf + wf) * w * scale)
+        y2 = int((yf + hf) * h * scale)
+        p90 = _segment_brightness(digit_roi, seg_name)
+        lit = p90 >= threshold
+        color = (0, 220, 0) if lit else (0, 60, 220)
+        cv2.rectangle(vis, (x1, y1), (x2, y2), color, 1)
+        cv2.putText(vis, f"{seg_name}:{p90:.0f}",
+                    (x1 + 2, y1 + 11),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.32, color, 1)
+    # Mark the threshold
+    cv2.putText(vis, f"thr={threshold}",
+                (2, vis.shape[0] - 4),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 200, 200), 1)
+    path = f"{prefix}-digit-{idx}-segs.jpg"
+    cv2.imwrite(path, vis)
+    return path
+
+
 # ---------------------------------------------------------------------------
 # CLI commands
 # ---------------------------------------------------------------------------
@@ -280,7 +337,6 @@ def cmd_calibrate(args):
     try:
         import platform
         import matplotlib
-        # Choose a backend that opens a real window on the current OS
         if platform.system() == "Darwin":
             matplotlib.use("MacOSX")
         else:
@@ -293,7 +349,6 @@ def cmd_calibrate(args):
             "Run: pip install matplotlib --break-system-packages"
         )
 
-    # --- Load or capture frame -------------------------------------------
     if args.image:
         frame = cv2.imread(args.image)
         if frame is None:
@@ -327,7 +382,6 @@ def cmd_calibrate(args):
         fig.canvas.draw()
 
     def collect(n, msg, color, marker='+'):
-        """Show prompt, collect n clicks, draw markers, return list of (int,int)."""
         _set_title(msg)
         pts = plt.ginput(n, timeout=0)
         out = []
@@ -360,7 +414,6 @@ def cmd_calibrate(args):
 
     results = {}
 
-    # Step 1 — display_roi (2 clicks)
     pts = collect(2,
         "STEP 1/3 — LED GLASS:  click TOP-LEFT corner  then  BOTTOM-RIGHT corner",
         color="lime")
@@ -371,7 +424,6 @@ def cmd_calibrate(args):
     draw_box(pts[0], pts[1], "lime", "display_roi")
     print(f"  display_roi: x={roi_x} y={roi_y} w={roi_w} h={roi_h}")
 
-    # Step 2 — digit boxes (2 clicks each)
     digits = []
     digit_labels = [
         ("HUNDREDS (d0)", "blank when value < 100; click approximate position"),
@@ -395,7 +447,6 @@ def cmd_calibrate(args):
         print(f"  d{i}: x={rel_x} y={rel_y} w={rel_w} h={rel_h}  (relative to display_roi)")
     results["digit_positions"] = digits
 
-    # Step 3a — LED indicator centres (4 clicks)
     led_names = ["burner", "circ", "circ_aux", "thermostat_demand"]
     pts = collect(4,
         "STEP 3A/3 — LEDs: click centre of each dot in order: "
@@ -404,12 +455,10 @@ def cmd_calibrate(args):
     results["leds"] = {}
     for name, (x, y) in zip(led_names, pts):
         results["leds"][name] = dict(x=x, y=y)
-        ax.annotate(name, (x, y), xytext=(x + 12, y),
-                    color="cyan", fontsize=7)
+        ax.annotate(name, (x, y), xytext=(x + 12, y), color="cyan", fontsize=7)
         print(f"  led {name}: x={x} y={y}")
     fig.canvas.draw()
 
-    # Step 3b — mode indicator centres (4 clicks)
     ind_names = ["water_temp", "air", "gas_input", "dhw_temp"]
     pts = collect(4,
         "STEP 3B/3 — MODE INDICATORS: click centre of each bottom light: "
@@ -418,19 +467,17 @@ def cmd_calibrate(args):
     results["indicators"] = {}
     for name, (x, y) in zip(ind_names, pts):
         results["indicators"][name] = dict(x=x, y=y)
-        ax.annotate(name, (x, y), xytext=(x + 12, y),
-                    color="orange", fontsize=7)
+        ax.annotate(name, (x, y), xytext=(x + 12, y), color="orange", fontsize=7)
         print(f"  indicator {name}: x={x} y={y}")
     fig.canvas.draw()
 
     _set_title("Done! Close this window.")
     plt.show(block=True)
 
-    # --- Print YAML block -------------------------------------------------
     r = results["display_roi"]
     print("\n" + "=" * 60)
     print("  Paste this block into config/config.sentry-sample.yml")
-    print("  (replace the existing display_roi / digit_positions / leds / indicators)")
+    print("  (replace display_roi / digit_positions / leds / indicators)")
     print("=" * 60)
     print(f"""
   display_roi:
@@ -472,31 +519,26 @@ def cmd_debug(args):
     frame = grab_frame(cap)
     cap.release()
 
-    full_path = f"{prefix}-frame.jpg"
-    cv2.imwrite(full_path, frame)
-    logger.info(f"Full frame saved: {full_path}")
+    cv2.imwrite(f"{prefix}-frame.jpg", frame)
+    logger.info(f"Full frame saved: {prefix}-frame.jpg")
 
     ann_path = f"{prefix}-annotated.jpg"
     cv2.imwrite(ann_path, draw_annotations(frame, config))
-    logger.info(f"Annotated overlay saved: {ann_path}  <-- check this first")
+    logger.info(f"Annotated overlay: {ann_path}")
 
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
-    crop_path = f"{prefix}-display-roi.jpg"
-    cv2.imwrite(crop_path, display_crop)
+    cv2.imwrite(f"{prefix}-display-roi.jpg", display_crop)
 
     gray_display = to_gray(display_crop)
-    mean_brightness = float(np.mean(gray_display))
-    max_brightness = float(np.max(gray_display))
-    global_otsu = _otsu_threshold(gray_display)
+    print(f"\n=== display_roi (x={roi['x']} y={roi['y']} "
+          f"w={roi['w']} h={roi['h']}) ===")
+    print(f"  Mean: {np.mean(gray_display):.1f}  "
+          f"Max: {np.max(gray_display):.1f}  "
+          f"Otsu: {_otsu_threshold(gray_display)}")
 
-    print(f"\n=== display_roi (x={roi['x']} y={roi['y']} w={roi['w']} h={roi['h']}) ===")
-    print(f"  Saved crop:           {crop_path}")
-    print(f"  Mean brightness:      {mean_brightness:.1f}  Max: {max_brightness:.1f}")
-    print(f"  Global Otsu:          {global_otsu}  (NOT used — per-digit Otsu shown below)")
-
-    print("\n=== Digit crops (per-digit Otsu) ===")
+    print("\n=== Digit crops ===")
     for i, pos in enumerate(config.get("digit_positions", [])):
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
@@ -504,22 +546,20 @@ def cmd_debug(args):
         cv2.imwrite(dp, digit_crop)
         g = to_gray(digit_crop)
         dmean, dmax = float(np.mean(g)), float(np.max(g))
-        digit_otsu = _otsu_threshold(g)
-        char = read_digit(digit_crop, digit_otsu)
-        print(f"  d{i}: mean={dmean:.1f}  max={dmax:.1f}  otsu={digit_otsu}  reads='{char}'  "
-              f"saved: {dp}")
-        if dmean > 80 and dmax < 180:
-            print(f"       *** WARN: d{i} looks like panel background (no bright LED pixels).")
-            print(f"       ***   If display shows 2 digits, expected for hundreds.")
-            print(f"       ***   If display shows 3 digits, increase d{i}.x in digit_positions.")
-        print(f"       segments: ", end="")
+        thr = _digit_threshold(g)
+        char = read_digit(digit_crop, thr)
+        seg_vis = _save_segment_vis(digit_crop, thr, prefix, i)
+        print(f"  d{i}: mean={dmean:.1f}  max={dmax:.1f}  "
+              f"threshold={thr}  reads='{char}'")
+        print(f"       crop: {dp}   segments: {seg_vis}")
+        print(f"       ", end="")
         for seg in ["a", "b", "c", "d", "e", "f", "g"]:
-            b = _segment_brightness(digit_crop, seg)
-            lit = "*" if b >= digit_otsu else "."
-            print(f"{seg}={b:.0f}{lit} ", end="")
+            p90 = _segment_brightness(digit_crop, seg)
+            lit = "*" if p90 >= thr else "."
+            print(f"{seg}={p90:.0f}{lit} ", end="")
         print()
 
-    print("\n=== LED brightness (spot / background / ratio) ===")
+    print("\n=== LED brightness ===")
     print(f"  (need ratio >= {config.get('led_ratio', 1.4)} to register as lit)")
     for name, coord in config.get("leds", {}).items():
         info = _roi_brightness_info(frame, coord)
@@ -534,7 +574,7 @@ def cmd_debug(args):
         print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
               f"ratio={info['ratio']:.2f}  -> {lit}")
 
-    print(f"\nNext step: open {ann_path} to verify ROI boxes, or run --calibrate to redo.")
+    print(f"\nOpen {ann_path} and the *-segs.jpg files to diagnose alignment.")
 
 
 def cmd_annotate(args):
@@ -627,23 +667,16 @@ def cmd_test(args):
 def main():
     parser = argparse.ArgumentParser(
         description="Sentry 2100 / Tapo C120 calibration utility")
-    parser.add_argument("--capture", action="store_true",
-                        help="Capture a reference frame from the RTSP stream")
+    parser.add_argument("--capture", action="store_true")
     parser.add_argument("--calibrate", action="store_true",
-                        help="Interactive: click corners/centres in a window to set all ROIs")
-    parser.add_argument("--annotate", action="store_true",
-                        help="Draw ROI boxes on a saved reference frame")
-    parser.add_argument("--debug", action="store_true",
-                        help="Grab one live frame, save crops + annotated overlay, "
-                             "print brightness diagnostics")
-    parser.add_argument("--test", action="store_true",
-                        help="Capture a live display cycle and print parsed values")
+                        help="Interactive: click corners/centres in a window")
+    parser.add_argument("--annotate", action="store_true")
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--test", action="store_true")
     parser.add_argument("--rtsp-url", metavar="URL")
     parser.add_argument("--config", default="/etc/pivac/config.yml", metavar="FILE")
-    parser.add_argument("--image", metavar="FILE",
-                        help="Saved frame for --annotate or --calibrate")
-    parser.add_argument("--output", "-o", metavar="FILE",
-                        help="Output file / prefix")
+    parser.add_argument("--image", metavar="FILE")
+    parser.add_argument("--output", "-o", metavar="FILE")
     args = parser.parse_args()
 
     if args.capture:
