@@ -9,6 +9,9 @@ Usage:
   # Annotate a saved frame with ROI boxes from config
   python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
 
+  # Debug: grab one live frame, save crops, print brightness values
+  python scripts/sentry-calibrate.py --debug --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
+
   # Test live reading without Signal K (prints parsed values to stdout)
   python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
 
@@ -80,16 +83,6 @@ def to_gray(img: np.ndarray) -> np.ndarray:
 # 7-segment digit recognition
 # ---------------------------------------------------------------------------
 
-# Segment layout within a digit bounding box (relative fractions):
-#
-#   aaa
-#  f   b
-#  f   b
-#   ggg
-#  e   c
-#  e   c
-#   ddd
-#
 SEGMENT_RECTS = {
     "a": (0.15, 0.00, 0.70, 0.12),  # top horizontal
     "b": (0.80, 0.07, 0.15, 0.38),  # upper right vertical
@@ -100,8 +93,6 @@ SEGMENT_RECTS = {
     "g": (0.15, 0.44, 0.70, 0.12),  # middle horizontal
 }
 
-# Map 7-bit segment state (a,b,c,d,e,f,g) -> character
-# Bit order: a=64, b=32, c=16, d=8, e=4, f=2, g=1
 SEGMENT_MAP = {
     0b1110111: "0",
     0b0010010: "1",
@@ -113,34 +104,27 @@ SEGMENT_MAP = {
     0b1010010: "7",
     0b1111111: "8",
     0b1111011: "9",
-    0b1101101: "E",  # used in ER codes
+    0b1101101: "E",
     0b0000101: "r",
-    0b1100111: "A",  # used in ASO/ASC
+    0b1100111: "A",
     0b1100000: "F",
     0b0001101: "C",
     0b0001111: "c",
-    0b1111110: "O",  # used in ASO
+    0b1111110: "O",
     0b0111110: "U",
-    0b0101111: "d",  # used in dIF
+    0b0101111: "d",
     0b0000001: "-",
     0b0000000: " ",
 }
 
 
 def _otsu_threshold(gray: np.ndarray) -> int:
-    """Compute optimal brightness threshold for this image via Otsu's method.
-
-    Otsu finds the threshold that minimises intra-class variance between the
-    two pixel populations (lit segments vs dark background). It adapts
-    automatically to any ambient light level or camera mode.
-    """
     otsu_val, _ = cv2.threshold(gray, 0, 255,
                                 cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return int(otsu_val)
 
 
 def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
-    """Return mean brightness (0-255) of a segment region within a digit ROI."""
     h, w = digit_roi.shape[:2]
     xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
     x1, y1 = int(xf * w), int(yf * h)
@@ -152,7 +136,6 @@ def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
 
 
 def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
-    """Recognise a single 7-segment digit given a brightness threshold."""
     bits = 0
     for i, seg in enumerate(["a", "b", "c", "d", "e", "f", "g"]):
         if _segment_brightness(digit_roi, seg) >= threshold:
@@ -161,17 +144,11 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
-    """Read the 3-digit display value from a full frame.
-
-    Computes an adaptive (Otsu) threshold from the display region each frame,
-    so performance is stable across lighting conditions and camera modes.
-    """
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
     threshold = _otsu_threshold(to_gray(display_crop))
     logger.debug(f"Otsu threshold for display: {threshold}")
-
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
@@ -187,42 +164,41 @@ def read_display(frame: np.ndarray, config: dict) -> str:
 def _roi_is_lit(frame: np.ndarray, coord: dict,
                 spot_radius: int = 8, bg_radius: int = 25,
                 ratio: float = 1.4) -> bool:
-    """Return True if the LED spot at (x, y) is lit.
-
-    Compares the mean brightness of the spot against the mean brightness of
-    the surrounding local background region. A lit LED is always brighter
-    than its immediate surroundings regardless of ambient light level or
-    camera mode, so this is robust to day/night switching.
-
-    ratio: how much brighter the spot must be vs background (default 1.4 = 40%)
-    """
     x, y = coord["x"], coord["y"]
     h, w = frame.shape[:2]
     gray = to_gray(frame)
-
-    # Spot
     sx1, sy1 = max(0, x - spot_radius), max(0, y - spot_radius)
     sx2, sy2 = min(w, x + spot_radius), min(h, y + spot_radius)
     spot = gray[sy1:sy2, sx1:sx2]
     if spot.size == 0:
         return False
     spot_brightness = float(np.mean(spot))
-
-    # Local background (larger area centred on same point)
     bx1, by1 = max(0, x - bg_radius), max(0, y - bg_radius)
     bx2, by2 = min(w, x + bg_radius), min(h, y + bg_radius)
     bg_brightness = float(np.mean(gray[by1:by2, bx1:bx2]))
-
     if bg_brightness < 1.0:
         bg_brightness = 1.0
-
-    logger.debug(f"LED ({x},{y}): spot={spot_brightness:.1f}  bg={bg_brightness:.1f}  "
-                 f"ratio={spot_brightness/bg_brightness:.2f}  required={ratio}")
     return spot_brightness >= bg_brightness * ratio
 
 
+def _roi_brightness_info(frame: np.ndarray, coord: dict,
+                         spot_radius: int = 8, bg_radius: int = 25) -> dict:
+    """Return brightness diagnostics for a single LED/indicator position."""
+    x, y = coord["x"], coord["y"]
+    h, w = frame.shape[:2]
+    gray = to_gray(frame)
+    sx1, sy1 = max(0, x - spot_radius), max(0, y - spot_radius)
+    sx2, sy2 = min(w, x + spot_radius), min(h, y + spot_radius)
+    spot_brightness = float(np.mean(gray[sy1:sy2, sx1:sx2]))
+    bx1, by1 = max(0, x - bg_radius), max(0, y - bg_radius)
+    bx2, by2 = min(w, x + bg_radius), min(h, y + bg_radius)
+    bg_brightness = float(np.mean(gray[by1:by2, bx1:bx2]))
+    ratio = spot_brightness / max(bg_brightness, 1.0)
+    return {"spot": round(spot_brightness, 1), "bg": round(bg_brightness, 1),
+            "ratio": round(ratio, 2)}
+
+
 def read_leds(frame: np.ndarray, config: dict) -> dict:
-    """Read the 4 green LED indicator states."""
     ratio = config.get("led_ratio", 1.4)
     leds = config.get("leds", {})
     return {
@@ -234,7 +210,6 @@ def read_leds(frame: np.ndarray, config: dict) -> dict:
 
 
 def read_indicators(frame: np.ndarray, config: dict) -> str | None:
-    """Return the active display mode based on which indicator light is lit."""
     ratio = config.get("led_ratio", 1.4)
     for mode, coord in config.get("indicators", {}).items():
         if _roi_is_lit(frame, coord, ratio=ratio):
@@ -255,7 +230,6 @@ def f_to_k(f: float) -> float:
 # ---------------------------------------------------------------------------
 
 def cmd_capture(args):
-    """Capture a single reference frame and save to JPEG."""
     logger.info(f"Connecting to {args.rtsp_url} ...")
     cap = open_stream(args.rtsp_url)
     logger.info("Connected. Grabbing frame ...")
@@ -265,17 +239,86 @@ def cmd_capture(args):
     cv2.imwrite(out, frame)
     h, w = frame.shape[:2]
     logger.info(f"Saved {w}x{h} frame to: {out}")
-    logger.info("")
-    logger.info("Open the image in Preview (Cmd+I shows pixel coords as you hover).")
-    logger.info("Identify and record:")
-    logger.info("  display_roi              - bounding box around all 3 digits (x, y, w, h)")
-    logger.info("  digit_positions[0,1,2]   - each digit within that box (x, y, w, h)")
-    logger.info("  leds.*                   - centre pixel of each green LED (x, y)")
-    logger.info("  indicators.*             - centre pixel of each mode indicator (x, y)")
+
+
+def cmd_debug(args):
+    """Grab one live frame, save crops, print all brightness diagnostics."""
+    if not yaml:
+        sys.exit("ERROR: PyYAML required. pip install pyyaml")
+    with open(args.config) as f:
+        full_config = yaml.safe_load(f)
+    config = full_config.get("pivac.Sentry", {})
+    rtsp_url = args.rtsp_url or config.get("rtsp_url")
+    if not rtsp_url:
+        sys.exit("ERROR: --rtsp-url required")
+
+    prefix = args.output or "sentry-debug"
+
+    logger.info(f"Connecting to {rtsp_url} ...")
+    cap = open_stream(rtsp_url)
+    frame = grab_frame(cap)
+    cap.release()
+
+    # Save full frame
+    full_path = f"{prefix}-frame.jpg"
+    cv2.imwrite(full_path, frame)
+    logger.info(f"Full frame saved: {full_path}")
+
+    # Save and analyse display_roi crop
+    roi = config["display_roi"]
+    display_crop = frame[roi["y"]:roi["y"] + roi["h"],
+                         roi["x"]:roi["x"] + roi["w"]]
+    crop_path = f"{prefix}-display-roi.jpg"
+    cv2.imwrite(crop_path, display_crop)
+
+    gray_display = to_gray(display_crop)
+    threshold = _otsu_threshold(gray_display)
+    mean_brightness = float(np.mean(gray_display))
+    max_brightness = float(np.max(gray_display))
+
+    print(f"\n=== display_roi (x={roi['x']} y={roi['y']} w={roi['w']} h={roi['h']}) ===")
+    print(f"  Saved crop:      {crop_path}")
+    print(f"  Mean brightness: {mean_brightness:.1f}  Max: {max_brightness:.1f}")
+    print(f"  Otsu threshold:  {threshold}")
+    print(f"  (If mean < 50 and max < 100, the ROI is probably not on the display)")
+
+    # Save and analyse each digit crop
+    print("\n=== Digit crops ===")
+    for i, pos in enumerate(config.get("digit_positions", [])):
+        digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
+                                  pos["x"]:pos["x"] + pos["w"]]
+        dp = f"{prefix}-digit-{i}.jpg"
+        cv2.imwrite(dp, digit_crop)
+        g = to_gray(digit_crop)
+        print(f"  d{i}: mean={np.mean(g):.1f}  max={np.max(g):.1f}  saved: {dp}")
+        print(f"       segments: ", end="")
+        for seg in ["a", "b", "c", "d", "e", "f", "g"]:
+            b = _segment_brightness(digit_crop, seg)
+            lit = "*" if b >= threshold else "."
+            print(f"{seg}={b:.0f}{lit} ", end="")
+        print()
+
+    # LED brightness diagnostics
+    print("\n=== LED brightness (spot / background / ratio) ===")
+    print(f"  (need ratio >= {config.get('led_ratio', 1.4)} to register as lit)")
+    for name, coord in config.get("leds", {}).items():
+        info = _roi_brightness_info(frame, coord)
+        lit = "LIT" if info["ratio"] >= config.get("led_ratio", 1.4) else "off"
+        print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
+              f"ratio={info['ratio']:.2f}  -> {lit}")
+
+    print("\n=== Indicator brightness ===")
+    for name, coord in config.get("indicators", {}).items():
+        info = _roi_brightness_info(frame, coord)
+        lit = "LIT" if info["ratio"] >= config.get("led_ratio", 1.4) else "off"
+        print(f"  {name:20s}: spot={info['spot']:5.1f}  bg={info['bg']:5.1f}  "
+              f"ratio={info['ratio']:.2f}  -> {lit}")
+
+    print(f"\nOpen {crop_path} to see what the algorithm sees for the digit area.")
+    print("If it looks dark/wrong, adjust display_roi in config and re-run --debug.")
 
 
 def cmd_annotate(args):
-    """Draw ROI boxes on a saved reference frame using config coords."""
     if not yaml:
         sys.exit("ERROR: PyYAML required. pip install pyyaml")
     if not args.image:
@@ -283,7 +326,6 @@ def cmd_annotate(args):
     with open(args.config) as f:
         full_config = yaml.safe_load(f)
     config = full_config.get("pivac.Sentry", {})
-
     frame = cv2.imread(args.image)
     if frame is None:
         sys.exit(f"ERROR: Could not read image: {args.image}")
@@ -319,7 +361,6 @@ def cmd_annotate(args):
 
 
 def cmd_test(args):
-    """Capture a full display cycle and print parsed values."""
     if not yaml:
         sys.exit("ERROR: PyYAML required. pip install pyyaml")
     with open(args.config) as f:
@@ -397,13 +438,16 @@ def main():
                         help="Capture a reference frame from the RTSP stream")
     parser.add_argument("--annotate", action="store_true",
                         help="Draw ROI boxes on a saved reference frame")
+    parser.add_argument("--debug", action="store_true",
+                        help="Grab one live frame, save crops, print brightness diagnostics")
     parser.add_argument("--test", action="store_true",
                         help="Capture a live display cycle and print parsed values")
     parser.add_argument("--rtsp-url", metavar="URL")
     parser.add_argument("--config", default="/etc/pivac/config.yml", metavar="FILE")
     parser.add_argument("--image", metavar="FILE",
                         help="Reference image for --annotate")
-    parser.add_argument("--output", "-o", metavar="FILE")
+    parser.add_argument("--output", "-o", metavar="FILE",
+                        help="Output file / prefix (--debug uses it as a prefix)")
     args = parser.parse_args()
 
     if args.capture:
@@ -412,6 +456,10 @@ def main():
         cmd_capture(args)
     elif args.annotate:
         cmd_annotate(args)
+    elif args.debug:
+        if not args.rtsp_url and not args.config:
+            parser.error("--rtsp-url or --config with rtsp_url required for --debug")
+        cmd_debug(args)
     elif args.test:
         cmd_test(args)
     else:
