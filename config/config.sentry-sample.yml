@@ -1,6 +1,6 @@
-# pivac.Sentry sample config — ROI coordinates verified against reference
-# frame 2026-03-22 (2560x1440). Run --debug to get sentry-debug-annotated.jpg
-# to confirm alignment, then copy the pivac.Sentry block into /etc/pivac/config.yml.
+# pivac.Sentry sample config — ROI coordinates set by --calibrate interactive
+# session on 2026-03-22 against a 2560x1440 frame.  Run --debug to verify,
+# then copy the pivac.Sentry block into /etc/pivac/config.yml.
 
 pivac.Sentry:
   rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
@@ -12,40 +12,34 @@ pivac.Sentry:
 
   # LED brightness ratio: how much brighter a lit LED must be vs surrounding
   # panel background. 1.4 = 40% brighter. Works in IR and colour modes.
-  # Increase if false positives; decrease if lit LEDs aren't detected.
   led_ratio: 1.4
 
-  # Bounding box of the entire 3-digit display in the full 2560x1440 frame.
+  # Bounding box of the LED digit glass in the full 2560x1440 frame.
+  # Shifted 2px left of the raw click so that d0.x stays >= 0.
   display_roi:
-    x: 1020
-    y: 640
-    w: 315
-    h: 140
+    x: 1135
+    y: 642
+    w: 199
+    h: 95
 
   # Each digit's bounding box, relative to display_roi.
-  # d0=hundreds (blank when value < 100), d1=tens, d2=units.
-  # Per-digit Otsu handles blank digits correctly: uniform substrate -> no
-  # segments above threshold -> returns space character.
-  # d2 shifted left 20px (210->190) so left-side segments of units digit
-  # are within the crop (f and e segments were being clipped).
+  # Measured by clicking corners directly on the live frame.
   digit_positions:
-    - {x: 5,   y: 5, w: 80,  h: 125}  # hundreds
-    - {x: 100, y: 5, w: 90,  h: 125}  # tens
-    - {x: 190, y: 5, w: 95,  h: 125}  # units  (was x:210)
+    - {x:   0, y:  0, w:  64, h:  93}  # hundreds
+    - {x:  62, y:  1, w:  65, h:  92}  # tens
+    - {x: 125, y:  1, w:  71, h:  90}  # units
 
-  # Centre pixel of each green LED indicator (right side of display panel).
-  # x increased to 1375 (was 1350); y adjusted from annotated image review.
+  # Centre pixel of each green LED indicator (right of display panel).
   leds:
-    burner:            {x: 1375, y: 637}
-    circ:              {x: 1375, y: 668}
-    circ_aux:          {x: 1375, y: 697}
-    thermostat_demand: {x: 1375, y: 727}
+    burner:            {x: 1355, y: 644}
+    circ:              {x: 1355, y: 671}
+    circ_aux:          {x: 1349, y: 698}
+    thermostat_demand: {x: 1349, y: 723}
 
   # Centre pixel of each display-mode indicator light (bottom of panel).
   # Whichever is lit identifies what value the 3-digit display is showing.
-  # x shifted right ~15-25px from annotated image review.
   indicators:
-    water_temp: {x: 1010, y: 775}
-    air:        {x: 1080, y: 775}
-    gas_input:  {x: 1160, y: 775}
-    dhw_temp:   {x: 1240, y: 775}
+    water_temp: {x: 1154, y: 755}
+    air:        {x: 1209, y: 750}
+    gas_input:  {x: 1262, y: 743}
+    dhw_temp:   {x: 1316, y: 746}
