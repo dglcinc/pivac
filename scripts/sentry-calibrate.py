@@ -7,18 +7,18 @@ Usage:
   python scripts/sentry-calibrate.py --capture --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1"
 
   # Annotate a saved frame with ROI boxes from config
-  python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.yml
+  python scripts/sentry-calibrate.py --annotate --image sentry-reference.jpg --config config/config.sentry-sample.yml
 
   # Test live reading without Signal K (prints parsed values to stdout)
-  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.yml
+  python scripts/sentry-calibrate.py --test --rtsp-url "rtsp://user:pass@10.0.0.19:554/stream1" --config config/config.sentry-sample.yml
 
 Notes:
-  - The Tapo C120 uses IR night mode in low light, producing a grayscale image.
-    LED detection uses brightness only (not HSV green), so it works in both
-    colour and IR modes.
-  - The --capture output is saved to ./sentry-reference.jpg by default.
-    Transfer it to your Mac, open it in Preview (Tools > Show Inspector shows
-    pixel coords as you hover), and identify ROI coordinates for config.yml.
+  - Uses adaptive thresholds so it works in any lighting / camera mode:
+      * Digit recognition uses Otsu's method on the display ROI each frame.
+      * LED detection compares spot brightness against local background ratio.
+  - The camera can be left in Auto day/night mode; no manual setting needed.
+  - Open a captured frame in Preview (Cmd+I shows pixel coords on hover) to
+    identify ROI coordinates for config.
 """
 
 import argparse
@@ -100,7 +100,7 @@ SEGMENT_RECTS = {
     "g": (0.15, 0.44, 0.70, 0.12),  # middle horizontal
 }
 
-# Map 7-bit segment state (a,b,c,d,e,f,g) → character
+# Map 7-bit segment state (a,b,c,d,e,f,g) -> character
 # Bit order: a=64, b=32, c=16, d=8, e=4, f=2, g=1
 SEGMENT_MAP = {
     0b1110111: "0",
@@ -127,22 +127,32 @@ SEGMENT_MAP = {
 }
 
 
+def _otsu_threshold(gray: np.ndarray) -> int:
+    """Compute optimal brightness threshold for this image via Otsu's method.
+
+    Otsu finds the threshold that minimises intra-class variance between the
+    two pixel populations (lit segments vs dark background). It adapts
+    automatically to any ambient light level or camera mode.
+    """
+    otsu_val, _ = cv2.threshold(gray, 0, 255,
+                                cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return int(otsu_val)
+
+
 def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
-    """Return mean brightness (0–255) of a segment within a digit ROI."""
+    """Return mean brightness (0-255) of a segment region within a digit ROI."""
     h, w = digit_roi.shape[:2]
     xf, yf, wf, hf = SEGMENT_RECTS[seg_name]
-    x1 = int(xf * w)
-    y1 = int(yf * h)
-    x2 = int((xf + wf) * w)
-    y2 = int((yf + hf) * h)
+    x1, y1 = int(xf * w), int(yf * h)
+    x2, y2 = int((xf + wf) * w), int((yf + hf) * h)
     region = digit_roi[y1:y2, x1:x2]
     if region.size == 0:
         return 0.0
     return float(np.mean(to_gray(region)))
 
 
-def read_digit(digit_roi: np.ndarray, threshold: int = 150) -> str:
-    """Recognise a single 7-segment digit from its ROI crop."""
+def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
+    """Recognise a single 7-segment digit given a brightness threshold."""
     bits = 0
     for i, seg in enumerate(["a", "b", "c", "d", "e", "f", "g"]):
         if _segment_brightness(digit_roi, seg) >= threshold:
@@ -151,11 +161,17 @@ def read_digit(digit_roi: np.ndarray, threshold: int = 150) -> str:
 
 
 def read_display(frame: np.ndarray, config: dict) -> str:
-    """Read the 3-digit display value from a full frame."""
+    """Read the 3-digit display value from a full frame.
+
+    Computes an adaptive (Otsu) threshold from the display region each frame,
+    so performance is stable across lighting conditions and camera modes.
+    """
     roi = config["display_roi"]
     display_crop = frame[roi["y"]:roi["y"] + roi["h"],
                          roi["x"]:roi["x"] + roi["w"]]
-    threshold = config.get("brightness_threshold", 150)
+    threshold = _otsu_threshold(to_gray(display_crop))
+    logger.debug(f"Otsu threshold for display: {threshold}")
+
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
@@ -168,42 +184,60 @@ def read_display(frame: np.ndarray, config: dict) -> str:
 # LED / indicator detection
 # ---------------------------------------------------------------------------
 
-def _roi_is_lit(frame: np.ndarray, coord: dict, threshold: int = 150,
-                radius: int = 8) -> bool:
-    """Return True if the spot at (x, y) is brighter than threshold.
+def _roi_is_lit(frame: np.ndarray, coord: dict,
+                spot_radius: int = 8, bg_radius: int = 25,
+                ratio: float = 1.4) -> bool:
+    """Return True if the LED spot at (x, y) is lit.
 
-    Works in both colour and IR/grayscale mode because it uses luminance only.
-    LEDs appear as bright spots in IR night mode; threshold should be set above
-    the background brightness of the panel surface (~100-120 in IR mode).
+    Compares the mean brightness of the spot against the mean brightness of
+    the surrounding local background region. A lit LED is always brighter
+    than its immediate surroundings regardless of ambient light level or
+    camera mode, so this is robust to day/night switching.
+
+    ratio: how much brighter the spot must be vs background (default 1.4 = 40%)
     """
     x, y = coord["x"], coord["y"]
     h, w = frame.shape[:2]
-    x1, y1 = max(0, x - radius), max(0, y - radius)
-    x2, y2 = min(w, x + radius), min(h, y + radius)
-    region = frame[y1:y2, x1:x2]
-    if region.size == 0:
+    gray = to_gray(frame)
+
+    # Spot
+    sx1, sy1 = max(0, x - spot_radius), max(0, y - spot_radius)
+    sx2, sy2 = min(w, x + spot_radius), min(h, y + spot_radius)
+    spot = gray[sy1:sy2, sx1:sx2]
+    if spot.size == 0:
         return False
-    return float(np.mean(to_gray(region))) >= threshold
+    spot_brightness = float(np.mean(spot))
+
+    # Local background (larger area centred on same point)
+    bx1, by1 = max(0, x - bg_radius), max(0, y - bg_radius)
+    bx2, by2 = min(w, x + bg_radius), min(h, y + bg_radius)
+    bg_brightness = float(np.mean(gray[by1:by2, bx1:bx2]))
+
+    if bg_brightness < 1.0:
+        bg_brightness = 1.0
+
+    logger.debug(f"LED ({x},{y}): spot={spot_brightness:.1f}  bg={bg_brightness:.1f}  "
+                 f"ratio={spot_brightness/bg_brightness:.2f}  required={ratio}")
+    return spot_brightness >= bg_brightness * ratio
 
 
 def read_leds(frame: np.ndarray, config: dict) -> dict:
     """Read the 4 green LED indicator states."""
-    threshold = config.get("led_threshold", 160)
+    ratio = config.get("led_ratio", 1.4)
     leds = config.get("leds", {})
     return {
-        "burnerOn":         _roi_is_lit(frame, leds["burner"], threshold),
-        "circOn":           _roi_is_lit(frame, leds["circ"], threshold),
-        "circAuxOn":        _roi_is_lit(frame, leds["circ_aux"], threshold),
-        "thermostatDemand": _roi_is_lit(frame, leds["thermostat_demand"], threshold),
+        "burnerOn":         _roi_is_lit(frame, leds["burner"],            ratio=ratio),
+        "circOn":           _roi_is_lit(frame, leds["circ"],              ratio=ratio),
+        "circAuxOn":        _roi_is_lit(frame, leds["circ_aux"],          ratio=ratio),
+        "thermostatDemand": _roi_is_lit(frame, leds["thermostat_demand"], ratio=ratio),
     }
 
 
 def read_indicators(frame: np.ndarray, config: dict) -> str | None:
     """Return the active display mode based on which indicator light is lit."""
-    threshold = config.get("led_threshold", 160)
-    indicators = config.get("indicators", {})
-    for mode, coord in indicators.items():
-        if _roi_is_lit(frame, coord, threshold):
+    ratio = config.get("led_ratio", 1.4)
+    for mode, coord in config.get("indicators", {}).items():
+        if _roi_is_lit(frame, coord, ratio=ratio):
             return mode
     return None
 
@@ -232,14 +266,12 @@ def cmd_capture(args):
     h, w = frame.shape[:2]
     logger.info(f"Saved {w}x{h} frame to: {out}")
     logger.info("")
-    logger.info("To identify pixel coordinates, open the image in Preview on Mac")
-    logger.info("and use Tools > Show Inspector (Cmd+I) - it shows pixel coords as you hover.")
-    logger.info("")
+    logger.info("Open the image in Preview (Cmd+I shows pixel coords as you hover).")
     logger.info("Identify and record:")
-    logger.info("  display_roi   - bounding box around all 3 digits (x, y, w, h)")
-    logger.info("  digit_positions[0,1,2] - each digit within that box (x, y, w, h)")
-    logger.info("  leds.burner/circ/circ_aux/thermostat_demand - centre pixel (x, y)")
-    logger.info("  indicators.water_temp/air/gas_input/dhw_temp - centre pixel (x, y)")
+    logger.info("  display_roi              - bounding box around all 3 digits (x, y, w, h)")
+    logger.info("  digit_positions[0,1,2]   - each digit within that box (x, y, w, h)")
+    logger.info("  leds.*                   - centre pixel of each green LED (x, y)")
+    logger.info("  indicators.*             - centre pixel of each mode indicator (x, y)")
 
 
 def cmd_annotate(args):
@@ -261,25 +293,25 @@ def cmd_annotate(args):
         cv2.rectangle(frame,
                       (roi["x"], roi["y"]),
                       (roi["x"] + roi["w"], roi["y"] + roi["h"]),
-                      (0, 255, 0), 2)
-        cv2.putText(frame, "display_roi", (roi["x"], roi["y"] - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                      (0, 255, 0), 3)
+        cv2.putText(frame, "display_roi", (roi["x"], roi["y"] - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
         for i, pos in enumerate(config.get("digit_positions", [])):
             ax, ay = roi["x"] + pos["x"], roi["y"] + pos["y"]
             cv2.rectangle(frame, (ax, ay), (ax + pos["w"], ay + pos["h"]),
                           (255, 255, 0), 2)
-            cv2.putText(frame, f"d{i}", (ax, ay - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+            cv2.putText(frame, f"d{i}", (ax, ay - 6),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 
     for name, coord in config.get("leds", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 12, (0, 200, 0), 2)
-        cv2.putText(frame, name, (coord["x"] + 14, coord["y"] + 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 0), 2)
+        cv2.circle(frame, (coord["x"], coord["y"]), 14, (0, 200, 0), 2)
+        cv2.putText(frame, name, (coord["x"] + 16, coord["y"] + 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
 
     for name, coord in config.get("indicators", {}).items():
-        cv2.circle(frame, (coord["x"], coord["y"]), 12, (0, 100, 255), 2)
-        cv2.putText(frame, name, (coord["x"] + 14, coord["y"] + 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 100, 255), 2)
+        cv2.circle(frame, (coord["x"], coord["y"]), 14, (0, 100, 255), 2)
+        cv2.putText(frame, name, (coord["x"] + 16, coord["y"] + 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 255), 2)
 
     out = args.output or "sentry-annotated.jpg"
     cv2.imwrite(out, frame)
