@@ -14,6 +14,12 @@ pivac.Sentry:
   # panel background. 1.4 = 40% brighter. Works in IR and colour modes.
   led_ratio: 1.4
 
+  # Digit threshold factor: threshold = mean + factor*(max-mean) per digit crop.
+  # Higher values reduce false positives on blank/dim digit positions.
+  # Raise toward 0.60 if blank digits are misread; lower toward 0.40 if
+  # dim lit digits are missed. Default 0.50 works well for IR night mode.
+  digit_threshold_factor: 0.50
+
   # Perspective warp: 4 corners of the LED glass in the original 2560x1440 frame.
   # Order: TL -> TR -> BR -> BL
   # Digit positions below are relative to the de-skewed rectified display.

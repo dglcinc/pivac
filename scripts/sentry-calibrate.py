@@ -22,7 +22,8 @@ Usage:
 
 Notes:
   - --calibrate requires matplotlib: pip install matplotlib --break-system-packages
-  - Digit recognition: p90 per-segment brightness, threshold = mean+35%*(max-mean).
+  - Digit recognition: p90 per-segment brightness, threshold = mean + factor*(max-mean).
+    factor defaults to 0.50; tune via digit_threshold_factor in config.
   - LED/indicator detection: spot-vs-background brightness ratio.
   - Camera can stay in Auto day/night mode.
 """
@@ -114,7 +115,7 @@ SEGMENT_RECTS = {
 }
 
 SEGMENT_MAP = {
-    0b1110111: "0",
+    0b1111110: "0",
     0b0010010: "1",
     0b1011101: "2",
     0b1011011: "3",
@@ -130,7 +131,7 @@ SEGMENT_MAP = {
     0b1100000: "F",
     0b0001101: "C",
     0b0001111: "c",
-    0b1111110: "O",
+    0b1111110: "0",
     0b0111110: "U",
     0b0101111: "d",
     0b0000001: "-",
@@ -144,11 +145,17 @@ def _otsu_threshold(gray: np.ndarray) -> int:
     return int(otsu_val)
 
 
-def _digit_threshold(gray: np.ndarray) -> int:
-    """35% of the way from crop mean to crop max.  Robust for thin LED lines."""
+def _digit_threshold(gray: np.ndarray, factor: float = 0.50) -> int:
+    """Threshold = mean + factor*(max-mean).
+
+    Higher factor reduces false positives on dim/blank digit positions where
+    ambient IR glow raises the max slightly above true background.  Default
+    0.50 works well for this display; tune via digit_threshold_factor in
+    config if needed.
+    """
     mean_val = float(np.mean(gray))
     max_val = float(np.max(gray))
-    return int(mean_val + 0.35 * (max_val - mean_val))
+    return int(mean_val + factor * (max_val - mean_val))
 
 
 def _segment_brightness(digit_roi: np.ndarray, seg_name: str) -> float:
@@ -173,12 +180,13 @@ def read_digit(digit_roi: np.ndarray, threshold: int) -> str:
 
 def read_display(frame: np.ndarray, config: dict) -> str:
     display_crop = _get_display_crop(frame, config)
+    factor = config.get("digit_threshold_factor", 0.50)
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
         gray = to_gray(digit_crop)
-        threshold = _digit_threshold(gray)
+        threshold = _digit_threshold(gray, factor=factor)
         result += read_digit(digit_crop, threshold)
     return result.strip()
 
@@ -615,6 +623,8 @@ def cmd_debug(args):
           f"Max: {np.max(gray_display):.1f}  "
           f"Otsu: {_otsu_threshold(gray_display)}")
 
+    factor = config.get("digit_threshold_factor", 0.50)
+    print(f"  digit_threshold_factor: {factor}")
     print("\n=== Digit crops ===")
     for i, pos in enumerate(config.get("digit_positions", [])):
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
@@ -623,7 +633,7 @@ def cmd_debug(args):
         cv2.imwrite(dp, digit_crop)
         g = to_gray(digit_crop)
         dmean, dmax = float(np.mean(g)), float(np.max(g))
-        thr = _digit_threshold(g)
+        thr = _digit_threshold(g, factor=factor)
         char = read_digit(digit_crop, thr)
         seg_vis = _save_segment_vis(digit_crop, thr, prefix, i)
         print(f"  d{i}: mean={dmean:.1f}  max={dmax:.1f}  "
