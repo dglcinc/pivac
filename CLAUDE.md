@@ -288,8 +288,8 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 
 | SK path | Type | Notes |
 |---------|------|-------|
-| `hvac.boiler.sentry.waterTemp` | number | °K (converted from °F); emitted when display shows water temp |
-| `hvac.boiler.sentry.outdoorTemp` | number | °K; emitted when display shows outdoor air temp |
+| `hvac.boiler.sentry.waterTemp` | number | °F as shown on display; emitted when water_temp indicator lit |
+| `hvac.boiler.sentry.outdoorTemp` | number | °F as shown on display; emitted when air indicator lit |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
 | `hvac.boiler.sentry.dhwPriority` | boolean | True when DHW priority indicator is lit (boiler in DHW priority mode) |
 | `hvac.boiler.sentry.errorCode` | string | e.g. `ER3`; null when no error |
