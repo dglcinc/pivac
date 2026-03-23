@@ -9,6 +9,7 @@ Currently supported inputs include:
 * **TED5000**: Parsing of the live XML feed from the TED5000 home energy monitoring solution
 * **ArduinoSensor**: Pressure sensor data from an Arduino over HTTP (e.g. Fusch 100PSI, Fusch 200PSI) — a single implementation used by multiple config sections via the `module:` key
 * **Emporia**: Per-circuit power readings in Watts from an Emporia Vue Gen 2 energy monitor, via the PyEmVue cloud API
+* **Sentry**: Boiler operating data from an NTI Trinity Ti-200 boiler controller, read via computer vision from a Tapo C120 IP camera pointed at the Sentry 2100 display
 * **FlirFX**: Temperature and humidity from a FLIR camera
 
 The package is extensible, so if the supported inputs don't meet your needs, you can add your own.
@@ -160,8 +161,8 @@ In production, each module runs as a dedicated systemd service. Service files ar
 ```bash
 sudo cp scripts/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
-sudo systemctl start pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia
+sudo systemctl enable pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
+sudo systemctl start pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
 ```
 
 Each service connects independently to Signal K via WebSocket and restarts automatically on failure.
@@ -175,6 +176,7 @@ The pivac package currently contains the following modules:
 * RedLink
 * ArduinoSensor
 * Emporia
+* Sentry
 * FlirFX (disabled by default)
 
 ## Adding a New Provider Module
@@ -417,6 +419,45 @@ Example output with two panels configured:
   "apartment.clothes_washer": 0.0
 }
 ```
+
+## Sentry
+
+* **`Sentry.status(config={}, output="default")`**: Reads the Sentry 2100 controller display on an NTI Trinity Ti-200 boiler using a Tapo C120 IP camera over RTSP. On each poll cycle the module captures frames for up to `cycle_timeout` seconds, reads each display mode as the indicator lights cycle, and emits the results as Signal K deltas.
+
+The display cycles through three modes: water temp, outdoor air temp, and gas input value. Indicator lights below the display identify the active mode. The `dhw_temp` indicator is a boiler status light (DHW priority active), not a display mode — it is emitted as a boolean regardless of what the display is showing.
+
+Digit recognition uses 7-segment pattern matching (not OCR). LED and indicator state is detected via brightness ratio in each region of interest. Coordinates for all regions must be calibrated once using `scripts/sentry-calibrate.py`.
+
+**Config keys:**
+
+| Key | Required | Default | Description |
+|-----|----------|---------|-------------|
+| `rtsp_url` | Yes | — | RTSP stream URL including camera credentials |
+| `display_warp` | Yes | — | Perspective-warp corners and output size (from calibration) |
+| `digit_positions` | Yes | — | List of 3 digit bounding boxes relative to warped display |
+| `leds` | Yes | — | Centre-pixel coords for burner/circ/circ_aux/thermostat_demand |
+| `indicators` | Yes | — | Centre-pixel coords for water_temp/air/gas_input/dhw_temp |
+| `cycle_timeout` | No | `30` | Seconds to wait for all three display modes |
+| `mode_stable_frames` | No | `3` | Consecutive stable frames before accepting a reading |
+| `led_ratio` | No | `1.15` | Spot/background brightness ratio for LED detection |
+| `digit_threshold_factor` | No | `0.50` | Threshold = mean + factor×(max−mean) per digit |
+| `daemon_sleep` | No | `0` | Seconds between poll cycles — recommended `60` |
+
+**Signal K paths emitted:**
+
+| Path | Type | Description |
+|------|------|-------------|
+| `hvac.boiler.sentry.waterTemp` | number | °K — boiler supply water temperature |
+| `hvac.boiler.sentry.outdoorTemp` | number | °K — outdoor air temperature |
+| `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale (see boiler manual for BTU/hr conversion) |
+| `hvac.boiler.sentry.dhwPriority` | boolean | True when boiler is in DHW priority mode |
+| `hvac.boiler.sentry.errorCode` | string | Error/status code e.g. `ER3` (only when displayed) |
+| `hvac.boiler.sentry.burnerOn` | boolean | Burner firing |
+| `hvac.boiler.sentry.circOn` | boolean | Circulator pump on |
+| `hvac.boiler.sentry.circAuxOn` | boolean | Auxiliary circulator on |
+| `hvac.boiler.sentry.thermostatDemand` | boolean | Thermostat demand active |
+
+Run `scripts/sentry-calibrate.py` to capture a reference frame and identify pixel coordinates for the display ROI, digit positions, LEDs, and indicators.
 
 ## FlirFX
 The FlirFX module lets you collect temperature and humidity data from a FLIR camera. The config file format allows you to specify multiple cameras (inputs) and your login credentials. Example output using the sample yml file with `python pivac-provider.py pivac.FlirFX --format pretty`:
