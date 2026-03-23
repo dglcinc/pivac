@@ -244,11 +244,11 @@ journalctl -u signalk -n 50 --no-pager
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
 | `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
-| `Sentry` | **PLANNED** — NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera (see section below) |
+| `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — implemented, pending service install (see section below) |
 
 ## Planned: pivac.Sentry Module
 
-**Status:** Architecture designed and camera details known. Next step: capture a reference frame, identify ROI coordinates via calibration utility, then implement the module.
+**Status:** Implemented and standalone-tested on Pi. Service file written. Next step: install and enable `pivac-sentry.service`.
 
 ### Camera Hardware
 
@@ -337,14 +337,14 @@ Note: coordinate values above are placeholders — real values come from calibra
 
 ### Implementation Checklist
 
-- [ ] Set RTSP camera account credentials in Tapo app (Advanced Settings → Camera Account)
-- [ ] Add RTSP credentials to `/etc/pivac/config.yml` on Pi
-- [ ] Implement `scripts/sentry-calibrate.py` — captures reference frame and annotates ROIs
-- [ ] Run calibration: `python scripts/sentry-calibrate.py --capture` → transfer image to Mac, identify pixel coordinates
-- [ ] Populate config with real ROI coordinates
-- [ ] Implement `pivac/Sentry.py`
-- [ ] Create `scripts/systemd/pivac-sentry.service`
-- [ ] Install and test on Pi
+- [x] Set RTSP camera account credentials in Tapo app (Advanced Settings → Camera Account)
+- [x] Add RTSP credentials to `/etc/pivac/config.yml` on Pi
+- [x] Implement `scripts/sentry-calibrate.py` — captures reference frame and annotates ROIs
+- [x] Run calibration: perspective warp corners, digit positions, LED/indicator coords set
+- [x] Populate config with real ROI coordinates (`mode_stable_frames: 3`, `cycle_timeout: 30`)
+- [x] Implement `pivac/Sentry.py`
+- [x] Create `scripts/systemd/pivac-sentry.service`
+- [ ] Install service on Pi (`sudo cp`, `daemon-reload`, `enable`, `start`) and verify logs
 
 ## Signal K Upgrade (if needed)
 
