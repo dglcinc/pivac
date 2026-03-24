@@ -35,7 +35,9 @@ Signal K paths emitted:
     hvac.boiler.sentry.waterTemp        °F as shown on display (when water_temp indicator lit)
     hvac.boiler.sentry.outdoorTemp      °F as shown on display (when air indicator lit)
     hvac.boiler.sentry.gasInputValue    Raw 40–240 scale (when gas_input indicator lit)
-    hvac.boiler.sentry.errorCode        String e.g. "ER3" (non-numeric display, no indicator)
+    hvac.boiler.sentry.status           String: "Idle" | "Call" | "Run" | "DHW" | error code
+                                        Emitted every cycle — keeps WilhelmSK fresh.
+                                        Priority: error > DHW > burner > demand > idle.
     hvac.boiler.sentry.dhwPriority      bool (dhw_temp indicator state — DHW priority active)
     hvac.boiler.sentry.burnerOn         bool
     hvac.boiler.sentry.circOn           bool
@@ -264,6 +266,64 @@ def _read_dhw_priority(frame, config: dict) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Error code classification
+# ---------------------------------------------------------------------------
+
+def _classify_error(display_str: str):
+    """
+    Return a normalised error code string if the 3-character display matches
+    a known Sentry 2100 error pattern, else None.
+
+    Rules (per Sentry 2100 manual):
+    - d0 == 'E': error codes ER1–ER6, ER9.  d1 is always 'r' (7-seg); d2 is
+      the digit.  Normalised form: 'ER' + d2  (e.g. "Er3" → "ER3").
+    - d0 == 'A': status codes ASO or ASC.  d1 is always 'S'/'5' (same 7-seg
+      pattern); d2 is 'O'/'0' or 'C'.  Normalised: 'AS' + ('O'|'C').
+    - Any other d0: not an error code.
+    """
+    s = display_str.strip()
+    if len(s) != 3:
+        return None
+    d0 = s[0].upper()
+    if d0 == "E":
+        return "ER" + s[2]          # d2 is always a digit; preserve as-is
+    if d0 == "A":
+        d2 = s[2].upper()
+        d2_norm = "O" if d2 == "0" else d2   # '0' and 'O' share 7-seg pattern
+        return "AS" + d2_norm
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Boiler status derivation
+# ---------------------------------------------------------------------------
+
+def _compute_status(raw: dict) -> str:
+    """
+    Derive a human-readable boiler status string from a poll cycle result.
+
+    Priority order (highest wins):
+    1. Error code present  → error string (e.g. "ER3", "ASO")
+    2. DHW priority active → "DHW"
+    3. Burner firing       → "Run"
+    4. Thermostat demand   → "Call"
+    5. Otherwise           → "Idle"
+
+    Emitted every cycle so WilhelmSK never shows a stale-data indicator.
+    """
+    if "error_code" in raw:
+        return raw["error_code"]
+    if raw.get("dhw_priority"):
+        return "DHW"
+    leds = raw.get("leds", {})
+    if leds.get("burnerOn"):
+        return "Run"
+    if leds.get("thermostatDemand"):
+        return "Call"
+    return "Idle"
+
+
+# ---------------------------------------------------------------------------
 # Unit conversion
 # ---------------------------------------------------------------------------
 
@@ -332,10 +392,11 @@ def _poll_cycle(config: dict) -> dict:
                 if mode and mode not in collected:
                     collected[mode] = value
                     logger.debug("Sentry: captured '%s' = '%s'", mode, value)
-                elif mode is None and value.strip() and not value.strip().lstrip("-").isdigit():
-                    # Non-numeric display with no indicator lit — likely an error code.
-                    error_code = value.strip()
-                    logger.debug("Sentry: possible error/status code: '%s'", error_code)
+                elif mode is None:
+                    code = _classify_error(value)
+                    if code:
+                        error_code = code
+                        logger.debug("Sentry: error/status code detected: '%s'", code)
 
             if collected.keys() >= expected:
                 logger.debug("Sentry: all display modes captured")
@@ -344,7 +405,7 @@ def _poll_cycle(config: dict) -> dict:
         cap.release()
 
     result = dict(collected)
-    if error_code and not collected:
+    if error_code:
         result["error_code"] = error_code
     if last_frame is not None:
         result["leds"] = _read_leds(last_frame, config)
@@ -412,13 +473,16 @@ def status(config={}, output="default"):
             result[sk_path] = sk_val
         logger.debug("Sentry: %s = %s", sk_path, sk_val)
 
-    if "error_code" in raw:
-        sk_path = "hvac.boiler.sentry.errorCode"
-        if output == "signalk":
-            sk_add_value(sk_source, sk_path, raw["error_code"])
-        else:
-            result[sk_path] = raw["error_code"]
-        logger.info("Sentry: error/status code: %s", raw["error_code"])
+    boiler_status = _compute_status(raw)
+    sk_path = "hvac.boiler.sentry.status"
+    if output == "signalk":
+        sk_add_value(sk_source, sk_path, boiler_status)
+    else:
+        result[sk_path] = boiler_status
+    if raw.get("error_code"):
+        logger.info("Sentry: status = %s (error active)", boiler_status)
+    else:
+        logger.debug("Sentry: status = %s", boiler_status)
 
     dhw_priority = int(raw.get("dhw_priority", False))
     sk_path = "hvac.boiler.sentry.dhwPriority"
