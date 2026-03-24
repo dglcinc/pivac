@@ -129,6 +129,16 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 
 **WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
 
+**WilhelmSK layout file:** `Default.wlyt` lives at `~/OneDrive - DGLC/Claude/Default.wlyt` on the Mac (also the Cowork working folder). To import after edits: copy to "On My iPad" in Files app (can't open directly from OneDrive due to iOS sandboxing), then tap to open in WilhelmSK. Or AirDrop from Mac.
+
+Layout has 2 pages:
+- **Page 1** (template `"1"`, 14+ slots): main dashboard — 5 thermostat room tiles, 3 HVAC water temp gauges (In/CRW/Out), switch bank, 2 PSI gauges, Sentry widgets
+- **Page 2** (template `"5"`): Grafana WebGauge + SwitchBank
+
+Sentry widgets use these SK paths (all under `hvac.boiler.sentry.*`):
+- `hvac.boiler.sentry.waterTemp` — °F, WaterTempGauge type
+- `hvac.boiler.sentry.gasInputValue` — integer 40–240, TextGaugeConfig type
+
 **Important — Signal K behind nginx:** The `/signalk/` location block must include `proxy_set_header X-Forwarded-Proto https` and `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`. Without these, Signal K constructs its WebSocket discovery URL as `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, causing WilhelmSK to attempt a plain WebSocket connection on port 80, which nginx redirects (301) and breaks the handshake. Signal K's "Trust Proxy" setting must also be enabled in the admin UI.
 
 **nginx reload after config changes:**
