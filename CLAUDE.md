@@ -301,8 +301,8 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 | `hvac.boiler.sentry.waterTemp` | number | °F as shown on display; emitted when water_temp indicator lit |
 | `hvac.boiler.sentry.outdoorTemp` | number | °F as shown on display; emitted when air indicator lit |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
+| `hvac.boiler.sentry.status` | string | `"Idle"` \| `"Call"` \| `"Run"` \| `"DHW"` \| error code (e.g. `"ER3"`); emitted every cycle so WilhelmSK stays fresh |
 | `hvac.boiler.sentry.dhwPriority` | number (0/1) | 1 when DHW priority indicator is lit |
-| `hvac.boiler.sentry.errorCode` | string | e.g. `ER3`; null when no error |
 | `hvac.boiler.sentry.burnerOn` | number (0/1) | Burner LED state |
 | `hvac.boiler.sentry.circOn` | number (0/1) | Circ pump LED state |
 | `hvac.boiler.sentry.circAuxOn` | number (0/1) | Circ aux LED state |

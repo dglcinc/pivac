@@ -35,7 +35,9 @@ Signal K paths emitted:
     hvac.boiler.sentry.waterTemp        °F as shown on display (when water_temp indicator lit)
     hvac.boiler.sentry.outdoorTemp      °F as shown on display (when air indicator lit)
     hvac.boiler.sentry.gasInputValue    Raw 40–240 scale (when gas_input indicator lit)
-    hvac.boiler.sentry.errorCode        String e.g. "ER3" (non-numeric display, no indicator)
+    hvac.boiler.sentry.status           String: "Idle" | "Call" | "Run" | "DHW" | error code
+                                        Emitted every cycle — keeps WilhelmSK fresh.
+                                        Priority: error > DHW > burner > demand > idle.
     hvac.boiler.sentry.dhwPriority      bool (dhw_temp indicator state — DHW priority active)
     hvac.boiler.sentry.burnerOn         bool
     hvac.boiler.sentry.circOn           bool
@@ -293,6 +295,35 @@ def _classify_error(display_str: str):
 
 
 # ---------------------------------------------------------------------------
+# Boiler status derivation
+# ---------------------------------------------------------------------------
+
+def _compute_status(raw: dict) -> str:
+    """
+    Derive a human-readable boiler status string from a poll cycle result.
+
+    Priority order (highest wins):
+    1. Error code present  → error string (e.g. "ER3", "ASO")
+    2. DHW priority active → "DHW"
+    3. Burner firing       → "Run"
+    4. Thermostat demand   → "Call"
+    5. Otherwise           → "Idle"
+
+    Emitted every cycle so WilhelmSK never shows a stale-data indicator.
+    """
+    if "error_code" in raw:
+        return raw["error_code"]
+    if raw.get("dhw_priority"):
+        return "DHW"
+    leds = raw.get("leds", {})
+    if leds.get("burnerOn"):
+        return "Run"
+    if leds.get("thermostatDemand"):
+        return "Call"
+    return "Idle"
+
+
+# ---------------------------------------------------------------------------
 # Unit conversion
 # ---------------------------------------------------------------------------
 
@@ -390,11 +421,6 @@ def _poll_cycle(config: dict) -> dict:
 # Module entry point
 # ---------------------------------------------------------------------------
 
-# Sentinel used to distinguish "never emitted" from "emitted None".
-# Ensures errorCode is always sent once on startup regardless of value.
-_UNSET = object()
-_last_error_code = _UNSET
-
 _MODE_SK = {
     "water_temp": "hvac.boiler.sentry.waterTemp",
     "air":        "hvac.boiler.sentry.outdoorTemp",
@@ -415,12 +441,7 @@ def status(config={}, output="default"):
 
     In default output mode returns a flat dict of Signal K path -> value pairs.
     In 'signalk' output mode returns a Signal K delta structure.
-
-    errorCode is emitted only when its value changes (including a null clear
-    when an error resolves), to avoid flooding InfluxDB with repeated nulls
-    during normal operation.
     """
-    global _last_error_code
     raw = _poll_cycle(config)
 
     if output == "signalk":
@@ -452,18 +473,16 @@ def status(config={}, output="default"):
             result[sk_path] = sk_val
         logger.debug("Sentry: %s = %s", sk_path, sk_val)
 
-    current_error = raw.get("error_code")  # str like "ER3", or None
-    if current_error != _last_error_code or _last_error_code is _UNSET:
-        sk_path = "hvac.boiler.sentry.errorCode"
-        if output == "signalk":
-            sk_add_value(sk_source, sk_path, current_error)
-        else:
-            result[sk_path] = current_error
-        if current_error:
-            logger.info("Sentry: error code active: %s", current_error)
-        elif _last_error_code is not _UNSET:
-            logger.info("Sentry: error code cleared")
-        _last_error_code = current_error
+    boiler_status = _compute_status(raw)
+    sk_path = "hvac.boiler.sentry.status"
+    if output == "signalk":
+        sk_add_value(sk_source, sk_path, boiler_status)
+    else:
+        result[sk_path] = boiler_status
+    if raw.get("error_code"):
+        logger.info("Sentry: status = %s (error active)", boiler_status)
+    else:
+        logger.debug("Sentry: status = %s", boiler_status)
 
     dhw_priority = int(raw.get("dhw_priority", False))
     sk_path = "hvac.boiler.sentry.dhwPriority"
