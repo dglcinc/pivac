@@ -264,6 +264,35 @@ def _read_dhw_priority(frame, config: dict) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Error code classification
+# ---------------------------------------------------------------------------
+
+def _classify_error(display_str: str):
+    """
+    Return a normalised error code string if the 3-character display matches
+    a known Sentry 2100 error pattern, else None.
+
+    Rules (per Sentry 2100 manual):
+    - d0 == 'E': error codes ER1–ER6, ER9.  d1 is always 'r' (7-seg); d2 is
+      the digit.  Normalised form: 'ER' + d2  (e.g. "Er3" → "ER3").
+    - d0 == 'A': status codes ASO or ASC.  d1 is always 'S'/'5' (same 7-seg
+      pattern); d2 is 'O'/'0' or 'C'.  Normalised: 'AS' + ('O'|'C').
+    - Any other d0: not an error code.
+    """
+    s = display_str.strip()
+    if len(s) != 3:
+        return None
+    d0 = s[0].upper()
+    if d0 == "E":
+        return "ER" + s[2]          # d2 is always a digit; preserve as-is
+    if d0 == "A":
+        d2 = s[2].upper()
+        d2_norm = "O" if d2 == "0" else d2   # '0' and 'O' share 7-seg pattern
+        return "AS" + d2_norm
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Unit conversion
 # ---------------------------------------------------------------------------
 
@@ -332,10 +361,11 @@ def _poll_cycle(config: dict) -> dict:
                 if mode and mode not in collected:
                     collected[mode] = value
                     logger.debug("Sentry: captured '%s' = '%s'", mode, value)
-                elif mode is None and value.strip() and not value.strip().lstrip("-").isdigit():
-                    # Non-numeric display with no indicator lit — likely an error code.
-                    error_code = value.strip()
-                    logger.debug("Sentry: possible error/status code: '%s'", error_code)
+                elif mode is None:
+                    code = _classify_error(value)
+                    if code:
+                        error_code = code
+                        logger.debug("Sentry: error/status code detected: '%s'", code)
 
             if collected.keys() >= expected:
                 logger.debug("Sentry: all display modes captured")
@@ -344,7 +374,7 @@ def _poll_cycle(config: dict) -> dict:
         cap.release()
 
     result = dict(collected)
-    if error_code and not collected:
+    if error_code:
         result["error_code"] = error_code
     if last_frame is not None:
         result["leds"] = _read_leds(last_frame, config)
@@ -359,6 +389,11 @@ def _poll_cycle(config: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Module entry point
 # ---------------------------------------------------------------------------
+
+# Sentinel used to distinguish "never emitted" from "emitted None".
+# Ensures errorCode is always sent once on startup regardless of value.
+_UNSET = object()
+_last_error_code = _UNSET
 
 _MODE_SK = {
     "water_temp": "hvac.boiler.sentry.waterTemp",
@@ -380,7 +415,12 @@ def status(config={}, output="default"):
 
     In default output mode returns a flat dict of Signal K path -> value pairs.
     In 'signalk' output mode returns a Signal K delta structure.
+
+    errorCode is emitted only when its value changes (including a null clear
+    when an error resolves), to avoid flooding InfluxDB with repeated nulls
+    during normal operation.
     """
+    global _last_error_code
     raw = _poll_cycle(config)
 
     if output == "signalk":
@@ -412,13 +452,18 @@ def status(config={}, output="default"):
             result[sk_path] = sk_val
         logger.debug("Sentry: %s = %s", sk_path, sk_val)
 
-    if "error_code" in raw:
+    current_error = raw.get("error_code")  # str like "ER3", or None
+    if current_error != _last_error_code or _last_error_code is _UNSET:
         sk_path = "hvac.boiler.sentry.errorCode"
         if output == "signalk":
-            sk_add_value(sk_source, sk_path, raw["error_code"])
+            sk_add_value(sk_source, sk_path, current_error)
         else:
-            result[sk_path] = raw["error_code"]
-        logger.info("Sentry: error/status code: %s", raw["error_code"])
+            result[sk_path] = current_error
+        if current_error:
+            logger.info("Sentry: error code active: %s", current_error)
+        elif _last_error_code is not _UNSET:
+            logger.info("Sentry: error code cleared")
+        _last_error_code = current_error
 
     dhw_priority = int(raw.get("dhw_priority", False))
     sk_path = "hvac.boiler.sentry.dhwPriority"
