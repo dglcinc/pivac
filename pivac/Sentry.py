@@ -35,7 +35,7 @@ Signal K paths emitted:
     hvac.boiler.sentry.waterTemp        °F as shown on display (when water_temp indicator lit)
     hvac.boiler.sentry.outdoorTemp      °F as shown on display (when air indicator lit)
     hvac.boiler.sentry.gasInputValue    Raw 40–240 scale (when gas_input indicator lit)
-    hvac.boiler.sentry.status           String: "Idle" | "Call" | "Run" | "DHW" | error code
+    hvac.boiler.sentry.status           String: "Idle" | "Call" | "Run" | "dh2o" | error code
                                         Emitted every cycle — keeps WilhelmSK fresh.
                                         Priority: error > DHW > burner > demand > idle.
     hvac.boiler.sentry.dhwPriority      bool (dhw_temp indicator state — DHW priority active)
@@ -304,7 +304,7 @@ def _compute_status(raw: dict) -> str:
 
     Priority order (highest wins):
     1. Error code present  → error string (e.g. "ER3", "ASO")
-    2. DHW priority active → "DHW"
+    2. DHW priority active → "dh2o"
     3. Burner firing       → "Run"
     4. Thermostat demand   → "Call"
     5. Otherwise           → "Idle"
@@ -314,7 +314,7 @@ def _compute_status(raw: dict) -> str:
     if "error_code" in raw:
         return raw["error_code"]
     if raw.get("dhw_priority"):
-        return "DHW"
+        return "dh2o"
     leds = raw.get("leds", {})
     if leds.get("burnerOn"):
         return "Run"
