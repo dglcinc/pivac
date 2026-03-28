@@ -71,7 +71,78 @@ The features of the architecture are:
 * **User-Configurable Display**: Easily configurable user interface for personal preferences, mobile display works on-premise or remote
 
 The data flow and component view of the architecture is as follows:
-![Pivac Architecture](./Pivac%20Architecture.pdf)
+
+```mermaid
+%%{init: {'flowchart': {'htmlLabels': true, 'curve': 'linear', 'subgraphTitleMargin': {'top': 30, 'bottom': 30}}, 'theme': 'base'}}%%
+graph TD
+    subgraph Devices["Physical Devices"]
+        A1["Arduino<br/>10.0.0.114<br/>Hydronic PSI<br/>(Fusch 100 PSI)"]
+        A2["Arduino<br/>10.0.0.219<br/>DHW PSI<br/>(Fusch 200 PSI)"]
+        CAM["Tapo C120<br/>10.0.0.19<br/>RTSP 2560×1440"]
+        OW["1-Wire Sensors<br/>GPIO (temp)"]
+        GPIO["GPIO Pins<br/>Switches / Relays"]
+        RL["Honeywell<br/>mytotalconnectcomfort.com<br/>(HTTPS)"]
+        TED["TED5000<br/>10.0.0.49<br/>⚠ disabled"]
+        FLIR["FLIR FX Camera<br/>⚠ disabled"]
+    end
+
+    subgraph Pivac["pivac"]
+        NOTE["📝 Python | ~/github/pivac<br/>systemd services"]
+        P1["pivac.ArduinoPSI<br/>pivac-arduino-psi.service"]
+        P2["pivac.ArduinoThermPSI<br/>pivac-arduino-therm-psi.service"]
+        P3["pivac.Sentry<br/>pivac-sentry.service<br/>(OpenCV perspective warp<br/>+ 7-seg digit recognition)"]
+        P4["pivac.OneWireTherm<br/>pivac-1wire.service"]
+        P5["pivac.GPIO<br/>pivac-gpio.service"]
+        P6["pivac.RedLink<br/>pivac-redlink.service<br/>(screen scraping)"]
+        PROV["pivac-provider.py<br/>(WebSocket delta push<br/>+ JWT auth)"]
+    end
+
+    subgraph RPi["Raspberry Pi 4 (4GB, Debian 13 aarch64)"]
+        SK["SignalK v2.22.1<br/>:3000"]
+        INFLUX["InfluxDB 2.7.10<br/>:8086"]
+    end
+
+    subgraph Visualization["Visualization"]
+        GRAFANA["Grafana 11.2.2<br/>30s refresh<br/>:3001"]
+        WILHELM["WilhelmSK<br/>(iPad / iPhone)"]
+    end
+
+    %% Device → Module connections
+    A1 -->|TCP/serial| P1
+    A2 -->|TCP/serial| P2
+    CAM -->|RTSP stream| P3
+    OW -->|GPIO| P4
+    GPIO -->|GPIO| P5
+    RL -->|HTTPS scrape| P6
+
+    %% Modules → provider
+    P1 & P2 & P3 & P4 & P5 & P6 --> PROV
+
+    %% Provider → SignalK
+    PROV -->|WebSocket delta<br/>hvac.boiler.sentry.*<br/>hvac.*.temp, psi, etc.| SK
+
+    %% SignalK → storage
+    SK -->|InfluxDB plugin| INFLUX
+
+    %% Visualization
+    INFLUX --> GRAFANA
+    SK -->|WebSocket| WILHELM
+
+    %% Styling
+    classDef disabled fill:#eee,stroke:#999,color:#999
+    classDef device fill:#dbeafe,stroke:#3b82f6
+    classDef module fill:#dcfce7,stroke:#22c55e
+    classDef infra fill:#fef9c3,stroke:#eab308
+    classDef viz fill:#fce7f3,stroke:#ec4899
+
+    class TED,FLIR disabled
+    class A1,A2,CAM,OW,GPIO,RL device
+    class P1,P2,P3,P4,P5,P6,PROV module
+    class SK,INFLUX,RPi infra
+    class GRAFANA,WILHELM viz
+    
+    style NOTE fill:#fffacd,stroke:#999,color:#333
+```
 
 # Installing the Package
 
@@ -441,7 +512,7 @@ Digit recognition uses 7-segment pattern matching (not OCR). LED and indicator s
 | `mode_stable_frames` | No | `3` | Consecutive stable frames before accepting a reading |
 | `led_ratio` | No | `1.15` | Spot/background brightness ratio for LED detection |
 | `digit_threshold_factor` | No | `0.50` | Threshold = mean + factor×(max−mean) per digit |
-| `daemon_sleep` | No | `0` | Seconds between poll cycles — recommended `60` |
+| `daemon_sleep` | No | `0` | Seconds between polls — recommended `60` |
 
 **Signal K paths emitted:**
 
