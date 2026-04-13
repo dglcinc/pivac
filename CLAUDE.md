@@ -129,7 +129,7 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 
 **WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
 
-**WilhelmSK layout file:** `Default.wlyt` lives at `~/OneDrive - DGLC/Claude/Default.wlyt` on the Mac (also the Cowork working folder). To import after edits: copy to "On My iPad" in Files app (can't open directly from OneDrive due to iOS sandboxing), then tap to open in WilhelmSK. Or AirDrop from Mac.
+**WilhelmSK layout file:** `iphone.wlyt` lives at `~/OneDrive - DGLC/Claude/iphone.wlyt` on the Mac (also the Cowork working folder). To import after edits: copy to "On My iPad" in Files app (can't open directly from OneDrive due to iOS sandboxing), then tap to open in WilhelmSK. Or AirDrop from Mac.
 
 Layout has 2 pages:
 - **Page 1** (template `"1"`, 14+ slots): main dashboard — 5 thermostat room tiles, 3 HVAC water temp gauges (In/CRW/Out), switch bank, 2 PSI gauges, Sentry widgets
