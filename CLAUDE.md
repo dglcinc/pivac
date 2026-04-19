@@ -107,6 +107,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Signal K config: `~/.signalk/settings.json`
 - Python venv: `~/pivac-venv/` (always use this)
 - nginx site config: `/etc/nginx/sites-available/pivac`
+- nginx bowling proxy config: `/etc/nginx/sites-available/mlb.dglc.com` (proxies `mlb.dglc.com` → Mac Mini `10.0.0.84:5001`)
 - nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
@@ -126,6 +127,7 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
 | `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
+| `https://mlb.dglc.com/` | Bowling League Tracker (Mac Mini `10.0.0.84:5001`) | Bowling app auth |
 
 **WilhelmSK mobile app:** host `68lookout.dglc.com`, port `443`, SSL enabled. Uses the `/signalk/` path which has no Basic Auth (WilhelmSK doesn't support it). **WilhelmSK Grafana widget:** use `https://68lookout.dglc.com/grafana/` — Basic Auth must be absent from this path or the app crashes.
 
@@ -215,6 +217,12 @@ If systemd service files were changed:
 sudo cp ~/github/pivac/scripts/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
+
+**Before SD card maintenance or extended downtime** — stop all services cleanly:
+```bash
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry nginx
+```
+nginx covers both the pivac proxy and the `mlb.dglc.com` bowling proxy. Services with `Restart=always` will restart automatically on boot.
 
 ## Checking Logs
 
@@ -378,3 +386,19 @@ pip install <package> --break-system-packages
 ## Dependencies
 
 Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`
+
+## Keeping This File Current
+
+Push CLAUDE.md changes directly to master (no PR needed). Update this file when:
+
+- **New or changed systemd service** — update the Active Services table, the deployment restart command in Standard Deployment Procedure, and the stop command in the SD card maintenance note
+- **nginx changes** — new site, proxy target, or auth change: update Key File Locations and the Remote Access URL table
+- **New hardware or device** — new sensor, new IP, new module: update Active Services table and add a module entry to Current Modules
+- **InfluxDB/Grafana structural changes** — new datasource UID, new bucket, new dashboard: update the InfluxDB Version and Grafana sections
+- **Signal K path changes** — update the Sentry Signal K Paths table or wherever paths are documented
+- **New known operational behaviour** — add to Known Operational Behaviours
+
+After updating here, also update `claude-contexts/pi-CLAUDE.md` if the change affects the Pi's overall role (e.g. new nginx site, new service). Then copy to `~/CLAUDE.md` on the Pi:
+```bash
+cp ~/github/claude-contexts/pi-CLAUDE.md ~/CLAUDE.md
+```
