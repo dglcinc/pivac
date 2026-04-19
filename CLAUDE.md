@@ -218,11 +218,11 @@ sudo cp ~/github/pivac/scripts/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
-**Before SD card maintenance or extended downtime** — stop all services cleanly:
+**Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry signalk influxdb nginx
 ```
-nginx covers both the pivac proxy and the `mlb.dglc.com` bowling proxy. Services with `Restart=always` will restart automatically on boot.
+Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
 ## Checking Logs
 
