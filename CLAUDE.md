@@ -193,6 +193,25 @@ serve_from_sub_path = true
 ```
 If these are lost, Grafana will redirect to `/login` with an internal URL and break the proxy.
 
+## Grafana Panel Inventory
+
+Current panels in `grafana/dashboards/pivacr.json` (as of 2026-03-26):
+
+| Panel ID | Title | Grid Y | Notes |
+|----------|-------|--------|-------|
+| 2 | Hydronic Temps | 0 | bdj9fji0j5logc targets |
+| 3 | Temps | 6 | |
+| 4 | Stats | 11 | |
+| 1 | Relays | 16 | bdj9fji0j5logc targets |
+| 12 | Sentry Boiler Values | 21 | waterTemp, outdoorTemp, gasInputValue; single left axis |
+| 13 | Sentry Boiler Status | 27 | burnerOn, circOn, circAuxOn, thermostatDemand, dhwPriority; stepped timeseries, color-coded |
+| 5 | Potable DHW Loop Pressure | 33 | |
+| 6 | Hydronic Loop Pressure | 38 | |
+| 10 | House Power | 44 | Emporia house panel; main + wall_oven + bosch_bova |
+| 11 | Apartment Power | 50 | Emporia apt panel; main + air_cond + furnace + garage_entry_basement + kit_plugs_6 + kit_plugs_14 + trophy_a + trophy_b |
+
+All panels use datasource `bdxaqnfllu5fkf` at panel level. Relays, Temps, Stats, and Hydronic Temps override to `bdj9fji0j5logc` at the target level (Signal K-managed InfluxDB datasource — not visible in Grafana API but functional).
+
 ## Emporia Setup (first time only)
 
 Before enabling `pivac-emporia.service`, run the discovery script to get device GIDs:
@@ -309,14 +328,25 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 | `hvac.boiler.sentry.waterTemp` | number | °F as shown on display; emitted when water_temp indicator lit |
 | `hvac.boiler.sentry.outdoorTemp` | number | °F as shown on display; emitted when air indicator lit |
 | `hvac.boiler.sentry.gasInputValue` | number | Raw 40–240 scale; emitted when display shows gas input |
-| `hvac.boiler.sentry.status` | string | `"Idle"` \| `"Call"` \| `"Run"` \| `"DHW"` \| error code (e.g. `"ER3"`); emitted every cycle so WilhelmSK stays fresh |
+| `hvac.boiler.sentry.status` | string | `"Idle"` \| `"Call"` \| `"Run"` \| `"dh2o"` \| error code (e.g. `"ER3"`); emitted every cycle so WilhelmSK stays fresh |
 | `hvac.boiler.sentry.dhwPriority` | number (0/1) | 1 when DHW priority indicator is lit |
 | `hvac.boiler.sentry.burnerOn` | number (0/1) | Burner LED state |
 | `hvac.boiler.sentry.circOn` | number (0/1) | Circ pump LED state |
 | `hvac.boiler.sentry.circAuxOn` | number (0/1) | Circ aux LED state |
 | `hvac.boiler.sentry.thermostatDemand` | number (0/1) | Thermostat demand LED state |
 
-Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation. **Important:** if you ever need to reset these measurements in InfluxDB, you must also restart Signal K after reseeding — the `signalk-to-influxdb2` plugin caches field types in memory and will re-write booleans until the process restarts.
+Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation.
+
+If boolean data was ever written and needs to be reset in InfluxDB:
+1. Stop `pivac-sentry`
+2. Delete all affected measurements via `/api/v2/delete`
+3. Restart Signal K (clears the in-memory `VALUETYPECACHE` in `signalk-to-influxdb2/dist/influx.js`)
+4. Write float seed points directly via line protocol (`value=0.0`)
+5. Verify field keys show `float`
+6. Delete the seed points
+7. Start `pivac-sentry`
+
+The SK restart (step 3) is critical — the plugin caches field types per path at first write and never rechecks. Deleting InfluxDB data without restarting SK causes it to re-write the old boolean type.
 
 ### Config Format
 
