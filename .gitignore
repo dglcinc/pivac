@@ -22,3 +22,7 @@ htmlcov/
 # Editor
 .vscode/
 *.swp
+
+# Sentry calibration/debug artifacts
+sentry-*.jpg
+test-output.txt
