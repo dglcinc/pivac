@@ -161,26 +161,7 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 ## Grafana Dashboard Provisioning
 
-**Already completed on this Pi** — provisioning config and systemd override are in place. Dashboards auto-update within 30 seconds of a `git pull`.
-
-Dashboards are version-controlled in `grafana/dashboards/` and loaded automatically by Grafana via a provisioning config. Two one-time setup steps are required on a new Pi:
-
-**1. Copy the provisioning config:**
-```bash
-sudo cp ~/github/pivac/grafana/provisioning/dashboards/pivac.yaml /etc/grafana/provisioning/dashboards/
-```
-
-**2. Create a systemd override so Grafana can read `/home/pi` (blocked by default via `ProtectHome=true`):**
-```bash
-sudo mkdir -p /etc/systemd/system/grafana-server.service.d
-sudo tee /etc/systemd/system/grafana-server.service.d/pivac-dashboards.conf <<'EOF'
-[Service]
-ProtectHome=read-only
-EOF
-sudo systemctl daemon-reload && sudo systemctl restart grafana-server
-```
-
-After that, any `git pull` on the Pi will automatically update dashboards within 30 seconds (Grafana polls the directory). To update dashboards: edit the JSON in `grafana/dashboards/`, commit, and pull on the Pi. Since `allowUiUpdates: true`, you can also edit in the Grafana UI — but those changes won't persist unless you export the JSON and commit it back.
+**Already provisioned.** Dashboards auto-update within 30s of `git pull`. To update dashboards: edit JSON in `grafana/dashboards/`, commit, and pull on the Pi. Since `allowUiUpdates: true`, you can also edit in the Grafana UI — but those changes won't persist unless you export the JSON and commit it back. One-time new-Pi setup steps are in the git history.
 
 The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chiller Time, DHW panels) is a Signal K-managed InfluxDB datasource. It does not appear in the Grafana datasources API but is still functional.
 
@@ -192,25 +173,6 @@ root_url = https://68lookout.dglc.com/grafana/
 serve_from_sub_path = true
 ```
 If these are lost, Grafana will redirect to `/login` with an internal URL and break the proxy.
-
-## Grafana Panel Inventory
-
-Current panels in `grafana/dashboards/pivacr.json` (as of 2026-03-26):
-
-| Panel ID | Title | Grid Y | Notes |
-|----------|-------|--------|-------|
-| 2 | Hydronic Temps | 0 | bdj9fji0j5logc targets |
-| 3 | Temps | 6 | |
-| 4 | Stats | 11 | |
-| 1 | Relays | 16 | bdj9fji0j5logc targets |
-| 12 | Sentry Boiler Values | 21 | waterTemp, outdoorTemp, gasInputValue; single left axis |
-| 13 | Sentry Boiler Status | 27 | burnerOn, circOn, circAuxOn, thermostatDemand, dhwPriority; stepped timeseries, color-coded |
-| 5 | Potable DHW Loop Pressure | 33 | |
-| 6 | Hydronic Loop Pressure | 38 | |
-| 10 | House Power | 44 | Emporia house panel; main + wall_oven + bosch_bova |
-| 11 | Apartment Power | 50 | Emporia apt panel; main + air_cond + furnace + garage_entry_basement + kit_plugs_6 + kit_plugs_14 + trophy_a + trophy_b |
-
-All panels use datasource `bdxaqnfllu5fkf` at panel level. Relays, Temps, Stats, and Hydronic Temps override to `bdj9fji0j5logc` at the target level (Signal K-managed InfluxDB datasource — not visible in Grafana API but functional).
 
 ## Emporia Setup (first time only)
 
@@ -335,65 +297,25 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 | `hvac.boiler.sentry.circAuxOn` | number (0/1) | Circ aux LED state |
 | `hvac.boiler.sentry.thermostatDemand` | number (0/1) | Thermostat demand LED state |
 
-Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation.
-
-If boolean data was ever written and needs to be reset in InfluxDB:
-1. Stop `pivac-sentry`
-2. Delete all affected measurements via `/api/v2/delete`
-3. Restart Signal K (clears the in-memory `VALUETYPECACHE` in `signalk-to-influxdb2/dist/influx.js`)
-4. Write float seed points directly via line protocol (`value=0.0`)
-5. Verify field keys show `float`
-6. Delete the seed points
-7. Start `pivac-sentry`
-
-The SK restart (step 3) is critical — the plugin caches field types per path at first write and never rechecks. Deleting InfluxDB data without restarting SK causes it to re-write the old boolean type.
+Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation. **Important:** if you ever need to reset these measurements in InfluxDB, you must also restart Signal K after reseeding — the `signalk-to-influxdb2` plugin caches field types in memory and will re-write booleans until the process restarts.
 
 ### Config Format
 
-```yaml
-pivac.Sentry:
-  rtsp_url: "rtsp://USERNAME:PASSWORD@10.0.0.19:554/stream1"
-  cycle_timeout: 15          # seconds to wait for full display cycle
-  frame_interval: 2.5        # seconds between captured frames
-  brightness_threshold: 150  # 0-255, min brightness for a lit segment/LED
-  display_roi:               # pixel coords in full camera frame — set during calibration
-    x: 120
-    y: 80
-    w: 200
-    h: 60
-  digit_positions:           # relative to display_roi — left, middle, right digits
-    - {x: 10, y: 5, w: 55, h: 50}
-    - {x: 75, y: 5, w: 55, h: 50}
-    - {x: 140, y: 5, w: 55, h: 50}
-  leds:                      # pixel coords in full frame
-    burner:            {x: 350, y: 100}
-    circ:              {x: 350, y: 125}
-    circ_aux:          {x: 350, y: 150}
-    thermostat_demand: {x: 350, y: 175}
-  indicators:
-    water_temp:        {x: 130, y: 155}
-    air:               {x: 160, y: 155}
-    gas_input:         {x: 190, y: 155}
-    dhw_temp:          {x: 220, y: 155}
-```
+Key config fields (real coordinate values live in `/etc/pivac/config.yml` on the Pi):
 
-Note: coordinate values above are placeholders — real values come from calibration.
+- `rtsp_url` — RTSP stream URL with credentials
+- `cycle_timeout` — seconds to wait for full display cycle (default 15)
+- `frame_interval` — seconds between captured frames (default 2.5)
+- `brightness_threshold` — 0–255 min brightness for a lit segment/LED (default 150)
+- `display_roi` — `{x, y, w, h}` pixel rect in full camera frame (set during calibration)
+- `digit_positions` — list of 3 `{x, y, w, h}` rects relative to `display_roi` (left, middle, right digits)
+- `leds` — `{burner, circ, circ_aux, thermostat_demand}` each `{x, y}` in full frame
+- `indicators` — `{water_temp, air, gas_input, dhw_temp}` each `{x, y}` in full frame
 
 ### Dependencies
 
 - `opencv-python-headless` — frame capture and image processing (headless avoids GUI deps on Pi)
 - `numpy` — already in venv
-
-### Implementation Checklist
-
-- [x] Set RTSP camera account credentials in Tapo app (Advanced Settings → Camera Account)
-- [x] Add RTSP credentials to `/etc/pivac/config.yml` on Pi
-- [x] Implement `scripts/sentry-calibrate.py` — captures reference frame and annotates ROIs
-- [x] Run calibration: perspective warp corners, digit positions, LED/indicator coords set
-- [x] Populate config with real ROI coordinates (`mode_stable_frames: 3`, `cycle_timeout: 30`)
-- [x] Implement `pivac/Sentry.py`
-- [x] Create `scripts/systemd/pivac-sentry.service`
-- [x] Install service on Pi (`sudo cp`, `daemon-reload`, `enable`, `start`) and verify logs
 
 ## Signal K Upgrade (if needed)
 
