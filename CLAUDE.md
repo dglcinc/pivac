@@ -350,7 +350,8 @@ Push CLAUDE.md changes directly to master (no PR needed). Update this file when:
 - **Signal K path changes** — update the Sentry Signal K Paths table or wherever paths are documented
 - **New known operational behaviour** — add to Known Operational Behaviours
 
-After updating here, also update `claude-contexts/pi-CLAUDE.md` if the change affects the Pi's overall role (e.g. new nginx site, new service). Then copy to `~/CLAUDE.md` on the Pi:
+After updating here, also update `claude-contexts/pi-CLAUDE.md` if the change affects the Pi's overall role (e.g. new nginx site, new service). On the Pi, `~/CLAUDE.md` is a symlink to `~/github/claude-contexts/pi-CLAUDE.md` (created by `claude-contexts/setup.sh`), so a single `git pull` propagates the update:
 ```bash
-cp ~/github/claude-contexts/pi-CLAUDE.md ~/CLAUDE.md
+git -C ~/github/claude-contexts pull
 ```
+If `~/CLAUDE.md` is a regular file rather than a symlink (legacy Pi setup that pre-dates `setup.sh`), delete it and re-run `setup.sh` once to convert it to a symlink — after that, pulls suffice.
