@@ -46,6 +46,13 @@ HOMEPAGE = "https://www.mytotalconnectcomfort.com/portal"
 cj = None
 br = None
 
+# Login backoff state. Honeywell returns "Too Many Attempts" if the same account
+# logs in repeatedly after a transient failure; without backoff, a single timeout
+# can lock the account out for hours because every 15s poll cycle attempts a
+# fresh login. Track consecutive failures and skip network calls while cooling down.
+_consecutive_failures = 0
+_cooldown_until = 0
+
 # prevent browser class from saving history
 class NoHistory(object):
     def add(self, *a, **k): pass
@@ -90,8 +97,18 @@ def status(config={}, output="default"):
     global locationId, locationId_prog
     global statsId_prog, statsData_prog, status_prog
     global cj, br
+    global _consecutive_failures, _cooldown_until
 
     result = {}
+
+    # Skip network entirely while in cooldown — re-attempting login while
+    # Honeywell has flagged the account just extends the lockout.
+    now = time.time()
+    if now < _cooldown_until:
+        remaining = int(_cooldown_until - now)
+        logger.warning("RedLink in login cooldown for %ds more (failures=%d)",
+                       remaining, _consecutive_failures)
+        raise IOError
 
     if "website" in config:
         homepage = config["website"]
@@ -152,9 +169,18 @@ def status(config={}, output="default"):
             response = br.open(refresh_link)
             stats_page = response.read().decode('utf-8')
             logger.debug("Stats page = %s" % stats_page)
-    except:    
+    except:
         logger.exception("Error scraping MyTotalConnectComfort.com")
         logger.debug("Failed on page: %s" % stats_page)
+        _consecutive_failures += 1
+        if "Too Many Attempts" in stats_page:
+            cooldown = 1800  # 30 min — Honeywell explicitly rate-limited us
+            logger.error("Honeywell returned 'Too Many Attempts' — cooling down %ds", cooldown)
+        else:
+            # Exponential backoff: 30s, 60s, 120s, 240s, ... capped at 600s
+            cooldown = min(30 * (2 ** (_consecutive_failures - 1)), 600)
+            logger.warning("RedLink failure #%d — cooling down %ds", _consecutive_failures, cooldown)
+        _cooldown_until = time.time() + cooldown
         init_site()
         raise IOError
 
@@ -324,6 +350,10 @@ def status(config={}, output="default"):
             logger.exception("Error scraping stat page")
             init_site()
             raise IOError
+
+    # Successful scrape — clear backoff state.
+    _consecutive_failures = 0
+    _cooldown_until = 0
 
     if output == "signalk":
         return deltas
