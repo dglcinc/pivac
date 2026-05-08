@@ -81,7 +81,21 @@ async def _connect(uid, pwd, timeout):
         _client = aiosomecomfort.AIOSomeComfort(
             uid, pwd, timeout=timeout, session=_session
         )
-        await _client.login()
+        try:
+            await _client.login()
+        except Exception:
+            # Login failed before completing — drop the half-built client so
+            # next cycle retries cleanly. Without this, _client would survive
+            # but be unusable.
+            _client = None
+            raise
+    # Discover is split from login: aiosomecomfort.discover() does five
+    # *sequential* device fetches internally, each subject to the aiohttp
+    # request_timeout (30s). On the Pi a single slow Honeywell response
+    # kills the whole discover, but the login session is still good. Keep
+    # _client and let the next cycle retry just the discover step — saves
+    # the ~75s cold-start login from happening on every transient failure.
+    if not _client.locations_by_id:
         await _client.discover()
 
 
@@ -169,6 +183,7 @@ def status(config={}, output="default"):
 
     devices = None
     error = None
+    must_reset = False
     cycle_start = time.monotonic()
     with _lock:
         try:
@@ -177,24 +192,35 @@ def status(config={}, output="default"):
         except aiosomecomfort.AuthError as e:
             logger.exception("Honeywell auth failed")
             error = e
-            _run(_reset())
+            must_reset = True  # auth is bad, must re-login
         except aiosomecomfort.APIRateLimited as e:
             logger.warning("Honeywell rate-limited; will retry next cycle")
             error = e
-            _run(_reset())
+            must_reset = True  # MIN_LOGIN_TIME guard, full reset to back off
+        except aiosomecomfort.SessionTimedOut as e:
+            logger.warning("RedLink session timed out; resetting")
+            error = e
+            must_reset = True  # session is dead
         except (
             aiosomecomfort.ConnectionError,
             aiosomecomfort.ConnectionTimeout,
-            aiosomecomfort.SessionTimedOut,
             aiosomecomfort.UnexpectedResponse,
             aiosomecomfort.ServiceUnavailable,
         ) as e:
             logger.warning("RedLink transient error: %s: %s", type(e).__name__, e)
             error = e
-            _run(_reset())
+            # Session is probably still good — let the next cycle retry. A
+            # full _reset() here would force a ~75s re-login for what is
+            # often a single slow request from Honeywell.
         except Exception as e:
-            logger.exception("RedLink unexpected error")
+            # Catches asyncio.TimeoutError from aiohttp's internal request
+            # timer (a single HTTP call exceeded the client timeout). The
+            # session is almost certainly still valid; reset only if we're
+            # sure something is broken.
+            logger.exception("RedLink unexpected error: %s", type(e).__name__)
             error = e
+
+        if must_reset:
             _run(_reset())
 
     cycle_elapsed = time.monotonic() - cycle_start
