@@ -1,361 +1,193 @@
-import ssl
-import http.client
-import socket
+"""RedLink — Honeywell thermostat polling via the official mobile API.
 
-# workaround for mechanize/Python 3.13 SSL compatibility
-# patch connect() so SSL verification is disabled immediately before the handshake,
-# covering all connections including redirects and follow_link calls
-ssl._create_default_https_context = ssl._create_unverified_context
+Replaces the previous mytotalconnectcomfort.com HTML scraper. The scraper
+triggered Honeywell's bot detection on the login endpoint, causing repeated
+"Too Many Attempts" lockouts. aiosomecomfort uses the same TCC mobile API the
+iOS app uses, with long-lived OAuth-style session cookies.
 
-_orig_https_connect = http.client.HTTPSConnection.connect
-def _patched_https_connect(self):
-    if hasattr(self, '_context') and self._context is not None:
-        self._context.check_hostname = False
-        self._context.verify_mode = ssl.CERT_NONE
-    _orig_https_connect(self)
-http.client.HTTPSConnection.connect = _patched_https_connect
-
-import regex as re
-import mechanize
-# import urllib2
-import http.cookiejar as cookielib
-import time
+A single AIOSomeComfort client + aiohttp.ClientSession is kept alive across
+status() calls in a background event loop. Re-creating the session every poll
+would hit the library's MAX_LOGIN_ATTEMPTS / MIN_LOGIN_TIME rate limit.
+"""
+import asyncio
 import logging
-from bs4 import BeautifulSoup
-import json
+import re
+import threading
+
+import aiohttp
+import aiosomecomfort
 import pytemperature
 
 logger = logging.getLogger(__name__)
 
-# maintain session after site is loaded as module-level globals
-logged_in = False
-locationId = ""
-locationId_prog = re.compile(r"GetZoneListData\?locationId=([0-9][0-9]*)&")
-statsId_prog = re.compile(r"data-id=\"([0-9][0-9]*)\"")
-statsData_prog = re.compile(r"Control.Model.set\(Control.Model.Property.([A-Za-z0-9]+), *([A-Za-z0-9.]+)\)")
-conciseStatData_prog = re.compile(r"Control.Model.set\(Control.Model.Property.(outdoorHumidity), *([A-Za-z0-9.]+)\)")
-statname_prog = re.compile("ZoneName.*>([A-Za-z0-9 ]+) Control<")
-status_prog = re.compile("id=\"eqStatus([A-Za-z]+)\" *class=\"\">")
-status_map = {
-    "FanOn": "fan",
-    "Heating": "heat",
-    "Cooling": "cool",
-    "off": "off"
-}
-HOMEPAGE = "https://www.mytotalconnectcomfort.com/portal"
-cj = None
-br = None
+_loop = None
+_loop_thread = None
+_session = None
+_client = None
+_lock = threading.Lock()
 
-# Login backoff state. Honeywell returns "Too Many Attempts" if the same account
-# logs in repeatedly after a transient failure; without backoff, a single timeout
-# can lock the account out for hours because every 15s poll cycle attempts a
-# fresh login. Track consecutive failures and skip network calls while cooling down.
-_consecutive_failures = 0
-_cooldown_until = 0
+_STATENUMS = {"heat": 1, "cool": -1, "fan": 0.5, "off": 0}
 
-# prevent browser class from saving history
-class NoHistory(object):
-    def add(self, *a, **k): pass
-    def clear(self): pass
 
-def init_site():
-    global cj, br
-    global logged_in
-    logged_in = False
+def _ensure_loop():
+    global _loop, _loop_thread
+    if _loop is not None and _loop.is_running():
+        return
+    _loop = asyncio.new_event_loop()
+    _loop_thread = threading.Thread(
+        target=_loop.run_forever, daemon=True, name="redlink-loop"
+    )
+    _loop_thread.start()
 
-    try:
-        logger.debug("Initializing mechanize...")
-        cj = cookielib.CookieJar()
-        br = mechanize.Browser(history=NoHistory())
-        br.set_cookiejar(cj)
-        br.set_handle_equiv(True)
-        br.set_handle_gzip(True)
-        br.set_handle_redirect(True)
-        br.set_handle_referer(True)
-        br.set_handle_robots(False)
-        br.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.8'),
-            ('Referer', 'https://www.mytotalconnectcomfort.com/portal/?timeout=True'),
-            ('Connection', 'keep-alive'),
-            ('Origin', 'https://www.mytotalconnectcomfort.com'),
-            ('Accept-Language', 'en-us')]
-        br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
 
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            # turn on mechanize debugging
-            br.set_debug_http(True)
-            br.set_debug_redirects(True)
-            br.set_debug_responses(True)
+def _run(coro):
+    _ensure_loop()
+    return asyncio.run_coroutine_threadsafe(coro, _loop).result()
 
-    except:
-        logger.exception("Error prepping Redlink scrape")
-    return
 
-init_site()
+async def _connect(uid, pwd, timeout):
+    global _session, _client
+    if _session is None or _session.closed:
+        _session = aiohttp.ClientSession()
+    if _client is None:
+        _client = aiosomecomfort.AIOSomeComfort(
+            uid, pwd, timeout=timeout, session=_session
+        )
+        await _client.login()
+        await _client.discover()
+
+
+async def _refresh_all():
+    devices = []
+    for loc in _client.locations_by_id.values():
+        for dev in loc.devices_by_id.values():
+            await dev.refresh()
+            devices.append(dev)
+    return devices
+
+
+async def _reset():
+    global _session, _client
+    if _client is not None:
+        try:
+            await _client.logoff()
+        except Exception:
+            pass
+        _client = None
+    if _session is not None and not _session.closed:
+        await _session.close()
+    _session = None
+
+
+def _to_kelvin(value, scale):
+    if scale == "celsius":
+        return pytemperature.c2k(float(value))
+    return pytemperature.f2k(float(value))
+
 
 def status(config={}, output="default"):
-    global logged_in
-    global locationId, locationId_prog
-    global statsId_prog, statsData_prog, status_prog
-    global cj, br
-    global _consecutive_failures, _cooldown_until
-
-    result = {}
-
-    # Skip network entirely while in cooldown — re-attempting login while
-    # Honeywell has flagged the account just extends the lockout.
-    now = time.time()
-    if now < _cooldown_until:
-        remaining = int(_cooldown_until - now)
-        logger.warning("RedLink in login cooldown for %ds more (failures=%d)",
-                       remaining, _consecutive_failures)
-        raise IOError
-
-    if "website" in config:
-        homepage = config["website"]
-    else:
-        homepage = HOMEPAGE
-
-    socket.setdefaulttimeout(config.get("request_timeout", 30))
-
-    if not "uid" in config or not "pwd" in config:
+    if "uid" not in config or "pwd" not in config:
         logger.error("Credentials not specified in config file.")
         raise ValueError
 
-    # log in to mytotalconnectcomfort.com
-    # NOTE: this code currently only works if you only have one location defined...
-    stats_page = ""
-    try:
-        if logged_in == False:
-            logger.debug("Not logged in; logging in...")
-            response = br.open(homepage)
+    uid = config["uid"]
+    pwd = config["pwd"]
+    timeout = config.get("request_timeout", 30)
+    inputs = config.get("inputs", {})
 
-            # sometimes we get an exception but still logged in...
-            stats_page = response.read().decode('utf-8')
-            if locationId_prog.findall(stats_page):
-                logger.debug("Already logged in %s" % locationId)
-                logged_in = True
-            else:
-                logger.debug("filling login form...")
-                try:
-                    br.select_form(nr=0)
-                except:
-                    # try retsetting Mechanize
-                    logger.exception("form error on: %s" % stats_page)
-                    init_site()
-                    br.open(homepage)
-                    br.select_form(nr=0)
-                br.form['UserName'] = config["uid"]
-                br.form['Password'] = config["pwd"]
-                # mechanize passes POST data as str but Python 3.13 requires bytes
-                request = br.click()
-                if isinstance(request.data, str):
-                    request.data = request.data.encode('utf-8')
-                response = br.open(request)
-                stats_page = response.read().decode('utf-8')
-            logger.debug("done logging in")
-            list = locationId_prog.findall(stats_page)
-            logger.debug("loclist= %s" % list)
-            if len(list):
-                locationId = list[0]
-            else:
-                logger.debug("locationId not found in page: %s" % stats_page)
-                raise IOError
-            logger.debug("locationId=%s" % locationId)
-            logger.debug("Stats page = %s" % stats_page)
-            logged_in = True
-        else:
-            refresh_link = homepage
-            logger.debug("Refresh link = %s" % refresh_link)
-            response = br.open(refresh_link)
-            stats_page = response.read().decode('utf-8')
-            logger.debug("Stats page = %s" % stats_page)
-    except:
-        logger.exception("Error scraping MyTotalConnectComfort.com")
-        logger.debug("Failed on page: %s" % stats_page)
-        _consecutive_failures += 1
-        if "Too Many Attempts" in stats_page:
-            cooldown = 1800  # 30 min — Honeywell explicitly rate-limited us
-            logger.error("Honeywell returned 'Too Many Attempts' — cooling down %ds", cooldown)
-        else:
-            # Exponential backoff: 30s, 60s, 120s, 240s, ... capped at 600s
-            cooldown = min(30 * (2 ** (_consecutive_failures - 1)), 600)
-            logger.warning("RedLink failure #%d — cooling down %ds", _consecutive_failures, cooldown)
-        _cooldown_until = time.time() + cooldown
-        init_site()
-        raise IOError
+    with _lock:
+        try:
+            _run(_connect(uid, pwd, timeout))
+            devices = _run(_refresh_all())
+        except aiosomecomfort.AuthError:
+            logger.exception("Honeywell auth failed")
+            _run(_reset())
+            raise IOError
+        except aiosomecomfort.APIRateLimited:
+            logger.warning("Honeywell rate-limited; will retry next cycle")
+            _run(_reset())
+            raise IOError
+        except (
+            aiosomecomfort.ConnectionError,
+            aiosomecomfort.ConnectionTimeout,
+            aiosomecomfort.SessionTimedOut,
+            aiosomecomfort.UnexpectedResponse,
+            aiosomecomfort.ServiceUnavailable,
+        ) as e:
+            logger.warning("RedLink transient error: %s: %s", type(e).__name__, e)
+            _run(_reset())
+            raise IOError
+        except Exception:
+            logger.exception("RedLink unexpected error")
+            _run(_reset())
+            raise IOError
+
+    inside_path = inputs.get("thermostat", {}).get(
+        "sk_path", "environment.inside.thermostat"
+    )
+    outside_path = inputs.get("outdoor_sensor", {}).get(
+        "sk_path", "environment.outside.thermostat"
+    )
 
     if output == "signalk":
-        logger.debug("Composing signalk output...")
         from pivac import sk_init_deltas, sk_add_source, sk_add_value
         deltas = sk_init_deltas()
         sk_source = sk_add_source(deltas)
-        statenums = {
-            "heat": 1,
-            "cool": -1,
-            "fan": 0.5,
-            "off": 0
-        }
-    verbose = False
-    if "verbose" in config:
-        verbose = config["verbose"]
 
-    if verbose == True:
-        logger.debug("Verbose mode...")
-        # get stat list out of the home page
-        stats_list = statsId_prog.findall(stats_page) 
-        logger.debug("Stats list = %s" % stats_list)
-    
-        try:
-            for s in stats_list:
-                linktext = "/portal/Device/Control/%s?page=1" % s
-    #            logger.debug("link text = %s" % linktext)
-                link = br.find_link(url=linktext)
-                br.click_link(link)
-                response = br.follow_link(link)
-                stattext = response.read().decode('utf-8')
-                statdata = statsData_prog.findall(stattext)
-                statname = statname_prog.findall(stattext)
-                stat = status_prog.findall(stattext)
-                sname = statname[0]
-                sstat = "off"
-                if stat != []:
-                    sstat = stat[0]
-                sdict = dict(statdata)
+    result = {}
+    outdoor_humidity_pct = None
 
-                if config["scale"] == "fahrenheit":
-                    scale = "fahrenheit"
-                    ktemp = pytemperature.f2k(float(sdict["dispTemperature"]))
-                    if s in config["inputs"] and config["inputs"][s]["scale"] == "celsius":
-                        scale = "celsius"
-                        ktemp = pytemperature.c2k(float(sdict["dispTemperature"]))
-                else:
-                    scale = "celsius"
-                    ktemp = pytemperature.c2k(sdict["dispTemperature"])
-                    if s in config["inputs"] and config["inputs"][s]["scale"] == "fahrenheit":
-                        scale = "fahrenheit"
-                        ktemp = pytemperature.f2k(sdict["dispTemperature"])
+    for dev in devices:
+        name = dev.name or str(dev.deviceid)
+        fname = re.sub(r"\s+", "_", name)
 
-                if output == "signalk":
-                    fname = re.sub(r"[\s+]", '_', sname)
-                    sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), int(ktemp))
-                    sk_add_value(sk_source, "%s.%s.scale" % (config["inputs"]["thermostat"]["sk_path"], fname), ktemp)
-                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), float(sdict["indoorHumidity"])/100)
-                    sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), status_map[sstat])
-                    sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[status_map[sstat]])
-                    sk_add_value(sk_source, "%s.%s.heatset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["heatSetpoint"])))
-                    sk_add_value(sk_source, "%s.%s.coolset" % (config["inputs"]["thermostat"]["sk_path"], fname), int(float(sdict["coolSetpoint"])))
-                    sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["outdoor_sensor"]["sk_path"], fname), float(sdict["outdoorHumidity"])/100)
-                else:
-                    result[s] = {
-                        "name": sname,
-                        "temp": sdict["dispTemperature"],
-                        "scale": scale,
-                        "hum": float(sdict["indoorHumidity"]),
-                        "status": status_map[sstat],
-                        "heatset": int(float(sdict["heatSetpoint"])),
-                        "coolset": int(float(sdict["coolSetpoint"])),
-                        "rawdata": sdict
-                    }
-                    # there is no way to get this from the outdoor sensor so it is set by every stat...
-                    result["outhum"] = float(sdict["outdoorHumidity"])
-    
-    #            logger.debug("stat = %s %s %s" % (sname, sstat, sdict))
-                br.open(homepage)
-        except:
-            # too tricky to handle retries, just come back next time
-            logger.exception("Error scraping stat page")
-            init_site()
-            raise IOError
-    else:
-        logger.debug("concise mode")
-        soup = BeautifulSoup(stats_page, "lxml")
-        laststat = ""
-        for e in soup.find_all("tr", attrs={'class': re.compile(r".*capsule pointerCursor\b.*")}):
-            logger.debug("e = %s" %str(e))
-            stat = {}
-            stat["status"] = "off"
+        scale = "fahrenheit" if dev.temperature_unit == "F" else "celsius"
+        if name in inputs and "scale" in inputs[name]:
+            scale = inputs[name]["scale"]
 
-            for f in e.find_all():
-                if f.has_attr("class"):
-                    if f["class"] == ["location-name"]:
-                        stat["name"] = f.string
-                    if f["class"] == ["hum-num"]:
-                        tstr = re.findall("[0-9]+", f.string)
-                        if len(tstr) > 0:
-                            stat["hum"] = int(tstr[0])
-                        else:
-                            stat["hum"] = 0
-                    if f["class"] == ["tempValue"]:
-                        tstr = re.findall("[0-9]+", f.string)
-                        if len(tstr) > 0:
-                            stat["temp"] = int(tstr[0])
-                        else:
-                            stat["temp"] = 0
-                    if "coolIcon" in f["class"] and f["style"] == "":
-                        stat["status"] = "cool"
-                    if "heatIcon" in f["class"] and f["style"] == "":
-                        stat["status"] = "heat"
-                    if "fanOnIcon" in f["class"] and f["style"] == "":
-                        stat["status"] = "fan"
+        if dev.current_temperature is None:
+            logger.warning("Skipping %s — no current_temperature", name)
+            continue
+        ktemp = _to_kelvin(dev.current_temperature, scale)
 
-            logger.debug("Stat = %s" % stat)
-            if config["scale"] == "fahrenheit":
-                stat["scale"] = "fahrenheit"
-                ktemp = pytemperature.f2k(stat["temp"])
-                logger.debug("name = %s, value = %s" % (stat["name"], config["inputs"]))
-                if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "celsius":
-                    logger.debug("celcius exception")
-                    stat["scale"] = "celsius"
-                    ktemp = pytemperature.c2k(stat["temp"])
-            else:
-                stat["scale"] = "celsius"
-                ktemp = pytemperature.c2k(stat["temp"])
-                logger.debug("name = %s, value = %s" % (stat["name"], config["inputs"]))
-                if stat["name"] in config["inputs"] and config["inputs"][stat["name"]]["scale"] == "fahrenheit":
-                    logger.debug("fahrenheit exception")
-                    stat["scale"] = "fahrenheit"
-                    ktemp = pytemperature.f2k(stat["temp"])
-                
-            if output == "signalk":
-                fname = re.sub(r"[\s+]", '_', stat["name"])
-                sk_add_value(sk_source, "%s.%s.temperature" % (config["inputs"]["thermostat"]["sk_path"], fname), ktemp)
-                sk_add_value(sk_source, "%s.%s.scale" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["scale"])
-                sk_add_value(sk_source, "%s.%s.humidity" % (config["inputs"]["thermostat"]["sk_path"], fname), float(stat["hum"])/100)
-                sk_add_value(sk_source, "%s.%s.redlinkid" % (config["inputs"]["thermostat"]["sk_path"], fname), e["data-id"])
-                sk_add_value(sk_source, "%s.%s.state" % (config["inputs"]["thermostat"]["sk_path"], fname), stat["status"])
-                sk_add_value(sk_source, "%s.%s.statenum" % (config["inputs"]["thermostat"]["sk_path"], fname), statenums[stat["status"]])
-            else:
-                result[e["data-id"]] = stat
-            laststat = e["data-id"]
-            logger.debug("laststat = %s", laststat)
-        try:
-            if not laststat:
-                logger.exception("No stats found")
-                raise IOError
-            logger.debug("getting outdoor humidity")
-            linktext = "/portal/Device/Control/%s?page=1" % laststat
-            logger.debug("link text = %s" % linktext)
-            link = br.find_link(url=linktext)
-            response = br.follow_link(link)
-            stattext = response.read().decode('utf-8')
-            statdata = conciseStatData_prog.findall(stattext)
-            sdict = dict(statdata)
+        state = dev.equipment_output_status or "off"
+        if state not in _STATENUMS:
+            state = "off"
 
-            if output == "signalk":
-                sk_add_value(sk_source, "%s.humidity" % config["inputs"]["outdoor_sensor"]["sk_path"], float(sdict["outdoorHumidity"])/100)
-            else:
-                result["outhum"] = float(sdict["outdoorHumidity"])
-        except:
-            # too tricky to handle retries, just come back next time
-            logger.exception("Error scraping stat page")
-            init_site()
-            raise IOError
+        humidity_pct = float(dev.current_humidity) if dev.current_humidity is not None else 0.0
+        heatset = int(float(dev.setpoint_heat)) if dev.setpoint_heat is not None else None
+        coolset = int(float(dev.setpoint_cool)) if dev.setpoint_cool is not None else None
 
-    # Successful scrape — clear backoff state.
-    _consecutive_failures = 0
-    _cooldown_until = 0
+        if dev.outdoor_humidity is not None and outdoor_humidity_pct is None:
+            outdoor_humidity_pct = float(dev.outdoor_humidity)
+
+        if output == "signalk":
+            sk_add_value(sk_source, f"{inside_path}.{fname}.temperature", int(ktemp))
+            sk_add_value(sk_source, f"{inside_path}.{fname}.scale", scale)
+            sk_add_value(sk_source, f"{inside_path}.{fname}.humidity", humidity_pct / 100.0)
+            sk_add_value(sk_source, f"{inside_path}.{fname}.redlinkid", str(dev.deviceid))
+            sk_add_value(sk_source, f"{inside_path}.{fname}.state", state)
+            sk_add_value(sk_source, f"{inside_path}.{fname}.statenum", _STATENUMS[state])
+            if heatset is not None:
+                sk_add_value(sk_source, f"{inside_path}.{fname}.heatset", heatset)
+            if coolset is not None:
+                sk_add_value(sk_source, f"{inside_path}.{fname}.coolset", coolset)
+        else:
+            result[str(dev.deviceid)] = {
+                "name": name,
+                "temp": dev.current_temperature,
+                "scale": scale,
+                "hum": humidity_pct,
+                "status": state,
+                "heatset": heatset,
+                "coolset": coolset,
+            }
 
     if output == "signalk":
+        if outdoor_humidity_pct is not None:
+            sk_add_value(sk_source, f"{outside_path}.humidity", outdoor_humidity_pct / 100.0)
         return deltas
-    else:
-        return result
+
+    if outdoor_humidity_pct is not None:
+        result["outhum"] = outdoor_humidity_pct
+    return result

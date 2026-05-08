@@ -251,8 +251,8 @@ journalctl -u signalk -n 50 --no-pager
 ## Known Operational Behaviours (Not Bugs)
 
 - **Arduino timeouts**: Both Arduinos (10.0.0.114 and 10.0.0.219) occasionally go unresponsive. Logged as a single WARNING. Self-recover; occasional power cycle needed.
-- **RedLink ConnectionResetError**: Honeywell's server occasionally drops HTTPS connections. Self-recovering. Logged as ERROR but normal.
-- **RedLink TimeoutError**: Honeywell's server occasionally accepts a connection but stalls mid-response. The 30-second socket timeout (`request_timeout` in config) causes these to fail fast and retry. Logged as ERROR but normal; recovers on the next poll cycle.
+- **RedLink transient API errors**: Honeywell's mobile API occasionally returns timeouts, dropped connections, or `SessionTimedOut`. The `aiosomecomfort` library raises a typed exception which the module catches, logs as WARNING, tears down the session, and retries on the next poll. Recovers without intervention.
+- **RedLink rate-limiting**: If too many fresh logins happen in close succession, `aiosomecomfort` raises `APIRateLimited` (its own `MIN_LOGIN_TIME = 600s` guard). Module logs a warning and skips the cycle. Persistent session caching means this should be rare in steady state.
 - **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
 - **Boot-time WebSocket race**: Pivac services start before Signal K is fully ready. The provider retries the initial WebSocket connection with exponential backoff (up to 6 attempts). No intervention needed.
 
@@ -367,7 +367,7 @@ pip install <package> --break-system-packages
 
 ## Dependencies
 
-Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `mechanize`, `beautifulsoup4`, `PyYAML`, `websocket-client`
+Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `PyYAML`, `websocket-client`, `aiosomecomfort` (RedLink — Honeywell mobile API client; replaced the old `mechanize` + `beautifulsoup4` HTML scraper)
 
 ## Keeping This File Current
 
