@@ -174,6 +174,36 @@ serve_from_sub_path = true
 ```
 If these are lost, Grafana will redirect to `/login` with an internal URL and break the proxy.
 
+## Grafana Alerting → Microsoft Graph email bridge
+
+Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH for outbound). Instead, alerts route to a small webhook bridge running on the Pi that calls **Microsoft Graph `sendMail`** using the same Azure AD app the bowling-league-tracker uses.
+
+**Components:**
+- `scripts/grafana_graph_bridge.py` — stdlib HTTP server listening on `127.0.0.1:8125/alert`. Reformats Grafana's webhook JSON, gets a Graph access token via client-credentials, calls `/v1.0/users/{sender}/sendMail`.
+- `scripts/systemd/grafana-graph-bridge.service` — runs as user `pi`, `EnvironmentFile=-/etc/pivac/graph.env`, `Restart=always`.
+- `/etc/pivac/graph.env` (mode 640, root:pi, **not** in the repo) — holds `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_SENDER_EMAIL`, `ALERT_RECIPIENT`. Same Azure AD app as `~utilityserver/github/bowling-league-tracker/.env` on the Mac Mini.
+- `grafana/provisioning/alerting/contact-points.yaml` — defines the `graph-bridge` webhook receiver (POSTs to the bridge) and a default policy that routes everything to it.
+- `grafana/provisioning/alerting/redlink-stale.yaml` — alert rule `redlink-stale`. Queries the last 30m of `environment.inside.thermostat.MASTER_BR.temperature`; if no samples (noData), enters Alerting state. `for: 1m` debounces, `interval: 1m` evaluates. Routes to `graph-bridge`.
+
+**Test the bridge end-to-end:**
+```bash
+curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json' \
+     -d '{"status":"firing","title":"test","alerts":[{"status":"firing","labels":{"alertname":"x"},"annotations":{"summary":"hello"}}]}'
+```
+Should return `ok` and an email arrives at `david@dglc.com`.
+
+**Deployment after editing the YAMLs or the bridge:**
+```bash
+# script/service:
+sudo cp ~/github/pivac/scripts/systemd/grafana-graph-bridge.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl restart grafana-graph-bridge
+# provisioning YAMLs (Grafana copies, not symlinks — must restart to pick up changes):
+sudo cp ~/github/pivac/grafana/provisioning/alerting/*.yaml /etc/grafana/provisioning/alerting/
+sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale}.yaml
+sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale}.yaml
+sudo systemctl restart grafana-server
+```
+
 ## Emporia Setup (first time only)
 
 Before enabling `pivac-emporia.service`, run the discovery script to get device GIDs:

@@ -26,3 +26,6 @@ htmlcov/
 # Sentry calibration/debug artifacts
 sentry-*.jpg
 test-output.txt
+
+# Claude Code local state
+.claude/
