@@ -110,12 +110,12 @@ pivac.RedLink:
     # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
     daemon_sleep: 2
 
-    # socket timeout in seconds per HTTP request to the Honeywell mobile API.
-    # Refreshes for all thermostats run in parallel (asyncio.gather), so this
-    # is also the worst-case cycle time when one device stalls — keeping it
-    # short prevents a single slow device from delaying the published delta.
-    # Typical refresh: 1–3s on macOS, 5–15s on the Pi with force_close=TLS.
-    request_timeout: 12
+    # socket timeout in seconds for the aiosomecomfort client (governs the
+    # login flow on cold start). Cold-start login on the Pi takes ~75s due
+    # to Honeywell's redirect-heavy login + TLS handshakes, so keep this
+    # generous. Per-device refresh latency is bounded separately by
+    # REFRESH_DEADLINE (12s) inside RedLink.py.
+    request_timeout: 30
 
     # website
     site: "https://www.mytotalconnectcomfort.com/portal"
