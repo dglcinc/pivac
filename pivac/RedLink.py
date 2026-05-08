@@ -94,6 +94,16 @@ async def _refresh_one(dev):
         logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
                        dev.name, type(e).__name__)
         return None
+    except Exception as e:
+        # Anything else aiohttp / aiosomecomfort throws (UnexpectedResponse,
+        # transient client state after a sibling task's cancellation, etc.)
+        # must NOT propagate — gather would cancel the surviving sibling
+        # refreshes, and the outer except in status() would tear down the
+        # session and force a fresh ~75s login next cycle. Per-device errors
+        # are isolated; the other thermostats still publish.
+        logger.warning("RedLink %s refresh raised %s: %s; skipping this cycle",
+                       dev.name, type(e).__name__, e)
+        return None
 
 
 async def _refresh_all():
@@ -109,8 +119,14 @@ async def _refresh_all():
         for loc in _client.locations_by_id.values()
         for dev in loc.devices_by_id.values()
     ]
-    results = await asyncio.gather(*[_refresh_one(d) for d in devs])
-    return [d for d in results if d is not None]
+    # return_exceptions=True ensures a single-device unhandled raise (which
+    # _refresh_one is supposed to catch but might miss for unexpected types)
+    # is treated as a normal return value rather than cancelling the entire
+    # gather and bringing down the session.
+    results = await asyncio.gather(
+        *[_refresh_one(d) for d in devs], return_exceptions=True
+    )
+    return [r for r in results if r is not None and not isinstance(r, BaseException)]
 
 
 async def _reset():
