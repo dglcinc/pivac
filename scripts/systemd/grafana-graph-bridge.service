@@ -1,0 +1,15 @@
+[Unit]
+Description=Grafana webhook → Microsoft Graph sendMail bridge
+After=network-online.target grafana-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+EnvironmentFile=-/etc/pivac/graph.env
+ExecStart=/home/pi/pivac-venv/bin/python3 /home/pi/github/pivac/scripts/grafana_graph_bridge.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
