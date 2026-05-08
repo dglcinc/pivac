@@ -26,14 +26,19 @@ logger = logging.getLogger(__name__)
 # seconds. Healthy cycles run 5–15s; sustained values above this threshold
 # show up as stale-data flicker in WilhelmSK widgets long before the
 # `redlink-stale-fast` (10m) freshness alert fires.
-CYCLE_WARN_THRESHOLD = 20.0
+CYCLE_WARN_THRESHOLD = 30.0
 
 # Hard per-device deadline for `dev.refresh()`. Independent of the config's
 # `request_timeout` (which governs the aiosomecomfort client used for login —
 # cold-start login on the Pi takes ~75s and must not be cut short). With
 # refreshes parallelised, this is the worst-case cycle time when one device
 # stalls: a single slow thermostat can no longer drag the others past it.
-REFRESH_DEADLINE = 12.0
+# 20s gives Honeywell's flaky per-device API enough rope to succeed on the
+# Pi (per-device latency averages 5–10s with occasional 15s+ outliers);
+# tightening this further produced too many false-timeout failures and made
+# specific paths (e.g. MASTER_BR.temperature) flicker stale in WilhelmSK
+# whenever they happened to time out 2–3 cycles in a row.
+REFRESH_DEADLINE = 20.0
 
 _loop = None
 _loop_thread = None
