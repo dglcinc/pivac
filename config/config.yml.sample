@@ -107,8 +107,10 @@ pivac.RedLink:
     description: Reports thermostat info from mytotalconnectcomfort.com
     enabled: true
 
-    # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
-    daemon_sleep: 2
+    # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec.
+    # 5 keeps WilhelmSK widget gaps short — a healthy parallel-refresh cycle is
+    # 5–12s, so total period (cycle + sleep) lands around 10–17s.
+    daemon_sleep: 5
 
     # socket timeout in seconds for the aiosomecomfort client (governs the
     # login flow on cold start). Cold-start login on the Pi takes ~75s due
