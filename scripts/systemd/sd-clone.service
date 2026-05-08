@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly hot-recovery clone to spare microSD
+Documentation=file:///home/pi/CLAUDE.md
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/github/pivac/scripts/sd-clone.sh
+TimeoutStartSec=1h
+StandardOutput=journal
+StandardError=journal

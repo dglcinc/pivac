@@ -242,6 +242,8 @@ Stop order matters: pivac services first (they push to Signal K), then signalk (
 
 `nas-image-backup.timer` runs `nas-image-backup.service` on the 1st of each month at 03:00 EDT. The service runs `scripts/nas-image-backup.sh`, which mounts the NFS share, stops the disk-writing services listed above, runs `image-backup` against `/mnt/nas-pi-backups/pivac.img`, and restarts services on EXIT. Typical incremental: ~2 minutes downtime. See `~/CLAUDE.md` Backup section for the full architecture (NAS share, NFS+ACL gotcha, bootstrap caveats).
 
+`sd-clone.timer` runs `sd-clone.service` weekly (Sunday 02:00 EDT). The service runs `scripts/sd-clone.sh`, which auto-discovers the populated slot of the USB SD reader by model name `NS-DCR30A2`, refuses if the target matches the booted disk, then calls `rpi-clone <target> -U`. No service stop — `rpi-clone` is designed for live cloning. First run repartitions and takes ~30 min; subsequent incrementals are ~3 min. The clone is a directly bootable hot-recovery spare: pull live SD, drop the spare in, reboot. Install dependency: `rpi-clone` from `~/github/rpi-clone` (billw2/rpi-clone), copied to `/usr/local/sbin/`.
+
 ## Checking Logs
 
 ```bash
