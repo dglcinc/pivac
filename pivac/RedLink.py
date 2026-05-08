@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 # `redlink-stale-fast` (10m) freshness alert fires.
 CYCLE_WARN_THRESHOLD = 20.0
 
+# Hard per-device deadline for `dev.refresh()`. Independent of the config's
+# `request_timeout` (which governs the aiosomecomfort client used for login —
+# cold-start login on the Pi takes ~75s and must not be cut short). With
+# refreshes parallelised, this is the worst-case cycle time when one device
+# stalls: a single slow thermostat can no longer drag the others past it.
+REFRESH_DEADLINE = 12.0
+
 _loop = None
 _loop_thread = None
 _session = None
@@ -80,7 +87,7 @@ async def _connect(uid, pwd, timeout):
 
 async def _refresh_one(dev):
     try:
-        await dev.refresh()
+        await asyncio.wait_for(dev.refresh(), timeout=REFRESH_DEADLINE)
         return dev
     except (asyncio.TimeoutError, aiosomecomfort.ConnectionTimeout,
             aiosomecomfort.ConnectionError) as e:
