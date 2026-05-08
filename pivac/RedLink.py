@@ -12,6 +12,7 @@ would hit the library's MAX_LOGIN_ATTEMPTS / MIN_LOGIN_TIME rate limit.
 import asyncio
 import logging
 import re
+import socket
 import threading
 
 import aiohttp
@@ -48,7 +49,13 @@ def _run(coro):
 async def _connect(uid, pwd, timeout):
     global _session, _client
     if _session is None or _session.closed:
-        _session = aiohttp.ClientSession()
+        # force_close=True works around an aiohttp+Python 3.13 hang on the
+        # second request to mytotalconnectcomfort.com — login() POSTs then
+        # GETs /portal, and the GET stalls indefinitely if connection
+        # pooling is on. Closing after each request is fine here: we only
+        # poll every few seconds and TLS resumption keeps the cost low.
+        connector = aiohttp.TCPConnector(force_close=True, family=socket.AF_INET)
+        _session = aiohttp.ClientSession(connector=connector)
     if _client is None:
         _client = aiosomecomfort.AIOSomeComfort(
             uid, pwd, timeout=timeout, session=_session
@@ -58,11 +65,19 @@ async def _connect(uid, pwd, timeout):
 
 
 async def _refresh_all():
+    """Refresh every device. Per-device failures are logged but don't drop the cycle —
+    Honeywell sometimes stalls a single device while the others respond fine, and
+    publishing 4 of 5 thermostats is better than dropping the whole poll."""
     devices = []
     for loc in _client.locations_by_id.values():
         for dev in loc.devices_by_id.values():
-            await dev.refresh()
-            devices.append(dev)
+            try:
+                await dev.refresh()
+                devices.append(dev)
+            except (asyncio.TimeoutError, aiosomecomfort.ConnectionTimeout,
+                    aiosomecomfort.ConnectionError) as e:
+                logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
+                               dev.name, type(e).__name__)
     return devices
 
 
