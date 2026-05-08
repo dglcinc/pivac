@@ -87,7 +87,199 @@ groups:
         for: 1m
         annotations:
           summary: "RedLink (Honeywell thermostat) data has been stale for >30m on MASTER_BR.temperature"
-          runbook: "Check `journalctl -u pivac-redlink -n 100` for login-cooldown messages. PR #39 backoff auto-recovers within 30m on rate-limit lockouts. If lockout persists, the credentials may have been changed at mytotalconnectcomfort.com."
+          runbook: |
+            1. `journalctl -u pivac-redlink -n 100 --no-pager` — look for the most recent ERROR entries.
+            2. Query `environment.inside.thermostat.redlink.lastErrorType` in Signal K / InfluxDB to see the last failure mode emitted by the module.
+            3. Likely causes (most → least common):
+               - `UnexpectedResponse` / `AllDevicesFailed`: aiosomecomfort can't parse Honeywell's reply — Honeywell may have changed the mobile API. Check upstream library for an update; consider reviving the old scraper as a fallback.
+               - `AuthError`: credentials in `/etc/pivac/config.yml` may have changed at mytotalconnectcomfort.com.
+               - `APIRateLimited`: persistent 600s rate limit; usually self-recovers.
+               - `TimeoutError` / `ConnectionError`: Pi network or Honeywell endpoint slow; usually self-recovers.
+        labels:
+          severity: warning
+          source: redlink
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: redlink-stale-fast
+        title: RedLink data stale (>10m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.MASTER_BR.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "RedLink data stale for >10m on MASTER_BR.temperature (early warning)"
+          runbook: "Same triage as the 30m alert — see `redlink-stale` runbook. This rule fires earlier; the 30m rule is the canonical 'definitely broken' signal."
+        labels:
+          severity: info
+          source: redlink
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: redlink-error-burst
+        title: RedLink module reporting sustained errors
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.redlink.consecutiveErrors
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: max
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 2
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: "RedLink module reporting sustained errors (consecutiveErrors > 2 for 5m)"
+          runbook: |
+            The pivac.RedLink module has logged 3+ consecutive failures over the last 5 minutes.
+            Query `environment.inside.thermostat.redlink.lastErrorType` to see the failure mode:
+              - `UnexpectedResponse` / `AllDevicesFailed`: aiosomecomfort can't parse Honeywell's reply — likely API change, check upstream library / consider scraper fallback.
+              - `AuthError`: credentials may have changed.
+              - `TimeoutError` / `ConnectionError`: transient, usually self-recovers within minutes.
+              - `APIRateLimited`: 600s cooldown, self-recovers.
+            `noDataState: OK` so this rule stays quiet during the >10m gaps the freshness alerts cover.
         labels:
           severity: warning
           source: redlink

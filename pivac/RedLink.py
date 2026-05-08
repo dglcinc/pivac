@@ -27,6 +27,13 @@ _session = None
 _client = None
 _lock = threading.Lock()
 
+# Health state — exported as SK values every cycle so Grafana can alert on
+# sustained errors without waiting for the freshness rule to time out.
+# `_last_error_type` is "" on success, otherwise the exception class name
+# (AuthError, APIRateLimited, UnexpectedResponse, TimeoutError, ...).
+_consecutive_errors = 0
+_last_error_type = ""
+
 _STATENUMS = {"heat": 1, "cool": -1, "fan": 0.5, "off": 0}
 
 
@@ -101,6 +108,8 @@ def _to_kelvin(value, scale):
 
 
 def status(config={}, output="default"):
+    global _consecutive_errors, _last_error_type
+
     if "uid" not in config or "pwd" not in config:
         logger.error("Credentials not specified in config file.")
         raise ValueError
@@ -110,18 +119,27 @@ def status(config={}, output="default"):
     timeout = config.get("request_timeout", 30)
     inputs = config.get("inputs", {})
 
+    inside_path = inputs.get("thermostat", {}).get(
+        "sk_path", "environment.inside.thermostat"
+    )
+    outside_path = inputs.get("outdoor_sensor", {}).get(
+        "sk_path", "environment.outside.thermostat"
+    )
+
+    devices = None
+    error = None
     with _lock:
         try:
             _run(_connect(uid, pwd, timeout))
             devices = _run(_refresh_all())
-        except aiosomecomfort.AuthError:
+        except aiosomecomfort.AuthError as e:
             logger.exception("Honeywell auth failed")
+            error = e
             _run(_reset())
-            raise IOError
-        except aiosomecomfort.APIRateLimited:
+        except aiosomecomfort.APIRateLimited as e:
             logger.warning("Honeywell rate-limited; will retry next cycle")
+            error = e
             _run(_reset())
-            raise IOError
         except (
             aiosomecomfort.ConnectionError,
             aiosomecomfort.ConnectionTimeout,
@@ -130,24 +148,41 @@ def status(config={}, output="default"):
             aiosomecomfort.ServiceUnavailable,
         ) as e:
             logger.warning("RedLink transient error: %s: %s", type(e).__name__, e)
+            error = e
             _run(_reset())
-            raise IOError
-        except Exception:
+        except Exception as e:
             logger.exception("RedLink unexpected error")
+            error = e
             _run(_reset())
-            raise IOError
 
-    inside_path = inputs.get("thermostat", {}).get(
-        "sk_path", "environment.inside.thermostat"
-    )
-    outside_path = inputs.get("outdoor_sensor", {}).get(
-        "sk_path", "environment.outside.thermostat"
-    )
+    if error is not None:
+        _consecutive_errors += 1
+        _last_error_type = type(error).__name__
+    elif not devices:
+        # connect/login worked but every device refresh failed individually
+        _consecutive_errors += 1
+        _last_error_type = "AllDevicesFailed"
+    else:
+        _consecutive_errors = 0
+        _last_error_type = ""
 
+    # Surface health metrics every cycle (success or failure) so Grafana can
+    # alert on sustained errors without waiting for the data-freshness rule.
+    # On error we return a deltas object containing only the health values —
+    # the orchestrator pushes them to Signal K, while existing thermostat
+    # values age out and the redlink-stale alerts eventually fire too.
     if output == "signalk":
         from pivac import sk_init_deltas, sk_add_source, sk_add_value
         deltas = sk_init_deltas()
         sk_source = sk_add_source(deltas)
+        sk_add_value(sk_source, f"{inside_path}.redlink.consecutiveErrors", _consecutive_errors)
+        sk_add_value(sk_source, f"{inside_path}.redlink.lastErrorType", _last_error_type)
+        if not devices:
+            return deltas
+
+    if not devices:
+        # default-output callers (manual scripts, tests) still want to see errors.
+        raise IOError(f"RedLink poll failed: {_last_error_type} (consecutive={_consecutive_errors})")
 
     result = {}
     outdoor_humidity_pct = None
