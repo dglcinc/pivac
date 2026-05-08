@@ -183,7 +183,10 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
 - `scripts/systemd/grafana-graph-bridge.service` — runs as user `pi`, `EnvironmentFile=-/etc/pivac/graph.env`, `Restart=always`.
 - `/etc/pivac/graph.env` (mode 640, root:pi, **not** in the repo) — holds `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_SENDER_EMAIL`, `ALERT_RECIPIENT`. Same Azure AD app as `~utilityserver/github/bowling-league-tracker/.env` on the Mac Mini.
 - `grafana/provisioning/alerting/contact-points.yaml` — defines the `graph-bridge` webhook receiver (POSTs to the bridge) and a default policy that routes everything to it.
-- `grafana/provisioning/alerting/redlink-stale.yaml` — alert rule `redlink-stale`. Queries the last 30m of `environment.inside.thermostat.MASTER_BR.temperature`; if no samples (noData), enters Alerting state. `for: 1m` debounces, `interval: 1m` evaluates. Routes to `graph-bridge`.
+- `grafana/provisioning/alerting/redlink-stale.yaml` — three RedLink alerts, all routing to `graph-bridge`:
+  - `redlink-stale` (warning) — last 30m of `environment.inside.thermostat.MASTER_BR.temperature`. Canonical "definitely broken" signal. `noDataState: Alerting`.
+  - `redlink-stale-fast` (info) — same metric, 10m window. Earlier warning that data flow has stopped. `noDataState: Alerting`.
+  - `redlink-error-burst` (warning) — fires when `environment.inside.thermostat.redlink.consecutiveErrors > 2` for 5m. Reads the new health-counter the module emits every cycle. `noDataState: OK` (the freshness alerts cover the no-data case). The runbook in the alert directs the responder to query `environment.inside.thermostat.redlink.lastErrorType` to identify the failure mode (e.g. `UnexpectedResponse` = aiosomecomfort can't parse Honeywell's reply, signal that the library or scraper fallback may be needed).
 
 **Test the bridge end-to-end:**
 ```bash
