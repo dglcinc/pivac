@@ -14,12 +14,19 @@ import logging
 import re
 import socket
 import threading
+import time
 
 import aiohttp
 import aiosomecomfort
 import pytemperature
 
 logger = logging.getLogger(__name__)
+
+# Warn if a full status() cycle (connect + parallel refresh) exceeds this many
+# seconds. Healthy cycles run 5–15s; sustained values above this threshold
+# show up as stale-data flicker in WilhelmSK widgets long before the
+# `redlink-stale-fast` (10m) freshness alert fires.
+CYCLE_WARN_THRESHOLD = 20.0
 
 _loop = None
 _loop_thread = None
@@ -71,21 +78,32 @@ async def _connect(uid, pwd, timeout):
         await _client.discover()
 
 
+async def _refresh_one(dev):
+    try:
+        await dev.refresh()
+        return dev
+    except (asyncio.TimeoutError, aiosomecomfort.ConnectionTimeout,
+            aiosomecomfort.ConnectionError) as e:
+        logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
+                       dev.name, type(e).__name__)
+        return None
+
+
 async def _refresh_all():
-    """Refresh every device. Per-device failures are logged but don't drop the cycle —
-    Honeywell sometimes stalls a single device while the others respond fine, and
-    publishing 4 of 5 thermostats is better than dropping the whole poll."""
-    devices = []
-    for loc in _client.locations_by_id.values():
-        for dev in loc.devices_by_id.values():
-            try:
-                await dev.refresh()
-                devices.append(dev)
-            except (asyncio.TimeoutError, aiosomecomfort.ConnectionTimeout,
-                    aiosomecomfort.ConnectionError) as e:
-                logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
-                               dev.name, type(e).__name__)
-    return devices
+    """Refresh every device concurrently. Sequential refreshes serialise five
+    HTTPS round-trips to Honeywell per cycle (each ~5–15s on the Pi with
+    force_close=True), pushing total cycle time to 30–75s and producing
+    visible stale-data flicker in WilhelmSK widgets. asyncio.gather brings
+    cycle time down to max(per-device latency). Per-device failures are
+    logged and dropped — publishing 4 of 5 thermostats is better than
+    dropping the whole poll."""
+    devs = [
+        dev
+        for loc in _client.locations_by_id.values()
+        for dev in loc.devices_by_id.values()
+    ]
+    results = await asyncio.gather(*[_refresh_one(d) for d in devs])
+    return [d for d in results if d is not None]
 
 
 async def _reset():
@@ -128,6 +146,7 @@ def status(config={}, output="default"):
 
     devices = None
     error = None
+    cycle_start = time.monotonic()
     with _lock:
         try:
             _run(_connect(uid, pwd, timeout))
@@ -154,6 +173,11 @@ def status(config={}, output="default"):
             logger.exception("RedLink unexpected error")
             error = e
             _run(_reset())
+
+    cycle_elapsed = time.monotonic() - cycle_start
+    if cycle_elapsed > CYCLE_WARN_THRESHOLD:
+        logger.warning("RedLink cycle took %.1fs (threshold %.0fs) — expect WilhelmSK widget freshness flicker",
+                       cycle_elapsed, CYCLE_WARN_THRESHOLD)
 
     if error is not None:
         _consecutive_errors += 1

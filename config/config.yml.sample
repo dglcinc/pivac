@@ -110,11 +110,12 @@ pivac.RedLink:
     # how long to sleep in sec between status calls. Default (if absent) is 0.5 sec
     daemon_sleep: 2
 
-    # socket timeout in seconds per HTTP request to the Honeywell site. Default is 30.
-    # Prevents indefinite hangs when the server accepts a connection but stalls mid-response.
-    # Each scrape cycle makes 2 HTTP requests, so worst-case stall before giving up is
-    # request_timeout * 2. Keep this well above daemon_sleep.
-    request_timeout: 30
+    # socket timeout in seconds per HTTP request to the Honeywell mobile API.
+    # Refreshes for all thermostats run in parallel (asyncio.gather), so this
+    # is also the worst-case cycle time when one device stalls — keeping it
+    # short prevents a single slow device from delaying the published delta.
+    # Typical refresh: 1–3s on macOS, 5–15s on the Pi with force_close=TLS.
+    request_timeout: 12
 
     # website
     site: "https://www.mytotalconnectcomfort.com/portal"
