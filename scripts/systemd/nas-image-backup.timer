@@ -1,0 +1,10 @@
+[Unit]
+Description=Run nas-image-backup monthly
+
+[Timer]
+OnCalendar=*-*-01 03:00:00
+Persistent=true
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target
