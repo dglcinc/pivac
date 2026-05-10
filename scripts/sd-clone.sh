@@ -6,10 +6,30 @@
 # Triggered by sd-clone.timer; can also be run manually as root.
 set -u -o pipefail
 
-READER_MODEL=NS-DCR30A2
+# Anker USB 3.0 Micro SD Card Reader (Genesys Logic chipset). The reader
+# advertises a generic SCSI model string ("MassStorageClass"), so we identify
+# it by USB VID:PID instead — that's specific to this exact reader and won't
+# false-match other USB storage. Replace these if the reader changes.
+READER_VID=05e3
+READER_PID=0764
 RPI_CLONE=/usr/local/sbin/rpi-clone
 
 log() { echo "[$(date -Is)] $*"; }
+
+# usb_ids_for_block_device <sysfs_block_dir>
+# Walks up sysfs from the block device to the USB device descriptor and prints
+# "<vid> <pid>" (lowercase hex), or nothing if the device isn't on USB.
+usb_ids_for_block_device() {
+    local p
+    p=$(realpath "$1/device" 2>/dev/null) || return
+    while [[ -n $p && $p != / ]]; do
+        if [[ -e $p/idVendor && -e $p/idProduct ]]; then
+            echo "$(<"$p/idVendor") $(<"$p/idProduct")"
+            return
+        fi
+        p=$(dirname "$p")
+    done
+}
 
 if [[ $EUID -ne 0 ]]; then
     log "ERROR: must run as root"
@@ -21,20 +41,20 @@ if [[ ! -x $RPI_CLONE ]]; then
     exit 1
 fi
 
-# The Insignia NS-DCR30A2 is a 4-LUN reader; only the slot with media has size > 0.
+# Multi-LUN readers expose one /dev/sdX per slot; only the slot with media has size > 0.
 TARGETS=()
 for blk in /sys/block/sd?; do
     [[ -e $blk ]] || continue
     name=$(basename "$blk")
-    model=$(cat "$blk/device/model" 2>/dev/null | tr -d ' ')
     size=$(cat "$blk/size" 2>/dev/null || echo 0)
-    [[ $model == "$READER_MODEL" ]] || continue
     [[ $size -gt 0 ]] || continue
+    read -r vid pid < <(usb_ids_for_block_device "$blk")
+    [[ $vid == "$READER_VID" && $pid == "$READER_PID" ]] || continue
     TARGETS+=("$name")
 done
 
 if [[ ${#TARGETS[@]} -eq 0 ]]; then
-    log "ERROR: no populated $READER_MODEL slot found — is the spare card inserted?"
+    log "ERROR: no populated USB SD reader (VID:PID $READER_VID:$READER_PID) found — is the spare card inserted?"
     exit 1
 fi
 if [[ ${#TARGETS[@]} -gt 1 ]]; then
