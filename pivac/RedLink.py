@@ -114,6 +114,15 @@ async def _refresh_one(dev):
         logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
                        dev.name, type(e).__name__)
         return None
+    except aiosomecomfort.UnauthorizedError:
+        # 401 from Honeywell means the access token has expired. Don't
+        # swallow it — every device will hit the same 401 on the same
+        # cycle, so the only path to recovery is to surface it to status()
+        # which then triggers _reset() and a fresh login. With
+        # return_exceptions=True on the outer gather, raising here doesn't
+        # cancel sibling refreshes; _refresh_all picks the 401 out of the
+        # results and re-raises.
+        raise
     except Exception as e:
         # Anything else aiohttp / aiosomecomfort throws (UnexpectedResponse,
         # transient client state after a sibling task's cancellation, etc.)
@@ -146,6 +155,13 @@ async def _refresh_all():
     results = await asyncio.gather(
         *[_refresh_one(d) for d in devs], return_exceptions=True
     )
+    # If any device hit a 401, the access token is dead — surface it so
+    # status() can _reset() and force a fresh login. Without this, every
+    # cycle would log 5×UnauthorizedError indefinitely until the service
+    # is restarted by hand.
+    for r in results:
+        if isinstance(r, aiosomecomfort.UnauthorizedError):
+            raise r
     return [r for r in results if r is not None and not isinstance(r, BaseException)]
 
 
@@ -207,6 +223,15 @@ def status(config={}, output="default"):
             logger.warning("RedLink session timed out; resetting")
             error = e
             must_reset = True  # session is dead
+        except aiosomecomfort.UnauthorizedError as e:
+            # Honeywell 401 mid-refresh — access token expired. Observed
+            # after ~2 days of continuous uptime; every device hits 401
+            # simultaneously and the only fix is a fresh login. Re-raised
+            # from _refresh_all so we land here instead of being swallowed
+            # by _refresh_one's catch-all.
+            logger.warning("RedLink token expired (401); resetting session")
+            error = e
+            must_reset = True  # token is dead, force re-login
         except (
             aiosomecomfort.ConnectionError,
             aiosomecomfort.ConnectionTimeout,
