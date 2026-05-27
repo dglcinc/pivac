@@ -2,17 +2,28 @@
   "layout" : {
     "pages" : [
       {
-        "pageLayout" : "1",
+        "pageLayout" : "2",
         "config" : {
           "10" : {
-            "humidity" : "environment.inside.thermostat.KIDS_ROOM.humidity",
-            "temperature" : "environment.inside.thermostat.KIDS_ROOM.temperature",
-            "title" : "Kids Room",
-            "state" : "environment.inside.thermostat.KIDS_ROOM.state",
-            "className" : "Thermostat",
-            "setting" : "environment.inside.setting"
+            "humidity" : "environment.inside.thermostat.MASTER_BR.humidity",
+            "className" : "StaticThermostat",
+            "title" : "Master BR",
+            "temperature" : "environment.inside.thermostat.MASTER_BR.temperature",
+            "padding" : 5,
+            "setting" : "environment.inside.setting",
+            "state" : "environment.inside.thermostat.MASTER_BR.state"
           },
           "2" : {
+            "valueLabelFormat" : "%0.0f",
+            "className" : "TextGaugeConfig",
+            "title" : "Hydronic  PSI",
+            "integerDigits" : 0,
+            "path" : "electrical.ac.arduinoThermPSI.psi",
+            "type" : 1,
+            "decimalDigits" : 0,
+            "defaultTitle" : "Generic Number"
+          },
+          "3" : {
             "path" : "environment.inside.hvac.IN.temperature.value",
             "title" : "HVAC In",
             "valueLabelPaddChars" : 3,
@@ -20,7 +31,16 @@
             "padding" : 10,
             "className" : "WaterTempGauge"
           },
-          "3" : {
+          "11" : {
+            "humidity" : "environment.inside.thermostat.DSTRS_FAM_ROOM.humidity",
+            "className" : "StaticThermostat",
+            "title" : "Dnstrs Fam Room",
+            "temperature" : "environment.inside.thermostat.DSTRS_FAM_ROOM.temperature",
+            "padding" : 5,
+            "setting" : "environment.inside.setting",
+            "state" : "environment.inside.thermostat.DSTRS_FAM_ROOM.state"
+          },
+          "4" : {
             "path" : "environment.inside.hvac.CRW.temperature.value",
             "title" : "HVAC CRW",
             "valueLabelPaddChars" : 3,
@@ -28,13 +48,7 @@
             "padding" : 10,
             "className" : "WaterTempGauge"
           },
-          "11" : {
-            "path" : "electrical.ac.switch.utility",
-            "title" : "Control Relays",
-            "padding" : 15,
-            "className" : "SwitchBank"
-          },
-          "4" : {
+          "5" : {
             "path" : "environment.inside.hvac.OUT.temperature.value",
             "title" : "HVAC Out",
             "valueLabelPaddChars" : 3,
@@ -42,56 +56,45 @@
             "padding" : 10,
             "className" : "WaterTempGauge"
           },
-          "5" : {
+          "12" : {
+            "humidity" : "environment.inside.thermostat.KIDS_ROOM.humidity",
+            "className" : "StaticThermostat",
+            "title" : "Kids Room",
+            "temperature" : "environment.inside.thermostat.KIDS_ROOM.temperature",
+            "padding" : 5,
+            "setting" : "environment.inside.setting",
+            "state" : "environment.inside.thermostat.KIDS_ROOM.state"
+          },
+          "6" : {
             "humidity" : "environment.outside.thermostat.humidity",
             "temperature" : "environment.outside.thermostat.temperature",
             "title" : "Outside",
             "state" : "environment.inside.state",
-            "className" : "Thermostat",
-            "setting" : "environment.inside.setting"
-          },
-          "12" : {
-            "valueLabelFormat" : "%0.0f",
-            "className" : "TextGaugeConfig",
-            "title" : "Hydronic PSI",
-            "integerDigits" : 0,
-            "path" : "electrical.ac.arduinoThermPSI.psi",
-            "type" : 1,
-            "decimalDigits" : 0,
-            "defaultTitle" : "Generic Number"
-          },
-          "6" : {
-            "humidity" : "environment.inside.thermostat.KITCHEN.humidity",
-            "temperature" : "environment.inside.thermostat.KITCHEN.temperature",
-            "title" : "Kitchen",
-            "state" : "environment.inside.thermostat.KITCHEN.state",
-            "className" : "Thermostat",
+            "className" : "StaticThermostat",
             "setting" : "environment.inside.setting"
           },
           "13" : {
+            "path" : "electrical.ac.switch.utility",
+            "title" : "Control Relays",
+            "padding" : 15,
+            "className" : "SwitchBank"
+          },
+          "14" : {
             "valueLabelFormat" : "%0.0f",
             "className" : "TextGaugeConfig",
-            "title" : "Potable DHW PSI",
+            "title" : "Boiler Temp",
             "integerDigits" : 0,
-            "path" : "electrical.ac.arduinoPSI.psi",
+            "path" : "hvac.boiler.sentry.waterTemp",
             "type" : 1,
             "decimalDigits" : 0,
             "defaultTitle" : "Generic Number"
-          },
-          "14" : {
-            "path" : "environment.inside.boiler.waterTemperature",
-            "title" : "Boiler Temp",
-            "valueLabelPaddChars" : 3,
-            "type" : 1,
-            "padding" : 5,
-            "className" : "WaterTempGauge"
           },
           "15" : {
             "valueLabelFormat" : "%0.0f",
             "className" : "TextGaugeConfig",
             "title" : "Gas Input",
             "integerDigits" : 0,
-            "path" : "propulsion.boiler.gasInput",
+            "path" : "hvac.boiler.sentry.gasInputValue",
             "type" : 1,
             "decimalDigits" : 0,
             "defaultTitle" : "Generic Number"
@@ -107,40 +110,38 @@
             "defaultTitle" : "Generic Number"
           },
           "7" : {
-            "humidity" : "environment.inside.thermostat.GREAT_ROOM.humidity",
-            "temperature" : "environment.inside.thermostat.GREAT_ROOM.temperature",
-            "title" : "Great Room",
-            "state" : "environment.inside.thermostat.GREAT_ROOM.state",
-            "className" : "Thermostat",
-            "setting" : "environment.inside.setting"
+            "valueLabelFormat" : "%0.0f",
+            "className" : "TextGaugeConfig",
+            "title" : "DHW PSI",
+            "integerDigits" : 0,
+            "path" : "electrical.ac.arduinoPSI.psi",
+            "type" : 1,
+            "decimalDigits" : 0,
+            "defaultTitle" : "Generic Number"
           },
           "8" : {
-            "humidity" : "environment.inside.thermostat.MASTER_BR.humidity",
-            "temperature" : "environment.inside.thermostat.MASTER_BR.temperature",
-            "title" : "Master BR",
-            "state" : "environment.inside.thermostat.MASTER_BR.state",
-            "className" : "Thermostat",
-            "setting" : "environment.inside.setting"
-          },
-          "9" : {
-            "humidity" : "environment.inside.thermostat.DSTRS_FAM_ROOM.humidity",
-            "className" : "Thermostat",
-            "title" : "Dnstrs Fam Room",
-            "temperature" : "environment.inside.thermostat.DSTRS_FAM_ROOM.temperature",
+            "humidity" : "environment.inside.thermostat.KITCHEN.humidity",
+            "className" : "StaticThermostat",
+            "title" : "Kitchen",
+            "temperature" : "environment.inside.thermostat.KITCHEN.temperature",
             "padding" : 5,
             "setting" : "environment.inside.setting",
-            "state" : "environment.inside.thermostat.DSTRS_FAM_ROOM.state"
+            "state" : "environment.inside.thermostat.KITCHEN.state"
+          },
+          "9" : {
+            "humidity" : "environment.inside.thermostat.GREAT_ROOM.humidity",
+            "className" : "StaticThermostat",
+            "title" : "Great Room",
+            "temperature" : "environment.inside.thermostat.GREAT_ROOM.temperature",
+            "padding" : 5,
+            "setting" : "environment.inside.setting",
+            "state" : "environment.inside.thermostat.GREAT_ROOM.state"
           }
         }
       },
       {
-        "pageLayout" : "5",
+        "pageLayout" : "3",
         "config" : {
-          "3" : {
-            "title" : "Relays",
-            "path" : "electrical.ac.switch.utility",
-            "className" : "SwitchBank"
-          },
           "2" : {
             "title" : "Web",
             "path" : "https:\/\/68lookout.dglc.com\/grafana",
@@ -150,380 +151,58 @@
       }
     ],
     "customTemplates" : {
-      "3" : {
-        "config" : {
-          "10" : {
-            "title" : "Kids Room",
-            "path" : "environment.inside.thermostat.KIDS_ROOM",
-            "className" : "Thermostat"
-          },
-          "2" : {
-            "path" : "environment.inside.hvac.temperature.IN.value",
-            "title" : "HVAC In",
-            "className" : "WaterTempGauge",
-            "type" : 1
-          },
-          "3" : {
-            "path" : "environment.inside.hvac.temperature.OUT.value",
-            "title" : "HVAC Out",
-            "className" : "WaterTempGauge",
-            "type" : 1
-          },
-          "11" : {
-            "title" : "System Control Relays",
-            "path" : "electrical.switch.utility",
-            "className" : "SwitchBank"
-          },
-          "4" : {
-            "path" : "environment.inside.hvac.temperature.CRW.value",
-            "title" : "HVAC CRW",
-            "className" : "WaterTempGauge",
-            "type" : 1
-          },
-          "5" : {
-            "title" : "Outside",
-            "path" : "environment.outside.thermostat",
-            "className" : "Thermostat"
-          },
-          "12" : {
-            "path" : "electrical.ac.ted5000.MTU1.power.value",
-            "valueLabelFormat" : "%0.0f",
-            "title" : "Net Power",
-            "valueLabelPaddChars" : 5,
-            "type" : 1,
-            "className" : "WattsGauge"
-          },
-          "6" : {
-            "title" : "Kitchen",
-            "path" : "environment.inside.thermostat.KITCHEN",
-            "className" : "Thermostat"
-          },
-          "13" : {
-            "path" : "electrical.ac.ted5000.MTU2.power.value",
-            "valueLabelFormat" : "%.0f",
-            "title" : "Subpanel Power",
-            "valueLabelPaddChars" : 5,
-            "type" : 1,
-            "className" : "WattsGauge"
-          },
-          "7" : {
-            "title" : "Great Room",
-            "path" : "environment.inside.thermostat.GREAT_ROOM",
-            "className" : "Thermostat"
-          },
-          "8" : {
-            "title" : "Master BR",
-            "path" : "environment.inside.thermostat.MASTER_BR",
-            "className" : "Thermostat"
-          },
-          "9" : {
-            "title" : "Dstrs Fam Room",
-            "path" : "environment.inside.thermostat.DSTRS_FAM_ROOM",
-            "className" : "Thermostat"
-          }
-        },
-        "sourceUI" : "iPad",
-        "gauges" : [
-          [
-            205.72488033771509,
-            0,
-            204,
-            204
-          ],
-          [
-            409.72488403320312,
-            0,
-            204,
-            204
-          ],
-          [
-            613.724853515625,
-            0,
-            204,
-            204
-          ],
-          [
-            817.724853515625,
-            0,
-            204,
-            263.79586791992188
-          ],
-          [
-            1.724884033203125,
-            263.79586791992188,
-            204,
-            254.81816716779741
-          ],
-          [
-            205.7248840332031,
-            263.79586791992188,
-            204,
-            255
-          ],
-          [
-            409.724853515625,
-            263.79586791992188,
-            204,
-            255
-          ],
-          [
-            613.724853515625,
-            263.79586791992188,
-            204,
-            255
-          ],
-          [
-            817.724853515625,
-            263.79586791992188,
-            204,
-            255
-          ],
-          [
-            -2.275146484375,
-            571.27035128214698,
-            1026.275146484375,
-            149.72964871785302
-          ],
-          [
-            1.7248803377151489,
-            0,
-            204.000003695488,
-            100.50717926025391
-          ],
-          [
-            1.724884033203125,
-            100.50717926025391,
-            204,
-            103.49282073974609
-          ]
-        ],
-        "hostLable" : [
-          423,
-          735,
-          114,
-          21
-        ],
-        "refreshButton" : [
-          959,
-          724,
-          32,
-          32
-        ],
-        "sideBarButton" : [
-          25,
-          21,
-          30,
-          27
-        ],
+      "2" : {
         "baseSize" : [
-          1024,
-          721
+          375.02273559570312,
+          667
+        ],
+        "config" : {
+          "10" : {"className" : "AWAGauge"},
+          "2" : {"className" : "AWAGauge"},
+          "3" : {"className" : "AWAGauge"},
+          "11" : {"className" : "AWAGauge"},
+          "4" : {"className" : "AWAGauge"},
+          "5" : {"className" : "AWAGauge"},
+          "12" : {"className" : "AWAGauge"},
+          "6" : {"className" : "AWAGauge"},
+          "13" : {"className" : "AWAGauge"},
+          "7" : {"className" : "AWAGauge"},
+          "8" : {"className" : "AWAGauge"},
+          "9" : {"className" : "AWAGauge"},
+          "14" : {"className" : "AWAGauge"},
+          "15" : {"className" : "AWAGauge"},
+          "16" : {"className" : "AWAGauge"}
+        },
+        "sourceUI" : "Main",
+        "gauges" : [
+          [0, 132, 135.77851711026611, 61.5],
+          [0, 255, 135.77851711026611, 86],
+          [0, 341, 135.77851711026611, 86],
+          [0, 427, 135.77851711026611, 86],
+          [0, 0, 135.77851711026611, 132],
+          [0, 193.5, 135.77851711026611, 61.5],
+          [135.77851711026611, 0, 125, 132],
+          [135.77851711026611, 132, 125, 132],
+          [135.77851711026611, 264, 125, 132],
+          [135.77851711026611, 396, 125, 132],
+          [135.77851711026611, 528, 125, 132],
+          [260.77851867675781, 0, 114.24420859596944, 660],
+          [0, 513, 135.77851711026611, 52],
+          [0, 565, 135.77851711026611, 51],
+          [0, 616, 135.77851711026611, 51]
         ],
         "version" : 1
       },
-      "1" : {
-        "baseSize" : [
-          1024,
-          721
-        ],
+      "3" : {
+        "gauges" : [[0, 0, 375, 667]],
         "config" : {
-          "10" : {
-            "className" : "AWAGauge"
-          },
-          "2" : {
-            "className" : "AWAGauge"
-          },
-          "3" : {
-            "className" : "AWAGauge"
-          },
-          "11" : {
-            "className" : "AWAGauge"
-          },
-          "4" : {
-            "className" : "AWAGauge"
-          },
-          "5" : {
-            "className" : "AWAGauge"
-          },
-          "12" : {
-            "className" : "AWAGauge"
-          },
-          "6" : {
-            "className" : "AWAGauge"
-          },
-          "13" : {
-            "className" : "AWAGauge"
-          },
-          "7" : {
-            "className" : "AWAGauge"
-          },
-          "8" : {
-            "className" : "AWAGauge"
-          },
-          "9" : {
-            "className" : "AWAGauge"
-          }
+          "2" : {"className" : "AWAGauge"}
         },
-        "sideBarButton" : [
-          25,
-          21,
-          30,
-          27
-        ],
-        "gauges" : [
-          [
-            205.7248840332031,
-            33.347687400318989,
-            150,
-            170
-          ],
-          [
-            355.7248840332031,
-            33.347687400318989,
-            150,
-            170
-          ],
-          [
-            505.7248840332031,
-            33.347687400318989,
-            150,
-            170
-          ],
-          [
-            745.0015869140625,
-            0,
-            278.9984130859375,
-            299.55422647527911
-          ],
-          [
-            4,
-            299.55422647527911,
-            204,
-            225
-          ],
-          [
-            208,
-            299.55422647527911,
-            204,
-            225
-          ],
-          [
-            412,
-            299.55422647527911,
-            204,
-            225
-          ],
-          [
-            616,
-            299.55422647527911,
-            204,
-            225
-          ],
-          [
-            820,
-            299.55422647527911,
-            204,
-            225
-          ],
-          [
-            -2.275146484375,
-            576.87559808612446,
-            1026.275146484375,
-            144.12440191387549
-          ],
-          [
-            1.724884033203125,
-            33.347687400318989,
-            204,
-            100
-          ],
-          [
-            1.724884033203125,
-            133.34768740031899,
-            204,
-            100
-          ],
-          [
-            205.72488403320312,
-            235.34768740031899,
-            270,
-            62
-          ],
-          [
-            475.72488403320312,
-            235.34768740031899,
-            270,
-            62
-          ],
-          [
-            1.724884033203125,
-            235.34768740031899,
-            200,
-            62
-          ]
-        ],
-        "hostLable" : [
-          423,
-          735,
-          114,
-          21
-        ],
-        "refreshButton" : [
-          959,
-          724,
-          32,
-          32
-        ]
-      },
-      "FullScreen" : {
-        "baseSize" : [
-          1024,
-          721
-        ],
-        "gauges" : [
-          [
-            0,
-            0,
-            1024,
-            721
-          ]
-        ]
-      },
-      "5" : {
-        "baseSize" : [
-          1024,
-          721
-        ],
-        "gauges" : [
-          [
-            0,
-            0,
-            925.46623056528006,
-            721
-          ],
-          [
-            925.46623056528006,
-            1.1878088712692261,
-            98.533769434719943,
-            719.81219112873077
-          ]
-        ],
-        "config" : {
-          "3" : {
-            "title" : "Relays",
-            "path" : "electrical.ac.switch.utility",
-            "className" : "SwitchBank"
-          },
-          "2" : {
-            "title" : "Web",
-            "path" : "http:\/68lookout.homeip.net:4000",
-            "className" : "WebGauge"
-          }
-        }
+        "baseSize" : [375, 667]
       }
     }
   },
-  "sourceUI" : "iPad",
+  "sourceUI" : "Main",
   "type" : "layout",
   "name" : "Default",
   "version" : 2
