@@ -142,15 +142,44 @@ to VCC.
  5V  ────────────────────┘         (pull-up between DQ and 5V)
 ```
 
-Notes:
+### Pin assignments
+
+| DS18B20 lead | UNO R4 WiFi pin | Notes |
+|---|---|---|
+| VDD (red) | **5V** (power header) | DS18B20 runs 3.0–5.5 V; logic is 5 V, so power from 5V |
+| GND (black) | any **GND** | three available (two on the power header, one by D13) |
+| DQ / data (yellow/white) | **D2** | `ONE_WIRE_BUS`; any free digital pin — D2 confirmed free (below) |
+| 4.7 kΩ pull-up | between **DQ and 5V** | mandatory — see "Why the external resistor" |
+
+**D2 is confirmed free.** Grounded against the live firmware (`ArduinoPSI_impl.h`,
+2026-05-31): the sketch uses **only `A0`** (analog pressure sensor) and the
+**internal LED matrix** (driven by dedicated RA4M1 pins, not the header). It uses
+no digital GPIO, I²C, SPI, Serial1, or interrupts — so the whole digital header is
+available. The pressure sensor on A0 and the matrix are untouched by this change.
+
+If you ever pick a pin other than D2, avoid the special-function pins: D0/D1
+(Serial1), D4/D5 (CAN), D10–D13 (SPI; D13 also the onboard LED), A4/A5 (I²C). The
+cleanly-free general-purpose pins are **D2, D3, D6, D7, D8, D9**. 1-Wire is polled
+by DallasTemperature (no interrupt needed), but D2/D3 are interrupt-capable if that
+ever matters.
+
+### Why the external resistor (don't rely on the internal pull-up)
+
+The UNO R4's Renesas RA4M1 has **software-enabled internal pull-ups**
+(`pinMode(pin, INPUT_PULLUP)`), but they're **weak** (~25–50 kΩ) and **cannot**
+substitute for the external 4.7 kΩ. 1-Wire is an open-drain bus that needs a stiff
+pull-up to charge line capacitance and produce clean, fast rising edges (more so as
+the cable lengthens); the weak internal pull-up gives sloppy edges and intermittent
+or failed reads, and the OneWire library tri-states the pin for signaling rather
+than depending on the idle-high pull-up. So **keep the external 4.7 kΩ to 5V.**
+Note also there is **no internal pull-*down*** on the R4 — the Arduino Renesas core
+exposes only `INPUT`/`OUTPUT`/`INPUT_PULLUP`/`OUTPUT_OPENDRAIN` (no `INPUT_PULLDOWN`);
+irrelevant here since 1-Wire needs a pull-up, but worth knowing.
+
 - UNO R4 WiFi I/O is 5 V; DS18B20 runs 3.0–5.5 V, so 5 V + 4.7 kΩ to 5 V is
-  correct.
-- Pick any unused digital pin for `ONE_WIRE_BUS`; **D2** is used throughout this
-  plan. Make sure it doesn't collide with the pin the pressure sensor or any
-  status LED already uses in the existing sketch.
-- For a long run, twist DQ with GND and consider dropping the pull-up to
-  2.2–3.3 kΩ.
-- The pressure sensor stays on its existing analog pin, untouched.
+  correct. Pull DQ up to the **same 5 V rail** that powers VDD, not 3.3 V.
+- For a long run, twist DQ with GND and drop the pull-up to **2.2–3.3 kΩ** (a
+  *stronger* external resistor — never the internal pull-up).
 
 ---
 
