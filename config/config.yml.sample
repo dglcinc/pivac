@@ -80,7 +80,10 @@ pivac.OneWireTherm:
             outname: CRW
         0516a36816ff:
             outname: AMB
-            sk_path: environment.outside.thermostat
+            # Physical outdoor air sensor → canonical Signal K outside-air path.
+            # Kept distinct from the Honeywell-reported environment.outside.thermostat.temperature
+            # (pivac.RedLink) so the two can be cross-checked for divergence.
+            sk_path: environment.outside
             sk_literal: true
         0316a015e7ff:
             outname: Unassigned

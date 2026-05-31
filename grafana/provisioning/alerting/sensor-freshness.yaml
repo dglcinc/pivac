@@ -1,0 +1,545 @@
+apiVersion: 1
+
+# Freshness + cross-check alerts for the 1-wire hydronic/outside temperatures.
+# Reuses the same graph-bridge contact point as redlink-stale.yaml (Grafana webhook ->
+# scripts/grafana_graph_bridge.py -> Microsoft Graph sendMail -> david@dglc.com).
+#
+# All temperatures are stored in InfluxDB in KELVIN (the Signal K delta unit), so the
+# staleness rules use the same "value < 100" sentinel as redlink-stale: a live temp is
+# always > 100 K, so the threshold is never true while data flows. Detection is driven by
+# noDataState: Alerting — when the metric stops, refId A returns NoData and the rule fires.
+#
+# A separate group name from redlink-stale's "pivac-data-freshness" avoids provisioning
+# collisions.
+groups:
+  - orgId: 1
+    name: sensor-data-freshness
+    folder: pivac
+    interval: 1m
+    rules:
+      # ---- Hydronic water temps: one rule per sensor so we know which one dropped ----
+      - uid: hydronic-in-stale
+        title: Hydronic IN water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.IN.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Hydronic IN water temperature has been stale for >30m (environment.inside.hvac.IN.temperature)"
+          runbook: |
+            One or more DS18B20 hydronic sensors have stopped publishing.
+            1. `ls /sys/bus/w1/devices/` — confirm the sensor still enumerates on the w1 bus.
+            2. `journalctl -u pivac-1wire -n 50 --no-pager` — look for repeated "read failed" WARNINGs (per-sensor isolation is in place, so a single bad sensor no longer stales the others) or a NoSensorFoundError crash-loop at import.
+            3. If a sensor dropped off the bus entirely, a `sudo reboot` is currently the only reliable recovery (modprobe-reload does not recover an unreliable bus). See CLAUDE.md "OneWireTherm per-sensor isolation".
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: hydronic-crw-stale
+        title: Hydronic CRW water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.CRW.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Hydronic CRW water temperature has been stale for >30m (environment.inside.hvac.CRW.temperature)"
+          runbook: "Same triage as hydronic-in-stale — see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: hydronic-out-stale
+        title: Hydronic OUT water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.OUT.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Hydronic OUT water temperature has been stale for >30m (environment.inside.hvac.OUT.temperature)"
+          runbook: |
+            Same triage as hydronic-in-stale. NOTE: the OUT sensor (0516a365d8ff) has a
+            history of intermittently dropping off the w1 bus and re-enumerating after a
+            reboot. If only OUT is stale (IN/CRW fresh), suspect that physical sensor at the
+            hydronic loop before suspecting the module.
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Outside air (physical DS18B20) freshness ----
+      - uid: outside-onewire-stale
+        title: Outside air temp (1-wire) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.outside.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Outside air temperature (1-wire AMB) stale for >30m (environment.outside.temperature)"
+          runbook: "The AMB DS18B20 has stopped publishing. Same w1-bus triage as hydronic-in-stale. RedLink's environment.outside.thermostat.temperature is an independent source if you need an outdoor reading meanwhile."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Cross-check: physical 1-wire vs Honeywell-reported outdoor temp ----
+      # Both stored in Kelvin. Fires when the two sources disagree by > 8 K (~14.4 F)
+      # sustained for 1h — a generous threshold that tolerates normal sensor-placement
+      # offsets (baseline divergence observed ~1 K) but catches a single drifting/failed
+      # sensor while its data is still nominally "fresh". noDataState: OK so a thermostat
+      # with no outdoor sensor (thermostat.temperature absent) never trips this rule.
+      - uid: outside-temp-divergence
+        title: Outside temp sources diverging (1-wire vs thermostat)
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.outside.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.outside.thermostat.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: B
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: B
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: abs($C - $D)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: E
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 8
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - E
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 1h
+        annotations:
+          summary: "Outdoor temp sources disagree by >8 K (~14 F) for 1h — one sensor is likely drifting or failed"
+          runbook: |
+            environment.outside.temperature (physical DS18B20 / AMB) and
+            environment.outside.thermostat.temperature (Honeywell-reported) have diverged
+            beyond the sanity threshold while both are still publishing. This catches a
+            single bad sensor that staleness alerts would miss (data is fresh, just wrong).
+            1. Compare both series in Grafana over the last few hours — which one stepped or drifted?
+            2. The DS18B20 is the local physical sensor; the thermostat value is whatever Honeywell reports (may lag or be a different microclimate).
+            3. If the 1-wire reads implausibly, inspect the AMB sensor wiring; if the thermostat value is stuck, it's a Honeywell-side issue.
+        labels:
+          severity: info
+          source: crosscheck
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge

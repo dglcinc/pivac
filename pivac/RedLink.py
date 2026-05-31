@@ -290,6 +290,8 @@ def status(config={}, output="default"):
 
     result = {}
     outdoor_humidity_pct = None
+    outdoor_temp_raw = None
+    outdoor_temp_scale = None
 
     for dev in devices:
         name = dev.name or str(dev.deviceid)
@@ -314,6 +316,14 @@ def status(config={}, output="default"):
 
         if dev.outdoor_humidity is not None and outdoor_humidity_pct is None:
             outdoor_humidity_pct = float(dev.outdoor_humidity)
+
+        # Honeywell-reported outdoor temperature (gated on OutdoorTemperatureAvailable
+        # inside aiosomecomfort; returns None when the thermostat has no outdoor sensor).
+        # Published to the .thermostat. node alongside humidity so it can be cross-checked
+        # against the physical DS18B20 published to environment.outside.temperature.
+        if dev.outdoor_temperature is not None and outdoor_temp_raw is None:
+            outdoor_temp_raw = float(dev.outdoor_temperature)
+            outdoor_temp_scale = scale
 
         if output == "signalk":
             sk_add_value(sk_source, f"{inside_path}.{fname}.temperature", int(ktemp))
@@ -340,8 +350,12 @@ def status(config={}, output="default"):
     if output == "signalk":
         if outdoor_humidity_pct is not None:
             sk_add_value(sk_source, f"{outside_path}.humidity", outdoor_humidity_pct / 100.0)
+        if outdoor_temp_raw is not None:
+            sk_add_value(sk_source, f"{outside_path}.temperature", int(_to_kelvin(outdoor_temp_raw, outdoor_temp_scale)))
         return deltas
 
     if outdoor_humidity_pct is not None:
         result["outhum"] = outdoor_humidity_pct
+    if outdoor_temp_raw is not None:
+        result["outtemp"] = outdoor_temp_raw
     return result
