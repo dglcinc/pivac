@@ -187,6 +187,10 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - `redlink-stale` (warning) — last 30m of `environment.inside.thermostat.MASTER_BR.temperature`. Canonical "definitely broken" signal. `noDataState: Alerting`.
   - `redlink-stale-fast` (info) — same metric, 10m window. Earlier warning that data flow has stopped. `noDataState: Alerting`.
   - `redlink-error-burst` (warning) — fires when `environment.inside.thermostat.redlink.consecutiveErrors > 2` for 5m. Reads the new health-counter the module emits every cycle. `noDataState: OK` (the freshness alerts cover the no-data case). The runbook in the alert directs the responder to query `environment.inside.thermostat.redlink.lastErrorType` to identify the failure mode (e.g. `UnexpectedResponse` = aiosomecomfort can't parse Honeywell's reply, signal that the library or scraper fallback may be needed).
+- `grafana/provisioning/alerting/sensor-freshness.yaml` — 1-wire freshness + outdoor cross-check, group `sensor-data-freshness`, all routing to `graph-bridge`. All temps are stored in **Kelvin**, so the staleness rules reuse the same `value < 100` never-true sentinel as `redlink-stale` and rely on `noDataState: Alerting`:
+  - `hydronic-{in,crw,out}-stale` (warning) — per-sensor 30m staleness on `environment.inside.hvac.{IN,CRW,OUT}.temperature`. One rule each so the email names which sensor dropped (the per-sensor isolation fix means a single bad DS18B20 no longer stales the others). OUT's runbook flags its history of intermittent w1-bus dropouts.
+  - `outside-onewire-stale` (warning) — 30m staleness on `environment.outside.temperature` (the physical AMB DS18B20).
+  - `outside-temp-divergence` (info) — fires when `abs(environment.outside.temperature − environment.outside.thermostat.temperature) > 8 K` (~14 °F) sustained for 1h. Catches a single drifting/failed outdoor sensor while its data is still "fresh". `noDataState: OK` so a thermostat with no outdoor sensor (thermostat path absent) never trips it. Baseline divergence observed ≈1 K.
 
 **Test the bridge end-to-end:**
 ```bash
@@ -202,8 +206,8 @@ sudo cp ~/github/pivac/scripts/systemd/grafana-graph-bridge.service /etc/systemd
 sudo systemctl daemon-reload && sudo systemctl restart grafana-graph-bridge
 # provisioning YAMLs (Grafana copies, not symlinks — must restart to pick up changes):
 sudo cp ~/github/pivac/grafana/provisioning/alerting/*.yaml /etc/grafana/provisioning/alerting/
-sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale}.yaml
-sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale}.yaml
+sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness}.yaml
+sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness}.yaml
 sudo systemctl restart grafana-server
 ```
 
