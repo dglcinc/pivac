@@ -64,11 +64,11 @@ threshold would false-alarm on this loop (see §8.3).
 - All temperatures in Signal K / InfluxDB are stored in **Kelvin** (e.g. the
   hydronic gauges `environment.inside.hvac.{IN,CRW,OUT}.temperature` read
   ~285–340 K). The new sensor must publish Kelvin for gauge/alert consistency.
-- The Arduino firmware repo (`git@github.com:dglcinc/Arduino.git`, default
-  branch `main`): active compile/upload copy is on the **Mac** at
-  `~/OneDrive - DGLC/Claude/github/Arduino/`; a **read-only reference clone is
-  now on the Pi** at `~/github/Arduino`. Compile + upload is **Mac-only** (USB,
-  no OTA).
+- The Arduino firmware repo (`github.com/dglcinc/Arduino`, default branch
+  `main`): active compile/upload copy is on the **Mac** at `~/github/Arduino`
+  (working copy, branch `main`, `arduino_secrets.h` populated). A reference
+  clone also exists on the Pi at `~/github/Arduino`. Compile + upload is
+  **Mac-only** (USB, no OTA).
 - Firmware structure: two sketches, `ArduinoPSI_BoilerLoop` (hydronic,
   10.0.0.114) and `ArduinoPSI_Domestic` (DHW, 10.0.0.219). They share ONE
   implementation file — `ArduinoPSI_Domestic/ArduinoPSI_impl.h` is a **symlink**
