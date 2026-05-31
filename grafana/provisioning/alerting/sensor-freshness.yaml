@@ -383,6 +383,109 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
+      # ---- DHW recirc-loop temp (DS18B20 on the Arduino at 10.0.0.219) freshness ----
+      # Freshness only. The recirc pump runs on demand / by aquastat, so the loop is
+      # intentionally cold much of the time — a static "loop cold" / pump-health alert
+      # would false-alarm and is deliberately NOT defined here (see
+      # docs/circ-loop-temp-monitoring-plan.md §8.3, deferred until we have duty-cycle data).
+      - uid: circ-temp-stale
+        title: DHW recirc-loop temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.dhw.recirc.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "DHW recirc-loop temperature stale for >30m (environment.inside.hvac.dhw.recirc.temperature)"
+          runbook: |
+            The DS18B20 on the DHW Arduino (10.0.0.219) has stopped publishing the recirc-loop
+            temperature. This is a sensor/Arduino freshness check, NOT a pump-health check —
+            it does not mean the loop is cold (that signal is deferred; see the plan §8.3).
+            1. `curl http://10.0.0.219` — confirm the Arduino responds and the line includes 'temp'.
+            2. `journalctl -u pivac-arduino-therm-psi -n 50 --no-pager` — look for "unreachable
+               (timeout)" or "field 'temp' missing" WARNINGs. A missing-field warning with psi
+               still flowing means the probe/firmware, not the network.
+            3. The Arduino occasionally hangs (documented behaviour) — a power cycle recovers it.
+               Note this Arduino also serves DHW pressure, so check whether psi went stale too.
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
       # ---- Cross-check: physical 1-wire vs Honeywell-reported outdoor temp ----
       # Both stored in Kelvin. Fires when the two sources disagree by > 8 K (~14.4 F)
       # sustained for 1h — a generous threshold that tolerates normal sensor-placement
