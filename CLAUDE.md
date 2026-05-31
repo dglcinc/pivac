@@ -270,6 +270,7 @@ journalctl -u signalk -n 50 --no-pager
 - **RedLink rate-limiting**: If too many fresh logins happen in close succession, `aiosomecomfort` raises `APIRateLimited` (its own `MIN_LOGIN_TIME = 600s` guard). Module logs a warning and skips the cycle. Persistent session caching means this should be rare in steady state. **Recovery floor is ~10 min**: even after the root cause clears, the rate limiter holds the module out until `MIN_LOGIN_TIME` expires. Verified during a 2026-05-08 alert simulation — real outages will look the same. Don't restart the service to "fix" an apparent stuck-cooldown; just wait.
 - **OneWireTherm SensorNotReadyError**: 1-wire sensors occasionally not ready mid-conversion. Transient, self-recovering.
 - **Boot-time WebSocket race**: Pivac services start before Signal K is fully ready. The provider retries the initial WebSocket connection with exponential backoff (up to 6 attempts). No intervention needed.
+- **Weekly Sunday-midnight reboot**: `/etc/crontab` runs `reboot now` every Sunday at 00:00 EDT as a routine system reset. All pivac services (`Restart=always`) come back automatically. Expect one cold-start RedLink cycle (~100s discover timeout, then ~75s login) in the first post-reboot minute — the documented "slow first call after restart" path. WilhelmSK thermostat tiles will flicker dark briefly around 00:00 every Sunday; not a regression. See `~/CLAUDE.md` "This Machine" for the reboot rationale.
 
 ## Adding a New Module
 
