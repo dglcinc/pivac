@@ -51,39 +51,49 @@ def status(config = {}, output="default"):
         temp = 0
         sname = ""
 
-        # read the sensor and prep for output (both types)
-        temp_type = DEG_FAHRENHEIT
-        temps = { "fahrenheit": DEG_FAHRENHEIT, "celsius": DEG_CELSIUS, "kelvin": DEG_KELVIN }
-        if "scale" in dnames[sensor.id] and config["scale"] in temps:
-            temp_type = temps[dnames[sensor.id]["scale"]]
+        # Isolate each sensor: a transient SensorNotReadyError (or any per-sensor
+        # failure) must not suppress the healthy sensors. Without this, one bad
+        # DS18B20 takes down all temperatures for the whole cycle (the exception
+        # bubbles to pivac-provider.py's module-level catch). Same isolation
+        # pattern as RedLink._refresh_one.
+        try:
+            # read the sensor and prep for output (both types)
+            temp_type = DEG_FAHRENHEIT
+            temps = { "fahrenheit": DEG_FAHRENHEIT, "celsius": DEG_CELSIUS, "kelvin": DEG_KELVIN }
+            if "scale" in dnames[sensor.id] and config["scale"] in temps:
+                temp_type = temps[dnames[sensor.id]["scale"]]
 
-        if output == "signalk" or temp_type == DEG_KELVIN:
-            thermtemp = sensor.get_temperature(Unit.KELVIN)
-        elif temp_type == DEG_CELSIUS:
-            thermtemp = sensor.get_temperature(Unit.DEGREES_C)
-        else:
-            thermtemp = sensor.get_temperature(Unit.DEGREES_F)
-        logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
-
-        if sensor.id in dnames and "outname" in dnames[sensor.id]:
-            sname = dnames[sensor.id]["outname"]
-        else:
-            # this will add a new member to the dict with the name of the sensor
-            sname = sensor.id
-
-        round_digits = dnames[sensor.id]["rounding"]
-        if round_digits == 0:
-            result[sname] = int(round(thermtemp,0))
-        elif round_digits > 0:
-            result[sname] = round(thermtemp,round_digits)
-        else:
-            result[sname] = thermtemp
-        if output == "signalk":
-            # output delta
-            if not dnames[sensor.id]["sk_literal"]:
-                sk_add_value(sk_source, "%s.%s.temperature" % (dnames[sensor.id]["sk_path"], sname), result[sname])
+            if output == "signalk" or temp_type == DEG_KELVIN:
+                thermtemp = sensor.get_temperature(Unit.KELVIN)
+            elif temp_type == DEG_CELSIUS:
+                thermtemp = sensor.get_temperature(Unit.DEGREES_C)
             else:
-                sk_add_value(sk_source, "%s.temperature" % dnames[sensor.id]["sk_path"], result[sname])
+                thermtemp = sensor.get_temperature(Unit.DEGREES_F)
+            logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
+
+            if sensor.id in dnames and "outname" in dnames[sensor.id]:
+                sname = dnames[sensor.id]["outname"]
+            else:
+                # this will add a new member to the dict with the name of the sensor
+                sname = sensor.id
+
+            round_digits = dnames[sensor.id]["rounding"]
+            if round_digits == 0:
+                result[sname] = int(round(thermtemp,0))
+            elif round_digits > 0:
+                result[sname] = round(thermtemp,round_digits)
+            else:
+                result[sname] = thermtemp
+            if output == "signalk":
+                # output delta
+                if not dnames[sensor.id]["sk_literal"]:
+                    sk_add_value(sk_source, "%s.%s.temperature" % (dnames[sensor.id]["sk_path"], sname), result[sname])
+                else:
+                    sk_add_value(sk_source, "%s.temperature" % dnames[sensor.id]["sk_path"], result[sname])
+        except Exception as e:
+            logger.warning("OneWireTherm sensor %s read failed (%s); skipping this cycle"
+                           % (sensor.id, type(e).__name__))
+            continue
 
     if output == "signalk":
         logger.debug(deltas)
