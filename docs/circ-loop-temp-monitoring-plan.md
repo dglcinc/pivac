@@ -1,6 +1,6 @@
 # Plan — Hot-Water Circulator-Loop Temperature Monitoring
 
-**Status:** DRAFT / not yet implemented · **Created:** 2026-05-31 · **Owner:** David
+**Status:** decisions resolved (§12), implementation not yet started · **Created:** 2026-05-31 · **Owner:** David
 
 Living plan doc. Update the Status checklist at the bottom as steps complete.
 
@@ -19,9 +19,11 @@ The sensor data flows into Signal K → InfluxDB → Grafana/WilhelmSK like the
 other temperatures, and gets a freshness alert plus a "loop went cold" alert
 through the existing Grafana → Graph email bridge.
 
-**Success criteria:** `environment.inside.hvac.CIRC.temperature` publishes to
+**Success criteria:** `environment.inside.hvac.dhw.recirc.temperature` publishes to
 Signal K every poll cycle in Kelvin; Grafana plots it; an email fires if it
-goes stale (>30m) or drops below the "pump probably dead" threshold.
+goes stale (>30m). A pump-health ("loop never gets hot") alert is deferred until
+we've observed the loop's real on-demand/aquastat duty cycle — a static cold
+threshold would false-alarm on this loop (see §8.3).
 
 ---
 
@@ -106,9 +108,9 @@ the `10.0.0.219` enclosure (more than a comfortable cable run), fall back to a
 **new dedicated Arduino** at its own IP — same firmware, `temp`-only response,
 its own pivac config section. Everything else in this plan is identical.
 
-> **Decision needed from David:** confirm the recirc-loop sensor location is a
-> reasonable cable run from the `10.0.0.219` enclosure. If not, switch to a new
-> Arduino (see §9 alternative).
+> **DECIDED (2026-05-31):** reuse `10.0.0.219` — cable run confirmed comfortable.
+> Coupling trade-off accepted (DHW pressure + circ temp stale together if the
+> board hangs; freshness alert names which value dropped).
 
 ---
 
@@ -368,21 +370,21 @@ pivac.ArduinoThermPSI:
         psi:
             outname: psi
         temp:
-            outname: CIRC
+            outname: recirc
             type: temperature
             scale: fahrenheit                    # the unit the Arduino emits
-            sk_path: environment.inside.hvac     # override → groups with IN/CRW/OUT
+            sk_path: environment.inside.hvac.dhw # override → dedicated DHW namespace
 ```
 
 Resulting Signal K paths:
 - `electrical.ac.arduinoThermPSI.psi` (unchanged)
-- `environment.inside.hvac.CIRC.temperature` (**new**, Kelvin)
+- `environment.inside.hvac.dhw.recirc.temperature` (**new**, Kelvin)
 
-> **Decision needed from David:** the outname/path. `CIRC` →
-> `environment.inside.hvac.CIRC.temperature` groups it with the existing
-> hydronic gauges. Alternatives: `DHWRECIRC`, or a dedicated
-> `environment.inside.hvac.dhw.recirc` namespace. Also confirm `CIRC` doesn't
-> clash conceptually with the existing `CRW` sensor.
+> **DECIDED (2026-05-31):** dedicated `dhw.recirc` namespace →
+> `environment.inside.hvac.dhw.recirc.temperature` (outname `recirc`, sk_path
+> override `environment.inside.hvac.dhw`). Chosen over `CIRC`/`DHWRECIRC` to
+> avoid any conceptual clash with the `CRW` hydronic sensor; it sits in its own
+> DHW sub-namespace rather than alongside IN/CRW/OUT.
 
 **Alternative (separate service):** instead of adding `temp` to
 `ArduinoThermPSI`, add a standalone `pivac.CircLoopTemp` section (same
@@ -392,32 +394,34 @@ enable/disable and restart. Cons: a second HTTP GET to the same Arduino each
 cycle and another unit file. Prefer the single-section approach unless you want
 the isolation.
 
+> **DECIDED (2026-05-31):** single config section — add `temp` to
+> `ArduinoThermPSI`. No separate service.
+
 ---
 
 ## 8. Surfacing — Grafana + WilhelmSK
 
-1. **Grafana panel:** add `environment.inside.hvac.CIRC.temperature` (InfluxQL
+1. **Grafana panel:** add `environment.inside.hvac.dhw.recirc.temperature` (InfluxQL
    measurement = full path, field = `value`) to the existing hydronic
    water-temp panel, alongside In/CRW/Out. Convert K→°F in the panel like the
    others.
 2. **Freshness alert:** add a `circ-temp-stale` rule to
    `grafana/provisioning/alerting/sensor-freshness.yaml` (group
    `sensor-data-freshness`), copy of `outside-onewire-stale` but
-   `measurement: environment.inside.hvac.CIRC.temperature`, `noDataState:
+   `measurement: environment.inside.hvac.dhw.recirc.temperature`, `noDataState:
    Alerting`, routing to `graph-bridge`. (Temps are Kelvin, so reuse the
    `value < 100` never-true sentinel.)
-3. **Pump-health alert (the point of this project):** add a `circ-loop-cold`
-   threshold rule — fires when `environment.inside.hvac.CIRC.temperature` falls
-   **below ~305 K (~90 °F)** sustained for, say, 15–30 min during a period the
-   loop should be hot. That's the "pump lost prime / failed" signal → email so
-   David can re-prime. `noDataState: OK` (the freshness rule covers no-data).
-   Threshold and window need tuning once we see the loop's normal hot/cold
-   range; treat 90 °F / 20 min as a starting guess.
-   > **Decision needed:** does the recirc run 24/7, or on a schedule/timer? If
-   > scheduled, the cold-alert needs to respect the "should be hot" window
-   > (Grafana mute timing or a time-of-day condition) to avoid false alarms
-   > during intentional off periods.
-4. **WilhelmSK (optional):** add a WaterTempGauge for the CIRC path to
+3. **Pump-health alert — DEFERRED (2026-05-31).** The pump runs **on demand /
+   by aquastat**, so the loop is intentionally cold much of the time; a static
+   `circ-loop-cold` threshold (the original 90 °F / 20 min idea) would
+   false-alarm constantly and is therefore *not* being built now. Instead:
+   deploy the sensor with only the freshness alert (§8.2), observe the real
+   hot/cold duty cycle for a few days, then design a duty-cycle-aware health
+   signal — e.g. "loop never reached hot in the last 24 h", or a cold check
+   gated to a known recirc window. Revisit once we have data.
+   > **DECIDED (2026-05-31):** schedule = on-demand/aquastat; threshold =
+   > observe-first. No cold-threshold alert in the initial deploy.
+4. **WilhelmSK (optional):** add a WaterTempGauge for the `dhw.recirc` path to
    `iphone.wlyt` (see pivac CLAUDE.md "WilhelmSK layout file" for the
    import dance).
 
@@ -442,7 +446,8 @@ required, but this avoids noise).
    (no new unit file needed — same service, extra input). If you chose the
    separate-service alternative, install `pivac-circ-temp.service` and
    `daemon-reload` first.
-6. **Grafana:** add the panel + the two alert rules; deploy per pivac CLAUDE.md
+6. **Grafana:** add the panel + the freshness alert rule (§8.2; the pump-health
+   alert §8.3 is deferred); deploy per pivac CLAUDE.md
    "Deployment after editing the YAMLs" (copy YAML, chown root:grafana, chmod
    640, `systemctl restart grafana-server`).
 7. **Docs:** update pivac CLAUDE.md (Active Services table note, Signal K paths,
@@ -461,15 +466,15 @@ import pivac.ArduinoSensor as m, json; \
 print(json.dumps(m.status({'ipaddr':'10.0.0.114','inputs':{'psi':{'outname':'psi','sk_path':'electrical.ac.arduinoPSI'}}}), indent=2))"
 # new: temp field from the DHW Arduino (after firmware flashed)
 python -c "import pivac.ArduinoSensor as m, json; \
-print(json.dumps(m.status({'ipaddr':'10.0.0.219','inputs':{'temp':{'outname':'CIRC','type':'temperature','scale':'fahrenheit','sk_path':'environment.inside.hvac'}}}, 'signalk'), indent=2))"
+print(json.dumps(m.status({'ipaddr':'10.0.0.219','inputs':{'temp':{'outname':'recirc','type':'temperature','scale':'fahrenheit','sk_path':'environment.inside.hvac.dhw'}}}, 'signalk'), indent=2))"
 ```
 Expect the pressure call to return the same `psi` value as before, and the temp
-call to return a Kelvin delta at `environment.inside.hvac.CIRC.temperature`.
+call to return a Kelvin delta at `environment.inside.hvac.dhw.recirc.temperature`.
 
 **After deploy:**
 ```bash
 # fresh value flowing to Signal K
-curl -s http://localhost:3000/signalk/v1/api/vessels/self/environment/inside/hvac/CIRC/temperature | python3 -m json.tool
+curl -s http://localhost:3000/signalk/v1/api/vessels/self/environment/inside/hvac/dhw/recirc/temperature | python3 -m json.tool
 # pressure still publishing (no regression)
 journalctl -u pivac-arduino-therm-psi -n 30 --no-pager
 ```
@@ -491,30 +496,33 @@ journalctl -u pivac-arduino-therm-psi -n 30 --no-pager
 
 ---
 
-## 12. Open decisions for David
+## 12. Decisions (RESOLVED 2026-05-31)
 
-1. **Cable run** — is the recirc-loop sensor location a comfortable run from the
-   `10.0.0.219` enclosure? (If not → new dedicated Arduino, §3.)
-2. **Naming** — `CIRC` / `environment.inside.hvac.CIRC.temperature` OK, or
-   prefer `DHWRECIRC` / a `dhw.recirc` namespace? Any clash with `CRW`?
-3. **Recirc schedule** — 24/7 or on a timer? Drives the pump-cold alert's
-   "should be hot" window (§8.3).
-4. **Cold-alert threshold** — start at ~90 °F / 20 min, then tune from observed
-   data. Agree on a starting point.
-5. **Single section vs separate service** — add `temp` to `ArduinoThermPSI`
-   (recommended) or a standalone `pivac-circ-temp` service?
+1. **Cable run** — ✅ **Reuse `10.0.0.219`.** Run confirmed comfortable; coupling
+   trade-off accepted (§3).
+2. **Naming** — ✅ **`dhw.recirc` namespace** → `environment.inside.hvac.dhw.recirc.temperature`
+   (outname `recirc`, sk_path override `environment.inside.hvac.dhw`). Avoids any
+   clash with `CRW`; own DHW sub-namespace, not alongside IN/CRW/OUT (§7b).
+3. **Recirc schedule** — ✅ **On-demand / aquastat.** Loop is intentionally cold
+   much of the time.
+4. **Cold-alert threshold** — ✅ **Observe-first, no static threshold.** Combined
+   with #3, the naive cold alert is **deferred**; ship freshness-only, gather
+   duty-cycle data, then design a smarter health signal (§8.3).
+5. **Single section vs separate service** — ✅ **Single section** — add `temp` to
+   `ArduinoThermPSI`. No separate service.
 
 ---
 
 ## 13. Status checklist
 
-- [ ] Cable-run / location confirmed (decision §12.1)
-- [ ] Naming + schedule + threshold decided (§12.2–12.4)
+- [x] Cable-run / location confirmed — reuse 10.0.0.219 (§12.1)
+- [x] Naming + schedule + threshold decided (§12.2–12.5)
 - [ ] DS18B20 wired to 10.0.0.219 (§5)
 - [ ] Firmware updated + flashed; `curl` shows `'temp'` (§6)
 - [ ] `ArduinoSensor.py` generalised + regression-tested (§7a, §10) — PR: ____
 - [ ] Config updated (live + sample) (§7b)
-- [ ] Service restarted; CIRC publishing fresh Kelvin to SK (§9.5, §10)
+- [ ] Service restarted; `dhw.recirc` publishing fresh Kelvin to SK (§9.5, §10)
 - [ ] Grafana panel added (§8.1)
-- [ ] Freshness + pump-cold alerts added (§8.2–8.3) — PR: ____
+- [ ] Freshness alert added (§8.2) — PR: ____
+- [ ] Pump-health alert designed from observed data (§8.3, deferred)
 - [ ] CLAUDE.md updated; this checklist closed out
