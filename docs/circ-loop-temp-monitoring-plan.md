@@ -1,6 +1,6 @@
 # Plan — Hot-Water Circulator-Loop Temperature Monitoring
 
-**Status:** decisions resolved (§12); firmware flashed + pivac code/sample/alert done (PR #59); remaining = live-config edit + Grafana panel + deploy/verify on Pi · **Created:** 2026-05-31 · **Owner:** David
+**Status:** ✅ COMPLETE (2026-06-01) — recirc temp live end-to-end: Arduino (10.0.0.114) → Signal K → InfluxDB → Grafana + WilhelmSK, with the `circ-temp-stale` freshness alert deployed. Only the pump-health alert remains, intentionally deferred (§8.3). · **Created:** 2026-05-31 · **Owner:** David
 
 Living plan doc. Update the Status checklist at the bottom as steps complete.
 
@@ -560,14 +560,15 @@ journalctl -u pivac-arduino-psi -n 30 --no-pager
 
 ## 13. Status checklist
 
-- [x] Cable-run / location confirmed — reuse 10.0.0.219 (§12.1)
+- [x] Cable-run / location confirmed — reuse the DHW Arduino 10.0.0.114 (§12.1)
 - [x] Naming + schedule + threshold decided (§12.2–12.5)
 - [x] DS18B20 wired to the DHW board 10.0.0.114 (§5) *(2026-06-01)*
 - [x] Firmware updated + flashed; `curl http://10.0.0.114` shows `'temp'` (§6) *(2026-06-01)*
 - [x] `ArduinoSensor.py` generalised + regression-tested (§7a, §10) — PR #59
-- [x] Config **sample** updated (§7b) — PR #59; live `/etc/pivac/config.yml` still TODO
-- [ ] Live config edited (`pivac.ArduinoPSI`, .114); service `pivac-arduino-psi` restarted; `dhw.recirc` publishing fresh Kelvin to SK (§9.4–9.5, §10)
-- [ ] Grafana panel added (§8.1)
-- [x] Freshness alert `circ-temp-stale` added (§8.2) — PR #59 *(deploy to Pi only after sensor is live — noDataState: Alerting)*
-- [ ] Pump-health alert designed from observed data (§8.3, deferred)
-- [x] CLAUDE.md Arduino role/IP map corrected (master, 2026-06-01); close out remaining items at deploy
+- [x] Config updated — sample (PR #59) + live `/etc/pivac/config.yml` (`pivac.ArduinoPSI`, .114) *(2026-06-01)*
+- [x] Service `pivac-arduino-psi` restarted; `dhw.recirc` publishing fresh Kelvin to SK — verified live ~313 K (§9.4–9.5, §10) *(2026-06-01)*
+- [x] Grafana — recirc temp on a 2nd (°F) axis of the Potable DHW Loop panel — PR #61 *(2026-06-01)*
+- [x] Freshness alert `circ-temp-stale` added (PR #59) + deployed to Grafana on the Pi *(2026-06-01)*
+- [ ] Pump-health alert — **intentionally deferred** (§8.3): on-demand/aquastat loop, observe duty cycle first
+- [x] CLAUDE.md Arduino role/IP map corrected (master, 2026-06-01)
+- [x] WilhelmSK iPad + iPhone gauges added (wilhelm-sk PR #2) — *bonus, beyond original plan*
