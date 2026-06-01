@@ -200,6 +200,7 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - `hydronic-{in,crw,out}-stale` (warning) — per-sensor 30m staleness on `environment.inside.hvac.{IN,CRW,OUT}.temperature`. One rule each so the email names which sensor dropped (the per-sensor isolation fix means a single bad DS18B20 no longer stales the others). OUT's runbook flags its history of intermittent w1-bus dropouts.
   - `outside-onewire-stale` (warning) — 30m staleness on `environment.outside.temperature` (the physical AMB DS18B20).
   - `outside-temp-divergence` (info) — fires when `abs(environment.outside.temperature − environment.outside.thermostat.temperature) > 8 K` (~14 °F) sustained for 1h. Catches a single drifting/failed outdoor sensor while its data is still "fresh". `noDataState: OK` so a thermostat with no outdoor sensor (thermostat path absent) never trips it. Baseline divergence observed ≈1 K.
+  - `circ-temp-stale` (warning) — 30m staleness on `environment.inside.hvac.dhw.recirc.temperature` (the DHW recirc-loop DS18B20 on the Arduino at 10.0.0.114). Freshness only; the pump-health/"loop cold" alert is intentionally deferred (on-demand/aquastat loop — see `docs/circ-loop-temp-monitoring-plan.md` §8.3).
 
 **Test the bridge end-to-end:**
 ```bash
@@ -302,7 +303,7 @@ journalctl -u signalk -n 50 --no-pager
 | `TED5000` | Energy monitor (XML over HTTP) — currently disabled |
 | `RedLink` | Honeywell thermostat (web scraping) |
 | `FlirFX` | FLIR camera temperature/humidity — currently disabled |
-| `ArduinoSensor` | Arduino HTTP sensor (hydronic pressure, DHW pressure) — shared implementation for `pivac.ArduinoPSI` and `pivac.ArduinoThermPSI` config sections via `module:` override |
+| `ArduinoSensor` | Arduino HTTP sensor — **multi-field**: loops over `inputs` (key = response field name); inputs with `type: temperature` convert to Kelvin and emit `{sk_path}.{outname}.temperature`. Shared via `module:` override by `pivac.ArduinoPSI` (.114 = **DHW** pressure + recirc temp `environment.inside.hvac.dhw.recirc.temperature`) and `pivac.ArduinoThermPSI` (.219 = **boiler/hydronic** pressure). NB names are inverted vs role — see Active Services note. |
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
 | `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — reads display via 7-segment CV, emits boiler state to `hvac.boiler.sentry.*` |
 
@@ -342,6 +343,8 @@ On each poll cycle, the module opens the RTSP stream and captures frames every ~
 **LED and indicator detection** uses HSV color space: green LEDs are isolated by hue/saturation range, and brightness in each ROI determines on/off state.
 
 **One-time calibration required**: The module config must specify pixel coordinates for the display ROI, each digit's segment boxes, each LED, and each indicator light. These are stable as long as the camera doesn't move. A calibration utility (`scripts/sentry-calibrate.py`) saves a reference frame from the RTSP stream and helps identify coordinates.
+
+**Camera day/night mode MUST stay locked** (Tapo app → Advanced → Night Vision = **Night**, Night Boost = **Off** — *not* Auto). On Auto, the camera flips between day/color and IR/night when the boiler-room lights change; that image shift makes the 7-segment reader misfire (phantom hundreds digit — e.g. outdoor 67→167, gas→410, water 87→187). Verified root cause of the 2026-05-31 "jumping values." The module is also hardened against transient misreads (PR #62): per-mode **range-sanity** (rejects out-of-range reads) + a **median-of-samples** vote per cycle (`min_samples`, default 3) so a one-frame misread loses to the median, and it sets `OPENCV_FFMPEG_LOGLEVEL=8` to silence the libavcodec H.264 SEI log spam (~72k lines/3h).
 
 ### Signal K Paths
 
