@@ -26,7 +26,9 @@ Required config keys:
 
 Optional config keys:
     cycle_timeout       Seconds to poll for all three modes  (default: 30)
-    mode_stable_frames  Consecutive stable frames before accepting a reading (default: 3)
+    mode_stable_frames  Consecutive stable frames before sampling a reading (default: 3)
+    min_samples         Plausible reads required per mode before its median is
+                        emitted; fewer = skip that mode this cycle (default: 3)
     led_ratio           Spot/background brightness ratio for LED detection (default: 1.15)
     digit_threshold_factor  Threshold = mean + factor*(max-mean) per digit (default: 0.50)
     daemon_sleep        Seconds between poll cycles (framework key; recommend >= 30)
@@ -46,7 +48,14 @@ Signal K paths emitted:
 """
 
 import logging
+import os
+import statistics
 import time
+
+# Quiet libavcodec's H.264 SEI chatter ("SEI type ... truncated") that OpenCV's
+# FFmpeg backend otherwise floods into journald (~7 lines/sec, ~72k lines/3h).
+# Must be set before cv2/FFmpeg initialises. 8 = AV_LOG_FATAL (keeps real fatals).
+os.environ.setdefault("OPENCV_FFMPEG_LOGLEVEL", "8")
 
 logger = logging.getLogger(__name__)
 
@@ -332,6 +341,34 @@ def _f_to_k(f: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Reading plausibility (range-sanity)
+# ---------------------------------------------------------------------------
+
+# Per-mode plausible ranges for the displayed value. A CV misread — a phantom
+# hundreds digit, or a compression-noise segment — usually lands outside these
+# and is rejected before it can reach Signal K. Wrong reads that still fall
+# inside the range are caught by the median-of-samples vote in _poll_cycle.
+_SANE_RANGE = {
+    "water_temp": (40.0, 220.0),   # boiler water °F: idle ~80s, up to ~200 firing
+    "air":        (-40.0, 140.0),  # outdoor air °F
+    "gas_input":  (40.0, 240.0),   # Ti-200 gas-input scale (0 = off, handled below)
+}
+
+
+def _reading_sane(mode: str, value_str: str):
+    """Parse a display string to float and bounds-check it for the given mode.
+    Returns the float if plausible, else None."""
+    try:
+        v = float(value_str)
+    except (ValueError, TypeError):
+        return None
+    if mode == "gas_input" and v == 0:
+        return 0.0                 # burner off / idle — a valid 0
+    lo, hi = _SANE_RANGE.get(mode, (float("-inf"), float("inf")))
+    return v if lo <= v <= hi else None
+
+
+# ---------------------------------------------------------------------------
 # Polling loop — shared by status() and the __main__ block
 # ---------------------------------------------------------------------------
 
@@ -355,6 +392,7 @@ def _poll_cycle(config: dict) -> dict:
 
     cycle_timeout    = config.get("cycle_timeout", 30)
     mode_stable_min  = config.get("mode_stable_frames", 3)
+    min_samples      = config.get("min_samples", 3)
 
     cap = _open_stream(rtsp_url)
     logger.debug("Sentry: connected to RTSP stream, polling for up to %ds", cycle_timeout)
@@ -363,13 +401,14 @@ def _poll_cycle(config: dict) -> dict:
     for _ in range(5):
         cap.grab()
 
-    collected   = {}   # mode -> raw string
-    error_code  = None
-    last_frame  = None
-    prev_mode   = None
+    samples      = {}    # mode -> [sane float readings this cycle]
+    confirmed    = set() # modes with >= min_samples (enough to trust the median)
+    error_code   = None
+    last_frame   = None
+    prev_mode    = None
     stable_count = 0
-    deadline    = time.time() + cycle_timeout
-    expected    = _DISPLAY_MODES & set(config.get("indicators", {}).keys())
+    deadline     = time.time() + cycle_timeout
+    expected     = _DISPLAY_MODES & set(config.get("indicators", {}).keys())
 
     try:
         while time.time() < deadline:
@@ -388,21 +427,45 @@ def _poll_cycle(config: dict) -> dict:
                 prev_mode    = mode
                 stable_count = 0
 
-            if "?" not in value and stable_count >= mode_stable_min:
-                if mode and mode not in collected:
-                    collected[mode] = value
-                    logger.debug("Sentry: captured '%s' = '%s'", mode, value)
-                elif mode is None:
-                    code = _classify_error(value)
-                    if code:
-                        error_code = code
-                        logger.debug("Sentry: error/status code detected: '%s'", code)
+            if "?" in value or stable_count < mode_stable_min:
+                continue
 
-            if collected.keys() >= expected:
-                logger.debug("Sentry: all display modes captured")
+            if mode is None:
+                code = _classify_error(value)
+                if code:
+                    error_code = code
+                    logger.debug("Sentry: error/status code detected: '%s'", code)
+                continue
+
+            # Collect plausible readings for this mode. Out-of-range reads are
+            # dropped here; the per-cycle median (below) then rejects the odd
+            # one-frame digit misread that slips through the range check.
+            sane = _reading_sane(mode, value)
+            if sane is None:
+                logger.debug("Sentry: rejecting out-of-range '%s' = '%s'", mode, value)
+                continue
+            samples.setdefault(mode, []).append(sane)
+            if len(samples[mode]) >= min_samples:
+                confirmed.add(mode)
+
+            if confirmed >= expected:
+                logger.debug("Sentry: all display modes have >= %d samples", min_samples)
                 break
     finally:
         cap.release()
+
+    # Resolve each mode to the median of its plausible readings (outlier-robust,
+    # and tolerant of a genuinely changing temperature). A mode with fewer than
+    # min_samples reads is skipped this cycle rather than emitting a low-
+    # confidence guess — the next cycle retries and the freshness alert covers
+    # any prolonged gap. Stored as the rounded integer string the display shows.
+    collected = {}
+    for mode, vals in samples.items():
+        if len(vals) >= min_samples:
+            collected[mode] = str(int(round(statistics.median(vals))))
+        else:
+            logger.warning("Sentry: '%s' only %d plausible read(s) this cycle (%s); "
+                           "skipping", mode, len(vals), vals)
 
     result = dict(collected)
     if error_code:
