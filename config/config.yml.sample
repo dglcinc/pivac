@@ -155,26 +155,18 @@ pivac_config:
         password: xxx
 
 pivac.ArduinoPSI:
-    description: Reports hydronic pressure from an Arduino HTTP sensor
+    # NOTE: despite the legacy name, this section is the DHW board (10.0.0.114).
+    # The Arduino module/delta names are inverted vs physical role — see CLAUDE.md.
+    description: DHW pressure + hot-water recirc-loop temperature from one Arduino HTTP sensor
     # 'module' tells the framework which Python module to load for this config section.
     # Multiple config sections can share one implementation this way.
     module: pivac.ArduinoSensor
     enabled: true
     ipaddr: 10.0.0.114
     inputs:
-        psi:
-            sk_path: propulsion.mainEngine.coolant
-            outname: pressure
-
-pivac.ArduinoThermPSI:
-    description: Reports DHW pressure + hot-water recirc-loop temperature from one Arduino HTTP sensor
-    module: pivac.ArduinoSensor
-    enabled: true
-    ipaddr: 10.0.0.219
-    inputs:
         # Each input key is the field name in the Arduino's JSON response.
         psi:
-            sk_path: propulsion.mainEngine.fuel
+            sk_path: propulsion.mainEngine.coolant
             outname: pressure
         # A DS18B20 on the same Arduino reports the DHW recirc-loop temperature.
         # type: temperature converts the raw reading (scale, default fahrenheit) to
@@ -185,6 +177,18 @@ pivac.ArduinoThermPSI:
             outname: recirc
             type: temperature
             scale: fahrenheit
+
+pivac.ArduinoThermPSI:
+    # NOTE: despite the legacy name, this section is the BOILER/hydronic board
+    # (10.0.0.219) — the names are inverted vs physical role, see CLAUDE.md.
+    description: Boiler/hydronic pressure from an Arduino HTTP sensor
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.219
+    inputs:
+        psi:
+            sk_path: propulsion.mainEngine.fuel
+            outname: pressure
 
 # ---------------------------------------------------------------------------
 # Template for a new module — copy and adapt this block.
