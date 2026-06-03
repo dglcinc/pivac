@@ -174,6 +174,8 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chiller Time, DHW panels) is a Signal K-managed InfluxDB datasource. It does not appear in the Grafana datasources API but is still functional.
 
+**Shared-y-axis gotcha (timeseries panels):** Grafana only merges two series onto a single y-axis when they share the *same explicit* `axisPlacement` value **and** the same unit grouping. A series on `axisPlacement: auto` and another forced to `left` do **not** dedupe — Grafana renders two stacked left axes, each auto-scaled independently (doubles the left margin and puts the series on different numeric scales). `auto` ≠ `left`. To co-plot close-magnitude series (e.g. the DHW panel's PSI ~64 + recirc temp ~110 °F) on one scale: set *every* series to the same explicit placement and drop differing units (make both unitless) so the axes aren't split by unit. Tradeoff: dropping the unit removes the unit suffix from that series' tooltip. (Fixed on the DHW panel in PRs #65/#66.)
+
 ## Grafana Sub-path Configuration
 
 Grafana is configured to serve from `/grafana/` sub-path. Key settings in `/etc/grafana/grafana.ini`:
