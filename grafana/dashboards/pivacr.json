@@ -2226,7 +2226,7 @@
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "PSI + °F",
-            "axisPlacement": "auto",
+            "axisPlacement": "left",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
@@ -2276,10 +2276,6 @@
               "options": "environment.inside.hvac.dhw.recirc.temperature.mean"
             },
             "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "left"
-              },
               {
                 "id": "color",
                 "value": {
