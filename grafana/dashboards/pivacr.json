@@ -2225,7 +2225,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "psi",
+            "axisLabel": "PSI + °F",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -2278,15 +2278,7 @@
             "properties": [
               {
                 "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "unit",
-                "value": "fahrenheit"
-              },
-              {
-                "id": "custom.axisLabel",
-                "value": "Recirc \u00b0F"
+                "value": "left"
               },
               {
                 "id": "color",
