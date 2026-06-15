@@ -3,7 +3,12 @@
 **Status:** DRAFT FOR REVIEW — 2026-06-15 (rev 2)
 **Goal:** Add a new pivac data source that reads the house's **Sensus iPerl** domestic water meter over radio, publishes consumption/flow to Signal K, and plots it in Grafana.
 
-> **Architecture (rev 3): recommended = remote UNO R4 node over WiFi (Appendix A); Pi-direct kept as the alternative.** The meter is read over the air, so the receiver can live anywhere on WiFi. Two real constraints rule the production Pi *out* as the receiver host: (1) its GPIO header is already largely consumed by `pivac.GPIO` (BCM 17/27/22/5/6/13/26/16/12) + the 1-Wire bus, and (2) wiring a CC1101 to it means **powering down and opening up the live Signal K / InfluxDB / Grafana / nginx box**. A standalone **UNO R4 WiFi node** (the board you already have) running the CC1101 as a "dumb radio" that forwards raw telegrams over WiFi — with `wmbusmeters`/Python on the Pi doing the decode/decrypt — avoids both: no Pi GPIO, no disassembly, and it can sit near the meter for good reception. It also reuses the exact HTTP-poll pattern your two pressure boards already use. **Both receiver options remain fully documented:** the recommended node path is **Appendix A**; the Pi-direct path (CC1101 on the Pi GPIO + `wmbusmeters`) is the body §3–§4, retained as the alternative for when no node is wanted and the header/downtime are acceptable.
+> **Architecture (rev 4): recommended = a wM-Bus USB dongle on the Pi (IMST iM871A-USB).** The meter is read over the air, so the receiver only needs to be a USB stick. The production Pi can't host a *GPIO* radio — its header is largely consumed by `pivac.GPIO` (BCM 17/27/22/5/6/13/26/16/12) + the 1-Wire bus, and wiring one means powering down and opening the live Signal K / InfluxDB / Grafana / nginx box. A **USB wM-Bus dongle** sidesteps all of that: it's hot-plugged into a USB port (no GPIO, no disassembly, no Arduino, no custom sketch), decodes in hardware (low CPU), and `wmbusmeters` reads it natively (`im871a` driver). The only thing it shares with the abandoned Pi-direct CC1101 is **living at the Pi's location** — if reception there is poor, the fallback is the remote WiFi node that can sit near the meter.
+>
+> **Three receiver front-ends, all documented; everything downstream (decode → Signal K → Grafana) is identical:**
+> 1. **USB dongle on the Pi** — *recommended_* (§2A, §4). Simplest; no GPIO, no disassembly.
+> 2. **Remote UNO R4 WiFi node** — fallback if the Pi is too far from the meter (Appendix A). Uses the board you already have.
+> 3. **CC1101 on the Pi GPIO** — §3–§4; now **superseded by the dongle** (the dongle does the same job without GPIO/soldering/downtime). Kept for reference only.
 
 This plan is structured so you can sign off (or redirect) on the open decisions in §1 before any code is written.
 
@@ -38,20 +43,19 @@ The whole proven decode/decrypt stack targets **ESP/Linux**, not the Renesas RA4
 
 ## 1. Open decisions (please review before implementation)
 
-### 1.1 Architecture — RESOLVED: remote UNO R4 WiFi node (raw-forward), not the Pi
+### 1.1 Architecture — RESOLVED: USB wM-Bus dongle on the Pi (fallback: remote node)
 
-The receiver is read over the air, so where it physically sits is the whole question. Hanging the CC1101 off the production Pi's GPIO was the rev-2 plan, but two constraints rule it out:
+The receiver only has to be a radio that reaches the Pi. Three constraints shape the choice: the Pi's **GPIO header is crowded** (`pivac.GPIO` uses BCM 17/27/22/5/6/13/26/16/12; `pivac.OneWireTherm` owns the 1-Wire bus), wiring a GPIO radio means **opening the live production box**, and a remote node adds a **board + sketch to maintain**. A **USB wM-Bus dongle** clears all three: it hot-plugs into a USB port (no GPIO, no disassembly — arguably no shutdown), there's no firmware to write, it decodes in hardware (low Pi CPU), and `wmbusmeters` reads it natively. It does the wM-Bus modes including the iPerl's T1.
 
-1. **Pin contention** — `pivac.GPIO` already uses BCM 17/27/22/5/6/13/26/16/12 and `pivac.OneWireTherm` owns the 1-Wire bus. Even where SPI0 is free, the header is crowded and the live config claims more than the sample.
-2. **Production downtime + physical risk** — wiring to the header means shutting down and opening the box that runs Signal K, InfluxDB, Grafana, and nginx. Not worth it for one sensor.
+**US sourcing — the chosen part is the Würth Elektronik AMB8465-M.** The commonly-cited IMST **iM871A-USB** is effectively EU-only (not stocked at Mouser/DigiKey US; import from IMST/Ampheo). The **AMB8465-M** is the US-available equivalent: a purpose-built 868 MHz wM-Bus USB adapter (FTDI FT232R, all wM-Bus modes), **in stock at DigiKey USA** (PN 1917-1022-ND, MPN 2605056083001, "ships today"), driven by wmbusmeters' `amb8465` driver. ⚠️ Get the **-M USB adapter**, not the bare `AMB8465` solder-down module (DigiKey 1917-1020-ND).
 
-So the chosen path is a **standalone UNO R4 WiFi node** (already on hand) carrying the CC1101 as a **dumb radio**: it captures raw wM-Bus T1 telegrams and serves them over WiFi as single-quoted JSON, exactly like the two existing pressure boards. `pivac.WaterMeter` on the Pi fetches that feed and runs the decode + AES decrypt (via `wmbusmeters` or Python). This needs **no Pi GPIO and no disassembly**, lets the node sit near the meter for reception, and reuses the proven HTTP-poll pattern. **Full detail in Appendix A** (raw-forward variant). The Pi-direct path (§3–§4) is retained as the alternative.
+So the **chosen path is the AMB8465-M on the Pi.** `wmbusmeters` runs as a service reading `/dev/ttyUSB0`, does the decode + AES decrypt, and `pivac.WaterMeter` ingests its output (§6). Alternatives: **iM871A-USB** (EU import), or an **RTL-SDR** (Nooelec / RTL-SDR Blog V4, ~$30, US-available) via `rtlwmbus` — but the SDR decodes in software (more CPU, runs warm, more dropouts), so only as a backup. Avoid **CUL** sticks (telegram-length limits truncate long encrypted iPerl telegrams).
 
-> Why raw-forward and not on-board decode: the UNO R4's Renesas RA4M1 is outside the proven wM-Bus/AES ecosystem (that runs on ESP/Linux). Keeping the board dumb sidesteps that entirely. If you later want a board that decodes locally, use an **ESP32**, not the R4 (Appendix A notes both).
+**Fallback:** the dongle lives at the Pi, so it shares the Pi-direct reception question. If the Pi is too far from the meter, switch to the **remote UNO R4 WiFi node** (the board you have), which sits near the meter and forwards raw telegrams over WiFi — full detail in **Appendix A**. The **CC1101-on-Pi-GPIO** path (§3–§4) is now **superseded by the dongle** and kept for reference only.
 
-### 1.2 Radio reception at the node's location
+### 1.2 Radio reception — at the Pi (dongle) or at the node
 
-The node should sit where it both hears the meter and reaches WiFi. The iPerl beacons every 4–8 s at utility-readable power, and a proper **868 MHz SMA antenna** on the CC1101 usually closes a normal in-house distance — but **prove it early** (§5 step 3: confirm telegrams arrive with usable RSSI from the node's intended spot). Mitigations: external/higher-gain 868 MHz antenna → reposition the node → confirm WiFi signal there too (the existing pressure boards have a documented history of 2.4 GHz drop-and-recover, so check the node's AP coverage). The node's mobility is precisely the advantage the Pi lacked.
+For the dongle, the question is whether the **Pi's location** hears the meter; for the node, whether its **chosen spot** does (and reaches WiFi). The iPerl beacons every 4–8 s at utility-readable power. **Prove it early** (§5 step 3: confirm telegrams arrive with usable RSSI). Mitigations for the dongle: a **short USB extension** to get it out of any metal enclosure → relocate the Pi's antenna run → if still poor, fall back to the remote node. For the node: better 868 MHz antenna → reposition → verify 2.4 GHz AP coverage there (the pressure boards have a drop/recover history). The node's mobility is its one advantage over the dongle.
 
 ### 1.3 Will the default AES key actually decrypt *your* meter?
 
@@ -65,13 +69,25 @@ You wrote 858 MHz; the iPerl/wM-Bus T1 standard is **868.95 MHz**. Two things to
 
 ## 2. Bill of materials
 
-- **CC1101 868/900 MHz module** (confirm band — §1.4; recommend **E07-900M10S** with an SMA jack + 868 MHz antenna). The 433 MHz variant will not work.
-- Female–female jumper wires (8) to the Pi 40-pin header.
-- *(Option 1 / recommended needs nothing else — the Pi's GPIO is 3.3 V, so the radio connects directly. The Arduino UNO R4 WiFi, HiLetgo level shifter, and DIYables shield are only needed for **Option 2** / Appendix A.)*
+### 2A. Recommended — USB dongle on the Pi (buy one item)
+
+- **Würth Elektronik AMB8465-M** wM-Bus USB adapter — **US-stocked at DigiKey** (PN **1917-1022-ND**, MPN **2605056083001**). Plug into a Pi USB port; that's the entire hardware build. Driven by wmbusmeters' `amb8465` driver.
+  - ⚠️ Buy the **-M USB adapter**, not the bare `AMB8465` module (DigiKey 1917-1020-ND, solder-down chip).
+  - Alternatives: **IMST iM871A-USB** (EU import — not US-stocked); **RTL-SDR** (Nooelec NESDR / RTL-SDR Blog V4, US/Amazon, via `rtlwmbus` — more CPU). **Not** a CUL stick (telegram-length limits).
+  - Optional: a short **USB extension cable** to position the dongle out of the Pi's enclosure for better reception.
+- *(Nothing else — no GPIO wiring, no level shifter, no Arduino.)*
+
+### 2B. Fallback — remote UNO R4 node (parts you already have)
+
+- CC1101 868/900 MHz module (SMA jack + 868 MHz antenna; **not** the 433 MHz variant), UNO R4 WiFi, HiLetgo 4-ch level shifter, DIYables shield, jumper wires. See Appendix A.
+
+### 2C. Reference only — CC1101 on the Pi GPIO (superseded by 2A)
+
+- CC1101 868/900 MHz module + 8 jumper wires to the Pi header. See §3.
 
 ---
 
-## 3. Wiring — CC1101 → Raspberry Pi GPIO
+## 3. Wiring — CC1101 → Raspberry Pi GPIO *(reference only — superseded by the USB dongle, §2A)*
 
 The Pi's GPIO is **3.3 V**, the same as the CC1101, so the wiring is direct — **no level shifter**. Use the Pi's hardware **SPI0** bus plus two GPIOs for the radio's interrupt/data lines (GDO0, GDO2). GDO24/GDO25 are chosen only because they sit next to the SPI pins on the header.
 
@@ -119,14 +135,17 @@ ls -l /dev/spidev0.*      # expect /dev/spidev0.0 after reboot
 
 ## 4. Receiver software — `wmbusmeters` on the Pi
 
-No firmware to write — `wmbusmeters` drives a directly-attached CC1101 over SPI/GPIO and does the wM-Bus T1 reassembly + AES-128-CBC decrypt + iPerl parse natively (the path tracked in wmbusmeters issue #1713).
+No firmware to write — `wmbusmeters` does the wM-Bus T1 reassembly + AES-128-CBC decrypt + iPerl parse natively. It reads from any supported front-end; only the **device line** differs between the dongle and the CC1101.
 
-1. **Install** `wmbusmeters` on the Pi (`apt`, or build from source for the latest CC1101 support). Confirm the version includes the directly-attached-CC1101 device backend.
-2. **Configure the device** for a Pi-attached CC1101 with the GDO/SPI pins from §3 (the device line names the SPI dev + GDO0 GPIO; bandwidth/freq for T1 @ 868.95 MHz). Run it first in **foreground/`--analyze` mode** to watch frames arrive (§5).
+1. **Install** `wmbusmeters` on the Pi (`apt`, or build from source for the latest device support).
+2. **Configure the device:**
+   - **Recommended — AMB8465-M dongle:** plug it in, find its port (`dmesg | grep tty` → e.g. `/dev/ttyUSB0`, FTDI), set the device to `amb8465:/dev/ttyUSB0:t1` (or `c1,t1`). No GPIO, no SPI to enable. *(iM871A is `im871a:/dev/ttyUSB0:t1`; RTL-SDR is `rtlwmbus`.)*
+   - *Reference — CC1101 on GPIO:* enable SPI (§3.3) and use the directly-attached-CC1101 device line naming the SPI dev + GDO0 GPIO + T1 params (wmbusmeters issue #1713).
+   Run first in **foreground/`--analyze` mode** to watch frames arrive (§5).
 3. **Add the meter** (driver `iperl`, the confirmed meter ID, the AES key) once §5 validates the key. wmbusmeters then emits decoded JSON per telegram — `total_m3` and any iPerl flow/alarm fields — to stdout / a file / a shell pipe / MQTT.
 4. **Run it as a service** (`wmbusmetersd` has its own systemd unit) so it's always listening; pivac consumes its output (§6).
 
-This replaces the entire rev-1 Arduino sketch section.
+> For the **remote-node fallback (Appendix A)**, `wmbusmeters` instead receives raw hex forwarded by the node (fed via stdin/`--analyze` or a network feed) rather than owning a local radio.
 
 ---
 
@@ -145,7 +164,7 @@ Done on the Pi (or a laptop) with `wmbusmeters`, before committing config:
 
 New file `pivac/WaterMeter.py` implementing the standard `status(config={}, output="default")` contract.
 
-> **This section describes the Pi-direct (Option 1) ingest**, where `wmbusmeters` owns the CC1101 and the module just reads its decoded output. For the **recommended remote-node path (Option 2)** the module instead fetches the node's raw-telegram feed over HTTP and runs the decode itself — see **Appendix A §A.3**. Both end on the same Signal K paths (§6.1) and config shape; only the input source differs.
+> **This section describes ingest when `wmbusmeters` owns a local radio on the Pi** — the recommended **USB dongle**, or the reference CC1101-on-GPIO — and the module just reads its decoded JSON output. For the **remote-node fallback** the module instead fetches the node's raw-telegram feed over HTTP and decodes it — see **Appendix A §A.3**. All paths end on the same Signal K paths (§6.1) and config shape; only the input source differs.
 
 Its job is to bridge `wmbusmeters`' decoded output (§4) into Signal K deltas. Since the decode/decrypt is already done by `wmbusmeters`, the module is thin.
 
@@ -209,52 +228,53 @@ Add a panel to the pivac dashboard JSON (`grafana/dashboards/*.json`, auto-provi
 
 Mirror the styling of the existing DHW panel so it sits naturally on the board.
 
-**Freshness alert (optional, mirrors existing pattern):** a `watermeter-stale` rule in `grafana/provisioning/alerting/sensor-freshness.yaml` routing to the `graph-bridge` contact point — 30 m staleness on `environment.water.domestic.consumption`, same `value < <sentinel>` + `noDataState: Alerting` trick used by the other freshness alerts. (The meter transmits every 4–8 s, so true silence for 30 m is a real fault — `wmbusmeters` down, CC1101 dead, or meter battery.) Defer until the feed is proven stable.
+**Freshness alert (optional, mirrors existing pattern):** a `watermeter-stale` rule in `grafana/provisioning/alerting/sensor-freshness.yaml` routing to the `graph-bridge` contact point — 30 m staleness on `environment.water.domestic.consumption`, same `value < <sentinel>` + `noDataState: Alerting` trick used by the other freshness alerts. (The meter transmits every 4–8 s, so true silence for 30 m is a real fault — `wmbusmeters` down, dongle/radio dead, or meter battery.) Defer until the feed is proven stable.
 
 ---
 
-## 8. Implementation sequence (recommended path — remote UNO R4 node)
+## 8. Implementation sequence (recommended path — AMB8465-M USB dongle)
 
-1. **Buy/confirm** the CC1101 is the **868/900 MHz** variant with an antenna (§1.4, §2). ← gate
-2. **Hardware**: wire CC1101 ↔ UNO R4 via the 4-ch level shifter on the DIYables shield (Appendix A §A.1).
-3. **Sketch bring-up + reception check**: flash the raw-forward sketch (Appendix A §A.2); from the node's intended spot near the meter, confirm over serial that T1 telegrams arrive every 4–8 s with usable RSSI, and that the node holds WiFi there. **Go/no-go on placement** — if reception or WiFi is poor, reposition / better antenna (§1.2) before continuing.
-4. **Key validation (§5)**: feed a captured telegram to `wmbusmeters` on the Pi with the iPerl + default key; confirm the `2F2F` check passes. **Hard gate** — if the key fails, stop and resolve §1.3.
-5. **Deploy the node**: reserve a DHCP-by-MAC IP in UniFi (like the other boards); confirm `curl http://<node-ip>/` from the Pi returns the raw-telegram JSON.
-6. **pivac module (§6 + Appendix A §A.3)**: write `pivac.WaterMeter` (fetch node feed → `wmbusmeters`/Python decode → deltas), config block, `pivac-watermeter.service`; verify deltas land in Signal K (`environment.water.domestic.consumption`).
+1. **Buy** the Würth AMB8465-M from DigiKey US (PN 1917-1022-ND) (§2A). ← gate
+2. **Plug it in**: insert into a Pi USB port; `dmesg | grep tty` to find the port (e.g. `/dev/ttyUSB0`, FTDI). No GPIO, no SPI, no shutdown.
+3. **Receiver bring-up + reception check (§5)**: install `wmbusmeters`, set the device to `amb8465:/dev/ttyUSB0:t1`, run in analyze mode, confirm T1 telegrams arrive every 4–8 s with usable RSSI **at the Pi's location**. **Go/no-go** — if reception is poor, try a USB extension to reposition the dongle; if still poor, switch to the remote node (Appendix A).
+4. **Key validation (§5)**: add the iPerl + default key, confirm the `2F2F` check passes. **Hard gate** — if the key fails, stop and resolve §1.3.
+5. **Receiver as a service**: enable `wmbusmetersd` writing per-meter JSON to `/run/wmbusmeters/`; verify it survives reboot.
+6. **pivac module (§6)**: write `pivac.WaterMeter`, config block, `pivac-watermeter.service`; verify deltas land in Signal K (`environment.water.domestic.consumption`).
 7. **Grafana (§7)**: add the flow panel; confirm data plots; (later) add the freshness alert.
-8. **Docs**: update `CLAUDE.md` — Active Services & Devices table (new board, MAC/IP), Current Modules, deployment/stop/log lists, SK paths. Update the Arduino repo CLAUDE.md with the new board's MAC/IP/sketch.
-9. **PRs**: pivac (module + service + Grafana + config sample + docs); Arduino repo (sketch). Branch + PR per workflow.
+8. **Docs**: update `CLAUDE.md` — Active Services & Devices table (iM871A-USB on the Pi), Current Modules, deployment/stop/log lists, SK paths; note `wmbusmeters` now runs on the Pi. Update `pi-CLAUDE.md`.
+9. **PR**: pivac (module + service + Grafana + config sample + docs). Branch + PR per workflow. No Arduino-repo work.
 
-> For the **Pi-direct alternative** instead, the sequence is: wire CC1101 → Pi GPIO (§3) during a maintenance window, enable SPI, run `wmbusmeters` against the local CC1101, then steps 4/6–9 as above (no node, no Arduino-repo work).
+> For the **remote-node fallback** instead, the sequence is Appendix A: wire CC1101 ↔ UNO R4, flash the raw-forward sketch, place it near the meter, reserve its DHCP IP, then `wmbusmeters` + the module decode its forwarded telegrams (steps 4–9 adapted).
 
 ## 9. Risks & open questions (carried from §1)
 
-- **Radio reception + WiFi at the node's spot** (§1.2) — proven go/no-go in step 3. Ladder: better 868 MHz antenna → reposition the node → verify 2.4 GHz AP coverage there (the pressure boards have a drop/recover history).
+- **Radio reception at the Pi (dongle)** (§1.2) — proven go/no-go in step 3. Ladder: USB extension to reposition the dongle → relocate the antenna → fall back to the remote node near the meter.
 - **Default AES key may not decrypt this meter** (§1.3) — validated early in step 4; fallback is utility key request.
-- **Exact TX frequency / CC1101 band** (§1.4) — confirm the 868/900 MHz module variant and scan the actual frequency.
+- **Exact TX frequency / band** (§1.4) — the AMB8465-M is fixed 868 MHz wM-Bus (no band-variant trap the CC1101 has); just confirm the meter is on T1 @ 868.95.
 - **Signal K has no standard water-consumption path** — using a documented custom path (§6.1).
-- **Node WiFi stability** — reuse the other boards' watchdog/auto-reconnect hardening (Arduino PR #6) so a 2.4 GHz drop self-recovers.
 - **Secrets handling** — the AES key stays in the `wmbusmeters` config, out of the repo (§6).
+- *(Fallback-only) Node WiFi stability* — if the remote node is used, reuse the pressure boards' watchdog/auto-reconnect hardening (Arduino PR #6).
 
-## 10. Two documented options (both retained)
+## 10. Three documented options (all retained)
 
-This plan keeps **both** receiver options fully specified, so the choice can flip without re-deriving anything:
+The choice can flip without re-deriving anything. Everything downstream of the receiver (decode → Signal K → Grafana) is identical across all three.
 
-| | **Option 2 — remote UNO R4 node over WiFi** *(recommended)* | **Option 1 — CC1101 on the Pi GPIO** *(alternative)* |
-|---|---|---|
-| Receiver host | Standalone UNO R4 WiFi near the meter (Appendix A) | Production Pi GPIO/SPI (§3, §4) |
-| Pi GPIO used | **None** | SPI0 + 2 GPIOs — contends with `pivac.GPIO`/1-Wire |
-| Touches the live Pi | **No** — joins WiFi, polled over HTTP | **Yes** — power down + open the box to wire the header |
-| Placement | Near the meter (best reception) | Fixed at the Pi's location |
-| Level shifting | Required — UNO R4 is 5 V (4-ch BSS138) | None — Pi is 3.3 V |
-| Decode/decrypt | Raw-forward → `wmbusmeters`/Python on the Pi | `wmbusmeters` on the Pi |
-| Custom firmware | Arduino sketch (Appendix A §A.2) | None |
-| Main downside | A board + sketch to maintain | Pin contention **and** production downtime/disassembly (§1.1) |
+| | **Dongle on the Pi** *(recommended)* | **Remote UNO R4 node** *(fallback)* | **CC1101 on Pi GPIO** *(superseded)* |
+|---|---|---|---|
+| Hardware | iM871A-USB stick (§2A) | UNO R4 + CC1101 + shifter (Appendix A) | CC1101 + jumpers (§3) |
+| Pi GPIO used | **None** (USB) | **None** (WiFi) | SPI0 + 2 GPIOs — contends with `pivac.GPIO`/1-Wire |
+| Touches the live Pi | **No** — hot-plug USB | **No** — joins WiFi, polled over HTTP | **Yes** — power down + open the box to wire the header |
+| Placement | Fixed at the Pi's location | Near the meter (best reception) | Fixed at the Pi's location |
+| Decode/decrypt | `wmbusmeters` on the Pi (hardware) | Raw-forward → `wmbusmeters`/Python on the Pi | `wmbusmeters` on the Pi |
+| Custom firmware | None | Arduino sketch (Appendix A §A.2) | None |
+| Effort | **Lowest** — plug in, configure | Highest — build + sketch + maintain | Medium — wire + downtime |
+| Main downside | Tied to Pi location | A board + sketch to maintain | Pin contention **and** production downtime/disassembly (§1.1) |
 
-**Decision:** go with **Option 2 (remote UNO R4, raw-forward)** — it avoids the Pi's pin contention and the disassembly of the live monitoring box, sits near the meter for reception, and reuses the existing pressure-board pattern. Option 1 stays documented as the fallback for a future scenario where a node isn't wanted and opening the Pi is acceptable. If on-board decode is ever preferred over raw-forward, use an **ESP32** (proven wM-Bus/AES), not the RA4M1-based UNO R4.
+**Decision:** go with the **USB dongle (Würth AMB8465-M, DigiKey US PN 1917-1022-ND)** — lowest effort, no GPIO, no disassembly, hardware decode, and US-stocked. Use the **remote UNO R4 node** only if reception at the Pi is poor (its one advantage is placement near the meter). The **CC1101-on-Pi-GPIO** path is superseded by the dongle (same location, but worse on every practical axis) and kept for reference only.
 
-Also noted but not pursued:
-- **RTL-SDR dongle instead of CC1101** — plug-and-play on USB and handy for discovery, but a heavier/more-power-hungry receiver and overkill for one fixed meter; the CC1101 is the lean purpose-built choice.
+Also noted:
+- **iM871A-USB** — the frequently-cited equivalent, but effectively EU-only (not US-stocked); import only.
+- **RTL-SDR** — a US-available USB SDR (~$30, Nooelec / RTL-SDR Blog) that also works (`rtlwmbus`), good for discovery, but decodes in software (more CPU, runs warm, more dropouts). Backup choice.
 
 ---
 
@@ -340,6 +360,10 @@ Either variant lands on the same Signal K paths (§6.1) and Grafana panel (§7),
 - [wmbusmeters issue #253 — iPerl shared mBus key / decrypt failures](https://github.com/wmbusmeters/wmbusmeters/issues/253)
 - [wmbusmeters issue #928 / #878 — Sensus iPerl driver discussion](https://github.com/wmbusmeters/wmbusmeters/issues/928)
 - [wmbusmeters issue #1713 — using a CC1101 (868 MHz) directly on a Raspberry Pi](https://github.com/wmbusmeters/wmbusmeters/issues/1713)
+- [wmbusmeters — Supported Devices (im871a, amb8465, rtlwmbus, …)](https://github.com/wmbusmeters/wmbusmeters/blob/master/README.md)
+- [DigiKey US — Würth AMB8465-M wM-Bus 868 MHz USB adapter (PN 1917-1022-ND)](https://www.digikey.com/en/products/detail/wurth-electronics-inc/AMB8465-M/8258132)
+- [IMST iM871A-USB (EU source)](https://wireless-solutions.de/products/m-bus/im871a-usb/)
+- [wmbusmeters/rtl-wmbus — RTL-SDR software receiver for wM-Bus](https://github.com/wmbusmeters/rtl-wmbus)
 - [f4exb/picc1101 — Raspberry Pi ↔ CC1101 over SPI/GPIO (wiring reference)](https://github.com/f4exb/picc1101)
 - [SzczepanLeon/esphome-components — wmbus component (CC1101, T1/C1, 868.95 MHz); basis for a remote-node fallback](https://github.com/SzczepanLeon/esphome-components)
 - [eydam-prototyping/cc1101 — CC1101 driver for Raspberry Pi](https://github.com/eydam-prototyping/cc1101)
