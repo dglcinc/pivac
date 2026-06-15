@@ -240,9 +240,9 @@ Mirror the styling of the existing DHW panel so it sits naturally on the board.
 
 ## 8. Implementation sequence (this build — remote UNO R4 node)
 
-1. **Confirm** the CC1101 is the **868/900 MHz** variant with an antenna (§1.4). ← gate
+1. **Radio:** start with the **on-hand 433-marked CC1101** as a no-cost test (§1.4). It's band-mismatched for 868 (~10–20 dB sensitivity loss), so give it the best shot: place it **right next to the meter** and fit a **~8.2 cm quarter-wave wire** (or an 868/915 antenna) instead of the 433 coil. If it can't hear the meter even up close (step 3), buy a true **868** module (EBYTE E07-900M10S, ~$8–12) and reuse everything else.
 2. **Hardware**: wire CC1101 ↔ UNO R4 via the 4-ch level shifter on the DIYables shield (Appendix A §A.1).
-3. **Sketch bring-up + reception check**: flash the raw-forward sketch (Appendix A §A.2); from the node's intended spot near the meter, confirm over serial that T1 telegrams arrive every 4–8 s with usable RSSI, and that the node holds WiFi there. **Go/no-go on placement** — if reception or WiFi is poor, reposition / better antenna (§1.2); persistent trouble → the AMB8465-M dongle is the upgrade.
+3. **Sketch bring-up + reception check**: flash the raw-forward sketch (Appendix A §A.2); from a spot near the meter, confirm over serial that T1 telegrams arrive every 4–8 s with usable RSSI, and that the node holds WiFi there. **Interpreting it:** frames decode → done; *any* 868 RF/frames but no decode → radio is fine, it's a key/ID issue (step 4); **nothing even inches from the meter** → the 433 board's mismatch is the limiter → get an 868 module. Persistent reception trouble with a proper 868 radio → the AMB8465-M dongle is the upgrade.
 4. **Key validation (§5)**: feed a captured telegram to `wmbusmeters` on the Pi with the iPerl + default key; confirm the `2F2F` check passes. **Hard gate** — if the key fails, stop and resolve §1.3.
 5. **Deploy the node**: reserve a DHCP-by-MAC IP in UniFi (like the other boards); confirm `curl http://<node-ip>/` from the Pi returns the raw-telegram JSON.
 6. **pivac module (§6 + Appendix A §A.3)**: write `pivac.WaterMeter` (fetch node feed → `wmbusmeters`/Python decode → deltas), config block, `pivac-watermeter.service`; verify deltas land in Signal K (`environment.water.domestic.consumption`).
