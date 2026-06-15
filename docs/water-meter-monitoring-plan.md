@@ -67,7 +67,9 @@ The vendor line (confirmed in `wmbusmeters` issue threads) is that iPerl uses **
 
 ### 1.4 Frequency: confirm 868.95 MHz and the CC1101 band variant
 
-You wrote 858 MHz; the iPerl/wM-Bus T1 standard is **868.95 MHz**. Two things to verify before/at first power-on: (a) the CC1101 module is the **868/900 MHz** variant, **not** the 433 MHz one — buying 433 is the single most common failure and it will *never* hear the meter; an **EBYTE E07-900M10S** (SMA antenna jack) is the recommended module. (b) The exact TX frequency — a quick spectrum scan or trying 868.95 / 868.3 confirms it.
+You wrote 858 MHz; the iPerl/wM-Bus T1 standard is **868.95 MHz**. Two things to verify before/at first power-on: (a) the CC1101 module is the **868/900 MHz** variant, **not** the 433 MHz one — buying 433 is the single most common failure and it will *never* reliably hear the meter; an **EBYTE E07-900M10S** (SMA jack, 855–925 MHz) is the recommended module. (b) The exact TX frequency — a quick spectrum scan or trying 868.95 / 868.3 confirms it.
+
+> **Identifying a CC1101 module's band (this trips everyone):** the CC1101 *chip* tunes all of 315/433/868/915, so Amazon listings quote all four — but each *board* has an antenna matching network + antenna fixed for **one** band. A board silkscreened **433 is a 433 board**; tuning it to 868 loses ~10–20 dB of sensitivity (front-end mismatch) and won't hear the meter through walls. Tell the real band by: **silkscreen marking** (authoritative), **antenna length** (433 ≈ 16 cm vs 868 ≈ 8 cm — roughly half), or **model number** (E07-M1101D = 433-only; E07-900M10S = 868/915). Swapping just the antenna does **not** fix it — the on-board matching is still wrong. Buy a board explicitly marked/sold as **868**.
 
 ---
 
