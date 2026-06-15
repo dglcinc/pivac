@@ -3,7 +3,7 @@
 **Status:** DRAFT FOR REVIEW — 2026-06-15 (rev 2)
 **Goal:** Add a new pivac data source that reads the house's **Sensus iPerl** domestic water meter over radio, publishes consumption/flow to Signal K, and plots it in Grafana.
 
-> **Architecture decided (rev 2):** the meter is read **over the air** — there is no physical connection to it — so a dedicated Arduino node buys nothing. The CC1101 transceiver wires **directly onto the Raspberry Pi's GPIO/SPI** (Pi is 3.3 V, matching the radio — no level shifter, no Arduino, no shield), and `wmbusmeters` on the Pi does the decode/decrypt. **Both receiver options remain fully documented:** Option 1 (Pi-direct, recommended) is the body of this plan; Option 2 (a remote Arduino/ESP node near the meter) is kept in full in §10 + **Appendix A**, as the fallback for the one scenario that would resurrect it — poor radio reception at the Pi's location (§1.2).
+> **Architecture (rev 3): recommended = remote UNO R4 node over WiFi (Appendix A); Pi-direct kept as the alternative.** The meter is read over the air, so the receiver can live anywhere on WiFi. Two real constraints rule the production Pi *out* as the receiver host: (1) its GPIO header is already largely consumed by `pivac.GPIO` (BCM 17/27/22/5/6/13/26/16/12) + the 1-Wire bus, and (2) wiring a CC1101 to it means **powering down and opening up the live Signal K / InfluxDB / Grafana / nginx box**. A standalone **UNO R4 WiFi node** (the board you already have) running the CC1101 as a "dumb radio" that forwards raw telegrams over WiFi — with `wmbusmeters`/Python on the Pi doing the decode/decrypt — avoids both: no Pi GPIO, no disassembly, and it can sit near the meter for good reception. It also reuses the exact HTTP-poll pattern your two pressure boards already use. **Both receiver options remain fully documented:** the recommended node path is **Appendix A**; the Pi-direct path (CC1101 on the Pi GPIO + `wmbusmeters`) is the body §3–§4, retained as the alternative for when no node is wanted and the header/downtime are acceptable.
 
 This plan is structured so you can sign off (or redirect) on the open decisions in §1 before any code is written.
 
@@ -38,13 +38,20 @@ The whole proven decode/decrypt stack targets **ESP/Linux**, not the Renesas RA4
 
 ## 1. Open decisions (please review before implementation)
 
-### 1.1 Architecture — RESOLVED: CC1101 direct on the Pi (no Arduino)
+### 1.1 Architecture — RESOLVED: remote UNO R4 WiFi node (raw-forward), not the Pi
 
-The meter is read over radio with no physical connection, so a dedicated node only earns its place if it improves *reception* — and the simplest deployment is to hang the CC1101 off the production Pi's own GPIO/SPI and let `wmbusmeters` (already a Linux-native, tested iPerl decoder) do the decode + AES decrypt there. No Arduino, no level shifter, no shield, no custom sketch, no porting wM-Bus/AES to a constrained MCU. **This is the chosen path.** (The Arduino "Strategy A/B" options from rev 1 survive only in §10 as the fallback if §1.2 reception is poor.)
+The receiver is read over the air, so where it physically sits is the whole question. Hanging the CC1101 off the production Pi's GPIO was the rev-2 plan, but two constraints rule it out:
 
-### 1.2 The one real risk — radio reception at the Pi's location
+1. **Pin contention** — `pivac.GPIO` already uses BCM 17/27/22/5/6/13/26/16/12 and `pivac.OneWireTherm` owns the 1-Wire bus. Even where SPI0 is free, the header is crowded and the live config claims more than the sample.
+2. **Production downtime + physical risk** — wiring to the header means shutting down and opening the box that runs Signal K, InfluxDB, Grafana, and nginx. Not worth it for one sensor.
 
-The only thing the Pi-direct approach gives up versus a node placed next to the meter is **proximity to the transmitter**. The iPerl beacons every 4–8 s at utility-readable power, and a proper **868 MHz SMA antenna** on the CC1101 usually closes a normal in-house distance — but this is the item to **prove early** (§5 step 2: confirm telegrams actually arrive at the Pi with usable RSSI). Mitigations, in order: external/higher-gain 868 MHz antenna → relocate antenna on a short coax → only if all that fails, fall back to a remote ESP32+CC1101 node near the meter feeding the Pi (§10). Don't build the remote node speculatively.
+So the chosen path is a **standalone UNO R4 WiFi node** (already on hand) carrying the CC1101 as a **dumb radio**: it captures raw wM-Bus T1 telegrams and serves them over WiFi as single-quoted JSON, exactly like the two existing pressure boards. `pivac.WaterMeter` on the Pi fetches that feed and runs the decode + AES decrypt (via `wmbusmeters` or Python). This needs **no Pi GPIO and no disassembly**, lets the node sit near the meter for reception, and reuses the proven HTTP-poll pattern. **Full detail in Appendix A** (raw-forward variant). The Pi-direct path (§3–§4) is retained as the alternative.
+
+> Why raw-forward and not on-board decode: the UNO R4's Renesas RA4M1 is outside the proven wM-Bus/AES ecosystem (that runs on ESP/Linux). Keeping the board dumb sidesteps that entirely. If you later want a board that decodes locally, use an **ESP32**, not the R4 (Appendix A notes both).
+
+### 1.2 Radio reception at the node's location
+
+The node should sit where it both hears the meter and reaches WiFi. The iPerl beacons every 4–8 s at utility-readable power, and a proper **868 MHz SMA antenna** on the CC1101 usually closes a normal in-house distance — but **prove it early** (§5 step 3: confirm telegrams arrive with usable RSSI from the node's intended spot). Mitigations: external/higher-gain 868 MHz antenna → reposition the node → confirm WiFi signal there too (the existing pressure boards have a documented history of 2.4 GHz drop-and-recover, so check the node's AP coverage). The node's mobility is precisely the advantage the Pi lacked.
 
 ### 1.3 Will the default AES key actually decrypt *your* meter?
 
@@ -136,7 +143,11 @@ Done on the Pi (or a laptop) with `wmbusmeters`, before committing config:
 
 ## 6. New pivac module — `pivac.WaterMeter`
 
-New file `pivac/WaterMeter.py` implementing the standard `status(config={}, output="default")` contract. Its job is to bridge the `wmbusmeters` daemon's decoded output (§4) into Signal K deltas. Since the decode/decrypt is already done by `wmbusmeters`, the module is thin.
+New file `pivac/WaterMeter.py` implementing the standard `status(config={}, output="default")` contract.
+
+> **This section describes the Pi-direct (Option 1) ingest**, where `wmbusmeters` owns the CC1101 and the module just reads its decoded output. For the **recommended remote-node path (Option 2)** the module instead fetches the node's raw-telegram feed over HTTP and runs the decode itself — see **Appendix A §A.3**. Both end on the same Signal K paths (§6.1) and config shape; only the input source differs.
+
+Its job is to bridge `wmbusmeters`' decoded output (§4) into Signal K deltas. Since the decode/decrypt is already done by `wmbusmeters`, the module is thin.
 
 **Ingest options** (pick one — the module is small either way):
 
@@ -202,41 +213,45 @@ Mirror the styling of the existing DHW panel so it sits naturally on the board.
 
 ---
 
-## 8. Implementation sequence
+## 8. Implementation sequence (recommended path — remote UNO R4 node)
 
 1. **Buy/confirm** the CC1101 is the **868/900 MHz** variant with an antenna (§1.4, §2). ← gate
-2. **Hardware**: wire CC1101 → Pi GPIO per §3; enable SPI (`/dev/spidev0.0`).
-3. **Receiver bring-up + reception check (§5)**: install `wmbusmeters`, run in analyze mode, confirm T1 telegrams arrive every 4–8 s with usable RSSI. **Go/no-go on Pi-direct** — if reception is poor, work §1.2 mitigations before continuing.
-4. **Key validation (§5)**: add the iPerl + default key, confirm the `2F2F` check passes. **Hard gate** — if the key fails, stop and resolve §1.3.
-5. **Receiver as a service**: enable `wmbusmetersd` writing per-meter JSON to `/run/wmbusmeters/`; verify it survives reboot.
-6. **pivac module (§6)**: write `pivac.WaterMeter`, config block, `pivac-watermeter.service`; verify deltas land in Signal K (`environment.water.domestic.consumption`).
+2. **Hardware**: wire CC1101 ↔ UNO R4 via the 4-ch level shifter on the DIYables shield (Appendix A §A.1).
+3. **Sketch bring-up + reception check**: flash the raw-forward sketch (Appendix A §A.2); from the node's intended spot near the meter, confirm over serial that T1 telegrams arrive every 4–8 s with usable RSSI, and that the node holds WiFi there. **Go/no-go on placement** — if reception or WiFi is poor, reposition / better antenna (§1.2) before continuing.
+4. **Key validation (§5)**: feed a captured telegram to `wmbusmeters` on the Pi with the iPerl + default key; confirm the `2F2F` check passes. **Hard gate** — if the key fails, stop and resolve §1.3.
+5. **Deploy the node**: reserve a DHCP-by-MAC IP in UniFi (like the other boards); confirm `curl http://<node-ip>/` from the Pi returns the raw-telegram JSON.
+6. **pivac module (§6 + Appendix A §A.3)**: write `pivac.WaterMeter` (fetch node feed → `wmbusmeters`/Python decode → deltas), config block, `pivac-watermeter.service`; verify deltas land in Signal K (`environment.water.domestic.consumption`).
 7. **Grafana (§7)**: add the flow panel; confirm data plots; (later) add the freshness alert.
-8. **Docs**: update `CLAUDE.md` — Active Services table, Current Modules, deployment/stop/log lists, SK paths, and a note that the Pi now hosts a CC1101 on the GPIO header + `wmbusmeters`. Update `pi-CLAUDE.md` (new service on the Pi).
-9. **PR**: pivac (module + service + Grafana + config sample + docs). Branch + PR per workflow. No Arduino-repo work.
+8. **Docs**: update `CLAUDE.md` — Active Services & Devices table (new board, MAC/IP), Current Modules, deployment/stop/log lists, SK paths. Update the Arduino repo CLAUDE.md with the new board's MAC/IP/sketch.
+9. **PRs**: pivac (module + service + Grafana + config sample + docs); Arduino repo (sketch). Branch + PR per workflow.
+
+> For the **Pi-direct alternative** instead, the sequence is: wire CC1101 → Pi GPIO (§3) during a maintenance window, enable SPI, run `wmbusmeters` against the local CC1101, then steps 4/6–9 as above (no node, no Arduino-repo work).
 
 ## 9. Risks & open questions (carried from §1)
 
-- **Radio reception at the Pi's location** (§1.2) — the central risk now; proven go/no-go in step 3. Mitigation ladder: better antenna → relocate antenna → remote ESP32 node (§10).
+- **Radio reception + WiFi at the node's spot** (§1.2) — proven go/no-go in step 3. Ladder: better 868 MHz antenna → reposition the node → verify 2.4 GHz AP coverage there (the pressure boards have a drop/recover history).
 - **Default AES key may not decrypt this meter** (§1.3) — validated early in step 4; fallback is utility key request.
 - **Exact TX frequency / CC1101 band** (§1.4) — confirm the 868/900 MHz module variant and scan the actual frequency.
 - **Signal K has no standard water-consumption path** — using a documented custom path (§6.1).
-- **Physical change to the production Pi** — adding the CC1101 to the GPIO header touches the live `10.0.0.82` box; wire it during a maintenance window and note the header pins are now occupied.
+- **Node WiFi stability** — reuse the other boards' watchdog/auto-reconnect hardening (Arduino PR #6) so a 2.4 GHz drop self-recovers.
 - **Secrets handling** — the AES key stays in the `wmbusmeters` config, out of the repo (§6).
 
 ## 10. Two documented options (both retained)
 
 This plan keeps **both** receiver options fully specified, so the choice can flip without re-deriving anything:
 
-| | **Option 1 — CC1101 on the Pi** *(recommended)* | **Option 2 — remote Arduino/ESP node near the meter** |
+| | **Option 2 — remote UNO R4 node over WiFi** *(recommended)* | **Option 1 — CC1101 on the Pi GPIO** *(alternative)* |
 |---|---|---|
-| Receiver host | Production Pi GPIO/SPI (§3, §4) | Standalone board near the meter (Appendix A) |
-| Level shifting | None — Pi is 3.3 V | Required — UNO R4 is 5 V (4-ch BSS138) |
-| Decode/decrypt | `wmbusmeters` on the Pi | On-board (hard, ESP-proven) **or** raw-forward to `wmbusmeters` on the Pi |
-| Custom firmware | None | Arduino sketch (Appendix A §A.2) |
-| Best when | The Pi is within radio range of the meter | The Pi is too far / reception at the Pi is poor (§1.2) |
-| Main downside | Tied to the Pi's physical location | More hardware + a sketch to maintain; RA4M1 is outside the proven wM-Bus/AES ecosystem |
+| Receiver host | Standalone UNO R4 WiFi near the meter (Appendix A) | Production Pi GPIO/SPI (§3, §4) |
+| Pi GPIO used | **None** | SPI0 + 2 GPIOs — contends with `pivac.GPIO`/1-Wire |
+| Touches the live Pi | **No** — joins WiFi, polled over HTTP | **Yes** — power down + open the box to wire the header |
+| Placement | Near the meter (best reception) | Fixed at the Pi's location |
+| Level shifting | Required — UNO R4 is 5 V (4-ch BSS138) | None — Pi is 3.3 V |
+| Decode/decrypt | Raw-forward → `wmbusmeters`/Python on the Pi | `wmbusmeters` on the Pi |
+| Custom firmware | Arduino sketch (Appendix A §A.2) | None |
+| Main downside | A board + sketch to maintain | Pin contention **and** production downtime/disassembly (§1.1) |
 
-**Decision rule:** build Option 1 first; if the §5 step-3 reception check fails at the Pi, switch to Option 2 (an **ESP32** is the lower-risk board for on-board decode; the purchased **UNO R4** works for the raw-forward variant). Full Option-2 wiring and sketch are in **Appendix A** so nothing has to be re-researched.
+**Decision:** go with **Option 2 (remote UNO R4, raw-forward)** — it avoids the Pi's pin contention and the disassembly of the live monitoring box, sits near the meter for reception, and reuses the existing pressure-board pattern. Option 1 stays documented as the fallback for a future scenario where a node isn't wanted and opening the Pi is acceptable. If on-board decode is ever preferred over raw-forward, use an **ESP32** (proven wM-Bus/AES), not the RA4M1-based UNO R4.
 
 Also noted but not pursued:
 - **RTL-SDR dongle instead of CC1101** — plug-and-play on USB and handy for discovery, but a heavier/more-power-hungry receiver and overkill for one fixed meter; the CC1101 is the lean purpose-built choice.
