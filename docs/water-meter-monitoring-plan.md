@@ -3,7 +3,7 @@
 **Status:** DRAFT FOR REVIEW — 2026-06-15 (rev 2)
 **Goal:** Add a new pivac data source that reads the house's **Sensus iPerl** domestic water meter over radio, publishes consumption/flow to Signal K, and plots it in Grafana.
 
-> **Architecture decided (rev 2):** the meter is read **over the air** — there is no physical connection to it — so a dedicated Arduino node buys nothing. The CC1101 transceiver wires **directly onto the Raspberry Pi's GPIO/SPI** (Pi is 3.3 V, matching the radio — no level shifter, no Arduino, no shield), and `wmbusmeters` on the Pi does the decode/decrypt. This was "Strategy C" in rev 1 and is now the chosen path. The Arduino-based strategies (A/B) are retained in §10 only as fallbacks for the one scenario that would resurrect them: poor radio reception at the Pi's location (§1.2).
+> **Architecture decided (rev 2):** the meter is read **over the air** — there is no physical connection to it — so a dedicated Arduino node buys nothing. The CC1101 transceiver wires **directly onto the Raspberry Pi's GPIO/SPI** (Pi is 3.3 V, matching the radio — no level shifter, no Arduino, no shield), and `wmbusmeters` on the Pi does the decode/decrypt. **Both receiver options remain fully documented:** Option 1 (Pi-direct, recommended) is the body of this plan; Option 2 (a remote Arduino/ESP node near the meter) is kept in full in §10 + **Appendix A**, as the fallback for the one scenario that would resurrect it — poor radio reception at the Pi's location (§1.2).
 
 This plan is structured so you can sign off (or redirect) on the open decisions in §1 before any code is written.
 
@@ -60,7 +60,7 @@ You wrote 858 MHz; the iPerl/wM-Bus T1 standard is **868.95 MHz**. Two things to
 
 - **CC1101 868/900 MHz module** (confirm band — §1.4; recommend **E07-900M10S** with an SMA jack + 868 MHz antenna). The 433 MHz variant will not work.
 - Female–female jumper wires (8) to the Pi 40-pin header.
-- *(Not used: the Arduino UNO R4 WiFi, HiLetgo level shifter, and DIYables shield. The Pi's GPIO is 3.3 V, so the radio connects directly.)*
+- *(Option 1 / recommended needs nothing else — the Pi's GPIO is 3.3 V, so the radio connects directly. The Arduino UNO R4 WiFi, HiLetgo level shifter, and DIYables shield are only needed for **Option 2** / Appendix A.)*
 
 ---
 
@@ -223,11 +223,98 @@ Mirror the styling of the existing DHW panel so it sits naturally on the board.
 - **Physical change to the production Pi** — adding the CC1101 to the GPIO header touches the live `10.0.0.82` box; wire it during a maintenance window and note the header pins are now occupied.
 - **Secrets handling** — the AES key stays in the `wmbusmeters` config, out of the repo (§6).
 
-## 10. Alternatives considered (not chosen)
+## 10. Two documented options (both retained)
 
-- **Remote ESP32 + CC1101 node near the meter, feeding the Pi.** The fallback if §1.2 reception at the Pi is poor. An ESP32 (not the Renesas UNO R4 — the wM-Bus/CC1101 stack is proven on ESP) running `SzczepanLeon/esphome-components` decodes locally and pushes to Home Assistant/MQTT, or forwards raw telegrams to `wmbusmeters` on the Pi. More hardware and a second device to maintain; only justified if proximity is genuinely required.
-- **Arduino UNO R4 WiFi node (rev-1 plan).** Dropped — the RA4M1 is outside the proven wM-Bus/AES ecosystem (that stack is ESP/Linux), and with no physical meter connection the board offered no advantage over the Pi-direct path. The purchased Arduino/shield/level-shifter are freed for another project.
-- **RTL-SDR dongle instead of CC1101.** Works for discovery and is plug-and-play on USB, but it's a heavier/more-power-hungry receiver and overkill for one fixed meter; the CC1101 is the lean purpose-built choice.
+This plan keeps **both** receiver options fully specified, so the choice can flip without re-deriving anything:
+
+| | **Option 1 — CC1101 on the Pi** *(recommended)* | **Option 2 — remote Arduino/ESP node near the meter** |
+|---|---|---|
+| Receiver host | Production Pi GPIO/SPI (§3, §4) | Standalone board near the meter (Appendix A) |
+| Level shifting | None — Pi is 3.3 V | Required — UNO R4 is 5 V (4-ch BSS138) |
+| Decode/decrypt | `wmbusmeters` on the Pi | On-board (hard, ESP-proven) **or** raw-forward to `wmbusmeters` on the Pi |
+| Custom firmware | None | Arduino sketch (Appendix A §A.2) |
+| Best when | The Pi is within radio range of the meter | The Pi is too far / reception at the Pi is poor (§1.2) |
+| Main downside | Tied to the Pi's physical location | More hardware + a sketch to maintain; RA4M1 is outside the proven wM-Bus/AES ecosystem |
+
+**Decision rule:** build Option 1 first; if the §5 step-3 reception check fails at the Pi, switch to Option 2 (an **ESP32** is the lower-risk board for on-board decode; the purchased **UNO R4** works for the raw-forward variant). Full Option-2 wiring and sketch are in **Appendix A** so nothing has to be re-researched.
+
+Also noted but not pursued:
+- **RTL-SDR dongle instead of CC1101** — plug-and-play on USB and handy for discovery, but a heavier/more-power-hungry receiver and overkill for one fixed meter; the CC1101 is the lean purpose-built choice.
+
+---
+
+## Appendix A — Option 2: remote Arduino/ESP node (full detail)
+
+Use this if reception at the Pi is poor and the receiver needs to sit near the meter. The node captures wM-Bus T1 frames on a CC1101 and either decodes on-board or forwards raw telegrams to `wmbusmeters` on the Pi; pivac then ingests the result. **On a UNO R4 WiFi** (5 V logic) the CC1101 needs the 4-channel level shifter; **on an ESP32** (3.3 V) it does not, and the on-board decode/decrypt path is far better supported — prefer an ESP32 if doing full on-board decode.
+
+### A.1 Wiring — CC1101 ↔ UNO R4 WiFi (5 V, via the 4-ch level shifter)
+
+The CC1101 is a **3.3 V** device; the UNO R4 WiFi drives **5 V** logic. So:
+
+- **Arduino → CC1101 lines MUST be shifted down 5 V → 3.3 V** to avoid destroying the radio: **SCK, MOSI, CSN**.
+- **CC1101 → Arduino lines are 3.3 V → 5 V**: **MISO, GDO0** (and optional GDO2). 3.3 V is *usually* read as logic-HIGH by the R4, but routing MISO through the shifter removes all doubt.
+
+The 4-channel converter carries the **whole SPI bus** (MOSI, MISO, SCK, CSN) — which is exactly why a 4-channel part fits. **GDO0** (the data/interrupt line wM-Bus reception depends on) connects **directly** (3.3 V→5 V); if it ever proves marginal, add a 5th shifted channel. GDO2 is typically unused for T1.
+
+VCC for the CC1101 comes from the Arduino **3V3** pin. The level converter's **LV** side = 3.3 V (to CC1101), **HV** side = 5 V (to Arduino).
+
+| CC1101 pin | → level converter (LV side) | HV side → Arduino UNO R4 | Notes |
+|------------|----------------------------|--------------------------|-------|
+| VCC        | — (direct)                 | **3V3**                  | 3.3 V power **only** — never 5 V |
+| GND        | — (direct)                 | **GND**                  | common ground (incl. converter GND both sides) |
+| SCK        | LV1                        | HV1 → **D13 (SCK)**      | 5 V→3.3 V down-shift (mandatory) |
+| MOSI (SI)  | LV2                        | HV2 → **D11 (MOSI)**     | 5 V→3.3 V down-shift (mandatory) |
+| MISO (SO)  | LV3                        | HV3 → **D12 (MISO)**     | 3.3 V→5 V up-shift (for reliable read) |
+| CSN (CS)   | LV4                        | HV4 → **D10 (CS)**       | 5 V→3.3 V down-shift (mandatory) |
+| GDO0       | — (direct)                 | **D2** (interrupt-capable)| 3.3 V→5 V; direct is OK, shift if marginal |
+| GDO2       | — (unused)                 | —                        | not needed for T1 |
+
+Level converter power: **LV = 3V3** (Arduino 3V3), **HV = 5V** (Arduino 5V), **GND** tied to Arduino GND on both sides.
+
+> On the UNO R4, hardware SPI is fixed to **D11/D12/D13** (MOSI/MISO/SCK) and the ICSP header; only the CS pin is free to choose (D10 used here). GDO0 must be on an interrupt-capable pin — all R4 digital pins qualify.
+
+```
+   Arduino UNO R4 WiFi (5V)            BSS138 4-ch converter           CC1101 (3.3V)
+   ----------------------              ---------------------           -------------
+   5V  ───────────────────────────────► HV  ◄─── LV ──────────────────► 3V3 ──► VCC
+   GND ───────────────────────────────► GND(HV)  GND(LV) ─────────────► GND
+   D13 SCK  ──────────────────► HV1 ───────────────── LV1 ───────────► SCK
+   D11 MOSI ──────────────────► HV2 ───────────────── LV2 ───────────► MOSI (SI)
+   D12 MISO ◄────────────────── HV3 ───────────────── LV3 ◄────────── MISO (SO)
+   D10 CS   ──────────────────► HV4 ───────────────── LV4 ───────────► CSN
+   D2  GDO0 ◄────────────────────────── (direct, 3.3V→5V) ──────────── GDO0
+                                                                       ANT ──► 868 MHz antenna
+```
+
+Mount the CC1101 + converter on the DIYables shield; keep the antenna clear of the board and away from boiler-room metal. *(On an ESP32 the level shifter is omitted — wire the CC1101's SPI + GDO0/GDO2 straight to the ESP32's 3.3 V GPIO, as in the SzczepanLeon/MarkLabs guides.)*
+
+### A.2 Arduino sketch (raw-forward variant)
+
+A new sketch in the `~/github/Arduino` repo (its own sketch dir, alongside `ArduinoPSI_Domestic` / `ArduinoPSI_BoilerLoop`), reusing the existing boards' proven scaffolding: WiFi connect with the RA4M1 **watchdog + escalating reconnect + `NVIC_SystemReset()` fallback + `uptime_ms`** hardening (Arduino PR #6).
+
+**Responsibilities:**
+
+1. **Init CC1101 via RadioLib** for wM-Bus **T1**: 868.95 MHz, ~103 kbps, 2-FSK, ~50 kHz deviation, ~270–325 kHz RX bandwidth, T1 sync word, GDO0 as async data / packet-ready interrupt. (Crib the register set from `alex-icesoft/esp32_cc1101_wmbus` / SzczepanLeon's CC1101 init — same chip.)
+2. **Capture frames** in the GDO0 ISR into a ring buffer; keep the most recent N raw telegrams (with capture time-since-boot and RSSI/LQI).
+3. **Optionally pre-filter** to telegrams whose wM-Bus manufacturer/device-type bytes match Sensus iPerl, to cut HTTP payload size (full decode still happens on the Pi).
+4. **Serve over WiFi**, matching the house pattern — a minimal HTTP server on `:80` returning a single-quoted dict line, e.g.:
+   ```
+   {'mfct':'SEN','id':'12345678','rssi':-72,'raw':'2C44...<hex>','age_ms':1840,'uptime_ms':3600000}
+   ```
+   (`raw` is the hex wM-Bus telegram; `id` is the meter ID parsed from the *unencrypted* header so the Pi can pick the right meter without decrypting.)
+
+**Full-on-board-decode variant (ESP32-preferred):** instead of `raw`, the sketch decrypts (tiny-AES-c / ESP32 mbedTLS) and parses, emitting `{'volume_m3':1234.567,'flow_lph':0,'rssi':-72,'uptime_ms':...}`. Highest integration fit (a clean dict pivac can poll with `ArduinoSensor`), but the decode/decrypt port is the hard part and is proven on ESP, not the RA4M1.
+
+**Libraries:** `RadioLib` (CC1101) for radio; `WiFiS3` (UNO R4) or ESP32 WiFi for networking; `tiny-AES-c` / mbedTLS only for the on-board-decode variant.
+
+**Bring-up checks:** serial prints `Watchdog armed.`; confirm CC1101 detected (version register read); print every raw telegram + RSSI to confirm frames arrive every 4–8 s.
+
+### A.3 pivac side for Option 2
+
+- **Raw-forward variant:** `pivac.WaterMeter` fetches `http://<node-ip>/`, picks the telegram for the configured meter ID, then either shells out to `wmbusmeters` (feeding the raw hex) or decodes in Python (`cryptography`/`pycryptodome`, AES-128-CBC with the IV from the telegram header) → emits the same `environment.water.domestic.consumption` delta. The board gets a DHCP-by-MAC reservation in UniFi like the other two.
+- **On-board-decode variant:** no new module needed — a config block with `module: pivac.ArduinoSensor` and `inputs: {volume_m3: {sk_path: environment.water.domestic, outname: consumption}}` reuses the existing poller verbatim.
+
+Either variant lands on the same Signal K paths (§6.1) and Grafana panel (§7), so only the receiver front-end differs between Option 1 and Option 2.
 
 ---
 
