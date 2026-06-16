@@ -1,7 +1,21 @@
 # Domestic Water Consumption Monitoring — Implementation Plan
 
-**Status:** DRAFT FOR REVIEW — 2026-06-15 (rev 2)
+**Status:** ⛔ RF APPROACH RETIRED — 2026-06-16 (was DRAFT FOR REVIEW, rev 2)
 **Goal:** Add a new pivac data source that reads the house's **Sensus iPerl** domestic water meter over radio, publishes consumption/flow to Signal K, and plots it in Grafana.
+
+> **⛔ OUTCOME — RF APPROACH RETIRED (2026-06-16).** Bench testing with a CC1101 on
+> an UNO R4 WiFi (sketches in the `Arduino` repo: `CC1101_SpiDiag`,
+> `CC1101_WaterMeterTest`) established that **this meter is a US-installed Sensus
+> iPerl FLX = FlexNet, 900 MHz, encrypted** — *not* EU wM-Bus at 868.95 MHz as this
+> plan assumed (§0/§1.4). A 902–928 MHz sweep showed real activity (hotspots
+> ~910/913/923/926 MHz) vs flat noise at 868 and 433, confirming the 900 MHz band.
+> FlexNet is proprietary/encrypted on licensed spectrum, so hobbyist RF decode
+> (`rtlamr`, `wmbusmeters`) is **infeasible**. **The project is pivoting to reading
+> the meter's LCD face with a camera (OCR — e.g. ESP32-CAM +
+> `jomjol/AI-on-the-edge-device`).** Everything below (the wM-Bus / CC1101 / USB-
+> dongle architecture) is retained for the record but is no longer the plan. If
+> ever revisited: confirm AMR-vs-FlexNet with an RTL-SDR + `rtlamr` at 912 MHz next
+> to the meter, or just pull consumption from the water utility's consumer portal.
 
 > **Architecture (rev 4): recommended = a wM-Bus USB dongle on the Pi (IMST iM871A-USB).** The meter is read over the air, so the receiver only needs to be a USB stick. The production Pi can't host a *GPIO* radio — its header is largely consumed by `pivac.GPIO` (BCM 17/27/22/5/6/13/26/16/12) + the 1-Wire bus, and wiring one means powering down and opening the live Signal K / InfluxDB / Grafana / nginx box. A **USB wM-Bus dongle** sidesteps all of that: it's hot-plugged into a USB port (no GPIO, no disassembly, no Arduino, no custom sketch), decodes in hardware (low CPU), and `wmbusmeters` reads it natively (`im871a` driver). The only thing it shares with the abandoned Pi-direct CC1101 is **living at the Pi's location** — if reception there is poor, the fallback is the remote WiFi node that can sit near the meter.
 >
