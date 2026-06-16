@@ -29,3 +29,4 @@ test-output.txt
 
 # Claude Code local state
 .claude/
+.DS_Store
