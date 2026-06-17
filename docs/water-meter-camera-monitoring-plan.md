@@ -18,29 +18,43 @@ cumulative reading to Signal K, and plots flow in Grafana.
 ## 0. Empirical assessment (done 2026-06-16)
 
 Captured live frames from the meter camera (`10.0.0.85:554`, Tapo, 2560×1440 H.264)
-and analyzed them.
+and analyzed them, **before and after a lighting change**.
+
+**Before lighting change — LCD unreadable:**
 
 | Finding | Result |
 |---------|--------|
 | **Focus / resolution** | **Excellent.** Fine printed text (`SENSUS`, `iPERL®`, serial `91957598`, `3/4" S`, `Mfg Date 09/2023`) is sharp; digit-scale features resolve well. Camera placement and lens are not a limiter. |
-| **Camera mode** | **IR night mode** — the meter is in a dark pit with no visible light, so the Tapo runs its IR illuminator (monochrome image). |
-| **LCD legibility** | **Zero.** The iPerl LCD is a uniform grey rectangle with **no visible segments**, stable across a 24 s burst (per-frame luma flat ~79). Histogram-equalization + 2.5× contrast stretch reveal **nothing** — only glass texture/reflections. |
+| **Camera mode** | **IR / low-light mono** — meter in a dark pit, monochrome image. |
+| **LCD legibility** | **Zero.** Uniform grey rectangle, no visible segments, stable across a 24 s burst. Histeq + 2.5× contrast stretch reveal nothing. |
 
-**Root cause:** a reflective/transflective LCD modulates only **visible** light; under
-**infrared** there is essentially no segment contrast, so the digits vanish. (This is
-the opposite of the Sentry's 7-segment **LED**, which IR renders perfectly — hence
-Sentry is locked to Night and the water meter must be the reverse.)
+**Root cause:** a reflective/transflective LCD modulates only **visible** light; with no
+visible illumination in the pit there is essentially no segment contrast, so the digits
+vanish. (Opposite of the Sentry's 7-segment **LED**, which IR renders perfectly — hence
+Sentry is locked to Night and the water meter must have visible light.)
 
-**Conclusion:** the current setup is **not** good enough — not because of optics, but
-because the only illumination is IR. The iPerl is designed to be read by eye in
-visible light (utilities read it visually), so the camera approach is viable **once
-visible lighting is added** (§1). This is a hard gate before any CV code.
+**After lighting change — GATE PASSED ✅:**
+
+| Finding | Result |
+|---------|--------|
+| **LCD legibility** | **Readable.** Digits clearly visible — reading ≈ `062696462` with the **`Gal`** unit indicator lit. |
+| **Stability** | **Excellent.** Reading is pixel-identical across a multi-frame burst (static, no flow) — ideal for the median + monotonic checks. |
+| **Remaining margin issues (optimize, not blocking)** | Slight brightness gradient + minor top-right glare; image still monochrome low-light mode. |
+
+**Conclusion:** the camera/CV approach is **viable**. The lighting gate (§1) is **met**.
+Two non-blocking margin-wideners remain: (a) even out / further diffuse the light to lift
+the dimmer digits and kill residual glare; (b) **lock the camera mode** so the display's
+appearance stays stable for calibration (Sentry precedent).
 
 ---
 
-## 1. Lighting gate (Step 0 — must pass before coding)
+## 1. Lighting gate (Step 0 — PASSED 2026-06-16)
 
-Add visible illumination and switch the camera out of IR, then re-capture and confirm
+A lighting change made the LCD readable (§0). The measures below are retained for
+reference; items 1/3/4 are now **optional margin-wideners**, item 2 (lock the mode) is
+**still required** before calibration so the display appearance can't drift.
+
+Add visible illumination and keep the camera mode stable, then re-capture and confirm
 machine-readable digits. Cheapest → most involved:
 
 1. **Add an always-on visible light in the pit.** The Tapo C120's night vision is
