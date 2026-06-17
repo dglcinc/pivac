@@ -99,6 +99,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | pivac-emporia           | pivac.Emporia           | Emporia Vue Gen 2 (house + apt)  | Emporia cloud |
 | pivac-sentry            | pivac.Sentry            | NTI Trinity Ti-200 boiler (Tapo C120 RTSP) | 10.0.0.19 |
 | pivac-watermeter        | pivac.WaterMeter        | Sensus iPerl water meter LCD (Tapo RTSP)   | 10.0.0.85 |
+| pivac-sprinkler         | pivac.Sprinkler         | OpenSprinkler irrigation flow (local API)  | 10.0.0.17:5000 |
 
 > **⚠️ The two Arduino module/delta names are inverted vs their physical roles — legacy, do NOT rename** (InfluxDB already holds history under these measurement names; renaming would orphan it). Verified 2026-06-01 against the WilhelmSK gauge wiring and the boards' WiFi MACs:
 >
@@ -242,8 +243,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -n 50 --no-pager
 ```
 
 If systemd service or timer files were changed:
@@ -254,7 +255,7 @@ sudo systemctl daemon-reload
 
 **Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter signalk influxdb nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler signalk influxdb nginx
 ```
 Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
@@ -272,7 +273,7 @@ Stop order matters: pivac services first (they push to Signal K), then signalk (
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -283,6 +284,7 @@ journalctl -u signalk -n 50 --no-pager
 
 ## Known Operational Behaviours (Not Bugs)
 
+- **Sprinkler flow scale needs one live-run calibration (deployed 2026-06-16)**: `pivac.Sprinkler` computes irrigation flow as `(flcrt/flwrt)*fpr*60*flow_scale` gal/min from the OpenSprinkler `/jc` API. The `flwrt` window units are firmware-dependent, so the absolute scale is unverified until an irrigation cycle runs — compare the published `environment.water.irrigation.flowRate` against the OS app's reported flow during a zone run and set `flow_scale` in `/etc/pivac/config.yml` (no code change). `fpr` (vol/click) is read from `/jo` (currently 0.07). Auth is **md5 of the OS *device* password** (`/jo`+`/jc` return `{"result":2}` when wrong) — this is **not** the nginx `/sprinkler/` Basic-Auth login; the device password is set in the OpenSprinkler app → Edit Options → Advanced.
 - **WaterMeter glyph library is incomplete (deployed 2026-06-16)**: the template library at `/etc/pivac/wm-templates/` currently covers digits **0,1,2,4,6,7,8,9** — **3 and 5 are still being captured** (the meter advances slowly). When a `3` or `5` appears in a digit position the reader can't match it (correlation below `min_corr`), so it **skips that cycle** rather than emit a wrong value → expect occasional gaps in `environment.water.domestic.consumption` until the library is completed. This is by design (gaps, not garbage); the `max_reading_jump` monotonic guard is a second filter. Also: the totalizer is **integer-gallon for now** (decimal-digit boxes not yet calibrated → `.flowing` stays 0); decimals/flow come online once those boxes are set. Update the library by dropping new `<glyph>_<n>.png` files into the templates dir — the module hot-reloads on mtime, no restart. **The camera must stay in its current locked mode + lighting** (mirror of the Sentry day/night lock); a mode/lighting change invalidates the warp + templates.
 - **Whole-Pi "hung again" was WiFi, not pivac (root-caused + fixed 2026-06-16)**: Symptom was the entire Pi off the network (ping "Host is down", ARP `incomplete`) — *not* a hung service. Root cause was **WiFi power-save on a weak 2.4 GHz link**: the radio slept, the AP dropped the station, the supplicant failed to re-associate, DNS started failing (`Name or service not known` across RedLink/Emporia/Sentry), then the host fell fully off the wire and needed a power-cycle. Ruled out as causes: power (`vcgencmd get_throttled` = `0x0`), SD/filesystem (no ext4/IO errors), temp (54.5°C), signal (-58 dBm is fine). **Permanent fix: moved the Pi to wired ethernet** (see Remote Access → Pi network interfaces). If a future hang recurs, first check whether it's the whole host (ping/ARP from another LAN box) vs a single service, then `vcgencmd get_throttled` and `nmcli device status` before assuming pivac.
 - **RedLink after a network/DNS outage needs a clean restart**: When the Pi boots into (or rides through) a DNS-less window, `pivac-redlink` accumulates a half-broken Honeywell session *and* a repeatedly-dropping SignalK WebSocket (`Broken pipe` → reconnect), and limps for many cycles even after DNS recovers. Once `getent hosts mytotalconnectcomfort.com` resolves again, `sudo systemctl restart pivac-redlink` gives it a fresh login + fresh WebSocket and all 5 rooms republish within ~2 min. This is **not** the `APIRateLimited` case the rate-limit note warns against restarting — check the logs for `APIRateLimited` first; if absent, restart is the right move.
@@ -320,6 +322,7 @@ journalctl -u signalk -n 50 --no-pager
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>` |
 | `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — reads display via 7-segment CV, emits boiler state to `hvac.boiler.sentry.*` |
 | `WaterMeter` | Sensus iPerl water-meter **LCD** via Tapo RTSP camera (`10.0.0.85`) — reads the cumulative gallons totalizer via perspective-warp + **whole-glyph template matching** (NOT segment thresholding — a reflective LCD's "off" segments aren't black). Emits `environment.water.domestic.consumption` (gal) + `.flowing`. See `docs/water-meter-camera-monitoring-plan.md`. |
+| `Sprinkler` | OpenSprinkler irrigation flow via the local HTTP API (`10.0.0.17:5000`) — polls `/jc`, computes `(flcrt/flwrt)*fpr*60*flow_scale`, emits `environment.water.irrigation.flowRate` (gal/min) + `.active`. Auth = **md5(device password)** in config `password_md5` (Pi-only secret). Overlaid on the domestic flow panels (Grafana). |
 
 ## pivac.Sentry Module
 
