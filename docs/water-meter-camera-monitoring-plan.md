@@ -80,63 +80,90 @@ the §0 capture/measure before committing to the build.
 
 ---
 
-## 2. iPerl display behaviour (calibration inputs)
+## 2. iPerl display behaviour (confirmed from live frames 2026-06-16)
 
-- The iPerl register shows a multi-digit **cumulative totalizer** plus on-screen
-  icons/units, and **cycles** between screens (reading ↔ rate-of-flow ↔ diagnostics)
-  on a timer — directly analogous to the Sentry display cycling through modes.
-- The CV must therefore **capture across the cycle** and select the **consumption
-  reading** screen, identifying it from the on-LCD unit/icon (the iPerl's equivalent of
-  Sentry's indicator lights). This screen-ID step is the main new calibration item.
-- Confirm during calibration: digit count, presence/position of a decimal point, and
-  the **display units** (US iPerl is typically gallons or cubic feet, utility-
-  configured). We publish the **raw reading**; the unit is documented, not converted.
+- The register shows a **9-digit cumulative totalizer**: **7 integer digits + a decimal
+  point + 2 fractional digits** (tenths and hundredths of a gallon), with a **`Gal`**
+  unit indicator below. Example observed: `0626984.29`.
+- **The two fractional digits spin while water flows.** A single frame catches them
+  mid-update, so they smear/ghost during flow but are crisp when no water is moving.
+  This is a *signal*: their stability across the per-cycle frames distinguishes
+  **flow vs. no-flow** (see §3 decimal logic) — not merely glare.
+- The integer digits change slowly (once per gallon) and read **cleanly and reliably**
+  in every frame.
+- Confirm during calibration whether the display also cycles to other screens
+  (rate-of-flow/diagnostics); both live captures showed the `Gal` consumption screen, so
+  screen-cycling may be minimal. The reader still verifies the `Gal` indicator before
+  accepting a reading. Units are **gallons**; we publish the raw reading, not converted.
 
 ---
 
-## 3. Module design — `pivac.WaterMeter` (modeled on `pivac.Sentry`)
+## 3. Module design — `pivac.WaterMeter` (NOT a Sentry algorithm port)
 
 New `pivac/WaterMeter.py` implementing the standard `status(config={}, output="default")`
-contract. Reuse Sentry's structure wholesale; the deltas are LCD-specific:
+contract. **Only the capture/warp scaffolding transfers from Sentry; the digit reader is
+new.** A reflective LCD has faint *inactive*-segment ghosting (off ≠ black), so Sentry's
+per-segment brightness threshold cannot cleanly tell on from off — confirmed empirically
+(Otsu/threshold binaries were unusable). The reader is **whole-glyph template matching**,
+which uses the entire digit shape (the way the display is actually read by eye) and is
+robust to the LCD's low, uneven contrast.
 
-- **RTSP capture loop** — copy Sentry's `_open_stream` / drain-buffer / poll-until-
-  deadline pattern verbatim (incl. `OPENCV_FFMPEG_LOGLEVEL=8` to silence libavcodec
-  spam and the deferred `cv2`/`numpy` import).
-- **Display extraction** — reuse `_get_display_crop` (perspective-warp from
-  calibration).
-- **7-segment decode, polarity inverted.** Sentry treats a *bright* region as a lit
-  segment; for the LCD a lit segment is **darker** than its background. Implement by
-  inverting the digit crop (`255 - gray`) up front, then reuse Sentry's
-  `_SEGMENT_RECTS` / `_SEGMENT_MAP` / threshold logic unchanged. Add digit positions
-  for all iPerl digits (Sentry has 3; the iPerl has more) via calibration.
-- **Screen selection** — analogous to Sentry's `_read_indicators`: detect which screen
-  is showing from the on-LCD unit/icon ROI and only accept digits from the consumption
-  screen.
-- **Misread hardening** — keep Sentry's per-read **range-sanity** + **median-of-
-  samples** vote, and **add a monotonic/jump check** unique to a cumulative meter: a
-  new reading must be **≥** the last accepted reading and within a plausible delta;
-  reject otherwise. This is a strong validator a totalizer affords that the Sentry
-  temperatures do not.
-- **Emit** the totalizer to Signal K (§4). Publish the meter's raw cumulative value;
-  derive flow downstream.
+**Validated pipeline (proven on a live frame 2026-06-16 — read `0626984` integer part
+correctly):**
+
+1. **Capture** — Sentry's `_open_stream` / drain-buffer pattern (incl.
+   `OPENCV_FFMPEG_LOGLEVEL=8` and deferred `cv2`/`numpy` import). Grab ~8 frames over ~5s
+   per cycle.
+2. **De-skew** — detect the 4 LCD corners (bright-glass contour → `approxPolyDP`) and
+   **perspective-warp** to a flat rectangle (the display is rotated/skewed in the frame).
+   Corners can be auto-detected or pinned in config (found: TL `(1142,346)`,
+   TR `(1651,342)`, BR `(1668,499)`, BL `(1150,499)`; rectified to 560×160).
+3. **Illumination-flatten** — divide the digit band by a large-sigma Gaussian blur to
+   remove the brightness gradient/glare (plain Otsu floods; this does not).
+4. **Segment digits** — 7 integer digits at a fixed ~55px pitch, then a decimal-point
+   gap, then 2 fractional digits. Boxes from calibration (not an even 9-way split — the
+   decimal gap breaks uniform spacing).
+5. **Classify** — per digit cell, normalized cross-correlation against a **template
+   library** of glyphs 0–9; take the best match. Templates are bootstrapped from labeled
+   real captures (averaged per glyph as more frames arrive).
+6. **Screen check** — confirm the `Gal` consumption indicator before accepting.
+
+**Flow-aware decimal logic (the key behavioural rule):**
+
+- Read the **decimal digits only when they are stable across the per-cycle frames**
+  (= no flow) → publish the exact total (e.g. `626984.29`).
+- When the decimals **change across frames** (= flowing) → they are untrustworthy →
+  publish the **integer-gallon floor** (`626984`) for that cycle. Flooring is always
+  conservative, so it never overshoots and never trips the monotonic guard; the next
+  static read re-syncs the exact total. Emit a derived **`flowing`** boolean too.
+- **Monotonic guard** (cumulative-meter validator): a new accepted total must be
+  **≥** the last and within `max_reading_jump`; reject otherwise. Combined with always
+  flooring during flow, the published series is guaranteed non-decreasing.
+- Keep a **median-of-samples** vote on the integer digits per cycle (Sentry pattern) to
+  drop one-frame misreads.
 
 ### 3.1 Calibration helper
 
 A `scripts/wm-calibrate.py` modeled on `scripts/sentry-calibrate.py`: pull a reference
-day-mode frame, set the `display_warp` corners, the per-digit boxes, and the
-screen-indicator ROI(s).
+frame, set/confirm the `display_warp` corners, the 9 digit boxes (7 integer + 2 decimal),
+the `Gal` indicator ROI, and **capture/label glyph templates** for the library. The meter
+advances slowly, so it will accumulate all ten glyphs over repeated runs (currently only
+0/2/4/6/8/9 are on the display).
 
 ### 3.2 Config block (in `/etc/pivac/config.yml`; sample in `config/config.yml.sample`)
 
 ```yaml
 pivac.WaterMeter:
     rtsp_url: "rtsp://USER:PASS@10.0.0.85:554/stream1"   # Pi config only — never in repo
-    cycle_timeout: 30
-    min_samples: 3
-    display_warp: { corners: [...], dst_w: ..., dst_h: ... }   # from wm-calibrate.py
-    digit_positions: [ { x, y, w, h }, ... ]                   # N digits
-    screen_indicators: { consumption: { x, y } }              # which-screen ROI(s)
-    max_reading_jump: <plausible per-cycle delta>             # monotonic guard
+    daemon_sleep: 15            # seconds between cycles (framework key) — ~5s capture on top → ~20s period
+    capture_seconds: 5          # per-cycle frame-grab window (flow-stability detection)
+    int_digits: 7
+    dec_digits: 2               # tenths/hundredths gallon — read only when stable (no flow)
+    display_warp: { corners: [...], dst_w: 560, dst_h: 160 }   # from wm-calibrate.py
+    digit_boxes: [ {x,y,w,h}, ... ]            # 9 boxes; decimal gap is non-uniform
+    gal_indicator: { x: ..., y: ... }          # consumption-screen confirm
+    template_dir: /etc/pivac/wm-templates       # glyph library (0-9)
+    max_reading_jump: 50        # gal; monotonic guard rejects bigger single-cycle jumps
 ```
 
 Secrets (RTSP credentials) live only in `/etc/pivac/config.yml`, same discipline as
@@ -150,11 +177,12 @@ Reuse the path the radio plan reserved so Grafana/alerts are front-end-agnostic:
 
 | SK path | Value | Notes |
 |---------|-------|-------|
-| `environment.water.domestic.consumption` | number, **raw meter reading** (monotonic cumulative) | the iPerl totalizer; flow derived downstream. Document the display unit (gal or ft³). |
+| `environment.water.domestic.consumption` | number, **gallons** (monotonic cumulative) | the iPerl totalizer; exact `.NN` when static, integer floor during flow. Flow derived downstream. |
+| `environment.water.domestic.flowing` | number (0/1) | derived from decimal-digit instability across the per-cycle frames; 1 = water moving |
 
-Emit only when a consumption-screen reading passes the sanity + monotonic checks;
-otherwise skip the cycle so the freshness alert (§5) covers prolonged gaps rather than
-republishing a stale/garbage value (same policy as Sentry).
+Emit only when a `Gal`-screen reading passes the sanity + monotonic checks; otherwise
+skip the cycle so the freshness alert (§5) covers prolonged gaps rather than republishing
+a stale/garbage value (same policy as Sentry).
 
 ---
 
