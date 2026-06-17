@@ -3559,10 +3559,52 @@
               }
             ]
           ],
+          "tags": [],
+          "alias": "Domestic"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "measurement": "environment.water.irrigation.flowRate",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/min)",
+      "title": "Flow rate (gal/min) \u2014 Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -3677,10 +3719,58 @@
               }
             ]
           ],
+          "tags": [],
+          "alias": "Domestic"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "measurement": "environment.water.irrigation.flowRate",
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "previous"
+              ],
+              "type": "fill"
+            }
+          ],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " * 60"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/hr)",
+      "title": "Flow rate (gal/hr) \u2014 Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
