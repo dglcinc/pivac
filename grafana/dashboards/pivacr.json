@@ -3479,7 +3479,9 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisSoftMax": 10,
+            "axisSoftMin": 0
           },
           "mappings": [],
           "unit": "gal/min",
@@ -3491,7 +3493,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -3639,7 +3642,9 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisSoftMax": 600,
+            "axisSoftMin": 0
           },
           "mappings": [],
           "unit": "gal/hr",
@@ -3651,7 +3656,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -3817,7 +3823,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
