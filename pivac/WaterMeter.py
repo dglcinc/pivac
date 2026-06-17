@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 # Persisted across status() calls within a daemon process for the monotonic
 # guard.  Resets on restart (the next reading re-seeds the baseline).
-_state = {"last_total": None}
+_state = {"last_total": None, "reject_streak": 0, "reject_anchor": None}
 _templates_cache = {"dir": None, "mtime": None, "data": None}
 
 CONSUMPTION_PATH = "environment.water.domestic.consumption"
@@ -118,12 +118,20 @@ def _rectify(frame, config: dict):
 
 
 def _prep_cell(cell):
-    """Resize to 40x64, illumination-flatten, CLAHE.  Returns float32."""
+    """Resize to 40x64, illumination-flatten, then BINARIZE (ink=255).
+
+    A reflective LCD's background texture (amplified by any local-contrast step)
+    otherwise dominates the cross-correlation and washes out the small segments
+    that distinguish similar digits.  Binarizing the illumination-flattened cell
+    isolates the lit segments so the digit *shape* drives the match.  Returns
+    float32 (0/255)."""
     cv2, np = _require_cv()
     c = cv2.resize(cell, (40, 64))
     bg = cv2.GaussianBlur(c.astype(np.float32), (0, 0), 12)
     flat = np.clip(c.astype(np.float32) / (bg + 1e-3) * 128, 0, 255).astype(np.uint8)
-    return cv2.createCLAHE(2.0, (4, 4)).apply(flat).astype(np.float32)
+    flat = cv2.GaussianBlur(flat, (3, 3), 0)
+    b = cv2.threshold(255 - flat, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    return b.astype(np.float32)
 
 
 def _digit_cell(rect, box):
@@ -289,12 +297,36 @@ def status(config={}, output="default"):
     if total is not None:
         last = _state["last_total"]
         max_jump = config.get("max_reading_jump", 100)
-        if last is not None and not (last <= total <= last + max_jump):
-            logger.warning("WaterMeter: rejecting total %.2f (last %.2f, jump limit %s)",
+        rebase_n = config.get("rebase_after", 4)
+        if last is None or (last <= total <= last + max_jump):
+            _state["last_total"] = total
+            _state["reject_streak"] = 0
+            _state["reject_anchor"] = None
+        elif total < last:
+            # A real meter never runs backwards, so a *persistent, consistent*
+            # lower reading means the stored baseline was a bad over-read — re-sync
+            # to the lower value rather than rejecting forever (self-heals the
+            # monotonic-guard poisoning seen when a flow-blur frame over-reads).
+            anchor = _state["reject_anchor"]
+            if anchor is not None and abs(total - anchor) <= 2:
+                _state["reject_streak"] += 1
+            else:
+                _state["reject_anchor"] = total
+                _state["reject_streak"] = 1
+            if _state["reject_streak"] >= rebase_n:
+                logger.warning("WaterMeter: re-baselining %.2f -> %.2f after %d consistent lower reads",
+                               last, total, _state["reject_streak"])
+                _state["last_total"] = total
+                _state["reject_streak"] = 0
+                _state["reject_anchor"] = None
+            else:
+                logger.warning("WaterMeter: rejecting backward %.2f (last %.2f, %d/%d to re-baseline)",
+                               total, last, _state["reject_streak"], rebase_n)
+                total = None
+        else:
+            logger.warning("WaterMeter: rejecting forward jump %.2f (last %.2f, limit %s)",
                            total, last, max_jump)
             total = None
-        else:
-            _state["last_total"] = total
 
     if output == "signalk":
         from pivac import sk_init_deltas, sk_add_source, sk_add_value
