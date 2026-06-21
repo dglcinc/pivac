@@ -3210,7 +3210,7 @@
     {
       "type": "row",
       "collapsed": false,
-      "title": "Domestic Water (iPerl meter)",
+      "title": "Water — Domestic & Irrigation",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3225,7 +3225,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used over the dashboard time range (max\u2212min of the totalizer).",
+      "description": "Gallons used over the dashboard time range \u2014 Domestic (totalizer max\u2212min) and Irrigation (integral of flow rate).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3259,7 +3259,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "range"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -3273,23 +3273,22 @@
             "type": "influxdb",
             "uid": "bdxaqnfllu5fkf"
           },
-          "groupBy": [],
-          "measurement": "environment.water.domestic.consumption",
-          "orderByTime": "ASC",
-          "policy": "default",
+          "alias": "Domestic",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "rawQuery": true,
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": []
+          "resultFormat": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
         }
       ],
       "title": "Used \u2014 selected range",
@@ -3300,7 +3299,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 24 hours.",
+      "description": "Gallons used in the last 24 hours — Domestic and Irrigation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3334,7 +3333,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "range"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -3348,23 +3347,22 @@
             "type": "influxdb",
             "uid": "bdxaqnfllu5fkf"
           },
-          "groupBy": [],
-          "measurement": "environment.water.domestic.consumption",
-          "orderByTime": "ASC",
-          "policy": "default",
+          "alias": "Domestic",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "rawQuery": true,
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": []
+          "resultFormat": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
         }
       ],
       "title": "Used \u2014 last 24h",
@@ -3376,7 +3374,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 7 days.",
+      "description": "Gallons used in the last 7 days — Domestic and Irrigation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3410,7 +3408,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "range"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -3424,23 +3422,22 @@
             "type": "influxdb",
             "uid": "bdxaqnfllu5fkf"
           },
-          "groupBy": [],
-          "measurement": "environment.water.domestic.consumption",
-          "orderByTime": "ASC",
-          "policy": "default",
+          "alias": "Domestic",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "rawQuery": true,
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": []
+          "resultFormat": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
         }
       ],
       "title": "Used \u2014 last 7d",
