@@ -56,6 +56,30 @@ With our `fpr = 1.00`, this is the identity: **volume = pulse count = gallons**.
 
 ---
 
+## Localization scope (beyond gallons) — the firmware storage model
+
+If this grows into a full localization option (date format, number format, L↔gal, °C↔°F, etc.), the key fact is: **the firmware never stores a unit. It stores bare, untagged numbers, and the *app* defines a canonical unit per quantity — and those canonicals are inconsistent.** Verified against the source:
+
+| Stored field (API) | Quantity | Firmware canonical | App conversion |
+|---|---|---|---|
+| `fpr0`/`fpr1` (o41/o42) | flow / pulse rate | **liters** | gal × 3.78541 on save (`options.js:251`) |
+| `wto.minTemp` | weather temp restriction | **°F** | metric: (F−32)×5⁄9 display, C×9⁄5+32 save (`options.js:1159/1264`) |
+| `wto.rainAmt` | rain restriction depth | **inches** | metric: ×25.4 display, ÷25.4 save (`options.js:1158/1263`) |
+| `wto.rainDays` | days | none (integer) | — |
+| **audit before shipping** | `wto.elevation`, `baseETo`/ETo, `analog.js` sensor thresholds, flow-alarm min/max | verify | — |
+
+Flow is stored **metric** while temperature/rain are stored **imperial** — so a localization layer must know each quantity's canonical, not assume one system.
+
+Three design rules follow:
+
+1. **Convert at the UI boundary, per quantity, in one place.** The gallons bug is a *missing* display-side conversion while the save side converts — an asymmetry. Centralize `toCanonical(value, quantity, userUnit)` / `fromCanonical(...)` with the canonical fixed per the table, and route every read/write through it so already-stored values never need migration.
+2. **Firmware-computed history is pre-baked in the canonical unit.** The flow log (`/jl`) writes each run's flow using the `fpr` in effect at write time (liter basis), with no per-entry unit tag — convertible for display, but not re-derivable if the basis changes (why the log had to be wiped after the fpr flip). `flcrt` realtime is a raw pulse frequency (not fpr-scaled), so it's safe.
+3. **Date/number *format* and the locale preference have no firmware state.** `isMetric`/`is24Hour` are app-localStorage, per-device, client-side ("do not affect the controller", `options.js:400`); the firmware stores unix timestamps + `tz` and scaled integers, never formatted strings. So MM/DD vs DD/MM, 12/24h, and decimal-comma-vs-dot are pure UI — add freely. Only catch: **parse input** (normalize `1,00` → `1.00`, then to the firmware's scaled-int form, e.g. fpr × 100) before sending.
+
+Net: nothing hidden in the firmware reacts to units — it never knows the unit. The whole job is UI-side consistency against the per-quantity canonicals, plus awareness that the flow log is denominated at write time. This pushes the work firmly toward **Strategy B** (a real `isMetric`-aware layer) and toward **upstreaming** it.
+
+---
+
 ## Fix strategies
 
 ### Strategy A — relabel only (recommended for this install)
