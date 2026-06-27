@@ -30,6 +30,7 @@ dependencies = [
     "regex",
     "websocket-client",
     "pyemvue",
+    "pytapo",
 ]
 
 [project.urls]

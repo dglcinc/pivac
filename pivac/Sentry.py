@@ -349,15 +349,32 @@ def _f_to_k(f: float) -> float:
 # and is rejected before it can reach Signal K. Wrong reads that still fall
 # inside the range are caught by the median-of-samples vote in _poll_cycle.
 _SANE_RANGE = {
-    "water_temp": (40.0, 220.0),   # boiler water °F: idle ~80s, up to ~200 firing
+    "water_temp": (40.0, 205.0),   # boiler water °F: idle ~80s, firing peak ~200
     "air":        (-40.0, 140.0),  # outdoor air °F
     "gas_input":  (40.0, 240.0),   # Ti-200 gas-input scale (0 = off, handled below)
 }
 
+# Idle ceiling for water temperature. With the burner LED dark (boiler idle, or
+# coasting down after a call) the water physically cannot sit near its firing
+# peak, so a read at or above this is the phantom-hundreds-digit misread — a real
+# ~98 read gaining a spurious leading '1' -> 198 — rather than a true value. It
+# survives the absolute range (198 < 205) and, if the bad frame persists, the
+# per-cycle median too, so the absolute range alone can't catch it. Set above the
+# early-cooldown band (~165-180 just after the burner drops) so the genuine
+# cooldown curve is preserved; only the impossible idle-spike is rejected.
+_WATER_IDLE_CEILING = 185.0
 
-def _reading_sane(mode: str, value_str: str):
+
+def _reading_sane(mode: str, value_str: str, burner_on=None,
+                  idle_ceiling: float = _WATER_IDLE_CEILING):
     """Parse a display string to float and bounds-check it for the given mode.
-    Returns the float if plausible, else None."""
+    Returns the float if plausible, else None.
+
+    When ``mode`` is ``water_temp`` and ``burner_on`` is explicitly ``False``,
+    the idle ceiling also applies (see ``_WATER_IDLE_CEILING``): a value at/above
+    it with the burner off is the phantom-hundreds-digit misread and is rejected.
+    Firing reads (``burner_on`` True) are bounded only by the absolute range, so
+    genuine peaks pass. ``burner_on=None`` (unknown) skips the idle check."""
     try:
         v = float(value_str)
     except (ValueError, TypeError):
@@ -365,7 +382,11 @@ def _reading_sane(mode: str, value_str: str):
     if mode == "gas_input" and v == 0:
         return 0.0                 # burner off / idle — a valid 0
     lo, hi = _SANE_RANGE.get(mode, (float("-inf"), float("inf")))
-    return v if lo <= v <= hi else None
+    if not (lo <= v <= hi):
+        return None
+    if mode == "water_temp" and burner_on is False and v >= idle_ceiling:
+        return None
+    return v
 
 
 # ---------------------------------------------------------------------------
@@ -393,6 +414,7 @@ def _poll_cycle(config: dict) -> dict:
     cycle_timeout    = config.get("cycle_timeout", 30)
     mode_stable_min  = config.get("mode_stable_frames", 3)
     min_samples      = config.get("min_samples", 3)
+    idle_ceiling     = config.get("water_idle_ceiling", _WATER_IDLE_CEILING)
 
     cap = _open_stream(rtsp_url)
     logger.debug("Sentry: connected to RTSP stream, polling for up to %ds", cycle_timeout)
@@ -439,8 +461,14 @@ def _poll_cycle(config: dict) -> dict:
 
             # Collect plausible readings for this mode. Out-of-range reads are
             # dropped here; the per-cycle median (below) then rejects the odd
-            # one-frame digit misread that slips through the range check.
-            sane = _reading_sane(mode, value)
+            # one-frame digit misread that slips through the range check. For
+            # water temp the burner LED on this same frame disambiguates a real
+            # firing peak from a phantom hundreds-digit spike on an idle reading.
+            burner_on = None
+            if mode == "water_temp":
+                burner_on = _read_leds(frame, config).get("burnerOn")
+            sane = _reading_sane(mode, value, burner_on=burner_on,
+                                 idle_ceiling=idle_ceiling)
             if sane is None:
                 logger.debug("Sentry: rejecting out-of-range '%s' = '%s'", mode, value)
                 continue
