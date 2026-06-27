@@ -461,16 +461,19 @@ def _poll_cycle(config: dict) -> dict:
 
             # Collect plausible readings for this mode. Out-of-range reads are
             # dropped here; the per-cycle median (below) then rejects the odd
-            # one-frame digit misread that slips through the range check. For
-            # water temp the burner LED on this same frame disambiguates a real
-            # firing peak from a phantom hundreds-digit spike on an idle reading.
-            burner_on = None
-            if mode == "water_temp":
-                burner_on = _read_leds(frame, config).get("burnerOn")
-            sane = _reading_sane(mode, value, burner_on=burner_on,
-                                 idle_ceiling=idle_ceiling)
+            # one-frame digit misread that slips through the range check.
+            sane = _reading_sane(mode, value)   # absolute range only
             if sane is None:
                 logger.debug("Sentry: rejecting out-of-range '%s' = '%s'", mode, value)
+                continue
+            # Phantom-hundreds guard, evaluated lazily: only a water_temp read in
+            # the suspect band (>= idle_ceiling) is worth the per-frame burner-LED
+            # read. The burner LED disambiguates a real firing peak (lit) from a
+            # phantom hundreds-digit spike on an idle reading (dark) -> reject.
+            if (mode == "water_temp" and sane >= idle_ceiling
+                    and _read_leds(frame, config).get("burnerOn") is False):
+                logger.debug("Sentry: rejecting phantom-hundreds water_temp '%s' "
+                             "(burner off)", value)
                 continue
             samples.setdefault(mode, []).append(sane)
             if len(samples[mode]) >= min_samples:
