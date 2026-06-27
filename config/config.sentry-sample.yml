@@ -10,6 +10,13 @@ pivac.Sentry:
   # 30s gives two full cycles with comfortable margin.
   cycle_timeout: 30
 
+  # Seconds the daemon loop sleeps between poll cycles. The RTSP decode + 7-seg
+  # CV is CPU-heavy; without this the provider defaults to 0.5s and Sentry runs
+  # near-continuously (~1.6 cores, which thermal-throttled the Pi). 15s keeps a
+  # ~15-30s data cadence while cutting CPU well over half. Raise toward 30 for
+  # more headroom if the boiler state doesn't need fine-grained sampling.
+  daemon_sleep: 15
+
   # Consecutive frames the mode indicator must hold steady before cmd_test
   # accepts a display reading.  Prevents capturing transition-frame artefacts
   # (the display may show the previous mode's value for a frame while the
