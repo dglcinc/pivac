@@ -28,11 +28,21 @@ pivac.Sentry:
   # 1.15 splits the gap cleanly.  Raise if off LEDs are false-triggering.
   led_ratio: 1.15
 
-  # Digit threshold factor: threshold = mean + factor*(max-mean) per digit crop.
-  # Higher values reduce false positives on blank/dim digit positions.
-  # Raise toward 0.60 if blank digits are misread; lower toward 0.40 if
-  # dim lit digits are missed. Default 0.50 works well for IR night mode.
-  digit_threshold_factor: 0.50
+  # Digit threshold factor for the DISPLAY-WIDE lit/off bar:
+  #     threshold = bg + factor*(hi - bg)
+  # where bg = display_bg_percentile of the whole display crop and hi = its 99th
+  # percentile (a genuinely-lit segment — the units digit is always lit). The
+  # same bar applies to every digit, so a BLANK digit (e.g. the hundreds position
+  # for any temp < 100) can't manufacture a phantom from its own glare — the old
+  # per-digit-crop threshold could, producing ~84 -> 184 spikes. Live data: lit
+  # segments saturate ~255, off segments ~130-190, bg ~116, so factor 0.65 puts
+  # the bar ~206 with wide margin (stable across 0.60-0.75). Raise if a faint
+  # blank-digit glare still reads lit; lower if a dim real segment is missed.
+  digit_threshold_factor: 0.65
+
+  # Percentile of the display crop used as the dark-background reference for the
+  # threshold above. 40 is robust on this mostly-dark panel; rarely needs tuning.
+  display_bg_percentile: 40
 
   # Perspective warp: 4 corners of the LED glass in the original 2560x1440 frame.
   # Order: TL -> TR -> BR -> BL

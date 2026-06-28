@@ -182,30 +182,53 @@ def _segment_brightness(digit_roi, seg_name: str) -> float:
     return float(np.percentile(_to_gray(region), 90))
 
 
-def _digit_threshold(gray, factor: float) -> int:
-    _, np = _require_cv()
-    mean_val = float(np.mean(gray))
-    max_val = float(np.max(gray))
-    return int(mean_val + factor * (max_val - mean_val))
+_SEGMENTS = ("a", "b", "c", "d", "e", "f", "g")
 
 
-def _read_digit(digit_roi, threshold: int) -> str:
+def _display_threshold(bg: float, hi: float, factor: float) -> int:
+    """Absolute lit/off threshold for ALL digits, derived once per display from
+    the background level ``bg`` and the bright reference ``hi`` (the genuinely-lit
+    segments — the units digit is always lit for any reading, so ``hi`` tracks a
+    real LED segment). Every digit reads as lit only against this common, real bar.
+
+    Replaces a per-digit-crop relative threshold whose fatal flaw was that a
+    *blank* digit crop (e.g. the hundreds position for any temp < 100) holds only
+    dark background + IR glare, so its own max set the bar and the brightest glare
+    pixel cleared it — manufacturing a phantom hundreds digit (~84 read as 184).
+    Anchoring the bar to a real lit segment elsewhere on the display keeps blank
+    digits blank regardless of glare."""
+    return int(bg + factor * (hi - bg))
+
+
+def _decode_segments(brightness: dict, threshold: float) -> str:
+    """Map per-segment brightness to a character given an absolute threshold.
+    ``brightness`` maps each of a..g to its measured value; a segment counts as
+    lit when it meets ``threshold``."""
     bits = 0
-    for i, seg in enumerate(["a", "b", "c", "d", "e", "f", "g"]):
-        if _segment_brightness(digit_roi, seg) >= threshold:
+    for i, seg in enumerate(_SEGMENTS):
+        if brightness[seg] >= threshold:
             bits |= (1 << (6 - i))
     return _SEGMENT_MAP.get(bits, "?" + format(bits, "07b"))
 
 
+def _read_digit(digit_roi, threshold: float) -> str:
+    brightness = {seg: _segment_brightness(digit_roi, seg) for seg in _SEGMENTS}
+    return _decode_segments(brightness, threshold)
+
+
 def _read_display(frame, config: dict) -> str:
+    _, np = _require_cv()
     display_crop = _get_display_crop(frame, config)
-    factor = config.get("digit_threshold_factor", 0.50)
+    factor = config.get("digit_threshold_factor", 0.65)
+    bg_pct = config.get("display_bg_percentile", 40)
+    gray_disp = _to_gray(display_crop)
+    bg = float(np.percentile(gray_disp, bg_pct))
+    hi = float(np.percentile(gray_disp, 99))   # 99th, not max: ignore a hot pixel
+    threshold = _display_threshold(bg, hi, factor)
     result = ""
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
-        gray = _to_gray(digit_crop)
-        threshold = _digit_threshold(gray, factor)
         result += _read_digit(digit_crop, threshold)
     return result.strip()
 
@@ -424,6 +447,8 @@ def _poll_cycle(config: dict) -> dict:
         cap.grab()
 
     samples      = {}    # mode -> [sane float readings this cycle]
+    led_samples  = {}    # led key -> [bool reads this cycle] (voted at cycle end)
+    dhw_samples  = []    # dhw-priority bool reads this cycle (voted at cycle end)
     confirmed    = set() # modes with >= min_samples (enough to trust the median)
     error_code   = None
     last_frame   = None
@@ -452,6 +477,14 @@ def _poll_cycle(config: dict) -> dict:
             if "?" in value or stable_count < mode_stable_min:
                 continue
 
+            # Sample the LED/indicator states on every stable frame so the cycle
+            # can resolve each by majority vote (one frame's IR glare can't flip
+            # the result). The same per-frame read feeds the phantom guard below.
+            frame_leds = _read_leds(frame, config)
+            for k, v in frame_leds.items():
+                led_samples.setdefault(k, []).append(bool(v))
+            dhw_samples.append(_read_dhw_priority(frame, config))
+
             if mode is None:
                 code = _classify_error(value)
                 if code:
@@ -471,7 +504,7 @@ def _poll_cycle(config: dict) -> dict:
             # read. The burner LED disambiguates a real firing peak (lit) from a
             # phantom hundreds-digit spike on an idle reading (dark) -> reject.
             if (mode == "water_temp" and sane >= idle_ceiling
-                    and _read_leds(frame, config).get("burnerOn") is False):
+                    and frame_leds.get("burnerOn") is False):
                 logger.debug("Sentry: rejecting phantom-hundreds water_temp '%s' "
                              "(burner off)", value)
                 continue
@@ -498,15 +531,32 @@ def _poll_cycle(config: dict) -> dict:
             logger.warning("Sentry: '%s' only %d plausible read(s) this cycle (%s); "
                            "skipping", mode, len(vals), vals)
 
+    # Resolve LED/indicator states by majority vote over the cycle's frames so a
+    # single IR-glare frame can't flip burnerOn (which otherwise flickered the
+    # Run/Idle status). Fall back to a last-frame read if no stable frames were
+    # collected (e.g. the whole cycle showed transition artefacts).
+    def _vote(bools):
+        return sum(1 for b in bools if b) * 2 > len(bools)
+
+    if led_samples:
+        leds = {k: _vote(v) for k, v in led_samples.items()}
+    elif last_frame is not None:
+        leds = _read_leds(last_frame, config)
+    else:
+        leds = {}
+
+    if dhw_samples:
+        dhw_priority = _vote(dhw_samples)
+    elif last_frame is not None:
+        dhw_priority = _read_dhw_priority(last_frame, config)
+    else:
+        dhw_priority = False
+
     result = dict(collected)
     if error_code:
         result["error_code"] = error_code
-    if last_frame is not None:
-        result["leds"] = _read_leds(last_frame, config)
-        result["dhw_priority"] = _read_dhw_priority(last_frame, config)
-    else:
-        result["leds"] = {}
-        result["dhw_priority"] = False
+    result["leds"] = leds
+    result["dhw_priority"] = dhw_priority
 
     return result
 
