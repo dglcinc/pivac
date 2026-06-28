@@ -14,7 +14,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pivac.Sentry import _reading_sane, _WATER_IDLE_CEILING  # noqa: E402
+from pivac.Sentry import (  # noqa: E402
+    _reading_sane,
+    _WATER_IDLE_CEILING,
+    _display_threshold,
+    _decode_segments,
+)
 
 CASES = [
     # (label, mode, value, burner_on, expected_accepted)
@@ -50,8 +55,41 @@ CASES = [
 ]
 
 
+# Display-wide digit threshold — the root-cause fix for the phantom hundreds digit.
+# The old per-digit-crop threshold let a BLANK digit's own glare set the bar, so a
+# stray bright pixel manufactured a phantom "1" (~84 read as 184). The bar is now
+# derived once from the whole display (background -> a genuinely-lit segment) and
+# applied to every digit, so a blank position stays blank.
+#
+# Brightness fixtures below are the REAL per-segment values measured off the live
+# RTSP stream on 2026-06-28 (display reading "165"/"163", bg~116, lit segs ~255).
+# threshold = _display_threshold(bg=116, hi=255, factor=0.65) = 206.
+THR = _display_threshold(116.0, 255.0, 0.65)   # -> 206
+
+# (label, brightness dict, expected char)
+DECODE_CASES = [
+    # real hundreds "1" (Sentry uses the left verticals e+f): lit 255, off <=179
+    ("real '1' hundreds (e+f lit)",
+     {"a": 133, "b": 159, "c": 179, "d": 148, "e": 255, "f": 255, "g": 161}, "1"),
+    # real tens "6": all lit except b (b sits at 192, just under the 206 bar)
+    ("real '6' tens (b off at 192)",
+     {"a": 255, "b": 192, "c": 255, "d": 255, "e": 255, "f": 255, "g": 255}, "6"),
+    # real units "5"
+    ("real '5' units",
+     {"a": 255, "b": 185, "c": 255, "d": 255, "e": 175, "f": 255, "g": 255}, "5"),
+    # BLANK digit at off-level brightness -> must stay blank (no phantom)
+    ("blank digit (all off ~130-180) -> ' '",
+     {"a": 133, "b": 159, "c": 179, "d": 148, "e": 150, "f": 160, "g": 161}, " "),
+    # BLANK digit with mild IR glare (b,c pushed to ~190) -> still blank, NOT "1".
+    # Under the old per-crop bar these two would have read lit -> phantom "1".
+    ("blank digit + glare (b,c~190) -> ' ' not '1'",
+     {"a": 150, "b": 190, "c": 193, "d": 150, "e": 160, "f": 165, "g": 160}, " "),
+]
+
+
 def main():
     assert _WATER_IDLE_CEILING == 185.0, _WATER_IDLE_CEILING
+    assert THR == 206, THR
     failures = []
     for label, mode, value, burner, expect_ok in CASES:
         got = _reading_sane(mode, value, burner_on=burner)
@@ -61,11 +99,21 @@ def main():
               f"_reading_sane({mode!r}, {value!r}, burner_on={burner}) -> {got}")
         if not ok:
             failures.append(label)
+
+    for label, brightness, expect_char in DECODE_CASES:
+        got = _decode_segments(brightness, THR)
+        ok = got == expect_char
+        print(f"[{'PASS' if ok else 'FAIL'}] {label}: "
+              f"_decode_segments(..., {THR}) -> {got!r} (want {expect_char!r})")
+        if not ok:
+            failures.append(label)
+
     print()
+    total = len(CASES) + len(DECODE_CASES)
     if failures:
         print(f"{len(failures)} FAILED: {failures}")
         sys.exit(1)
-    print(f"all {len(CASES)} cases passed")
+    print(f"all {total} cases passed")
 
 
 if __name__ == "__main__":
