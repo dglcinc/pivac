@@ -24,25 +24,17 @@ of this build.
 - **pivac stays read-only.** It only *reads* the node's JSON. All valve control and any
   autonomous shutoff logic live **on the Arduino**, never in pivac.
 
-**Pending (pick before ordering the relay / finalizing the sketch):**
-1. **Valve variant** — both hold water *on* through a power loss, which is the safe
-   default for a supply line:
-   - **A. 2-wire reverse polarity** (e.g. U.S. Solid `B06XWG6ZLS`) — *bistable*: holds
-     whatever position with **zero** holding power, so a commanded shut-off **stays shut
-     even through a power blink**. **No electronic feedback.** Needs a **DPDT** relay.
-     *(Recommended — best shutoff integrity.)*
-   - **B. "Normally Open" 5-wire** — **stays open on power loss** *and* gives 2 position-
-     feedback wires, but needs **continuous power to hold closed** (reopens if power drops
-     mid-shutoff). Needs a single SPST relay + 2 feedback inputs.
-   - **Avoid** "Normally Closed" / "Auto Return" — those fail *closed* and kill the house
-     on every power blip.
-2. **Auto-shutoff:** enable on day one, or **monitor-first** (recommended — observe a
-   baseline, alert via Grafana, enable autonomous shutoff later)?
-3. **Confirm the spare board is an UNO R4 WiFi** (WiFiS3 / can serve HTTP). A classic Uno
-   needs a network shield; an ESP32 would change the sketch framework.
-
-This spec is written **primary = Variant A (reverse polarity)**, with Variant B wiring
-called out where it differs.
+**Resolved (2026-06-28):**
+1. **Valve variant = A — 2-wire reverse-polarity bistable** (David has it in hand). Holds
+   position with **zero** holding power, so a commanded shut-off survives a power blink; no
+   electronic feedback; needs a **DPDT** relay. Wiring detail in §4.3. *(B = "Normally
+   Open" 5-wire and "Normally Closed"/"Auto Return" are documented in §4.4 for reference
+   only — not used.)*
+2. **Auto-shutoff = monitor-first.** The sketch ships with autonomous shutoff **disabled**;
+   the valve moves only on a manual `GET /valve/*`. Enable later once a Grafana baseline
+   exists.
+3. **Board confirmed = UNO R4 WiFi** (the spare third board; WiFiS3 HTTP). Sketch reuses
+   the `ArduinoPSI_*` WiFi/watchdog scaffolding.
 
 ---
 
@@ -92,17 +84,38 @@ run up/downstream (AWWA), with unions for service.
 
 ## 4. Wiring
 
-### 4.1 Power (single 12 V rail, two branches)
+### 4.1 Power — how 12 V reaches the board *and* the valve (single rail, two branches)
+
+One 12 V DC adapter (1–2 A, center-positive barrel is typical) feeds everything. Cut the
+barrel off (or use a screw-terminal barrel-jack adapter) to expose **+12 V** and **GND**,
+then split each into a small bus:
 
 ```
-12V DC adapter ─┬─▶ UNO R4 WiFi  VIN  (board regulates to 5V/3.3V internally; R4 VIN = 6–24V OK)
-                └─▶ relay COM (switched 12V) ─▶ valve motor leads
-Arduino GND ── adapter (−) ── relay GND ── valve (−)        ← common ground, required
+                      ┌─────────────────── +12 V bus ───────────────────┐
+                      │                                                  │
+ 12 V DC adapter (+) ─┤                                                  │
+                      ├─▶ UNO R4 WiFi  VIN  pin   (board's onboard reg makes 5 V/3.3 V;
+                      │                            R4 VIN spec = 6–24 V, so raw 12 V is fine)
+                      └─▶ relay contact side (the cross-wired +12 V / GND that the
+                          DPDT relay swaps onto the two valve motor leads — see §4.3)
+
+                      ┌─────────────────── GND bus (common) ────────────┐
+ 12 V DC adapter (−) ─┼─▶ UNO R4 WiFi  GND pin                          │  ← ALL grounds
+                      ├─▶ relay module GND                              │     must be common
+                      └─▶ relay contact side (the GND half of the cross-wire)
 ```
 
-The valve motor current (a few hundred mA for ~3–5 s while travelling) flows **only**
-through the relay contacts — **never** through an Arduino pin or its 5 V regulator. A
-12 V / 1–2 A adapter covers board (~0.1–0.2 A) + valve travel comfortably.
+**The 12 V never touches an Arduino signal pin.** The board takes 12 V only on **VIN**
+(it regulates its own logic rails). The valve's motor current (a few hundred mA for the
+~3–5 s of travel, then ~0 once it hits its limit switch) flows **only** through the relay
+**contacts** from the +12 V/GND bus to the motor leads — never through a GPIO or the 5 V
+regulator. The relay **coil/opto** is the only thing the Arduino drives, and it's powered
+from the board's **5 V** pin (see §4.3), not from the 12 V rail.
+
+A 12 V / 1–2 A adapter covers the board (~0.1–0.2 A) plus valve travel comfortably. Use
+≥ 20 AWG for the 12 V motor run; keep it short. **Common ground is mandatory** — the
+Arduino, the relay module, and the 12 V adapter's negative must all tie together, or the
+relay opto won't switch reliably.
 
 ### 4.2 Meter (reed pulse)
 
@@ -115,20 +128,61 @@ Dry contact, no polarity. With `INPUT_PULLUP` the pin idles HIGH and pulses LOW 
 0.1-gal reed closure (~0.16 mA through the reed — well under its 10 mA / 24 V limit).
 Software debounce (§5) handles contact bounce.
 
-### 4.3 Valve — Variant A (reverse polarity, DPDT)
+### 4.3 Valve — Variant A (reverse-polarity bistable, DPDT) — **chosen**
 
-One GPIO selects motor polarity via the DPDT relay; the valve self-stops at its internal
-limit switch and idles at ~0 power, so power can stay applied.
+The valve has **two** motor leads and changes position by **polarity**: +/− on the leads
+drives it one way (OPEN), −/+ drives it the other (CLOSE). It self-stops at an internal
+limit switch at each end (current drops to ~0), and being **bistable it holds position
+with zero power** — so a power loss leaves it wherever it was. A **DPDT** relay is what
+flips that polarity from a single GPIO.
 
-| Signal | Pin | Behaviour |
-|--------|-----|-----------|
-| Relay coil (direction) | **D7** | LOW = OPEN polarity · HIGH = CLOSE polarity |
+**Why DPDT:** to reverse polarity you must swap *both* leads at once. A DPDT relay is two
+SPDT switches that throw together — one pole handles each motor lead. Wire the contacts
+**crossed**:
 
-DPDT contacts swap the +/− feeding the valve's two motor leads. (Optional: a 2nd relay on
-**D8** to cut the 12 V except during the ~5 s actuation, to eliminate standby current —
-not required.)
+| Motor lead | Relay pole | Contact at REST (de-energized) | Contact when ENERGIZED |
+|------------|-----------|-------------------------------|------------------------|
+| Motor **A** → **COM1** | pole 1 | **NC1 = GND**  → A sees **−** | **NO1 = +12 V** → A sees **+** |
+| Motor **B** → **COM2** | pole 2 | **NC2 = +12 V** → B sees **+** | **NO2 = GND**  → B sees **−** |
+| Result | | **A=−, B=+ → OPEN polarity** | **A=+, B=− → CLOSE polarity** |
 
-### 4.4 Valve — Variant B (Normally-Open 5-wire) *(if chosen)*
+So: relay **de-energized = OPEN** (fail-safe — the supply line stays open on power/board
+loss), relay **energized = CLOSE**.
+
+```
+                 DPDT relay (or two ganged SPDT channels, coils both on D7)
+   +12 V ───┬──────────────● NO1                ● NC2 ●───────┬─── +12 V
+            │               \                  /              │
+            │                ●COM1── Motor A ──┤              │
+            │                                  COM2── Motor B │
+            │                ●NC1               ●NO2          │
+   GND ─────┴──────────────────┘                  └──────────┴─── GND
+   (NC1=GND, NO1=+12)                         (NC2=+12, NO2=GND)   ← crossed
+```
+
+**If you have a 2-channel SPDT relay module** (the common blue boards) instead of a single
+8-pin DPDT part: use **both** channels as the two poles and **tie both IN pins to D7** so
+they throw together. Wire channel 1 as the COM1/NO1/NC1 row above, channel 2 as the
+COM2/NO2/NC2 row. The motor leads go to the two **COM** screw terminals.
+
+**Relay coil power & logic level:** power the module's **VCC/JD-VCC from the Arduino 5 V**
+pin, GND common, and drive **IN from D7**. These cheap modules are usually **active-LOW**
+(coil energizes when IN is pulled LOW) — the sketch defaults to that
+(`#define RELAY_ACTIVE_HIGH 0`), so at boot D7 idles HIGH → coil de-energized → **OPEN**
+polarity → fail-open. If your module is active-HIGH, flip that one `#define`. Verify once
+with a meter before connecting the valve.
+
+| Signal | Pin | Behaviour (active-LOW module) |
+|--------|-----|-------------------------------|
+| Relay coil (direction) | **D7** | HIGH = de-energized = OPEN · LOW = energized = CLOSE |
+
+The firmware **persists the commanded position to EEPROM** and re-asserts it in `setup()`,
+so a watchdog reset re-drives the valve to its last commanded state rather than blindly
+reopening (§5, §10). *(Optional standby-current elimination: add a 2nd relay on **D8** in
+series with the 12 V and pulse it only during the ~5 s actuation — not required, since the
+valve idles at ~0 power at its limit switch.)*
+
+### 4.4 Valve — Variant B (Normally-Open 5-wire) *(not used — kept for reference)*
 
 | Signal | Pin | Behaviour |
 |--------|-----|-----------|
@@ -141,12 +195,23 @@ or an optocoupler into the 5 V pins, **not** raw. Share ground.
 
 ### 4.5 Protection
 - **RC snubber** across the valve motor leads (or the relay contacts) for inductive
-  back-EMF.
+  back-EMF — e.g. 0.1 µF film cap in series with ~100 Ω, rated ≥ 100 V.
 - Keep meter signal wiring away from the 12 V motor run; twisted pair if long.
 
 ---
 
 ## 5. Arduino firmware
+
+> **Built:** the full sketch is `~/github/Arduino/DomesticWater/DomesticWater.ino`
+> (Arduino repo branch `feat/domestic-water-node`). It compiles clean for
+> `arduino:renesas_uno:unor4wifi` (30 % flash, 29 % RAM). The skeleton below is the
+> illustrative reference; the shipped sketch differs in three ways worth noting:
+> (1) the **relay defaults to active-LOW** (`#define RELAY_ACTIVE_HIGH 0`) so D7 idling
+> HIGH at boot = de-energized = **OPEN** (fail-open) — flip the define for an active-HIGH
+> module; (2) it **persists the commanded valve state** to EEPROM (with a magic marker)
+> and re-asserts it in `setup()`, so a watchdog reset re-drives the last position instead
+> of reopening; (3) it adds a `GET /reset?confirm=1` totalizer-reset endpoint. Autonomous
+> shutoff is present only as a commented stub (monitor-first).
 
 Reuse the WiFi/HTTP scaffolding from the existing `ArduinoPSI_*` sketches in
 `~/github/Arduino` (WiFiS3, `WiFiServer` on port 80, RA4M1 watchdog, escalating reconnect
