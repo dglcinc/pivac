@@ -1,10 +1,14 @@
 # Domestic Water Node — Build Spec
 
-**Status:** Draft / not yet built — supersedes the retired camera-CV `pivac.WaterMeter`
-(Tapo-RTSP + OpenCV) as the domestic main-meter path.
+**Status:** Sketch built (meter-only), not yet flashed/installed — supersedes the retired
+camera-CV `pivac.WaterMeter` (Tapo-RTSP + OpenCV) as the domestic main-meter path.
+**Scope change (2026-07-03): the motorized shutoff valve is DEFERRED.** The current build
+is **meter-only** — the valve sections (§4.1 12 V rail, §4.3–§4.5, the `/valve/*`
+endpoints, §8.2 auto-shutoff, §10 valve rows) are kept for reference but are **not part
+of the build**. The valve-era sketch is in the Arduino repo branch history.
 **Goal:** Give `environment.water.domestic.*` a reliable, fully-local live source —
-consumption + flow rate + (optional) automatic leak shutoff — feeding Signal K →
-InfluxDB → Grafana → WilhelmSK like every other pivac sensor.
+consumption + flow rate — feeding Signal K → InfluxDB → Grafana → WilhelmSK like every
+other pivac sensor.
 
 This is the **domestic** node. The companion irrigation change (a DAE meter straight
 into OpenSprinkler) is summarized in [§9](#9-companion-irrigation-change) but is not part
@@ -36,6 +40,12 @@ of this build.
 3. **Board confirmed = UNO R4 WiFi** (the spare third board; WiFiS3 HTTP). Sketch reuses
    the `ArduinoPSI_*` WiFi/watchdog scaffolding.
 
+**Deferred (2026-07-03):**
+- **The shutoff valve is out of scope.** The node meters only. Consequences: no 12 V
+  rail (the board runs on a plain **USB supply**), no DPDT relay, no `/valve/*`
+  endpoints, no `valve` field in the status dict, no `shutoffValve` SK path. Items 1–2
+  of the resolved list above describe the valve design for whenever it returns.
+
 ---
 
 ## 2. Bill of materials
@@ -53,6 +63,10 @@ of this build.
 | 9 | Misc | 2-conductor cable (meter), hookup wire, RC snubber, resistors | See wiring |
 
 Potable note: MJ-75a is NSF61; U.S. Solid SS304 is NSF/ANSI 61; use **lead-free** fittings.
+
+> **Meter-only build needs only items 1, 3, 6, 7, 8 + the meter cable** — the valve (2),
+> relay (4), 12 V adapter (5), and RC snubber are valve-era. Power the board with a plain
+> 5 V USB supply.
 
 ---
 
@@ -75,16 +89,29 @@ Potable note: MJ-75a is NSF61; U.S. Solid SS304 is NSF/ANSI 61; use **lead-free*
                               Grafana alerting → graph-bridge → email (leak/anomaly)
 ```
 
-Plumbing order: **existing manual valve → DAE meter → motorized valve → house**, so the
-meter records all house flow and the motorized valve cuts the whole house downstream.
-Install the meter with its arrow in flow direction and a few pipe-diameters of straight
-run up/downstream (AWWA), with unions for service.
+Plumbing order (meter-only build): **existing manual valve → DAE meter → house**. If the
+valve returns later it slots in between the meter and the house. Install the meter with
+its arrow in flow direction and a few pipe-diameters of straight run up/downstream
+(AWWA), with unions for service.
 
 ---
 
 ## 4. Wiring
 
-### 4.1 Power — how 12 V reaches the board *and* the valve (single rail, two branches)
+> **Meter-only build:** the complete wiring is §4.2 plus a USB power supply —
+>
+> ```
+>  DAE MJ-75a reed (2-wire, no polarity)
+>     lead 1 ─────────────────────▶ D2   (INPUT_PULLUP — idles HIGH, pulses LOW)
+>     lead 2 ─────────────────────▶ GND
+>
+>  UNO R4 WiFi power ◀───────────── any 5 V USB supply (USB-C port)
+> ```
+>
+> §4.1 and §4.3–§4.5 below describe the deferred valve's 12 V/relay wiring and apply
+> only if the valve is added back.
+
+### 4.1 Power — how 12 V reaches the board *and* the valve (single rail, two branches) *(valve-era — deferred)*
 
 One 12 V DC adapter (1–2 A, center-positive barrel is typical) feeds everything. Cut the
 barrel off (or use a screw-terminal barrel-jack adapter) to expose **+12 V** and **GND**,
@@ -128,7 +155,7 @@ Dry contact, no polarity. With `INPUT_PULLUP` the pin idles HIGH and pulses LOW 
 0.1-gal reed closure (~0.16 mA through the reed — well under its 10 mA / 24 V limit).
 Software debounce (§5) handles contact bounce.
 
-### 4.3 Valve — Variant A (reverse-polarity bistable, DPDT) — **chosen**
+### 4.3 Valve — Variant A (reverse-polarity bistable, DPDT) — *(deferred — reference only)*
 
 The valve has **two** motor leads and changes position by **polarity**: +/− on the leads
 drives it one way (OPEN), −/+ drives it the other (CLOSE). It self-stops at an internal
@@ -194,29 +221,31 @@ Feedback wires may sit at 12 V — read them through a **divider** (e.g. 10 k/15
 or an optocoupler into the 5 V pins, **not** raw. Share ground.
 
 ### 4.5 Protection
-- **RC snubber** across the valve motor leads (or the relay contacts) for inductive
-  back-EMF — e.g. 0.1 µF film cap in series with ~100 Ω, rated ≥ 100 V.
-- Keep meter signal wiring away from the 12 V motor run; twisted pair if long.
+- *(valve-era)* **RC snubber** across the valve motor leads (or the relay contacts) for
+  inductive back-EMF — e.g. 0.1 µF film cap in series with ~100 Ω, rated ≥ 100 V.
+- Meter-only: just use twisted pair for the reed run if it's long; there is no motor
+  wiring to keep clear of.
 
 ---
 
 ## 5. Arduino firmware
 
-> **Built:** the full sketch is `~/github/Arduino/DomesticWater/DomesticWater.ino`
-> (Arduino repo branch `feat/domestic-water-node`). It compiles clean for
-> `arduino:renesas_uno:unor4wifi` (30 % flash, 29 % RAM). The skeleton below is the
-> illustrative reference; the shipped sketch differs in three ways worth noting:
-> (1) the **relay defaults to active-LOW** (`#define RELAY_ACTIVE_HIGH 0`) so D7 idling
-> HIGH at boot = de-energized = **OPEN** (fail-open) — flip the define for an active-HIGH
-> module; (2) it **persists the commanded valve state** to EEPROM (with a magic marker)
-> and re-asserts it in `setup()`, so a watchdog reset re-drives the last position instead
-> of reopening; (3) it adds a `GET /reset?confirm=1` totalizer-reset endpoint. Autonomous
-> shutoff is present only as a commented stub (monitor-first).
+> **Built (meter-only, 2026-07-03):** the full sketch is
+> `~/github/Arduino/DomesticWater/DomesticWater.ino` (Arduino repo branch
+> `feat/domestic-water-node`). It compiles clean for `arduino:renesas_uno:unor4wifi`
+> (29 % flash, 29 % RAM). All valve code was removed with the scope change — no relay
+> pin, no `/valve/*` endpoints, no valve EEPROM state (the valve-era sketch is in the
+> branch history). Versus the skeleton below it adds a `GET /reset?confirm=1`
+> totalizer-reset endpoint, an EEPROM **magic marker** so a fresh flash starts at 0
+> instead of reading erased-cell garbage, and `uptime_ms` in the status dict (tells a
+> WiFi self-reconnect from a reboot, same as the pressure sketches).
 
 Reuse the WiFi/HTTP scaffolding from the existing `ArduinoPSI_*` sketches in
 `~/github/Arduino` (WiFiS3, `WiFiServer` on port 80, RA4M1 watchdog, escalating reconnect
 with `NVIC_SystemReset()` fallback). The node adds: pulse counting, an EEPROM totalizer,
-flow calc, valve control, and the JSON endpoint.
+flow calc, and the JSON endpoint. *(The skeleton below predates the valve deferral and
+still shows the valve bits — ignore `PIN_VALVE`/`valveOpen`/`valveClose`; the shipped
+sketch has none of them.)*
 
 **Output format — critical:** `pivac.ArduinoSensor` parses the response with
 `ast.literal_eval` on the first line matching `.*\{.*\}`, so the dict must use
@@ -309,18 +338,19 @@ void loop() {
 | Method / path | Purpose | Called by |
 |---------------|---------|-----------|
 | `GET /` | status dict (below) | **pivac** (read-only) |
-| `GET /valve/close` | manual close | human / dashboard only |
-| `GET /valve/open` | manual open | human / dashboard only |
 | `GET /reset?confirm=1` | reset totalizer | manual only (rare) |
+
+*(`GET /valve/open` / `GET /valve/close` existed in the valve-era sketch — removed with
+the valve deferral.)*
 
 ### 5.2 Status dict (single-quoted)
 ```
-{'flow' : 2.50, 'volume' : 12345.6, 'flowing' : 1, 'valve' : 1}
+{'flow' : 2.50, 'volume' : 12345.6, 'flowing' : 1, 'uptime_ms' : 123456}
 ```
 - `flow` — gal/min (rolling window)
 - `volume` — cumulative gallons (`totalPulses × 0.1`)
 - `flowing` — `1` if `flow > 0` else `0`
-- `valve` — `1` = open, `0` = closed (commanded; for Variant B, derive from feedback)
+- `uptime_ms` — ms since boot (a reboot resets it to ~0; a WiFi self-reconnect keeps climbing)
 
 ### 5.3 Notes
 - **EEPROM wear:** ~100 k write endurance — persist on a timer (5 min) / on valve events,
@@ -338,7 +368,7 @@ No module changes needed — the generic `pivac.ArduinoSensor` maps each respons
 
 ```yaml
 pivac.DomesticWater:
-    description: Domestic main water meter (DAE MJ-75a) + shutoff valve via Arduino
+    description: Domestic main water meter (DAE MJ-75a) via Arduino
     module: pivac.ArduinoSensor
     enabled: true
     ipaddr: 10.0.0.XX          # DHCP-reserve in UniFi by the board's WiFi MAC
@@ -353,9 +383,6 @@ pivac.DomesticWater:
         flowing:
             sk_path: environment.water.domestic
             outname: flowing           # → environment.water.domestic.flowing (0/1)
-        valve:
-            sk_path: environment.water.domestic
-            outname: shutoffValve      # → environment.water.domestic.shutoffValve (1=open)
 ```
 
 Then a dedicated systemd unit `pivac-domestic-water.service` (clone an existing
@@ -368,7 +395,7 @@ restart/stop lists in CLAUDE.md's deployment + SD-maintenance sections.
 | `environment.water.domestic.flowRate` | gal/min | rolling window |
 | `environment.water.domestic.consumption` | gal | cumulative totalizer |
 | `environment.water.domestic.flowing` | 0/1 | derived |
-| `environment.water.domestic.shutoffValve` | 0/1 | 1 = open |
+| ~~`environment.water.domestic.shutoffValve`~~ | 0/1 | deferred with the valve |
 
 > The old camera-CV domestic data was deleted from InfluxDB; this path has had no live
 > source since. First good data from this node re-seeds it. If you ever reset measurements,
@@ -395,12 +422,12 @@ Two independent layers; **start monitor-only**, add shutoff after a baseline:
    fixture), `flowRate` above a household-peak threshold sustained for > M minutes (burst),
    and a "consumption climbed overnight while nothing should run" check. This directly
    addresses the unexplained ~600–1000 gal overnight swings noted in prior sessions.
-2. **Autonomous shutoff (on the Arduino, opt-in):** if enabled, the sketch closes the
-   valve on a sustained high-flow/continuous-flow rule. **Keep it off until the Grafana
-   baseline is understood** to avoid false shut-offs.
+2. **Autonomous shutoff (on the Arduino, opt-in)** — *deferred with the valve.* If the
+   valve returns, the sketch closes it on a sustained high-flow/continuous-flow rule,
+   kept off until the Grafana baseline is understood.
 
-Safety: the valve logic is on the Arduino, not pivac (read-only). The **manual upstream
-valve** is the human override (the U.S. Solid valve has no manual lever).
+Safety: any future valve logic lives on the Arduino, not pivac (read-only). The **manual
+upstream valve** is the human override.
 
 ---
 
@@ -416,6 +443,9 @@ meter the OS app and Grafana finally agree and the contaminated-calibration saga
 
 ## 10. Failure modes & power-loss behaviour
 
+*(Valve columns are reference for the deferred valve. Meter-only: a power loss just
+pauses metering — the totalizer resumes from EEPROM, at most 5 min of pulses behind.)*
+
 | Event | Variant A (reverse polarity) | Variant B (NO 5-wire) |
 |-------|------------------------------|------------------------|
 | Power loss, valve open | **stays open** | **stays open** |
@@ -428,20 +458,18 @@ pivac **never** commands the valve. The upstream manual valve is the ultimate ov
 
 ---
 
-## 11. Deployment & test checklist
+## 11. Deployment & test checklist (meter-only)
 
-1. Plumb meter + valve (water off), unions + manual valve upstream, meter arrow correct.
-2. Wire per §4; verify common ground; snubber in place.
+1. Plumb the meter (water off), unions + manual valve upstream, meter arrow correct.
+2. Wire per §4 (reed → D2 + GND; USB power).
 3. Flash sketch; confirm WiFi join + `GET /` returns the single-quoted dict.
 4. Bench/known-volume test: pulses → `volume` tracks; `flow` reads during draw.
-5. Valve test: `GET /valve/close` then `/valve/open`; confirm physical travel (and feedback
-   on Variant B); confirm **power-loss leaves it open** (pull power while open).
-6. DHCP-reserve the board IP in UniFi by MAC; set it in config.
-7. Add config block + `pivac-domestic-water.service`; `daemon-reload`; enable; start.
-8. Confirm `environment.water.domestic.*` flowing into Signal K, then InfluxDB/Grafana.
-9. Add Grafana alert rules (monitor-only). Defer autonomous shutoff.
-10. Update CLAUDE.md: Active Services table, Current Modules, deployment restart/stop lists,
-    Known Operational Behaviours.
+5. DHCP-reserve the board IP in UniFi by MAC; set it in config.
+6. Add config block + `pivac-domestic-water.service`; `daemon-reload`; enable; start.
+7. Confirm `environment.water.domestic.*` flowing into Signal K, then InfluxDB/Grafana.
+8. Add Grafana alert rules (monitor-only).
+9. Update CLAUDE.md: Active Services table, Current Modules, deployment restart/stop lists,
+   Known Operational Behaviours.
 
 ---
 
