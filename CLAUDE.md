@@ -209,6 +209,10 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - `outside-onewire-stale` (warning) — 30m staleness on `environment.outside.temperature` (the physical AMB DS18B20).
   - `outside-temp-divergence` (info) — fires when `abs(environment.outside.temperature − environment.outside.thermostat.temperature) > 8 K` (~14 °F) sustained for 1h. Catches a single drifting/failed outdoor sensor while its data is still "fresh". `noDataState: OK` so a thermostat with no outdoor sensor (thermostat path absent) never trips it. Baseline divergence observed ≈1 K.
   - `circ-temp-stale` (warning) — 30m staleness on `environment.inside.hvac.dhw.recirc.temperature` (the DHW recirc-loop DS18B20 on the Arduino at 10.0.0.114). Freshness only; the pump-health/"loop cold" alert is intentionally deferred (on-demand/aquastat loop — see `docs/circ-loop-temp-monitoring-plan.md` §8.3).
+- `grafana/provisioning/alerting/domestic-water.yaml` — domestic water meter leak + freshness alerts (group `domestic-water`, added 2026-07-03), all routing to `graph-bridge`. **Both leak rules are irrigation-aware** — sprinkler water flows *through* the domestic meter, so OpenSprinkler's `environment.water.irrigation.*` gates them (irrigation NoData is replaced with 0 so a down sprinkler service can't silently disarm leak alerting):
+  - `domestic-flow-continuous` (warning) — `flowing == 1` for the entire trailing 3h **and** irrigation never active in that window (an overnight multi-zone run would otherwise false-trip every time). Catches running toilets / slow leaks. `noDataState: OK`.
+  - `domestic-flow-high` (warning) — **net** household flow (domestic − irrigation `flowRate`) averaging > 12 gpm over 15m, `for: 10m`. Stays armed *during* sprinkler runs. Threshold is a first guess pending a usage baseline.
+  - `domestic-water-stale` (warning) — 30m freshness on `environment.water.domestic.consumption` (never-true `< -1` sentinel + `noDataState: Alerting`, same pattern as sensor-freshness). Node keeps counting locally during an outage (EEPROM totalizer), so consumption catches up on recovery.
 
 **Test the bridge end-to-end:**
 ```bash
@@ -224,8 +228,8 @@ sudo cp ~/github/pivac/scripts/systemd/grafana-graph-bridge.service /etc/systemd
 sudo systemctl daemon-reload && sudo systemctl restart grafana-graph-bridge
 # provisioning YAMLs (Grafana copies, not symlinks — must restart to pick up changes):
 sudo cp ~/github/pivac/grafana/provisioning/alerting/*.yaml /etc/grafana/provisioning/alerting/
-sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness}.yaml
-sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness}.yaml
+sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water}.yaml
+sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water}.yaml
 sudo systemctl restart grafana-server
 ```
 
