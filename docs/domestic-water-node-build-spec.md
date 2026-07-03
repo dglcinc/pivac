@@ -1,7 +1,9 @@
 # Domestic Water Node — Build Spec
 
-**Status:** Sketch built (meter-only), not yet flashed/installed — supersedes the retired
-camera-CV `pivac.WaterMeter` (Tapo-RTSP + OpenCV) as the domestic main-meter path.
+**Status:** Sketch built (meter-only) and **flashed to the spare UNO R4 WiFi 2026-07-03**
+(WiFi MAC `34:b7:da:65:99:1c`, UniFi-reserved to `10.0.0.188`, `GET /` verified live on the
+bench) — plumbing/meter install pending. Supersedes the retired camera-CV
+`pivac.WaterMeter` (Tapo-RTSP + OpenCV) as the domestic main-meter path.
 **Scope change (2026-07-03): the motorized shutoff valve is DEFERRED.** The current build
 is **meter-only** — the valve sections (§4.1 12 V rail, §4.3–§4.5, the `/valve/*`
 endpoints, §8.2 auto-shutoff, §10 valve rows) are kept for reference but are **not part
@@ -371,7 +373,7 @@ pivac.DomesticWater:
     description: Domestic main water meter (DAE MJ-75a) via Arduino
     module: pivac.ArduinoSensor
     enabled: true
-    ipaddr: 10.0.0.XX          # DHCP-reserve in UniFi by the board's WiFi MAC
+    ipaddr: 10.0.0.188         # UniFi-reserved 2026-07-03 by the board's WiFi MAC 34:b7:da:65:99:1c
     daemon_sleep: 15
     inputs:
         flow:
