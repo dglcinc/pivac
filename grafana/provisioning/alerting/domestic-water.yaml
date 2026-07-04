@@ -1,0 +1,465 @@
+apiVersion: 1
+
+# Domestic water leak/anomaly alerts (monitor-only — no shutoff valve exists; the
+# meter node is read-only). Source = the DAE MJ-75a pulse meter on the Arduino at
+# 10.0.0.188 via pivac-domestic-water → Signal K → InfluxDB
+# (environment.water.domestic.*). Routes to the same graph-bridge contact point
+# (webhook → scripts/grafana_graph_bridge.py → Microsoft Graph sendMail).
+#
+# Irrigation gating: sprinkler water flows THROUGH the domestic meter, and pivac
+# publishes environment.water.irrigation.{active,flowRate} from OpenSprinkler into
+# the same bucket — so both leak rules account for it. An overnight multi-zone run
+# (~5.5 gpm for hours) would otherwise false-trip the continuous rule every time.
+# Irrigation NoData is replaced with 0 (replaceNN) so a down sprinkler service
+# reads as "not irrigating" and can never silently disarm leak alerting.
+#
+# Three rules:
+#  - continuous flow  : flowing has been 1 for every interval of the last 3h AND
+#                       irrigation was never active in that window — a running
+#                       fixture / slow leak. A long shower or laundry won't span
+#                       3h; a running toilet will. noDataState: OK (the staleness
+#                       rule owns the no-data case).
+#  - sustained high   : mean NET flow (domestic − irrigation) > 12 gal/min over
+#                       15m — burst/open-line. Stays armed during sprinkler runs.
+#                       Normal peaks observed: shower ~2-3 gpm, irrigation ~5.5.
+#  - staleness        : node stopped publishing for >30m. Uses the same
+#                       never-true-sentinel + noDataState: Alerting pattern as
+#                       sensor-freshness (consumption is cumulative gallons and
+#                       can never be < -1, so the threshold only "fires" via
+#                       NoData).
+groups:
+  - orgId: 1
+    name: domestic-water
+    folder: pivac
+    interval: 1m
+    rules:
+      # ---- Continuous flow: flowing == 1 for the entire last 3h, no irrigation ----
+      # A = domestic flowing (0/1), B = min over 3h (1 = never stopped)
+      # D = irrigation active (0/1), E = max over 3h (0 = never irrigated; NoData→0)
+      # F = both conditions as math (1/0), G = threshold
+      - uid: domestic-flow-continuous
+        title: Domestic water flowing continuously (>3h)
+        condition: G
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.water.domestic.flowing
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: min
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.water.irrigation.active
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: D
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: D
+              reducer: max
+              settings:
+                mode: replaceNN
+                replaceWithValue: 0
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B > 0.5) && ($E < 0.5)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: F
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - G
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: "Domestic water has been flowing without a break for over 3 hours (no irrigation running) — running fixture or slow leak"
+          runbook: |
+            environment.water.domestic.flowing has been 1 for every sample in the last 3h,
+            and OpenSprinkler irrigation was NOT active at any point in that window (the
+            rule is suppressed during/after sprinkler runs, since irrigation draws through
+            this meter). Something has drawn water continuously — classic signatures:
+            running toilet flapper, stuck fill valve, hose left on, or a supply-line leak.
+            1. Check the Grafana Domestic Water row: flowRate magnitude narrows it down
+               (a toilet runs ~0.2–0.5 gpm; a hose or burst reads gpm-scale).
+            2. Walk the house / check the meter's LED display (shows live gpm).
+            3. The upstream manual valve is the shutoff — there is no motorized valve
+               (deferred; docs/domestic-water-node-build-spec.md).
+        labels:
+          severity: warning
+          source: domestic-water
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Burst / open line: sustained high NET flow (domestic − irrigation) ----
+      # A = domestic flowRate, B = mean over 15m
+      # D = irrigation flowRate, E = mean over 15m (NoData→0)
+      # F = net household flow ($B - $E), G = threshold
+      - uid: domestic-flow-high
+        title: Domestic water flow abnormally high (>12 gpm net, sustained)
+        condition: G
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.water.domestic.flowRate
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.water.irrigation.flowRate
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: D
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: D
+              reducer: mean
+              settings:
+                mode: replaceNN
+                replaceWithValue: 0
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $B - $E
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: F
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 12
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - G
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 10m
+        annotations:
+          summary: "Domestic water flow (net of irrigation) has averaged >12 gal/min for 15+ minutes — possible burst pipe or open line"
+          runbook: |
+            NET household flow — environment.water.domestic.flowRate minus
+            environment.water.irrigation.flowRate — has averaged above 12 gpm over the
+            last 15 minutes (and held for 10 more), so a concurrent sprinkler run is
+            already subtracted out. Normal observed peaks are ~2-3 gpm (shower); 12 gpm
+            net sustained means a major open path — burst pipe, failed fitting, or
+            multiple large draws left running.
+            1. Check the Grafana Domestic Water row and the meter's LED (live gpm).
+            2. If nobody is intentionally drawing water, close the upstream manual valve.
+            3. Threshold is a first guess pending a usage baseline — tune here (this file)
+               and redeploy per CLAUDE.md's alerting deployment block.
+        labels:
+          severity: warning
+          source: domestic-water
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Freshness: node stopped publishing ----
+      # consumption is cumulative gallons (never < 0), so "< -1" is never true while
+      # data flows — detection is purely noDataState: Alerting, same as sensor-freshness.
+      - uid: domestic-water-stale
+        title: Domestic water meter stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.water.domestic.consumption
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Domestic water meter has not published for >30m (environment.water.domestic.consumption)"
+          runbook: |
+            The meter node (UNO R4 at 10.0.0.188) has stopped publishing. During an outage
+            the board keeps counting pulses locally (EEPROM totalizer, 5-min persist), so
+            consumption catches up on recovery — but leak alerting is blind meanwhile.
+            1. `curl http://10.0.0.188/` — does the node answer? The board watchdog +
+               escalating WiFi reconnect normally self-recovers.
+            2. `journalctl -u pivac-domestic-water -n 50 --no-pager` — "unreachable
+               (timeout)" WARNINGs mean the node, anything else means the service.
+            3. Arduinos occasionally need a power cycle (documented behaviour for the
+               pressure boards; same hardware).
+        labels:
+          severity: warning
+          source: domestic-water
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
