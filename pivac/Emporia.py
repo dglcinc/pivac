@@ -144,13 +144,19 @@ def status(config={}, output="default"):
             panel_name = cache[gid]['name']
             channel_names = cache[gid]['channel_names']
 
+            # Sum watts per circuit name before emitting: a 240 V circuit
+            # monitored with one CT per leg appears as two channels sharing a
+            # name (house panel ch 1+2, 3+4, 5+6, 7+8). Emitting per channel
+            # sent both legs to the same SK path and the second overwrote the
+            # first, halving the reported power for those circuits.
+            circuit_watts = {}
             for channel_num, channel in usage_device.channels.items():
                 if channel is None or channel.usage is None:
                     continue
 
                 # API returns kWh over the scale interval (1 minute); convert to watts.
                 # kWh/min * 60 min/hr * 1000 W/kW = W
-                watts = round(channel.usage * 60 * 1000, 1)
+                watts = channel.usage * 60 * 1000
 
                 # Use the cached channel name from populate_device_properties; fall back
                 # to the name on the usage object, then a generic label.
@@ -158,6 +164,10 @@ def status(config={}, output="default"):
                             or getattr(channel, 'name', None)
                             or 'channel_%s' % channel_num)
                 cname = _sanitize(raw_name)
+                circuit_watts[cname] = circuit_watts.get(cname, 0.0) + watts
+
+            for cname, watts in circuit_watts.items():
+                watts = round(watts, 1)
                 sk_path = "%s.%s.%s" % (sk_base, panel_name, cname)
 
                 if output == "signalk":
