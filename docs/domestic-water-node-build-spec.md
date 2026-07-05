@@ -349,14 +349,21 @@ the valve deferral.)*
 ```
 {'flow' : 2.50, 'volume' : 12345.6, 'flowing' : 1, 'run_s' : 754, 'runtime' : '12:34', 'uptime_ms' : 123456}
 ```
-- `flow` — gal/min (rolling window)
+- `flow` — gal/min (inter-pulse instantaneous rate, EMA-smoothed; updates every pulse)
 - `volume` — cumulative gallons (`totalPulses × 0.1`)
-- `flowing` — `1` if `flow > 0` else `0`
-- `run_s` — seconds since flow was last 0 (0 while idle); starts on a 0→flowing transition, holds at 0 when idle
+- `flowing` — `1` from the **first pulse** until `FLOW_STOP_TIMEOUT_MS` (10 s) with no pulse; the timeout bridges the gaps between pulses at low flow (down to ~0.6 gpm) so it doesn't flicker
+- `run_s` — seconds since flow was last 0 (0 while idle); starts on the first pulse (0→flowing), holds at 0 when idle
 - `runtime` — the same run duration preformatted as `mm:ss` (uncapped minutes, e.g. `125:03`) — a string for the WilhelmSK text tile
 - `uptime_ms` — ms since boot (a reboot resets it to ~0; a WiFi self-reconnect keeps climbing)
 
 ### 5.3 Notes
+- **Low-latency flow model (shipped):** the node reacts on the **first pulse** rather than a
+  fixed averaging window — `flowing`/`run_s`/`flow` all update per pulse. Detection is then
+  bounded only by pulse arrival (1 pulse / 0.1 gal ≈ 1–3 s at a normal fixture flow), the
+  meter's physical floor. Trade-off: `flowing`/`run_s` hold for `FLOW_STOP_TIMEOUT_MS` (10 s)
+  after the last pulse before resetting (so short draws over-report by up to ~10 s, and `flow`
+  holds its last value over that tail before dropping to 0). Pair with pivac `daemon_sleep: 1`
+  for a 1 Hz display refresh. `flow` itself can't beat the meter's pulse cadence.
 - **EEPROM wear:** ~100 k write endurance — persist on a timer (5 min) / on valve events,
   never per pulse. Consider a small wear-leveling ring if you want sub-minute durability.
 - **Watchdog:** keep the RA4M1 watchdog + reconnect logic from the pressure sketches.
@@ -376,7 +383,7 @@ pivac.DomesticWater:
     module: pivac.ArduinoSensor
     enabled: true
     ipaddr: 10.0.0.188         # UniFi-reserved 2026-07-03 by the board's WiFi MAC 34:b7:da:65:99:1c
-    daemon_sleep: 15
+    daemon_sleep: 1            # 1 Hz — node reacts per-pulse, so fast polling is worthwhile (live 'Run Time' tile)
     inputs:
         flow:
             sk_path: environment.water.domestic
