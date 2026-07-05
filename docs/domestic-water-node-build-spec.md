@@ -347,11 +347,13 @@ the valve deferral.)*
 
 ### 5.2 Status dict (single-quoted)
 ```
-{'flow' : 2.50, 'volume' : 12345.6, 'flowing' : 1, 'uptime_ms' : 123456}
+{'flow' : 2.50, 'volume' : 12345.6, 'flowing' : 1, 'run_s' : 754, 'runtime' : '12:34', 'uptime_ms' : 123456}
 ```
 - `flow` — gal/min (rolling window)
 - `volume` — cumulative gallons (`totalPulses × 0.1`)
 - `flowing` — `1` if `flow > 0` else `0`
+- `run_s` — seconds since flow was last 0 (0 while idle); starts on a 0→flowing transition, holds at 0 when idle
+- `runtime` — the same run duration preformatted as `mm:ss` (uncapped minutes, e.g. `125:03`) — a string for the WilhelmSK text tile
 - `uptime_ms` — ms since boot (a reboot resets it to ~0; a WiFi self-reconnect keeps climbing)
 
 ### 5.3 Notes
@@ -385,6 +387,12 @@ pivac.DomesticWater:
         flowing:
             sk_path: environment.water.domestic
             outname: flowing           # → environment.water.domestic.flowing (0/1)
+        run_s:
+            sk_path: environment.water.domestic
+            outname: runDuration       # → environment.water.domestic.runDuration (s since flow last 0)
+        runtime:
+            sk_path: environment.water.domestic
+            outname: runningFor        # → environment.water.domestic.runningFor (mm:ss string, WilhelmSK tile)
 ```
 
 Then a dedicated systemd unit `pivac-domestic-water.service` (clone an existing
@@ -397,6 +405,8 @@ restart/stop lists in CLAUDE.md's deployment + SD-maintenance sections.
 | `environment.water.domestic.flowRate` | gal/min | rolling window |
 | `environment.water.domestic.consumption` | gal | cumulative totalizer |
 | `environment.water.domestic.flowing` | 0/1 | derived |
+| `environment.water.domestic.runDuration` | s | time since flow was last 0 (0 while idle) |
+| `environment.water.domestic.runningFor` | string `mm:ss` | same value, preformatted for the WilhelmSK tile |
 | ~~`environment.water.domestic.shutoffValve`~~ | 0/1 | deferred with the valve |
 
 > The old camera-CV domestic data was deleted from InfluxDB; this path has had no live
