@@ -19,24 +19,25 @@ logger = logging.getLogger(__name__)
 # --- per-flow-session state (persists across status() calls in the daemon) ---
 _run_start_volume = None   # totalizer (gal) captured when the current flow began
 _was_flowing = False
+_last_run_volume = 0.0      # gallons of the current/most-recent draw (HELD while idle)
 
 
 def _session_gallons(volume, flowing):
-    """Update session state and return gallons since flow started (0 while idle).
-    Returns None when data is missing (node unreachable) so a dropped poll
-    neither resets the session nor emits a bogus value."""
-    global _run_start_volume, _was_flowing
+    """Update session state and return gallons for the current draw. The value
+    is held after flow stops (shows the last draw's total until the next draw
+    starts, then resets to 0 and counts up again). Returns None when data is
+    missing (node unreachable) so a dropped poll neither disturbs the session
+    nor emits a bogus value."""
+    global _run_start_volume, _was_flowing, _last_run_volume
     if volume is None or flowing is None:
         return None
     flowing = bool(flowing)
-    if flowing and not _was_flowing:
-        _run_start_volume = volume            # 0->flowing edge: snapshot the totalizer
+    if flowing:
+        if not _was_flowing or _run_start_volume is None:
+            _run_start_volume = volume        # new draw (or mid-flow start): snapshot totalizer
+        _last_run_volume = round(volume - _run_start_volume, 1)
     _was_flowing = flowing
-    if not flowing:
-        return 0.0                            # idle -> reset (matches the run timer)
-    if _run_start_volume is None:             # started mid-flow (e.g. after a restart)
-        _run_start_volume = volume
-    return round(volume - _run_start_volume, 1)
+    return _last_run_volume                    # while idle this holds the last draw's total
 
 
 def status(config={}, output="default"):

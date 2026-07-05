@@ -417,7 +417,7 @@ restart/stop lists in CLAUDE.md's deployment + SD-maintenance sections.
 | `environment.water.domestic.flowing` | 0/1 | derived |
 | `environment.water.domestic.runDuration` | s | time since flow was last 0 (0 while idle) |
 | `environment.water.domestic.runningFor` | string `mm:ss` | same value, preformatted for the WilhelmSK tile |
-| `environment.water.domestic.runVolume` | gal | gallons this flow session (0 while idle); **computed Pi-side** by `pivac.DomesticWater`, not a node field |
+| `environment.water.domestic.runVolume` | gal | gallons of the current draw; **held after flow stops** (shows the last draw's total until the next draw). **Computed Pi-side** by `pivac.DomesticWater`, not a node field |
 | ~~`environment.water.domestic.shutoffValve`~~ | 0/1 | deferred with the valve |
 
 > The old camera-CV domestic data was deleted from InfluxDB; this path has had no live
