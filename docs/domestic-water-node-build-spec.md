@@ -374,13 +374,16 @@ the valve deferral.)*
 
 ## 6. pivac integration
 
-No module changes needed — the generic `pivac.ArduinoSensor` maps each response field to
-`{sk_path}.{outname}`. Add to `/etc/pivac/config.yml`:
+The `pivac.DomesticWater` module wraps the generic `pivac.ArduinoSensor` (which maps each node
+response field to `{sk_path}.{outname}`) and adds one derived value the node doesn't emit —
+`runVolume`, the gallons consumed during the *current* flow session — computed **Pi-side** by
+snapshotting the `consumption` totalizer on the `flowing` 0→1 edge (no firmware change). Because
+`pivac.DomesticWater` is a real module, the config section is named for it directly (no `module:`
+override). Add to `/etc/pivac/config.yml`:
 
 ```yaml
 pivac.DomesticWater:
     description: Domestic main water meter (DAE MJ-75a) via Arduino
-    module: pivac.ArduinoSensor
     enabled: true
     ipaddr: 10.0.0.188         # UniFi-reserved 2026-07-03 by the board's WiFi MAC 34:b7:da:65:99:1c
     daemon_sleep: 1            # 1 Hz — node reacts per-pulse, so fast polling is worthwhile (live 'Run Time' tile)
@@ -414,6 +417,7 @@ restart/stop lists in CLAUDE.md's deployment + SD-maintenance sections.
 | `environment.water.domestic.flowing` | 0/1 | derived |
 | `environment.water.domestic.runDuration` | s | time since flow was last 0 (0 while idle) |
 | `environment.water.domestic.runningFor` | string `mm:ss` | same value, preformatted for the WilhelmSK tile |
+| `environment.water.domestic.runVolume` | gal | gallons this flow session (0 while idle); **computed Pi-side** by `pivac.DomesticWater`, not a node field |
 | ~~`environment.water.domestic.shutoffValve`~~ | 0/1 | deferred with the valve |
 
 > The old camera-CV domestic data was deleted from InfluxDB; this path has had no live
