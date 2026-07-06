@@ -15,8 +15,38 @@ DEG_CELSIUS = 1
 DEG_KELVIN = 2
 
 # returns a jSON object containing the current values of all 28* one-wire devices on the bus
-# sensors are scanned on module load for performance; if your bus changes frequently you can move into status()
-sensors = W1ThermSensor.get_available_sensors()
+#
+# The bus is re-scanned at the top of every status() cycle rather than only at import.
+# The kernel's w1 bus takes a few seconds to enumerate the DS18B20s after a (cold) boot,
+# but the systemd service starts immediately — so an import-time-only scan caught an empty
+# (or partial) bus and cached it forever, leaving the service "active" but silently
+# publishing nothing until a manual restart. This recurred on essentially every power
+# cycle. Re-scanning each cycle makes the module self-healing: a bus that isn't ready at
+# boot — or a sensor that drops off and returns mid-run — recovers on its own within one
+# daemon cycle, no restart needed. The scan is just a /sys/bus/w1/devices/ directory read,
+# so it's cheap at the daemon cadence.
+sensors = []
+_last_sensor_count = -1
+
+def _scan_sensors():
+    global sensors, _last_sensor_count
+    try:
+        found = W1ThermSensor.get_available_sensors()
+    except Exception as e:
+        # Keep the last-known list if a scan blips (e.g. bus flaky mid-read); next
+        # cycle re-scans. Better to retry against known sensors than to zero the list.
+        logger.warning("OneWireTherm bus scan failed (%s); keeping %d known sensor(s)"
+                       % (type(e).__name__, len(sensors)))
+        return sensors
+    sensors = found
+    if len(sensors) != _last_sensor_count:
+        logger.warning("OneWireTherm bus now has %d sensor(s)" % len(sensors))
+        _last_sensor_count = len(sensors)
+    return sensors
+
+# initial scan at import (may legitimately be empty right after a cold boot; status()
+# re-scans each cycle and picks the sensors up as soon as the bus enumerates them)
+_scan_sensors()
 logger.debug("Available sensors: " + str(sensors))
 
 def available_sensors():
@@ -25,6 +55,9 @@ def available_sensors():
 # send -1 for no rounding
 def status(config = {}, output="default"):
     logger.debug("generating status")
+    # Re-scan the bus each cycle so a boot-race empty enumeration (or a mid-run
+    # sensor dropout/recovery) self-heals without a manual service restart.
+    _scan_sensors()
     result = {}
     dnames = {}
 
