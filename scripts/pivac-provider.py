@@ -8,6 +8,7 @@ import time
 import importlib
 import os
 import urllib.request
+import threading
 import websocket
 
 # set logging temporarily before args parsing
@@ -101,12 +102,32 @@ def get_sk_token(sk_cfg):
         result = json.loads(resp.read())
     return result["token"]
 
+def _sk_ws_reader(ws_obj):
+    """Drain the provider's WebSocket so websocket-client answers the server's
+    protocol pings. Signal K heartbeats every wsPingInterval (default 30s) and
+    terminates any client that hasn't ponged by the next sweep — and
+    websocket-client only sends the pong while reading. Without this reader
+    every provider connection was heartbeat-killed ~60s after connect, then
+    send() silently discarded deltas for up to ~30s (the server's close frame
+    sat unread, so writes didn't error) before Broken pipe finally forced a
+    re-login — a chronic ~90s connect/blackout/reconnect cycle on every
+    service. Reading also consumes the close frame immediately, flipping
+    ws.connected so the send path reconnects on the next cycle instead of
+    writing into a dead socket."""
+    try:
+        while True:
+            ws_obj.recv()
+    except Exception:
+        pass  # socket closed or errored; the send path handles reconnect
+
 def connect_sk_ws(sk_cfg, token):
     """Open a WebSocket connection to the SignalK stream endpoint."""
     ws_url = "ws://%s:%d/signalk/v1/stream?subscribe=none&token=%s" % (
         sk_cfg["host"], sk_cfg["port"], token)
     ws = websocket.WebSocket()
     ws.connect(ws_url)
+    threading.Thread(target=_sk_ws_reader, args=(ws,),
+                     daemon=True, name="sk-ws-reader").start()
     logger.info("Connected to SignalK WebSocket at %s:%d" % (sk_cfg["host"], sk_cfg["port"]))
     return ws
 
