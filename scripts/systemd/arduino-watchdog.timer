@@ -1,0 +1,14 @@
+[Unit]
+Description=Run the pressure-Arduino watchdog every 5 minutes
+
+[Timer]
+# Wait 5 min after boot before the first check so the boards have a chance to come up and
+# rejoin WiFi on their own after a power event (the watchdog's job is stuck boards, not the
+# normal boot delay). Then check every 5 min. The script's own DOWN_THRESHOLD_S (15 min)
+# gates whether an unreachable board actually triggers a power cycle.
+OnBootSec=5min
+OnUnitActiveSec=5min
+Persistent=false
+
+[Install]
+WantedBy=timers.target
