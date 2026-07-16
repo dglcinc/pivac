@@ -1,0 +1,11 @@
+[Unit]
+Description=Watchdog: auto-power-cycle the pressure Arduinos' Shelly plug if a board is unreachable
+After=network.target
+# Only meaningful once the network is up; no hard dependency on pivac/signalk.
+
+[Service]
+Type=oneshot
+User=pi
+ExecStart=/home/pi/github/pivac/scripts/arduino-watchdog.sh
+# Tunables can be overridden here if needed, e.g.:
+#   Environment=DOWN_THRESHOLD_S=1800 CYCLE_MIN_INTERVAL_S=7200

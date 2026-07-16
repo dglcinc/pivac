@@ -486,6 +486,217 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
+      # ---- Pressure Arduinos (Fusch transducers on the two UNO R4 WiFi boards) freshness ----
+      # These two boards share the "Arduinos" Shelly plug (10.0.0.61) and are the flakiest
+      # link in the system: after a power event they occasionally fail to rejoin WiFi and sit
+      # dark until power-cycled (observed 2026-07-16, the .219 board stayed stale 16h after a
+      # mains blip). PSI values are stored as-is (NOT Kelvin) and are always >= 0, so the
+      # "never true while data flows" sentinel is `value < -1`; detection relies on
+      # noDataState: Alerting. NB the module/path names are INVERTED vs the physical role:
+      # arduinoPSI = the DHW board at 10.0.0.114, arduinoThermPSI = the boiler/hydronic board
+      # at 10.0.0.219 (legacy names, kept for InfluxDB history — see CLAUDE.md Active Services).
+      # The arduino-watchdog.timer on the Pi auto-power-cycles the .61 Shelly on a sustained
+      # outage; these alerts are the human-visible signal + a backstop if the watchdog can't
+      # recover the board (e.g. a genuinely dead board that reboots but never rejoins).
+      - uid: arduino-dhw-psi-stale
+        title: DHW pressure Arduino (.114) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: electrical.ac.arduinoPSI.psi
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "DHW pressure Arduino stale for >30m (electrical.ac.arduinoPSI.psi — board at 10.0.0.114)"
+          runbook: |
+            The DHW pressure board (10.0.0.114, module pivac.ArduinoPSI — the "Potable DHW PSI"
+            gauge; also carries the recirc-loop DS18B20) has stopped publishing.
+            1. `curl http://10.0.0.114` — confirm the board responds with a 'psi' line. A low
+               'uptime_ms' means it recently rebooted (power event); host-unreachable means it
+               is off WiFi.
+            2. The arduino-watchdog.timer should auto-power-cycle the .61 Shelly on a sustained
+               outage — `journalctl -u arduino-watchdog -n 30` to see if it acted / was rate-limited.
+            3. Manual recovery: power-cycle the "Arduinos" Shelly plug:
+               curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=false"; sleep 8; curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=true"
+               (this also briefly drops the .219 hydronic board — it recovers in seconds).
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: arduino-hydronic-psi-stale
+        title: Hydronic/boiler pressure Arduino (.219) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: electrical.ac.arduinoThermPSI.psi
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - -1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Hydronic/boiler pressure Arduino stale for >30m (electrical.ac.arduinoThermPSI.psi — board at 10.0.0.219)"
+          runbook: |
+            The boiler/hydronic pressure board (10.0.0.219, module pivac.ArduinoThermPSI — the
+            "Hydronic PSI" gauge) has stopped publishing. This board is the known-flaky one: it
+            has failed to rejoin WiFi after a power event and needed a manual power cycle.
+            1. `curl http://10.0.0.219` — confirm the board responds with a 'psi' line. A low
+               'uptime_ms' means it recently rebooted (power event); host-unreachable means it
+               is off WiFi.
+            2. The arduino-watchdog.timer should auto-power-cycle the .61 Shelly on a sustained
+               outage — `journalctl -u arduino-watchdog -n 30` to see if it acted / was rate-limited.
+            3. Manual recovery: power-cycle the "Arduinos" Shelly plug:
+               curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=false"; sleep 8; curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=true"
+               (this also briefly drops the .114 DHW board — it recovers in seconds).
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
       # ---- Cross-check: physical 1-wire vs Honeywell-reported outdoor temp ----
       # Both stored in Kelvin. Fires when the two sources disagree by > 8 K (~14.4 F)
       # sustained for 1h — a generous threshold that tolerates normal sensor-placement
