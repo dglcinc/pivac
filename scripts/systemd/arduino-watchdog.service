@@ -6,6 +6,11 @@ After=network.target
 [Service]
 Type=oneshot
 User=pi
+# systemd creates /run/arduino-watchdog owned by User=pi (the script's default STATE_DIR).
+# Preserve=yes keeps the down-timer / last-cycle state across the 5-min oneshot runs; it
+# still lives in tmpfs so it clears on reboot (boards get a fresh grace period post-power-event).
+RuntimeDirectory=arduino-watchdog
+RuntimeDirectoryPreserve=yes
 ExecStart=/home/pi/github/pivac/scripts/arduino-watchdog.sh
 # Tunables can be overridden here if needed, e.g.:
 #   Environment=DOWN_THRESHOLD_S=1800 CYCLE_MIN_INTERVAL_S=7200
