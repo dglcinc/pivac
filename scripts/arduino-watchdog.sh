@@ -22,7 +22,8 @@
 # Tunables (env-overridable for testing):
 set -euo pipefail
 
-BOARDS=("10.0.0.114" "10.0.0.219")       # DHW, boiler/hydronic pressure boards
+# Board list is env-overridable (space-separated) for testing; default = the two real boards.
+read -ra BOARDS <<< "${BOARDS_STR:-10.0.0.114 10.0.0.219}"  # DHW, boiler/hydronic pressure boards
 SHELLY="${SHELLY:-10.0.0.61}"            # "Arduinos" plug, open local RPC (auth disabled)
 SHELLY_SWITCH_ID="${SHELLY_SWITCH_ID:-0}"
 DOWN_THRESHOLD_S="${DOWN_THRESHOLD_S:-900}"      # board(s) must be down this long before cycling (15m)
