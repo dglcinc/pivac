@@ -23,10 +23,22 @@ pivac.Sentry:
   # indicator light and digit segments switch simultaneously).
   mode_stable_frames: 3
 
-  # LED brightness ratio: how much brighter a lit LED must be vs surrounding
-  # panel background.  Live data: lit LEDs ratio ~1.21-1.23, off LEDs ~0.79.
-  # 1.15 splits the gap cleanly.  Raise if off LEDs are false-triggering.
-  led_ratio: 1.15
+  # Lit/background brightness ratios, split by LED type because the camera is
+  # locked in IR/Night mode (green LEDs emit almost no near-IR, so they read much
+  # dimmer than the bright display-mode indicators).
+  #
+  # led_ratio -> the four boiler STATUS LEDs (burner/circ/circ_aux/thermostat_demand).
+  #   Live data 2026-07-20 during a firing: lit ~1.11-1.17, off ~0.85-0.96. 1.05 sits
+  #   mid-gap. (A single 1.15 threshold read burner + circ_aux OFF for most of every
+  #   call even with gas input pinned high — they only reach ~1.13 in IR.) An earlier
+  #   1.15 calibration ("lit ~1.21-1.23") predates the permanent IR/Night lock that
+  #   dimmed the green LEDs.
+  led_ratio: 1.05
+  #
+  # indicator_ratio -> the display-mode + dhw_temp indicators (bright: lit ~1.29-1.46).
+  #   Kept high so lowering the LED threshold can't cause a false display-mode read
+  #   (which would misassign water/gas/outdoor values). Defaults to 1.15 if omitted.
+  indicator_ratio: 1.15
 
   # Digit threshold factor for the DISPLAY-WIDE lit/off bar:
   #     threshold = bg + factor*(hi - bg)
