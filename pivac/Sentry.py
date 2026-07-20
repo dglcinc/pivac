@@ -29,7 +29,10 @@ Optional config keys:
     mode_stable_frames  Consecutive stable frames before sampling a reading (default: 3)
     min_samples         Plausible reads required per mode before its median is
                         emitted; fewer = skip that mode this cycle (default: 3)
-    led_ratio           Spot/background brightness ratio for LED detection (default: 1.15)
+    led_ratio           Spot/bg brightness ratio for the dim green boiler STATUS LEDs
+                        (burner/circ/circ_aux/thermostat_demand). Default 1.05 (IR-calibrated).
+    indicator_ratio     Spot/bg ratio for the bright display-mode + dhw_temp indicators.
+                        Default 1.15.
     digit_threshold_factor  Threshold = mean + factor*(max-mean) per digit (default: 0.50)
     daemon_sleep        Seconds between poll cycles (framework key; recommend >= 30)
 
@@ -258,8 +261,20 @@ def _roi_is_lit(frame, coord: dict,
     return spot_brightness >= bg_brightness * ratio
 
 
+# Two separate lit-thresholds. The four boiler STATUS LEDs (burner/circ/circ_aux/
+# thermostat_demand) are dim GREEN LEDs; the camera is locked in IR/Night mode, where
+# green emits almost no near-IR, so a lit status LED only reaches ~1.11-1.17x its local
+# background (measured live during a firing 2026-07-20) while an off one sits ~0.85-0.96.
+# The DISPLAY-MODE indicators (water_temp/air/gas_input/dhw_temp) are bright and reach
+# ~1.29-1.46x. So the status LEDs need a much lower ratio (1.05, mid-gap between 0.96 off
+# and 1.11 on) than the indicators keep (1.15) — a single 1.15 threshold read the burner
+# and circ_aux pumps as OFF for most of every call even while gas input was pinned high.
+_DEFAULT_LED_RATIO = 1.05        # boiler status LEDs (dim green, IR)
+_DEFAULT_INDICATOR_RATIO = 1.15  # display-mode + dhw_temp indicators (bright)
+
+
 def _read_leds(frame, config: dict) -> dict:
-    ratio = config.get("led_ratio", 1.15)
+    ratio = config.get("led_ratio", _DEFAULT_LED_RATIO)
     leds = config.get("leds", {})
     return {
         "burnerOn":         _roi_is_lit(frame, leds["burner"],            ratio=ratio),
@@ -279,7 +294,7 @@ def _read_indicators(frame, config: dict):
     lit whenever DHW priority is active, independent of what the display shows.
     Use _read_dhw_priority() to read it as a boolean.
     """
-    ratio = config.get("led_ratio", 1.15)
+    ratio = config.get("indicator_ratio", _DEFAULT_INDICATOR_RATIO)
     for mode, coord in config.get("indicators", {}).items():
         if mode not in _DISPLAY_MODES:
             continue
@@ -290,7 +305,7 @@ def _read_indicators(frame, config: dict):
 
 def _read_dhw_priority(frame, config: dict) -> bool:
     """Return True if the DHW priority indicator is lit."""
-    ratio = config.get("led_ratio", 1.15)
+    ratio = config.get("indicator_ratio", _DEFAULT_INDICATOR_RATIO)
     coord = config.get("indicators", {}).get("dhw_temp")
     if coord is None:
         return False

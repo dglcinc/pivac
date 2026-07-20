@@ -1804,7 +1804,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "fillOpacity": 80,
+            "fillOpacity": 75,
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1819,10 +1819,12 @@
               "type": "value",
               "options": {
                 "0": {
+                  "color": "#73808c",
                   "index": 0,
                   "text": "Off"
                 },
                 "1": {
+                  "color": "green",
                   "index": 1,
                   "text": "On"
                 }
@@ -1833,7 +1835,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-gray",
+                "color": "#73808c",
                 "value": null
               },
               {
@@ -1841,14 +1843,12 @@
                 "value": 1
               }
             ]
-          },
-          "min": 0,
-          "max": 1
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 27
@@ -1863,9 +1863,9 @@
         },
         "mergeValues": true,
         "rowHeight": 0.9,
-        "showValue": "never",
+        "showValue": "auto",
         "tooltip": {
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
