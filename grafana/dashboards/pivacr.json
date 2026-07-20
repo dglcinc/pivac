@@ -1801,155 +1801,51 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
+            "fillOpacity": 80,
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "stepAfter",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "lineWidth": 0,
+            "spanNulls": false
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "Off"
+                },
+                "1": {
+                  "index": 1,
+                  "text": "On"
+                }
+              }
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-gray",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "green",
+                "value": 1
               }
             ]
           },
           "min": 0,
-          "max": 1.5
+          "max": 1
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "hvac.boiler.sentry.burnerOn.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-red",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "Burner"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "hvac.boiler.sentry.circOn.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "blue",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "Circ"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "hvac.boiler.sentry.circAuxOn.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-blue",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "Circ Aux"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "hvac.boiler.sentry.thermostatDemand.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "Thermostat Demand"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "hvac.boiler.sentry.dhwPriority.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "DHW Priority"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -1959,12 +1855,15 @@
       },
       "id": 13,
       "options": {
+        "alignValue": "left",
         "legend": {
-          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
         },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never",
         "tooltip": {
           "mode": "multi",
           "sort": "none"
@@ -1995,6 +1894,7 @@
           "policy": "default",
           "refId": "A",
           "resultFormat": "time_series",
+          "alias": "Burner",
           "select": [
             [
               {
@@ -2005,13 +1905,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " +0.00"
-                ],
-                "type": "math"
+                "type": "max"
               }
             ]
           ],
@@ -2042,6 +1936,7 @@
           "policy": "default",
           "refId": "B",
           "resultFormat": "time_series",
+          "alias": "Heating Pump",
           "select": [
             [
               {
@@ -2052,13 +1947,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " +0.02"
-                ],
-                "type": "math"
+                "type": "max"
               }
             ]
           ],
@@ -2089,6 +1978,7 @@
           "policy": "default",
           "refId": "C",
           "resultFormat": "time_series",
+          "alias": "Hot-Water Pump",
           "select": [
             [
               {
@@ -2099,13 +1989,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " +0.04"
-                ],
-                "type": "math"
+                "type": "max"
               }
             ]
           ],
@@ -2136,6 +2020,7 @@
           "policy": "default",
           "refId": "D",
           "resultFormat": "time_series",
+          "alias": "Heat Call",
           "select": [
             [
               {
@@ -2146,13 +2031,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " +0.06"
-                ],
-                "type": "math"
+                "type": "max"
               }
             ]
           ],
@@ -2183,6 +2062,7 @@
           "policy": "default",
           "refId": "E",
           "resultFormat": "time_series",
+          "alias": "Hot-Water Priority",
           "select": [
             [
               {
@@ -2193,13 +2073,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " +0.08"
-                ],
-                "type": "math"
+                "type": "max"
               }
             ]
           ],
@@ -2208,7 +2082,7 @@
         }
       ],
       "title": "Sentry Boiler Status",
-      "type": "timeseries"
+      "type": "state-timeline"
     },
     {
       "datasource": {
