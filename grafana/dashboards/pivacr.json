@@ -3592,7 +3592,7 @@
             },
             "axisSoftMax": 10,
             "axisSoftMin": 0,
-            "axisWidth": 50
+            "axisWidth": 28
           },
           "mappings": [],
           "unit": "short",
@@ -3756,7 +3756,7 @@
             },
             "axisSoftMax": 600,
             "axisSoftMin": 0,
-            "axisWidth": 50
+            "axisWidth": 40
           },
           "mappings": [],
           "unit": "short",
