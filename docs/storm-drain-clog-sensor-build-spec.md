@@ -67,6 +67,31 @@ from the drain, fed by a passive low-voltage cable — the same dry-contact-to-G
 > **Minimum float build = items 1–8.** The optical-sensor variant (§3, no moving parts) swaps
 > item 1 and uses two more cable conductors to carry 5 V out to the sensors.
 
+### 2.1 Rough cost (USD, approximate)
+
+Ballpark retail as of the build; buy-what-you-have knocks it down (hookup wire, resistors, a
+spare USB brick, leftover PVC are all likely on hand).
+
+| # | Item | Est. price | Notes |
+|---|------|-----------:|-------|
+| 1 | Sensor — **electrodes**: 2–3 stainless bolts/rods (recommended) | **$3–8** | Or a "liquid-level/contact detector" board ~$2–5; or a reed float ~$8–15; or an optical prism sensor ~$10–18 |
+| 2 | **Arduino UNO R4 WiFi** (new board) | **$27–35** | Official ~$27.50; the one genuinely fixed cost |
+| 3 | Stilling well — 2–3" PVC (~2 ft) + cap | **$8–15** | Hardware-store PVC |
+| 4 | Sensor mount — bulkhead ports / bracket | **$5–10** | Or improvise from PVC scraps ~$0 |
+| 5 | Cable — ~25 ft 18/4 direct-burial *or* outdoor Cat5e (+ conduit if used) | **$12–25** | Conduit adds ~$8–15 if you run it |
+| 6 | IP67 field junction (gel/potted) | **$8–12** | The one wet connection |
+| 7 | 5 V USB-C supply | **$8–10** | Often already on hand → $0 |
+| 8 | Surge protection — 1 kΩ resistors + TVS/clamp diodes | **$3–6** | Buy a small assortment pack |
+| 9 | Indoor project box | **$8–12** | Or reuse |
+| — | Misc — potting epoxy, fittings, hookup wire, zip ties | **$10–20** | |
+| | **Total (electrode build)** | **≈ $95–150** | Reuse of USB brick / wire / PVC lands nearer the low end |
+
+The sensor choice barely moves the total — even the priciest option (optical prism) adds only
+~$10–15. The **UNO R4 WiFi is the dominant line item**; an ESP32 dev board (~$6–10) would cut it
+if you're willing to port the firmware off the WiFiS3/RA4M1 scaffolding (not recommended — the
+savings aren't worth losing the drop-in reuse). Practically, this is a **~$100 build**, less if
+the odds and ends are already in your parts bin.
+
 ---
 
 ## 3. Sensor options & recommendation
