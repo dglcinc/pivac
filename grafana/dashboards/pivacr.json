@@ -3595,7 +3595,7 @@
             "axisWidth": 50
           },
           "mappings": [],
-          "unit": "gal/min",
+          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -3759,7 +3759,7 @@
             "axisWidth": 50
           },
           "mappings": [],
-          "unit": "gal/hr",
+          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
