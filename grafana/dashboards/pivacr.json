@@ -3592,10 +3592,10 @@
             },
             "axisSoftMax": 10,
             "axisSoftMin": 0,
-            "axisWidth": 50
+            "axisWidth": 28
           },
           "mappings": [],
-          "unit": "gal/min",
+          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -3756,10 +3756,10 @@
             },
             "axisSoftMax": 600,
             "axisSoftMin": 0,
-            "axisWidth": 50
+            "axisWidth": 40
           },
           "mappings": [],
-          "unit": "gal/hr",
+          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [

@@ -610,6 +610,7 @@ def status(config={}, output="default"):
 
     result = {}
 
+    gas_emitted = False
     for mode, sk_path in _MODE_SK.items():
         if mode not in raw:
             continue
@@ -623,6 +624,7 @@ def status(config={}, output="default"):
 
         if mode == "gas_input":
             sk_val = int(val)
+            gas_emitted = True
         else:
             sk_val = val  # raw °F as shown on display — no conversion
 
@@ -631,6 +633,21 @@ def status(config={}, output="default"):
         else:
             result[sk_path] = sk_val
         logger.debug("Sentry: %s = %s", sk_path, sk_val)
+
+    # Idle-fill gas input. waterTemp/outdoorTemp/gasInputValue are only emitted on
+    # cycles where the display actually rotated to that mode; at idle the display
+    # shows gas-input mode infrequently, so gasInputValue would gap for many minutes
+    # and look stale on the chart. But when the burner LED (read every cycle) is off,
+    # the firing rate IS 0 — so emit 0 every cycle to keep the series dense/fresh at
+    # idle. When firing (burnerOn True) we never fabricate a value: the real reading
+    # is emitted the next cycle the display shows gas mode (fast when active).
+    if not gas_emitted and raw.get("leds", {}).get("burnerOn") is False:
+        gas_path = _MODE_SK["gas_input"]
+        if output == "signalk":
+            sk_add_value(sk_source, gas_path, 0)
+        else:
+            result[gas_path] = 0
+        logger.debug("Sentry: %s = 0 (idle fill; burner off, gas mode not shown this cycle)", gas_path)
 
     boiler_status = _compute_status(raw)
     sk_path = "hvac.boiler.sentry.status"
