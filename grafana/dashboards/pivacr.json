@@ -3220,7 +3220,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Domestic",
-          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
@@ -3231,7 +3231,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Irrigation",
-          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "B",
           "resultFormat": "time_series"
@@ -3360,7 +3360,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Domestic",
-          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
@@ -3371,7 +3371,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Irrigation",
-          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "B",
           "resultFormat": "time_series"
@@ -3501,7 +3501,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Domestic",
-          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
@@ -3512,7 +3512,7 @@
             "uid": "bdxaqnfllu5fkf"
           },
           "alias": "Irrigation",
-          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter GROUP BY time(3650d) fill(0)",
           "rawQuery": true,
           "refId": "B",
           "resultFormat": "time_series"
