@@ -3140,11 +3140,11 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used over the dashboard time range \u2014 Domestic (totalizer max\u2212min) and Irrigation (integral of flow rate).",
+      "description": "Gallons used (selected range). Domestic (net) = whole-house meter total minus irrigation (sprinkler water flows through the same meter); Irrigation = integral of flow rate.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed"
           },
           "mappings": [],
           "unit": "gal",
@@ -3158,7 +3158,38 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Domestic (net)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Irrigation"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 4,
@@ -3207,18 +3238,53 @@
         }
       ],
       "title": "Used \u2014 selected range",
-      "type": "stat"
+      "type": "stat",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Domestic",
+              "operator": "-",
+              "right": "Irrigation"
+            },
+            "alias": "Domestic (net)",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Domestic": true
+            },
+            "indexByName": {
+              "Domestic (net)": 0,
+              "Irrigation": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "datasource": {
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 24 hours \u2014 Domestic and Irrigation.",
+      "description": "Gallons used (last 24h). Domestic (net) = whole-house meter total minus irrigation (sprinkler water flows through the same meter); Irrigation = integral of flow rate.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed"
           },
           "mappings": [],
           "unit": "gal",
@@ -3232,7 +3298,38 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Domestic (net)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Irrigation"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 4,
@@ -3282,18 +3379,53 @@
       ],
       "title": "Used \u2014 last 24h",
       "type": "stat",
-      "timeFrom": "24h"
+      "timeFrom": "24h",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Domestic",
+              "operator": "-",
+              "right": "Irrigation"
+            },
+            "alias": "Domestic (net)",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Domestic": true
+            },
+            "indexByName": {
+              "Domestic (net)": 0,
+              "Irrigation": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "datasource": {
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 7 days \u2014 Domestic and Irrigation.",
+      "description": "Gallons used (last 7d). Domestic (net) = whole-house meter total minus irrigation (sprinkler water flows through the same meter); Irrigation = integral of flow rate.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed"
           },
           "mappings": [],
           "unit": "gal",
@@ -3307,7 +3439,38 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Domestic (net)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Irrigation"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 4,
@@ -3357,7 +3520,42 @@
       ],
       "title": "Used \u2014 last 7d",
       "type": "stat",
-      "timeFrom": "7d"
+      "timeFrom": "7d",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Domestic",
+              "operator": "-",
+              "right": "Irrigation"
+            },
+            "alias": "Domestic (net)",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Domestic": true
+            },
+            "indexByName": {
+              "Domestic (net)": 0,
+              "Irrigation": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "datasource": {
@@ -3698,38 +3896,48 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used per time bucket; the bucket auto-scales with the dashboard zoom ($__interval): ~hourly when viewing a day, ~daily when viewing months.",
+      "description": "Gallons per hour, last 7 days. Green = household water (domestic meter total net of irrigation); yellow = irrigation. Stacked bar height = total through the meter.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "fixed"
           },
           "custom": {
-            "axisPlacement": "auto",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisWidth": 50,
+            "barAlignment": 0,
             "drawStyle": "bars",
             "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
-            "showPoints": "auto",
-            "spanNulls": false,
-            "barAlignment": 0,
-            "gradientMode": "none",
-            "lineInterpolation": "linear",
             "scaleDistribution": {
               "type": "linear"
             },
+            "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
-            },
-            "axisWidth": 50
+            }
           },
           "mappings": [],
           "unit": "gal",
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -3738,10 +3946,40 @@
                 "value": null
               }
             ]
-          },
-          "min": 0
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Domestic (net)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Irrigation"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -3752,13 +3990,15 @@
       "id": 20,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -3768,47 +4008,61 @@
             "type": "influxdb",
             "uid": "bdxaqnfllu5fkf"
           },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "previous"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "environment.water.domestic.consumption",
-          "orderByTime": "ASC",
-          "policy": "default",
+          "alias": "Domestic",
+          "query": "SELECT SPREAD(\"value\") FROM \"environment.water.domestic.consumption\" WHERE $timeFilter GROUP BY time(1h) fill(0)",
+          "rawQuery": true,
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "max"
-              },
-              {
-                "params": [],
-                "type": "non_negative_difference"
-              }
-            ]
-          ],
-          "tags": []
+          "resultFormat": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "alias": "Irrigation",
+          "query": "SELECT INTEGRAL(\"value\", 1m) FROM \"environment.water.irrigation.flowRate\" WHERE $timeFilter GROUP BY time(1h) fill(0)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
         }
       ],
-      "title": "Water usage per period (adaptive)",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Domestic",
+              "operator": "-",
+              "right": "Irrigation"
+            },
+            "alias": "Domestic (net)",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Domestic": true
+            },
+            "indexByName": {
+              "Domestic (net)": 0,
+              "Irrigation": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "timeFrom": "7d",
+      "title": "Water consumption by hour \u2014 last 7 days",
       "type": "timeseries"
     }
   ],
