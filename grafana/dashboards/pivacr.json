@@ -64,7 +64,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -382,7 +383,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -701,7 +703,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -1046,7 +1049,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -1580,7 +1584,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -1798,50 +1803,54 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Boiler status LEDs (green = On). BRN Burner · HTP Heating Pump · HTC Heat Call · HWP Hot-Water Pump · PRI Hot-Water Priority",
+      "description": "Boiler status \u2014 coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
           "custom": {
-            "fillOpacity": 75,
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "left",
+            "axisWidth": 50,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineWidth": 0,
-            "spanNulls": false
-          },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "color": "#73808c",
-                  "index": 0,
-                  "text": "Off"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "On"
-                }
-              }
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
-          ],
+          },
+          "mappings": [],
+          "min": 0,
+          "max": 1.2,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#73808c",
-                "value": null
-              },
-              {
                 "color": "green",
-                "value": 1
+                "value": null
               }
             ]
           }
@@ -1849,24 +1858,21 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 27
       },
       "id": 13,
       "options": {
-        "alignValue": "left",
         "legend": {
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
         },
-        "mergeValues": true,
-        "rowHeight": 0.9,
-        "showValue": "auto",
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -1895,7 +1901,7 @@
           "policy": "default",
           "refId": "A",
           "resultFormat": "time_series",
-          "alias": "BRN",
+          "alias": "Burner",
           "select": [
             [
               {
@@ -1907,6 +1913,12 @@
               {
                 "params": [],
                 "type": "max"
+              },
+              {
+                "params": [
+                  " +0.00"
+                ],
+                "type": "math"
               }
             ]
           ],
@@ -1937,7 +1949,7 @@
           "policy": "default",
           "refId": "B",
           "resultFormat": "time_series",
-          "alias": "HTP",
+          "alias": "Heating Pump",
           "select": [
             [
               {
@@ -1949,6 +1961,12 @@
               {
                 "params": [],
                 "type": "max"
+              },
+              {
+                "params": [
+                  " +0.02"
+                ],
+                "type": "math"
               }
             ]
           ],
@@ -1979,7 +1997,7 @@
           "policy": "default",
           "refId": "C",
           "resultFormat": "time_series",
-          "alias": "HWP",
+          "alias": "Hot-Water Pump",
           "select": [
             [
               {
@@ -1991,6 +2009,12 @@
               {
                 "params": [],
                 "type": "max"
+              },
+              {
+                "params": [
+                  " +0.04"
+                ],
+                "type": "math"
               }
             ]
           ],
@@ -2021,7 +2045,7 @@
           "policy": "default",
           "refId": "D",
           "resultFormat": "time_series",
-          "alias": "HTC",
+          "alias": "Heat Call",
           "select": [
             [
               {
@@ -2033,6 +2057,12 @@
               {
                 "params": [],
                 "type": "max"
+              },
+              {
+                "params": [
+                  " +0.06"
+                ],
+                "type": "math"
               }
             ]
           ],
@@ -2063,7 +2093,7 @@
           "policy": "default",
           "refId": "E",
           "resultFormat": "time_series",
-          "alias": "PRI",
+          "alias": "Hot-Water Priority",
           "select": [
             [
               {
@@ -2075,6 +2105,12 @@
               {
                 "params": [],
                 "type": "max"
+              },
+              {
+                "params": [
+                  " +0.08"
+                ],
+                "type": "math"
               }
             ]
           ],
@@ -2083,7 +2119,7 @@
         }
       ],
       "title": "Sentry Boiler Status",
-      "type": "state-timeline"
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -2127,7 +2163,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -2314,7 +2351,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -2439,7 +2477,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -2664,7 +2703,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "thresholds": {
@@ -3085,7 +3125,7 @@
     {
       "type": "row",
       "collapsed": false,
-      "title": "Water — Domestic & Irrigation",
+      "title": "Water \u2014 Domestic & Irrigation",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3174,7 +3214,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 24 hours — Domestic and Irrigation.",
+      "description": "Gallons used in the last 24 hours \u2014 Domestic and Irrigation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3249,7 +3289,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Gallons used in the last 7 days — Domestic and Irrigation.",
+      "description": "Gallons used in the last 7 days \u2014 Domestic and Irrigation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3353,7 +3393,8 @@
               "mode": "off"
             },
             "axisSoftMax": 10,
-            "axisSoftMin": 0
+            "axisSoftMin": 0,
+            "axisWidth": 50
           },
           "mappings": [],
           "unit": "gal/min",
@@ -3516,7 +3557,8 @@
               "mode": "off"
             },
             "axisSoftMax": 600,
-            "axisSoftMin": 0
+            "axisSoftMin": 0,
+            "axisWidth": 50
           },
           "mappings": [],
           "unit": "gal/hr",
@@ -3683,7 +3725,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "axisWidth": 50
           },
           "mappings": [],
           "unit": "gal",
