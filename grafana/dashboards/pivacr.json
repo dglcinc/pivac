@@ -1798,6 +1798,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
+      "description": "Boiler status LEDs (green = On). BRN Burner · HTP Heating Pump · HTC Heat Call · HWP Hot-Water Pump · PRI Hot-Water Priority",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1894,7 +1895,7 @@
           "policy": "default",
           "refId": "A",
           "resultFormat": "time_series",
-          "alias": "Burner",
+          "alias": "BRN",
           "select": [
             [
               {
@@ -1936,7 +1937,7 @@
           "policy": "default",
           "refId": "B",
           "resultFormat": "time_series",
-          "alias": "Heating Pump",
+          "alias": "HTP",
           "select": [
             [
               {
@@ -1978,7 +1979,7 @@
           "policy": "default",
           "refId": "C",
           "resultFormat": "time_series",
-          "alias": "Hot-Water Pump",
+          "alias": "HWP",
           "select": [
             [
               {
@@ -2020,7 +2021,7 @@
           "policy": "default",
           "refId": "D",
           "resultFormat": "time_series",
-          "alias": "Heat Call",
+          "alias": "HTC",
           "select": [
             [
               {
@@ -2062,7 +2063,7 @@
           "policy": "default",
           "refId": "E",
           "resultFormat": "time_series",
-          "alias": "Hot-Water Priority",
+          "alias": "PRI",
           "select": [
             [
               {
