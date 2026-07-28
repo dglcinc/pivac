@@ -1,0 +1,419 @@
+apiVersion: 1
+
+# Freshness + sanity alerts for the Sentry 2100 boiler display reader
+# (pivac.Sentry -> Tapo C120 RTSP -> 7-segment CV -> hvac.boiler.sentry.*).
+# Routes to the same graph-bridge contact point as the other pivac alert files.
+#
+# Why this file exists: until 2026-07-28 the Sentry paths were the ONLY sensor
+# family with no alerting at all. A ~10px drift of the camera's view pushed the
+# `display_warp` quad off the top of the digits, clipping segment "a" on every
+# digit. water_temp fell from 100% to 2% clean decodes and went silently stale,
+# while every other Sentry path kept publishing normally — so nothing looked
+# broken from the outside and it was found by eye, 12 days later.
+#
+# UNITS: unlike the 1-wire rules (Kelvin), the Sentry paths are raw FAHRENHEIT
+# as shown on the boiler display. The never-true staleness sentinel is therefore
+# `value < -100`, which no plausible reading of any of these paths can reach
+# (the module's own range checks are water 40..205 F, air -40..140 F,
+# gas 0..240). Detection is driven by noDataState: Alerting.
+groups:
+  - orgId: 1
+    name: sentry-boiler
+    folder: pivac
+    interval: 1m
+    rules:
+      # ---------------------------------------------------------------------
+      # 1. water temp stale -- the direct alert for the 2026-07-28 failure.
+      #    waterTemp is published only when the display's water-temp mode is
+      #    both shown AND decoded, so this covers camera/service death *and*
+      #    a CV that can no longer read the digits.
+      # ---------------------------------------------------------------------
+      - uid: sentry-watertemp-stale
+        title: Boiler water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.boiler.sentry.waterTemp
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - -100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Boiler water temperature has been stale for >30m (hvac.boiler.sentry.waterTemp)"
+          runbook: |
+            First distinguish "the reader is dead" from "the reader can no longer
+            read the digits" -- check whether sentry-cycle-stale is ALSO firing:
+
+              * BOTH firing  -> the service or the camera is down.
+                `systemctl status pivac-sentry`; `ping 10.0.0.19`;
+                `journalctl -u pivac-sentry -n 50 --no-pager`.
+
+              * ONLY this one -> the service is alive and publishing, but the CV
+                cannot decode the water-temp digits. This is the 2026-07-28
+                calibration-drift signature.
+                1. `journalctl -u pivac-sentry -n 50 --no-pager` and look for
+                   "only N plausible read(s) this cycle". If it carries the
+                   "display_warp quad has likely drifted" hint, the camera's view
+                   has moved and the quad needs re-aiming.
+                2. Confirm the camera is still locked to Night/IR (Tapo app ->
+                   Advanced -> Night Vision = Night, Night Boost Off). A day/night
+                   flip shifts the image and breaks the reader the same way.
+                3. Recalibrate `display_warp.corners` in /etc/pivac/config.yml.
+                   See CLAUDE.md "Sentry calibration drift" for the procedure and
+                   the 2026-07-28 worked example.
+        labels:
+          severity: warning
+          source: sentry
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---------------------------------------------------------------------
+      # 2. reader-alive heartbeat. gasInputValue is emitted on EVERY cycle
+      #    (idle-fills to 0 when the boiler is off), so it stops only if the
+      #    service, the camera or the RTSP stream has died -- never merely
+      #    because a digit failed to decode. Pairs with rule 1 to tell the two
+      #    failure modes apart without logging in to the Pi.
+      # ---------------------------------------------------------------------
+      - uid: sentry-cycle-stale
+        title: Sentry boiler reader not publishing (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.boiler.sentry.gasInputValue
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - -100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "pivac-sentry has published nothing for >30m (hvac.boiler.sentry.gasInputValue)"
+          runbook: |
+            gasInputValue is emitted every poll cycle regardless of what the
+            display shows, so silence here means the reader itself stopped.
+            1. `systemctl status pivac-sentry` -- Restart=always, so a dead
+               service means it is crash-looping, not simply stopped.
+            2. `ping 10.0.0.19` -- the Tapo C120. If unreachable, power-cycle it.
+            3. `journalctl -u pivac-sentry -n 50 --no-pager` for RTSP open errors.
+            The Pi is a fanless Pi 4 and this service is the hottest thing on it;
+            if it died after a thermal event check `vcgencmd get_throttled`.
+        labels:
+          severity: warning
+          source: sentry
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---------------------------------------------------------------------
+      # 3. Cross-check the boiler's own outdoor reading against the physical
+      #    DS18B20. This is the only rule that can catch a CV that is still
+      #    publishing *fresh but wrong* numbers -- the failure mode that hid
+      #    the 2026-07-28 drift for 12 days (air misread 78 F while the real
+      #    outdoor sensor said 69.5 F). Both are outdoor air, so they track
+      #    within a few degrees; sustained disagreement means one is misread.
+      #
+      #    environment.outside.temperature is stored in KELVIN, the Sentry path
+      #    in Fahrenheit, so the math node converts before differencing.
+      #    Threshold/duration are deliberately loose (10 F sustained 2h): the two
+      #    sensors sit in different spots and see different sun, and a chatty
+      #    alert is a useless alert. Baseline divergence observed ~1-4 F.
+      # ---------------------------------------------------------------------
+      - uid: sentry-outdoor-divergence
+        title: Sentry outdoor temp disagrees with the 1-wire outdoor sensor
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.boiler.sentry.outdoorTemp
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.outside.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: B
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: B
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: abs($C - (($D - 273.15) * 9 / 5 + 32))
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: E
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 10
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - E
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 2h
+        annotations:
+          summary: "Sentry outdoor temp differs from the 1-wire outdoor sensor by >10 F for 2h — the display reader is probably misreading digits"
+          runbook: |
+            hvac.boiler.sentry.outdoorTemp (read off the boiler display by CV) and
+            environment.outside.temperature (physical DS18B20) are both outdoor
+            air and normally agree within a few degrees. A sustained gap while
+            BOTH are still publishing means the CV is producing fresh-but-wrong
+            numbers -- and if the outdoor digits are being misread, the water-temp
+            digits on the same display are too.
+            1. Compare against environment.outside.thermostat.temperature to
+               decide which source moved.
+            2. If the Sentry one moved, treat it as a decode problem: check the
+               journal for "display_warp quad has likely drifted", confirm the
+               camera is still locked to Night/IR, and recalibrate.
+            3. Grab a frame and read the display by eye before trusting either
+               number -- see CLAUDE.md "Sentry calibration drift".
+            noDataState is OK so this never fires merely because a source is down;
+            the staleness rules above cover that.
+        labels:
+          severity: info
+          source: sentry
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge

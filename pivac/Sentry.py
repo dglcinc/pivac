@@ -462,6 +462,7 @@ def _poll_cycle(config: dict) -> dict:
         cap.grab()
 
     samples      = {}    # mode -> [sane float readings this cycle]
+    seen_modes   = set() # modes the display was stably in, decodable or not
     led_samples  = {}    # led key -> [bool reads this cycle] (voted at cycle end)
     dhw_samples  = []    # dhw-priority bool reads this cycle (voted at cycle end)
     confirmed    = set() # modes with >= min_samples (enough to trust the median)
@@ -488,6 +489,14 @@ def _poll_cycle(config: dict) -> dict:
             else:
                 prev_mode    = mode
                 stable_count = 0
+
+            # Record that the display was stably in this mode, even if the value
+            # failed to decode. Without this, a mode whose digits decode to an
+            # unknown segment pattern every frame never reaches `samples` at all
+            # and the cycle ends silently — the exact blind spot that let a
+            # drifted warp quad starve water_temp unnoticed (2026-07-28).
+            if mode is not None and stable_count >= mode_stable_min:
+                seen_modes.add(mode)
 
             if "?" in value or stable_count < mode_stable_min:
                 continue
@@ -538,13 +547,26 @@ def _poll_cycle(config: dict) -> dict:
     # min_samples reads is skipped this cycle rather than emitting a low-
     # confidence guess — the next cycle retries and the freshness alert covers
     # any prolonged gap. Stored as the rounded integer string the display shows.
+    # A mode the display actually showed but that yielded no usable sample is a
+    # CV failure, not a missed dwell — surface it. Modes the display never
+    # reached this cycle stay silent.
+    for mode in sorted(seen_modes - set(samples)):
+        samples[mode] = []
+
     collected = {}
     for mode, vals in samples.items():
         if len(vals) >= min_samples:
             collected[mode] = str(int(round(statistics.median(vals))))
-        else:
+        elif vals:
             logger.warning("Sentry: '%s' only %d plausible read(s) this cycle (%s); "
                            "skipping", mode, len(vals), vals)
+        else:
+            # Shown on the display for several stable frames yet nothing decoded:
+            # a CV failure, not a missed dwell. Sustained, this is what a drifted
+            # display_warp quad looks like from the inside (2026-07-28).
+            logger.warning("Sentry: '%s' was displayed but nothing decoded this "
+                           "cycle; skipping. Sustained, suspect the display_warp "
+                           "calibration or a camera day/night flip", mode)
 
     # Resolve LED/indicator states by majority vote over the cycle's frames so a
     # single IR-glare frame can't flip burnerOn (which otherwise flickered the
