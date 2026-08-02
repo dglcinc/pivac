@@ -1101,7 +1101,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.ac.switch.utility.RCHL.statenum.mean"
+              "options": "electrical.ac.switch.utility.BOS2.statenum.mean"
             },
             "properties": [
               {
@@ -1123,36 +1123,6 @@
                 "id": "color",
                 "value": {
                   "fixedColor": "semi-dark-blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electrical.ac.switch.utility.Y2ON.statenum.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electrical.ac.switch.utility.Y2FAN.statenum.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-blue",
                   "mode": "fixed"
                 }
               }
@@ -1292,7 +1262,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.ac.switch.utility.LCHL.statenum",
+          "measurement": "electrical.ac.switch.utility.BOS1.statenum",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -1339,7 +1309,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.ac.switch.utility.RCHL.statenum",
+          "measurement": "electrical.ac.switch.utility.BOS2.statenum",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "E",
@@ -1386,139 +1356,10 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.ac.switch.utility.Y2FAN.statenum",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "F",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " / 100"
-                ],
-                "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
           "measurement": "electrical.ac.switch.utility.DEHUM.statenum",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "G",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "electrical.ac.switch.utility.BOS1.statenum",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "H",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "electrical.ac.switch.utility.Y2ON.statenum",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "I",
           "resultFormat": "time_series",
           "select": [
             [
