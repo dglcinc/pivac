@@ -407,9 +407,9 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
 
 ```
 {
-    "CRW": 45,
+    "UBT": 45,
     "OUT": 47,
-    "AMB": 73,
+    "LBT": 73,
     "IN": 40
 }
 ```
