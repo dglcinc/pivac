@@ -229,6 +229,17 @@ curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json'
 ```
 Should return `ok` and an email arrives at `david@dglc.com`.
 
+> **⚠️ Removing an alert rule needs an explicit `deleteRules:` block — provisioning is ADDITIVE (learned 2026-08-06).** Deleting a rule from `groups: … rules:` does **not** remove it from Grafana. It keeps evaluating with `provenance=file` (so it's also uneditable/undeletable in the UI) indefinitely. Verified live: after the CRW→UBT rename, `hydronic-crw-stale`, `outside-onewire-stale` and `outside-temp-divergence` all survived the copy + `systemctl restart grafana-server` (16 rules in the `alert_rule` table when the YAML defined 7), and the two staleness rules would have emailed on **every** evaluation since their metrics no longer existed and both carry `noDataState: Alerting`. The fix is a top-level block in the same file:
+> ```yaml
+> deleteRules:
+>   - orgId: 1
+>     uid: hydronic-crw-stale
+> ```
+> Leave the block in place permanently — deleting an already-absent rule is a no-op, and removing it would let a stale Grafana DB resurrect the UID. **Always verify after a rule removal** rather than trusting the restart:
+> ```bash
+> sudo python3 -c "import sqlite3;c=sqlite3.connect('file:/var/lib/grafana/grafana.db?mode=ro',uri=True);[print(r) for r in c.execute('select uid,title from alert_rule order by title')]"
+> ```
+
 **Deployment after editing the YAMLs or the bridge:**
 ```bash
 # script/service:
