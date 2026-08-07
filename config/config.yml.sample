@@ -76,15 +76,15 @@ pivac.OneWireTherm:
             outname: IN
         0516a365d8ff:
             outname: OUT
+        # Buffer tank sensors (repurposed 2026-08-06 for the single-chiller conversion):
+        # this probe was CRW, and 0516a36816ff below was the outdoor AMB sensor. Both were
+        # physically moved onto the buffer tank. There is no longer a physical outdoor
+        # DS18B20 — outdoor air now comes solely from pivac.RedLink
+        # (environment.outside.thermostat.temperature).
         0316a00f04ff:
-            outname: CRW
+            outname: UBT
         0516a36816ff:
-            outname: AMB
-            # Physical outdoor air sensor → canonical Signal K outside-air path.
-            # Kept distinct from the Honeywell-reported environment.outside.thermostat.temperature
-            # (pivac.RedLink) so the two can be cross-checked for divergence.
-            sk_path: environment.outside
-            sk_literal: true
+            outname: LBT
         0316a015e7ff:
             outname: Unassigned
 
