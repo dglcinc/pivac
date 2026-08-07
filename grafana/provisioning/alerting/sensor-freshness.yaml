@@ -703,3 +703,24 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
+# Grafana alert-rule provisioning is ADDITIVE: deleting a rule from `groups:` above does NOT
+# remove it from Grafana. It keeps running with provenance=file (uneditable in the UI) until
+# it is named here. Verified live 2026-08-06 — after the UBT/LBT rename, hydronic-crw-stale,
+# outside-onewire-stale and outside-temp-divergence all survived a grafana-server restart, and
+# the first two would have emailed on every evaluation, since their metrics no longer exist
+# and both carry noDataState: Alerting.
+#
+# Leave this block in place permanently. Deleting an already-absent rule is a no-op, and
+# removing the block would let a stale Grafana DB resurrect these UIDs.
+deleteRules:
+  # Retired 2026-08-06 — probe became UBT (upper buffer tank); superseded by hydronic-ubt-stale.
+  - orgId: 1
+    uid: hydronic-crw-stale
+  # Retired 2026-08-06 — the AMB probe became LBT, so environment.outside.temperature no longer
+  # exists. Outdoor air now comes solely from pivac.RedLink.
+  - orgId: 1
+    uid: outside-onewire-stale
+  # Retired 2026-08-06 — cross-checked the 1-wire outdoor sensor against the thermostat; only
+  # one outdoor source remains, so the comparison is meaningless.
+  - orgId: 1
+    uid: outside-temp-divergence
