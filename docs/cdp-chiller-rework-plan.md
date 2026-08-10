@@ -244,10 +244,50 @@ aren't debugging YAML with the panel in pieces.
 
 ---
 
-## 7. Open items
+## 7. Loop water volume after the conversion
+
+Recorded 2026-08-10, after the hardware change was made. The conversion shrank the hydronic
+loop three ways: the chiller moved closer to the house, the buffer tank was downsized, and two
+outdoor units became one.
+
+| Component | Change | Δ volume |
+|-----------|--------|---------:|
+| Thermal buffer tank | 40 gal → 37 gal | **−3.0 gal** |
+| 1¼" PEX | ~40 ft removed @ 0.0453 gal/ft | **−1.8 gal** |
+| Outdoor units | 2 × UniChiller → 1 × Chiltrix CX75 | **≈ −1 gal** (assumed) |
+| | | |
+| **Total** | **92 gal → ≈ 86 gal** | **≈ −6 gal** |
+
+The tank downsizing dominates; everything else is small. Net reduction is roughly 6–7 %.
+
+**Derivation notes, so the figure can be rechecked rather than trusted:**
+
+- The **92 gal** starting figure is David's pre-conversion calculation. It is not derived
+  anywhere in this repo, and its component breakdown — in particular whether it included the
+  chillers' internal volume — is not recorded. Everything above is a delta applied to it.
+- **1¼" PEX holds 0.0453 gal/ft** (ID ≈ 1.054", SDR-9). The result is insensitive to the exact
+  ID spec: computing the wall from SDR-9 instead gives ID 1.069" and 0.0466 gal/ft, moving the
+  40 ft term by 0.05 gal.
+- **The 40 ft is read as 40 linear feet of tubing removed.** If it instead describes the *run*
+  shortening by 40 ft, both supply and return shortened — 80 ft of tubing, −3.6 gal, and the
+  total becomes **≈ 84 gal**. Worth pinning down if the number is ever used for anything
+  load-bearing.
+- **The chiller term is an assumption, not a measurement.** Two units were removed and one
+  installed, so even with identical internal volumes the net is *minus one unit's worth* — not
+  a wash. For a brazed-plate heat exchanger plus internal piping at this capacity, ~1 gal is a
+  reasonable placeholder. Replace it with the CX75's published internal volume when convenient.
+
+---
+
+## 8. Open items
 
 - **The YOFF interrupt path is the one that can bite.** Everything else fails visibly; a broken
   seasonal cutoff fails silently until winter. Prove it before closing the panel.
+- **Check ≈86 gal against the CX75's minimum loop volume.** The buffer tank exists to stop the
+  compressor short-cycling, and the loop just lost ~6 gal while consolidating two compressors
+  into one. The Chiltrix is inverter-driven and modulates, so it tolerates a small loop far
+  better than a fixed-speed unit would — this is expected to pass, but it is a one-line check
+  against the manual and has not been done.
 - Confirm the new chiller needs no external stage-2 call before the Y2ON/Y2FAN inputs are freed.
 - Decide the fate of the freed Y2ON timer and Y2FAN relays (spares vs. removal) — no impact on
   the Pi side either way.
