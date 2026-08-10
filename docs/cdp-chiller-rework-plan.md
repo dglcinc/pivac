@@ -155,26 +155,45 @@ not from tracing live wiring, so confirm each one physically (ideally with your 
 
 ### BOS1 / BOS2 sensing
 
-Both Bosch compressor calls are sensed the same way: the call energizes a relay coil, and the
-relay's **dry contact** feeds the Pi input, pulled up internally (`pullmode: pullup`, matching
-every other input). Because both relays stay put, both contact wires are the existing runs:
+**The CDP relay is not in the compressor's control path.** When an air handler calls for cooling
+it drives its compressor **directly**; that path is untouched by this rework and does not pass
+through the CDP. What the CDP relay senses is a *parallel* indication:
+
+```
+air handler call for cooling ─┬─→ compressor                      (control path — untouched)
+                              └─→ air handler's call relay
+                                    └─→ existing run to mechanical room
+                                          └─→ CDP relay coil
+                                                └─→ dry contact → Pi input   (monitoring only)
+```
+
+The air handler already had a relay that sent a call to the mechanical room — that is what used to
+drive the chiller. With the chillers gone, that same relay output is repurposed to energize the
+reclaimed CDP relay, whose dry contact feeds the Pi input, pulled up internally (`pullmode:
+pullup`, matching every other input).
 
 | Signal | Relay reclaimed | Pi input |
 |--------|-----------------|----------|
-| BOS2 compressor call | old **RCHL** | BCM 5 / phys 29 |
-| BOS1 compressor call | old **LCHL** | BCM 6 / phys 31 |
+| BOS2 | old **RCHL** | BCM 5 / phys 29 |
+| BOS1 | old **LCHL** | BCM 6 / phys 31 |
 
-The only new conductors in the job are the two Bosch call signals into the relay coils, replacing
-the old chiller calls that drove them. BOS1's call has to be moved off the old BOS1 relay onto the
-reclaimed LCHL relay; the old relay and its pin-18 run are then retired. **Do not feed 24 VAC
-anywhere near the header.**
+**There are no new conductors.** The air-handler-to-mechanical-room runs already existed to carry
+the old chiller calls, and both CDP relays keep their existing contact wires to the header. The
+job is a re-landing of what was already there, not new cable. **Do not feed 24 VAC anywhere near
+the header.**
 
-> **This coil-side wiring is the part with no recorded verification.** The software has been
-> renamed to match this arrangement and is live, but nothing in the repo or the session history
-> confirms the coils were actually re-landed. If they were not, `BOS1` and `BOS2` are currently
-> reporting the *old* signals under new names — BOS2 in particular would be reading a dead chiller
-> call and would simply never assert. Confirm by running the Kitchen and Living Room zones
-> independently (§6.3) before trusting either series.
+Two consequences worth being explicit about:
+
+- **The monitoring cannot break cooling.** Because the CDP relay is a parallel tap rather than a
+  series element, a failed relay, a dropped coil wire, or a dead Pi input loses *visibility* only.
+  Cooling continues regardless. This is a strictly better arrangement than putting the sense relay
+  in the call path.
+- **The series records the air handler's call, not proof the compressor ran.** `BOS1`/`BOS2`
+  assert when the air handler calls for cooling. If a compressor is called but fails to start —
+  breaker trip, high-pressure lockout, contactor failure — the relay still shows asserted. A
+  silent compressor failure therefore looks like normal operation on the dashboard. Cross-check
+  against Emporia (`electrical.emporia.house.bosch_bova` and the `utility_sub_panel` circuit) if
+  actual running state matters: real compressor draw is the signal that distinguishes them.
 
 ---
 
@@ -327,9 +346,11 @@ the live Pi is already at the target state, so a clone-based build inherits it.
       No relay senses this path.
    e. **Re-establish YOFF's cutoff on the new path and prove it physically** (§3, item 2). There
       is no telemetry that will confirm this later.
-   f. Reclaim both chiller relays in place: disconnect the old chiller calls from their coils and
-      land the BOS2 and BOS1 compressor calls there instead. Contact wires to **pins 29 and 31**
-      are untouched. BOS1's call moves off the old pin-24 relay.
+   f. Reclaim both chiller relays in place: land each air handler's call-relay output onto the
+      corresponding CDP relay coil, in place of the old chiller call it used to drive. Contact
+      wires to **pins 29 and 31** are untouched, and the air-handler-to-mechanical-room runs are
+      reused as-is (§3). BOS1's indication moves off the old pin-24 relay, which is then retired.
+      Nothing here touches either compressor's control path.
    g. Fit the new Pi and the updated label.
 
 3. **Verify**
@@ -340,10 +361,10 @@ the live Pi is already at the target state, so a clone-based build inherits it.
    — and no LCHL/RCHL/Y2ON/Y2FAN. If any retired name is still present in the **Signal K API**
    rather than the module output, that is the missing `restart signalk` (§5.2), not a config fault.
 
-   Then, the test that actually matters: **run the Kitchen and Living Room zones independently and
-   confirm BOS1 and BOS2 assert separately.** This is the only thing that proves the coils were
-   re-landed correctly rather than the names merely having been swapped in YAML — see the warning
-   in §3. Finish by throwing YOFF and confirming the chiller call physically drops at the panel.
+   Then: **run the Kitchen and Living Room zones independently and confirm BOS1 and BOS2 assert
+   separately.** This proves each air handler's call relay landed on the right CDP relay rather
+   than the two being swapped — the failure mode that a config-only rename cannot distinguish.
+   Finish by throwing YOFF and confirming the chiller call physically drops at the panel.
 
 4. **Document** — `CLAUDE.md` is already updated for the relay roster and the retired-name/InfluxDB
    note (PR #96); the GPIO 26 item resolves when the new Pi is fitted. Still outstanding: the
@@ -396,8 +417,12 @@ The tank downsizing dominates; everything else is small. Net reduction is roughl
   into one. The Chiltrix is inverter-driven and modulates, so it tolerates a small loop far
   better than a fixed-speed unit would — this is expected to pass, but it is a one-line check
   against the manual and has not been done.
-- **Confirm the coil-side wiring** for BOS1/BOS2 (§3). The software rename is live but nothing
-  records whether the relay coils were actually re-landed. The zone-by-zone test in §6.3 settles it.
+- **Confirm BOS1/BOS2 are not swapped** — the zone-by-zone test in §6.3. The wiring arrangement is
+  recorded in §3, but nothing yet confirms which air handler landed on which CDP relay, and a
+  crossed pair is indistinguishable from a correct one in the config.
+- **Decide whether call-only monitoring is enough.** `BOS1`/`BOS2` record the air handler's call,
+  so a compressor that fails to start still reads as asserted (§3). Pairing them with Emporia
+  circuit draw would turn "was it called" into "did it actually run" — not designed.
 - **The chiller is no longer monitored at all.** CHIL was dropped because the CX75 exposes no call
   contact. Revisit if that turns out to be wrong; otherwise decide whether a buffer-tank-based
   substitute (§5.5) is worth building.
