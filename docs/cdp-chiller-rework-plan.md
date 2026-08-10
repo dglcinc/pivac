@@ -126,10 +126,24 @@ Reclaiming both chiller relays means **no new relay hardware is needed**. Leavin
 existing rail positions — rather than moving them — is what lets both contact-to-header wires stay
 untouched, and keeps the DIN layout dense with no shuffling.
 
-> **No relay senses the chiller.** With CHIL dropped, nothing in the CDP observes whether the
-> chiller is being called. Everything the Pi reports about cooling is now inferred from the two
-> Bosch compressor calls and the buffer-tank temperatures (UBT/LBT), not from the chiller itself.
-> Revisit if the CX75 turns out to expose a usable dry contact.
+> **The chiller call exists in the panel — what was dropped is the Pi input watching it.** A CHIL
+> relay is present and in service: it is triggered by a **Y call from the Honeywell HZ432 zone
+> controller** and drives the Chiltrix. No GPIO input is landed on it, so the Pi reports nothing
+> about the chiller; everything it knows about cooling comes from the two Bosch calls and the
+> buffer-tank probes.
+>
+> Landing CHIL on one of the freed inputs would be cheap (see §8), but it would be an **incomplete**
+> signal, for two independent reasons:
+>
+> - **An override can call the Chiltrix full time**, bypassing the HZ432 Y and therefore the CHIL
+>   relay. With the override engaged the relay can read idle while the chiller runs.
+> - **The Chiltrix maintains buffer-tank temperature, not zone demand.** It runs to satisfy the
+>   tank whether or not any zone is calling. "A zone is calling" and "the chiller is running" are
+>   decoupled by design.
+>
+> This is why **UBT/LBT are the meaningful observable for chiller operation**, not the call relay —
+> the tank is the chiller's actual control variable, and the relay only reports one of the several
+> things that can start it.
 
 ### Control-logic consequences — **verify at the panel before cutting**
 
@@ -141,12 +155,17 @@ not from tracing live wiring, so confirm each one physically (ideally with your 
    whatever fed YALT must now drive the **new chiller** directly.
 2. **YOFF's interrupt point moves — and nothing watches the result.** Today YOFF "opens a N/C
    contact to disable power to YALT and the CWRA." With YALT removed, YOFF must interrupt the
-   **new direct chiller call path** instead, or the seasonal cutoff silently stops working. This
-   is the single highest-risk item in the rework — a YOFF that no longer cuts the call will let
-   the chiller run in winter. **Dropping CHIL made this worse:** with no relay sensing the chiller
-   call, there is no dashboard signal that would reveal a failed cutoff. It can only be proven
-   physically, at the panel, before the panel is closed. Do not defer this to "we'll see it in
-   Grafana" — you will not.
+   **HZ432 Y → CHIL → Chiltrix** path instead, or the seasonal cutoff silently stops working.
+   This is the single highest-risk item in the rework — a YOFF that no longer cuts the call will
+   let the chiller run in winter. With no Pi input on CHIL there is no dashboard signal that
+   would reveal a failed cutoff; it can only be proven physically, at the panel, before the panel
+   is closed. Do not defer this to "we'll see it in Grafana" — you will not.
+
+   **Check the override against YOFF while you are in there.** The full-time-call override (§3)
+   bypasses the HZ432 Y. If YOFF interrupts only the HZ432 side, then an override left engaged
+   defeats the seasonal cutoff entirely and the chiller runs all winter with YOFF asserted and
+   apparently working. Either YOFF must interrupt downstream of both paths, or the override needs
+   to be a documented summer-only control that gets deliberately cleared in the fall.
 3. **Two-stage staging disappears with Y2ON/Y2FAN.** Confirm the new chiller either handles its own
    staging internally or genuinely doesn't need it. If it does need an external stage-2 call, stop
    and re-plan — one of the freed inputs would have to come back.
@@ -307,12 +326,19 @@ either the iPad or iPhone.
 No Grafana alert rule references the relay paths (the freshness rules cover temps, pressures, and
 water only), so **no alerting changes were required**.
 
-The original plan noted that a freshness rule on `CHIL` would catch a failed new-chiller call.
-**That option died with CHIL** — there is no chiller relay to watch. If chiller-failure detection
-is wanted, it now has to come from the process side rather than the call side: a rule on the
-buffer-tank probes (`environment.inside.hvac.{UBT,LBT}.temperature` failing to fall during a
-cooling call) is the natural substitute, but it is genuinely harder to get right than a relay
-freshness check and has not been designed.
+The original plan proposed a freshness rule on `CHIL` to catch a failed chiller call. The relay
+still exists and could be landed on a freed input, but **a call-based rule is the wrong shape for
+this chiller**: the override bypasses the CHIL relay, and the Chiltrix runs to buffer-tank setpoint
+rather than to zone demand (§3). A CHIL rule would therefore alarm on a chiller that is running
+fine under override, and stay quiet on one that has failed while the tank drifts.
+
+Chiller-failure detection belongs on the **process side**: `environment.inside.hvac.{UBT,LBT}.
+temperature` failing to fall — or drifting up — over a sustained window is the signal that the
+chiller is not doing its job, regardless of which path called it. That is the right shape but
+genuinely harder to get right than a freshness check (it needs a window long enough to survive
+normal off cycles), and it has not been designed. **UBT/LBT stratification is also still
+unverified** — both read 46.1 °F on install — so the tank-based rule should wait until there is a
+call to stratify against.
 
 > If an alert rule is ever removed from these YAMLs, note that Grafana alert provisioning is
 > **additive** — deleting a rule from `groups:` does not delete it from Grafana. See the
@@ -423,9 +449,17 @@ The tank downsizing dominates; everything else is small. Net reduction is roughl
 - **Decide whether call-only monitoring is enough.** `BOS1`/`BOS2` record the air handler's call,
   so a compressor that fails to start still reads as asserted (§3). Pairing them with Emporia
   circuit draw would turn "was it called" into "did it actually run" — not designed.
-- **The chiller is no longer monitored at all.** CHIL was dropped because the CX75 exposes no call
-  contact. Revisit if that turns out to be wrong; otherwise decide whether a buffer-tank-based
-  substitute (§5.5) is worth building.
+- **Decide whether to land CHIL on a freed input.** The relay exists (HZ432 Y → CHIL → Chiltrix);
+  only the Pi input was dropped. **BCM 24 / phys 18** is now free *and already has a wire run*, so
+  this is a low-cost add. The payoff is not chiller-health monitoring — the override and the
+  tank-setpoint behaviour make the relay an incomplete signal for that (§3) — but it would give
+  the **YOFF seasonal cutoff an observable**, which is currently the one high-risk item with no
+  telemetry at all. Only worth it if YOFF interrupts upstream of the CHIL relay; confirm that first.
+- **Resolve the override vs. YOFF interaction** (§3, item 2). If the full-time-call override
+  bypasses whatever YOFF interrupts, an override left engaged runs the chiller all winter while
+  YOFF reads asserted and appears to be working.
+- **Buffer-tank alerting is the real chiller-failure detector** (§5.5) — undesigned, and blocked
+  on confirming UBT/LBT actually stratify.
 - Confirm the new chiller needs no external stage-2 call. The Y2ON/Y2FAN inputs are **already
   freed in software**, so if an external stage-2 call turns out to be needed, one has to come back.
 - Decide the fate of the freed Y2ON timer and Y2FAN relays (spares vs. removal) — no impact on
