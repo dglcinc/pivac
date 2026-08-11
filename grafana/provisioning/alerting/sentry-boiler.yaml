@@ -249,14 +249,18 @@ groups:
       #    outdoor sensor said 69.5 F). Both are outdoor air, so they track
       #    within a few degrees; sustained disagreement means one is misread.
       #
-      #    environment.outside.temperature is stored in KELVIN, the Sentry path
-      #    in Fahrenheit, so the math node converts before differencing.
+      #    environment.outside.thermostat.temperature is stored in KELVIN, the
+      #    Sentry path in Fahrenheit, so the math node converts before
+      #    differencing. (Originally this compared against the physical outdoor
+      #    DS18B20 at environment.outside.temperature; that probe became the LBT
+      #    buffer-tank sensor on 2026-08-06 and the path is gone. RedLink is also
+      #    Kelvin, so the conversion is unchanged.)
       #    Threshold/duration are deliberately loose (10 F sustained 2h): the two
       #    sensors sit in different spots and see different sun, and a chatty
       #    alert is a useless alert. Baseline divergence observed ~1-4 F.
       # ---------------------------------------------------------------------
       - uid: sentry-outdoor-divergence
-        title: Sentry outdoor temp disagrees with the 1-wire outdoor sensor
+        title: Sentry outdoor temp disagrees with the thermostat outdoor sensor
         condition: F
         data:
           - refId: A
@@ -298,7 +302,7 @@ groups:
               datasource:
                 type: influxdb
                 uid: bdxaqnfllu5fkf
-              measurement: environment.outside.temperature
+              measurement: environment.outside.thermostat.temperature
               policy: default
               resultFormat: time_series
               orderByTime: ASC
@@ -394,19 +398,26 @@ groups:
         execErrState: OK
         for: 2h
         annotations:
-          summary: "Sentry outdoor temp differs from the 1-wire outdoor sensor by >10 F for 2h — the display reader is probably misreading digits"
+          summary: "Sentry outdoor temp differs from the thermostat outdoor sensor by >10 F for 2h — the display reader is probably misreading digits"
           runbook: |
             hvac.boiler.sentry.outdoorTemp (read off the boiler display by CV) and
-            environment.outside.temperature (physical DS18B20) are both outdoor
-            air and normally agree within a few degrees. A sustained gap while
-            BOTH are still publishing means the CV is producing fresh-but-wrong
-            numbers -- and if the outdoor digits are being misread, the water-temp
-            digits on the same display are too.
-            1. Compare against environment.outside.thermostat.temperature to
-               decide which source moved.
-            2. If the Sentry one moved, treat it as a decode problem: check the
-               journal for "display_warp quad has likely drifted", confirm the
-               camera is still locked to Night/IR, and recalibrate.
+            environment.outside.thermostat.temperature (Honeywell RedLink) are both
+            outdoor air and normally agree within a few degrees. A sustained gap
+            while BOTH are still publishing means the CV is producing
+            fresh-but-wrong numbers -- and if the outdoor digits are being
+            misread, the water-temp digits on the same display are too.
+            NB this rule originally compared against environment.outside.temperature,
+            the physical outdoor DS18B20. That probe was repurposed as the LBT
+            buffer-tank sensor on 2026-08-06 and the path no longer exists, so
+            RedLink is now the only independent outdoor source and is the trusted
+            side of this comparison.
+            1. Treat RedLink as the reference. If the Sentry value is the one that
+               moved, it is a decode problem: check the journal for "display_warp
+               quad has likely drifted", confirm the camera is still locked to
+               Night/IR, and recalibrate.
+            2. If RedLink looks wrong instead, check the redlink-* rules -- a
+               half-broken Honeywell session can publish stale values rather than
+               stopping outright.
             3. Grab a frame and read the display by eye before trusting either
                number -- see CLAUDE.md "Sentry calibration drift".
             noDataState is OK so this never fires merely because a source is down;
