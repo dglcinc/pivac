@@ -15,7 +15,8 @@ and the `pivac.GPIO` software side — live on the Pi and verified, with the rep
 (`config.yml.sample`, README, both Grafana dashboards, CLAUDE.md) carried by **PR #96**.
 
 **What is outstanding:** the CDP panel wiring detail behind the reclaimed relays, the label
-reprint (§4), the new-Pi build (§6), and the YOFF re-enable. **The panel-side coil wiring state is
+reprint (§4) — including the override relay, still unlabeled — and the new-Pi build (§6), which
+has not been started. **The panel-side coil wiring state is
 not recorded anywhere** — §3 and §6 describe what the wiring must be, not what has been verified.
 Confirm at the panel before treating any of it as done.
 **Scope:** Control Distribution Panel (CDP) relay bank, the Raspberry Pi enclosure label, the
@@ -73,10 +74,9 @@ provides no call contact to sense, so the chiller's own call state is not monito
 a deliberate accepted loss, not an oversight, and is the single biggest functional difference from
 the original plan — see §3.
 
-YOFF: this plan assumes the **new Pi**, whose silicon is clean, so YOFF can stay on **BCM 26 /
-pin 37**. Note this differs from the *current* Pi's pending fix, which is to move YOFF to
-**BCM 19 / phys 35** because BCM 26's pad is dead (see `CLAUDE.md`). Whichever Pi is in service
-when the rewire happens decides which applies.
+**YOFF is retired — it is no longer in use.** BCM 26 / phys 37 becomes a spare, and the dead-pad
+question is moot: there is **no rewire to BCM 19**, on either the current Pi or the new one. The
+seasonal-cutoff function it performed no longer exists as a CDP interlock (§3, item 2).
 
 | Row | New label | BCM | Phys | Action |
 |----:|-----------|----:|-----:|--------|
@@ -86,16 +86,22 @@ when the rewire happens decides which applies.
 | 4 | **BOS2** | 5 | 29 | **rename only** (was RCHL) — relay reclaimed in place, contact wire reused |
 | 5 | **BOS1** | 6 | 31 | **rename only** (was LCHL) — relay reclaimed in place, contact wire reused |
 | 6 | UNUSED | 13 | 33 | **freed** — pull wire at header + relay |
-| 7 | **YOFF** | 26 | 37 | **rename only** (typo fix) — no wire move; re-enable in config |
+| 7 | UNUSED | 26 | 37 | **retired** — YOFF no longer in use; the dead pad on the current Pi is now irrelevant |
 | 8 | UNUSED | 16 | 36 | **freed** — pull wire at header + relay |
 | 9 | DEHUM | 12 | 32 | unchanged |
 | 10 | SCALA | 25 | 22 | unchanged (fill in on the docx) |
 | 11 | UNUSED | 24 | 18 | **freed** — the old BOS1 input, superseded by row 5 |
 | 12 | UNUSED | 23 | 16 | unchanged — remains a true spare, still unwired |
 
-**Net effect:** 7 active inputs today (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA), 8 once YOFF is
-re-enabled. Spares: BCM 13/33, 16/36, 24/18, 23/16 — one more than the original plan produced,
-because dropping CHIL frees a slot.
+**Net effect:** 7 active inputs (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA). Spares: BCM 13/33,
+16/36, 24/18, 26/37, 23/16 — **five**, against the original plan's three, because dropping both
+CHIL and YOFF frees two extra slots. All but 23/16 already have wire runs to the header, so most
+are cheap to press into service (§8).
+
+> **Spare caveat while the current Pi is still in service** (the new Pi is not built yet):
+> **BCM 26 / phys 37 is not usable** — that pad is electrically dead on this board, which is why
+> YOFF was disabled in the first place. It only becomes a real spare on the new Pi. Treat the
+> usable spares today as **BCM 13/33, 16/36, 24/18** (all wired) and **23/16** (unwired).
 
 **Wire movement at the header: zero.** Two pulls (Y2ON, Y2FAN) plus the retired old-BOS1 run on
 pin 18, no new header runs, no relocations.
@@ -126,24 +132,37 @@ Reclaiming both chiller relays means **no new relay hardware is needed**. Leavin
 existing rail positions — rather than moving them — is what lets both contact-to-header wires stay
 untouched, and keeps the DIN layout dense with no shuffling.
 
-> **The chiller call exists in the panel — what was dropped is the Pi input watching it.** A CHIL
-> relay is present and in service: it is triggered by a **Y call from the Honeywell HZ432 zone
-> controller** and drives the Chiltrix. No GPIO input is landed on it, so the Pi reports nothing
-> about the chiller; everything it knows about cooling comes from the two Bosch calls and the
-> buffer-tank probes.
+### The chiller call path and the override
+
+The Chiltrix is called by closing a pair of **dry contacts** on the unit (its Y input). **Two
+things in parallel can close them:**
+
+```
+HZ432 "Y" call ──→ CHIL relay ──→ N.O. pole ─┐
+                                             ├──→ chiller Y dry contacts ──→ Chiltrix runs
+override relay (manual, N.O.) ───────────────┘
+```
+
+- **The CHIL relay** is triggered by a **Y call from the Honeywell HZ432** zone controller. It is
+  present and in service — what the 2026-08-02 change dropped was the *Pi input* watching it, not
+  the relay.
+- **The override relay** is a second N.O. relay bridging the same dry contacts. Closing it holds
+  the chiller's Y call closed continuously, independent of the HZ432. It is **manual, currently
+  unlabeled, and has no signal wired to energize it** — it is closed by hand when wanted.
+
+**Why the override exists:** the Chiltrix maintains buffer-tank temperature even when no zone is
+calling for cool. It does this on its **own internal control loop, measuring return-water
+temperature at the chiller** — not from any sensor pivac owns. Holding Y closed lets it keep the
+tank at setpoint continuously rather than only while a zone demands cooling.
+
+> **Consequence for monitoring: the CHIL relay is an incomplete signal.** With the override
+> engaged the relay reads idle while the chiller runs; and even without it, the chiller cycles on
+> its own return-water loop rather than on zone demand. "A zone is calling" and "the chiller is
+> running" are decoupled by design.
 >
-> Landing CHIL on one of the freed inputs would be cheap (see §8), but it would be an **incomplete**
-> signal, for two independent reasons:
->
-> - **An override can call the Chiltrix full time**, bypassing the HZ432 Y and therefore the CHIL
->   relay. With the override engaged the relay can read idle while the chiller runs.
-> - **The Chiltrix maintains buffer-tank temperature, not zone demand.** It runs to satisfy the
->   tank whether or not any zone is calling. "A zone is calling" and "the chiller is running" are
->   decoupled by design.
->
-> This is why **UBT/LBT are the meaningful observable for chiller operation**, not the call relay —
-> the tank is the chiller's actual control variable, and the relay only reports one of the several
-> things that can start it.
+> **UBT/LBT are therefore the meaningful observable for chiller operation.** Note they observe the
+> *result* rather than the chiller's control input — the Chiltrix regulates on its own return-water
+> sensor, so our tank probes are a downstream proxy for it, not the same measurement.
 
 ### Control-logic consequences — **verify at the panel before cutting**
 
@@ -153,19 +172,22 @@ not from tracing live wiring, so confirm each one physically (ideally with your 
 1. **YALT removal breaks the chiller call path.** The manual states YALT "uses lead and lag calls
    from the zone controller, CWRA, and Y2 relays to energize the chiller relays." With YALT gone,
    whatever fed YALT must now drive the **new chiller** directly.
-2. **YOFF's interrupt point moves — and nothing watches the result.** Today YOFF "opens a N/C
-   contact to disable power to YALT and the CWRA." With YALT removed, YOFF must interrupt the
-   **HZ432 Y → CHIL → Chiltrix** path instead, or the seasonal cutoff silently stops working.
-   This is the single highest-risk item in the rework — a YOFF that no longer cuts the call will
-   let the chiller run in winter. With no Pi input on CHIL there is no dashboard signal that
-   would reveal a failed cutoff; it can only be proven physically, at the panel, before the panel
-   is closed. Do not defer this to "we'll see it in Grafana" — you will not.
+2. **YOFF is retired. The seasonal cutoff is now powering the chiller down at the breaker.** The
+   old YOFF opened a N/C contact to disable power to YALT and the CWRA; with YALT gone and YOFF
+   out of service, **no CDP interlock inhibits cooling seasonally, by design**. Winter shutdown is
+   a manual breaker-off at the panel.
 
-   **Check the override against YOFF while you are in there.** The full-time-call override (§3)
-   bypasses the HZ432 Y. If YOFF interrupts only the HZ432 side, then an override left engaged
-   defeats the seasonal cutoff entirely and the chiller runs all winter with YOFF asserted and
-   apparently working. Either YOFF must interrupt downstream of both paths, or the override needs
-   to be a documented summer-only control that gets deliberately cleared in the fall.
+   This is simpler than the old interlock and it is also *stronger*: killing power is upstream of
+   both call paths, so it defeats the override as well as the HZ432. The tradeoff is that it is
+   **entirely procedural** — nothing enforces or records it. Two follow-ons worth noting:
+
+   - **The override cannot cause a winter run once the breaker is off**, which removes what would
+     otherwise be the main hazard of leaving it engaged (§3). Before the breaker is thrown, an
+     engaged override does hold the chiller calling regardless of season.
+   - **The loop must survive winter unpowered and static** — no circulation, no chiller freeze
+     protection, outdoor unit included. That is what the glycol concentration is protecting, and
+     it is the reason the concentration matters more now than it did under the old always-powered
+     arrangement. See §7.
 3. **Two-stage staging disappears with Y2ON/Y2FAN.** Confirm the new chiller either handles its own
    staging internally or genuinely doesn't need it. If it does need an external stage-2 call, stop
    and re-plan — one of the freed inputs would have to come back.
@@ -227,7 +249,7 @@ row count is unchanged.
 | 4 | `RCHL` | `BOS2` |
 | 5 | `LCHL` | `BOS1` |
 | 6 | `Y2ON` | `UNUSED` |
-| 7 | `Y2OFF` | `YOFF` (typo fix) |
+| 7 | `Y2OFF` | `UNUSED` — YOFF retired, no longer in use |
 | 8 | `Y2FAN` | `UNUSED` |
 | 10 | *(blank on the docx)* | `SCALA` |
 | 11 | `BOS1` | `UNUSED` |
@@ -235,6 +257,13 @@ row count is unchanged.
 Row 11 is the one to watch: the repo's docx shows it blank, the *printed* label shows `BOS1`, and
 it now becomes `UNUSED` because that input was retired. Whichever copy you edit, the end state is
 `UNUSED`.
+
+> **The override relay still needs a label.** The manual N.O. relay that bridges the chiller's Y
+> dry contacts (§3) is unlabeled. It does not occupy a row in the table above — that table maps Pi
+> header inputs, and this relay drives nothing on the Pi — but it is the one device in the panel
+> whose position is *not* discoverable from anywhere: no energizing signal, no telemetry, no label.
+> Whatever it is called, the label should say what closing it does (holds the chiller Y call
+> closed → chiller maintains buffer-tank temperature) rather than just naming it.
 
 The trailing `6489705080` on the label is, per the manual, the Pi's MAC address. **It will be wrong
 on the new Pi** — capture the new board's `eth0` MAC during the build and update it in the same
@@ -258,7 +287,9 @@ Live file is `/etc/pivac/config.yml` on the Pi. Under `pivac.GPIO: inputs:`
 - `13:` — **delete** (Y2ON)
 - `16:` — **delete** (Y2FAN)
 - `24:` — **delete** (old BOS1, superseded by pin 6)
-- `26:` — **still commented out**; re-enable as `outname: YOFF` when the pad question is settled
+- `26:` — **stays commented out permanently.** YOFF is retired (§2); this is no longer a pending
+  re-enable and the dead-pad workaround is not needed. It can be deleted outright at the next
+  config edit.
 - leave `17 ZV`, `27 DHW`, `22 BLR`, `12 DEHUM`, `25 SCALA` untouched
 - `23:` is **not** added — it stays an unconfigured spare
 
@@ -363,15 +394,16 @@ the live Pi is already at the target state, so a clone-based build inherits it.
 
 2. **Panel work, power off**
    a. Photograph the panel and label every wire before removing anything.
-   b. **Ohm the YOFF wire (pin 37) to ground with it unplugged** — this is the pre-flight for
-      reusing BCM 26. If it reads shorted, the wire killed the old pad, not the power event: stop
-      and move YOFF to BCM 19 / pin 35 instead.
+   b. Pull the YOFF wire from pin 37 — the input is retired (§2), so there is no pad test to run
+      and no move to BCM 19. If the wire is left landed it must stay commented out in config, or
+      the dead pad will fabricate data (this is exactly what produced the bogus Jun–Jul 2026 YOFF
+      plateau in InfluxDB).
    c. Pull the Y2ON and Y2FAN wires from header pins 33 and 36, and the retired old-BOS1 run from
       pin 18. **Leave pins 29 and 31 alone** — those wires are being reused for BOS2 and BOS1.
-   d. Remove YALT; rewire the chiller call path to drive the new chiller directly (§3, item 1).
-      No relay senses this path.
-   e. **Re-establish YOFF's cutoff on the new path and prove it physically** (§3, item 2). There
-      is no telemetry that will confirm this later.
+   d. Remove YALT; the chiller call path is now HZ432 Y → CHIL relay → chiller Y dry contacts,
+      with the override relay in parallel (§3). No Pi input senses either.
+   e. ~~Re-establish YOFF's cutoff~~ — **not applicable.** Seasonal shutdown is a manual breaker-off
+      at the chiller (§3, item 2). Nothing to wire or prove here.
    f. Reclaim both chiller relays in place: land each air handler's call-relay output onto the
       corresponding CDP relay coil, in place of the old chiller call it used to drive. Contact
       wires to **pins 29 and 31** are untouched, and the air-handler-to-mechanical-room runs are
@@ -383,14 +415,14 @@ the live Pi is already at the target state, so a clone-based build inherits it.
    ```bash
    python -c "import pivac.GPIO as m, json; print(json.dumps(m.status(), indent=2))"
    ```
-   Expect exactly **7 inputs** (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA), or 8 with YOFF re-enabled
-   — and no LCHL/RCHL/Y2ON/Y2FAN. If any retired name is still present in the **Signal K API**
-   rather than the module output, that is the missing `restart signalk` (§5.2), not a config fault.
+   Expect exactly **7 inputs** (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA) — no LCHL, RCHL, Y2ON,
+   Y2FAN or YOFF. If any retired name is still present in the **Signal K API** rather than the
+   module output, that is the missing `restart signalk` (§5.2), not a config fault.
 
    Then: **run the Kitchen and Living Room zones independently and confirm BOS1 and BOS2 assert
    separately.** This proves each air handler's call relay landed on the right CDP relay rather
-   than the two being swapped — the failure mode that a config-only rename cannot distinguish.
-   Finish by throwing YOFF and confirming the chiller call physically drops at the panel.
+   than the two being swapped — the failure mode that a config-only rename cannot distinguish. It
+   is the only physical check left in this plan; the YOFF cutoff test is gone with YOFF.
 
 4. **Document** — `CLAUDE.md` is already updated for the relay roster and the retired-name/InfluxDB
    note (PR #96); the GPIO 26 item resolves when the new Pi is fitted. Still outstanding: the
@@ -432,12 +464,38 @@ The tank downsizing dominates; everything else is small. Net reduction is roughl
   a wash. For a brazed-plate heat exchanger plus internal piping at this capacity, ~1 gal is a
   reasonable placeholder. Replace it with the CX75's published internal volume when convenient.
 
+### Glycol
+
+Inhibited **propylene** glycol, refractometer-measured at **25 %** by volume (2026-08-10). To
+reach **30 %** by draining mixture and replacing it with 100 % glycol at constant system volume:
+
+```
+X = V × (C_target − C_now) / (1 − C_now)
+X = 86 × (0.30 − 0.25) / (1 − 0.25) = 5.7 gal
+```
+
+**Drain ≈ 5.7 gal, add ≈ 5.7 gal of 100 % glycol.** Insensitive to the volume uncertainty above —
+at 84 gal it is 5.6. Circulate before drawing the sample and before re-measuring, so the fluid
+removed is actually at loop concentration rather than a stratified pocket.
+
+**Why the concentration matters more than it used to:** the winter shutdown is now a breaker-off
+(§3, item 2), so the loop sits **unpowered and static all winter, outdoor unit included** — no
+circulation, no chiller freeze protection. Freeze protection is the fluid alone. Note the standard
+distinction: 30 % PG puts the *freeze* point near 8 °F but the *burst* point far lower, and for a
+static loop burst protection is the relevant figure since PG forms slush rather than expanding
+sharply. Check the intended figure against the CX75's own glycol guidance, which may specify a
+minimum for the unit rather than for the climate.
+
 ---
 
 ## 8. Open items
 
-- **The YOFF interrupt path is the one that can bite.** Everything else fails visibly; a broken
-  seasonal cutoff fails silently until winter. Prove it before closing the panel.
+- **Label the override relay** (§4). It is the only device in the panel whose state is discoverable
+  from nowhere — manual, no energizing signal, no telemetry, no label. Optionally land a spare pole
+  on one of the wired free inputs (BCM 13/33, 16/36 or 24/18) so its position shows up in Signal K;
+  that is the cheapest way to stop it being forgotten in either position.
+- **Winter shutdown is now purely procedural** — breaker off at the chiller, nothing enforces or
+  records it (§3, item 2). Worth a calendar reminder rather than a wiring change.
 - **Check ≈86 gal against the CX75's minimum loop volume.** The buffer tank exists to stop the
   compressor short-cycling, and the loop just lost ~6 gal while consolidating two compressors
   into one. The Chiltrix is inverter-driven and modulates, so it tolerates a small loop far
@@ -450,14 +508,10 @@ The tank downsizing dominates; everything else is small. Net reduction is roughl
   so a compressor that fails to start still reads as asserted (§3). Pairing them with Emporia
   circuit draw would turn "was it called" into "did it actually run" — not designed.
 - **Decide whether to land CHIL on a freed input.** The relay exists (HZ432 Y → CHIL → Chiltrix);
-  only the Pi input was dropped. **BCM 24 / phys 18** is now free *and already has a wire run*, so
-  this is a low-cost add. The payoff is not chiller-health monitoring — the override and the
-  tank-setpoint behaviour make the relay an incomplete signal for that (§3) — but it would give
-  the **YOFF seasonal cutoff an observable**, which is currently the one high-risk item with no
-  telemetry at all. Only worth it if YOFF interrupts upstream of the CHIL relay; confirm that first.
-- **Resolve the override vs. YOFF interaction** (§3, item 2). If the full-time-call override
-  bypasses whatever YOFF interrupts, an override left engaged runs the chiller all winter while
-  YOFF reads asserted and appears to be working.
+  only the Pi input was dropped, and **BCM 24 / phys 18** is free with a wire run already in place.
+  Weaker case than it first appears: it would show when the *HZ432* is calling, but not when the
+  override is, and not whether the chiller is actually running (§3). With YOFF retired there is no
+  longer a cutoff for it to verify either. Reasonable to leave unmonitored.
 - **Buffer-tank alerting is the real chiller-failure detector** (§5.5) — undesigned, and blocked
   on confirming UBT/LBT actually stratify.
 - Confirm the new chiller needs no external stage-2 call. The Y2ON/Y2FAN inputs are **already
@@ -465,7 +519,9 @@ The tank downsizing dominates; everything else is small. Net reduction is roughl
 - Decide the fate of the freed Y2ON timer and Y2FAN relays (spares vs. removal) — no impact on
   the Pi side either way.
 - Update the **HVAC System Manual's CDP Relays Walkthrough** (§6.4) — still describes two chillers.
-- The standing **GPIO 26 dead-pad** carryover in `CLAUDE.md` is resolved by the new Pi, contingent
-  on step 2b passing.
+- The standing **GPIO 26 dead-pad** carryover in `CLAUDE.md` is now **moot rather than pending** —
+  it only mattered because YOFF needed that pin, and YOFF is retired. The pad is still dead on the
+  current Pi; it simply no longer blocks anything. `CLAUDE.md` and the session-state notes still
+  carry it as a "rewire before heating season" action item and should be corrected.
 - Unrelated but adjacent: this is the natural moment to add the **cooling fan** to the Pi enclosure
   that the Sentry thermal work called for.
