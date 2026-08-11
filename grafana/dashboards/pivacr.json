@@ -2373,7 +2373,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 35,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -2387,11 +2387,11 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -2427,6 +2427,36 @@
                   "fixedColor": "dark-blue",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.balance.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -2441,14 +2471,18 @@
       "id": 10,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -2512,7 +2546,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.chiltrix",
+          "measurement": "electrical.emporia.house.balance",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -2553,7 +2587,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.bova_kitchen",
+          "measurement": "electrical.emporia.house.chiltrix",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -2594,7 +2628,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.wall_oven",
+          "measurement": "electrical.emporia.house.utility_sub_panel",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
@@ -2635,7 +2669,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.utility_sub_panel",
+          "measurement": "electrical.emporia.house.bova_kitchen",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "E",
@@ -2697,6 +2731,47 @@
           ],
           "tags": [],
           "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.house.wall_oven",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "G",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
         }
       ],
       "title": "House Power",
@@ -2722,7 +2797,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 35,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -2736,11 +2811,11 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -2774,6 +2849,36 @@
                 "id": "color",
                 "value": {
                   "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.apartment.balance.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
                   "mode": "fixed"
                 }
               }
@@ -2820,14 +2925,18 @@
       "id": 11,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -2891,7 +3000,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.apartment.air_conditioner",
+          "measurement": "electrical.emporia.apartment.balance",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -2932,7 +3041,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.apartment.furnace",
+          "measurement": "electrical.emporia.apartment.air_conditioner",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -2973,10 +3082,51 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.apartment.clothes_washer",
+          "measurement": "electrical.emporia.apartment.furnace",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.apartment.clothes_washer",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "E",
           "resultFormat": "time_series",
           "select": [
             [
