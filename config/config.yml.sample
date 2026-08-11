@@ -37,17 +37,17 @@ pivac.GPIO:
         22:
             outname: BLR
         5:
-            outname: RCHL
+            outname: BOS2
         6:
-            outname: LCHL
-        13:
-            outname: Y2ON
-        26:
-            outname: YOFF
-        16:
-            outname: Y2FAN
+            outname: BOS1
         12:
             outname: DEHUM
+        25:
+            outname: SCALA
+    # YOFF is disabled pending a rewire: its wire is still on the dead pad at
+    # BCM 26 / phys 37, and moves to BCM 19 / phys 35 before heating season.
+#        19:
+#            outname: YOFF
 
 
 pivac.OneWireTherm:

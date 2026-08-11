@@ -386,18 +386,13 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
 
 ```
 {
-    "Y2ON": false,
-    "DEHUM": false,
-    "RCHL": false,
-    "BLR": true,
-    "DHW": false,
-    "Y2FAN": false,
     "ZV": true,
-    "YOFF": false,
-    "LCHL": false,
-    "SCALA": false,
+    "DHW": false,
+    "BLR": true,
+    "BOS2": false,
     "BOS1": false,
-    "BOS2": false
+    "DEHUM": false,
+    "SCALA": false
 }
 ```
 
