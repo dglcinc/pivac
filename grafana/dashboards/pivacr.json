@@ -2442,6 +2442,10 @@
               {
                 "id": "custom.lineWidth",
                 "value": 2
+              },
+              {
+                "id": "displayName",
+                "value": "Total (main)"
               }
             ]
           },
@@ -2457,6 +2461,70 @@
                   "fixedColor": "text",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Everything else"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.chiltrix.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Chiltrix"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.utility_sub_panel.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Utility subpanel"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.bova_kitchen.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "BOVA (kitchen)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.hall_sub_panel.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Hall subpanel"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.house.wall_oven.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wall oven"
               }
             ]
           }
@@ -2866,6 +2934,10 @@
               {
                 "id": "custom.lineWidth",
                 "value": 2
+              },
+              {
+                "id": "displayName",
+                "value": "Total (main)"
               }
             ]
           },
@@ -2881,6 +2953,10 @@
                   "fixedColor": "text",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Everything else"
               }
             ]
           },
@@ -2896,6 +2972,10 @@
                   "fixedColor": "light-blue",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Air conditioner"
               }
             ]
           },
@@ -2911,6 +2991,22 @@
                   "fixedColor": "orange",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Furnace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.apartment.clothes_washer.mean"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Clothes washer"
               }
             ]
           }
