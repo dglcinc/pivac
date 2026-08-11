@@ -42,11 +42,14 @@ pivac.GPIO:
             outname: BOS1
         12:
             outname: DEHUM
+        # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
+        # senses the Chiltrix chiller call. Rename in place, no wire moved.
         25:
-            outname: SCALA
-    # YOFF is disabled pending a rewire: its wire is still on the dead pad at
-    # BCM 26 / phys 37, and moves to BCM 19 / phys 35 before heating season.
-#        19:
+            outname: CHIL
+    # YOFF is RETIRED (2026-08-11) — not pending. There is no seasonal cutoff in
+    # the CDP any more; winter shutdown is a manual breaker-off at the chiller.
+    # Do NOT re-enable this or move it to BCM 19: the signal is gone, not homeless.
+#        26:
 #            outname: YOFF
 
 

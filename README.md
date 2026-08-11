@@ -392,7 +392,7 @@ Example output using the sample yml file with `python pivac-provider.py pivac.GP
     "BOS2": false,
     "BOS1": false,
     "DEHUM": false,
-    "SCALA": false
+    "CHIL": false
 }
 ```
 
