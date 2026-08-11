@@ -8,10 +8,10 @@ starts standing in the corner, with maximum lead time before the 6" overflow. Da
 Signal K → InfluxDB → Grafana like every other pivac sensor.
 
 This is a **binary threshold** problem ("has water reached height X?"), not a level
-measurement — so the design is deliberately a couple of simple switches, not an analog level
-sensor. The controller is a new **UNO R4 WiFi** node living in the protected building **~20 ft**
-from the drain, fed by a passive low-voltage cable — the same dry-contact-to-GPIO pattern the
-[DomesticWater node](domestic-water-node-build-spec.md) uses for its reed meter.
+measurement — so the design is deliberately a **single dry-contact float switch**, not an analog
+level sensor. The controller is a new **UNO R4 WiFi** node living in the protected building
+**~20 ft** from the drain, fed by a passive 2-conductor cable — the same dry-contact-to-GPIO
+pattern the [DomesticWater node](domestic-water-node-build-spec.md) uses for its reed meter.
 
 ---
 
@@ -24,11 +24,14 @@ from the drain, fed by a passive low-voltage cable — the same dry-contact-to-G
   clog as soon as water starts pooling, giving the most lead time before overflow. No
   "clog-forming vs. imminent" staging (rejected — severity isn't the signal, standing water is).
   - Set the height **on site**: low enough to trip early on real backup, high enough to ignore a
-    passing splash. (A second electrode near the overflow lip is a cheap *optional* redundancy /
+    passing splash. (A second sensor near the overflow lip is a cheap *optional* redundancy /
     "still not cleared" escalation ping — not part of the core alert.)
-- **Sensor isolated from debris with a stilling well.** The pine needles/grit that clog the
-  drain would also foul a bare float, so the float(s) live inside a capped perforated PVC pipe
-  standing in the corner (§4). This is the single most important reliability element.
+- **Sensor = a stainless mini float inside a stilling well (locked in).** The pine needles/grit
+  that clog the drain would also foul a bare sensor, so a **stainless vertical M10 reed float**
+  rides inside a **1½" PVC stilling well** standing on the drain grate (§4). The well is the key
+  reliability element — it damps ripple and keeps needle *mats* off the float, which is what makes
+  a simple float (rather than a fussier no-moving-parts sensor) the right call. Alternatives
+  (electrodes, clamp-on capacitive, condensate-style float, optical) are documented in §3.
 - **Passive sensor at the drain, controller in the building.** No power or microcontroller
   outdoors — just dry-contact switches on a ~20 ft cable back to the UNO R4 WiFi node on a USB
   supply in the protected space. (Rejected: a battery/solar wireless node outside — more
@@ -46,7 +49,9 @@ from the drain, fed by a passive low-voltage cable — the same dry-contact-to-G
 2. **WiFi reach** on SSID `redux` at the building, and a **USB power** outlet there.
 3. **Cable route** — direct-burial vs. existing conduit for the ~20 ft run, and the real
    distance (20 ft is the stated protected-area distance; add slack).
-4. **Overflow-lip height** measured in the corner, to set the two float heights.
+4. **Overflow-lip height** measured in the corner, to set the float trip height.
+5. **Float outer diameter** on the chosen listing (~19–20 mm on the 45 mm mini) — the 1½" well ID
+   (~40 mm) must clear it by several mm all around so the float slides freely.
 
 ---
 
@@ -54,18 +59,16 @@ from the drain, fed by a passive low-voltage cable — the same dry-contact-to-G
 
 | # | Item | Suggested part | Notes |
 |---|------|----------------|-------|
-| 1 | Level sensor | **Primary: 2× stainless/graphite contact electrodes** (one sense rod at the trip height + one reference rod just below it) — *or* **1× reed float switch** (dry-contact alternative). Optional: a cheap "liquid-level/contact detector" board for a clean digital output. | See §3 — with the stilling well, bare contact electrodes (no moving parts) are the recommendation; a float is the off-the-shelf dry-contact equivalent. One detection level (§1). |
+| 1 | Level sensor | **Stainless M10 vertical mini float switch** (45 mm, reed) — [YXQ B08HWRMRQR](https://www.amazon.com/YXQ-Switch-Stainless-Monitor-Vertical/dp/B08HWRMRQR) or [DEVMO B07T18PGJ4](https://www.amazon.com/DEVMO-Indicator-Vertical-Sensor-Stainless/dp/B07T18PGJ4) | Dry contact; mounts through the well cap on its M10 nut. Alternatives in §3. |
 | 2 | Controller | **Arduino UNO R4 WiFi** (new — all spares are deployed) | WiFiS3 HTTP server; reuses existing scaffolding |
-| 3 | Stilling well | ~24" of **2–3" PVC** + cap + a few ¼" holes drilled near the base | Keeps pine needles off the sensor; damps ripple |
-| 4 | Sensor mount | Bulkhead/M10 threaded ports or a small bracket to fix the electrodes/float at the trip height inside the well | Set ~2–3" per §1 |
-| 5 | Cable | **~25 ft direct-burial multiconductor** — 18/4 sprinkler wire, *or* **Cat5e in conduit** (8 conductors, cheap, plenty spare) | 2 conductors (float) or 3 (electrode drive+sense+GND); spares cover the optical option |
-| 6 | Field junction | Small **IP67** potted/gel-filled junction at the drain end | The only wet connection; keep it sealed |
+| 3 | Stilling well | **1½" schedule-40 PVC** (~6" long) + top cap (drilled M10) + a flat foot (bottom cap / slip-flange) | ID ~40 mm clears the ~20 mm float; ¼" inlet holes at the base. See §4. |
+| 4 | Grate mount | **2–4× stainless #8 machine screws + washers/nuts** through the grate slots — *or* stainless zip ties/lockwire (no-drill) | Foot fastens to the 10×10" PVC grate's 3/16" slots. See §4. |
+| 5 | Cable | **~25 ft direct-burial multiconductor** — 18/4 sprinkler wire, *or* **Cat5e in conduit** (8 conductors, cheap, plenty spare) | Only 2 conductors needed (float dry contact); spares cover any alternate sensor. |
+| 6 | Field junction | Small **IP67** potted/gel-filled junction, mounted **above the 6" flood line** | The only splice; float leads run up to it. |
 | 7 | Node power | **5 V USB-C supply** | Board runs on USB in the protected building — no field power |
-| 8 | Surge protection | Per input: ~1 kΩ series resistor + **TVS/clamp diode to 3V3** (or an RC + Schottky clamp) at the GPIO | Outdoor line entering a building is a transient path — see the dead-GPIO-26 lesson in CLAUDE.md |
+| 8 | Surge protection | ~1 kΩ series resistor + **TVS/clamp diode to 3V3** (or an RC + Schottky clamp) at the GPIO | Outdoor line entering a building is a transient path — see the dead-GPIO-26 lesson in CLAUDE.md |
 | 9 | Enclosure | Small project box for the node inside the building | Not weather-rated (indoors) |
-
-> **Minimum float build = items 1–8.** The optical-sensor variant (§3, no moving parts) swaps
-> item 1 and uses two more cable conductors to carry 5 V out to the sensors.
+| 10 | Misc | PVC primer + cement, O-ring/silicone for the cap pass-through, optional SS mesh over inlet holes | — |
 
 ### 2.1 Rough cost (USD, approximate)
 
@@ -74,140 +77,147 @@ spare USB brick, leftover PVC are all likely on hand).
 
 | # | Item | Est. price | Notes |
 |---|------|-----------:|-------|
-| 1 | Sensor — **electrodes**: 2–3 stainless bolts/rods (recommended) | **$3–8** | Or a "liquid-level/contact detector" board ~$2–5; or a reed float ~$8–15; or an optical prism sensor ~$10–18 |
+| 1 | **Stainless M10 mini float** | **$8–10** | Alternatives (§3) land within ~$5 either way |
 | 2 | **Arduino UNO R4 WiFi** (new board) | **$27–35** | Official ~$27.50; the one genuinely fixed cost |
-| 3 | Stilling well — 2–3" PVC (~2 ft) + cap | **$8–15** | Hardware-store PVC |
-| 4 | Sensor mount — bulkhead ports / bracket | **$5–10** | Or improvise from PVC scraps ~$0 |
+| 3 | Stilling well — 1½" PVC (~6") + two caps + flat foot | **$6–12** | Hardware-store PVC |
+| 4 | Grate mount — SS #8 screws/nuts + washers *or* SS zip ties | **$3–6** | Uses the grate's 3/16" slots |
 | 5 | Cable — ~25 ft 18/4 direct-burial *or* outdoor Cat5e (+ conduit if used) | **$12–25** | Conduit adds ~$8–15 if you run it |
-| 6 | IP67 field junction (gel/potted) | **$8–12** | The one wet connection |
+| 6 | IP67 field junction (gel/potted) | **$8–12** | The one splice |
 | 7 | 5 V USB-C supply | **$8–10** | Often already on hand → $0 |
-| 8 | Surge protection — 1 kΩ resistors + TVS/clamp diodes | **$3–6** | Buy a small assortment pack |
+| 8 | Surge protection — 1 kΩ resistor + TVS/clamp diode | **$3–6** | Buy a small assortment pack |
 | 9 | Indoor project box | **$8–12** | Or reuse |
-| — | Misc — potting epoxy, fittings, hookup wire, zip ties | **$10–20** | |
-| | **Total (electrode build)** | **≈ $95–150** | Reuse of USB brick / wire / PVC lands nearer the low end |
+| — | Misc — PVC cement/primer, O-ring, SS mesh, hookup wire | **$8–15** | |
+| | **Total** | **≈ $90–140** | Reuse of USB brick / wire / PVC lands nearer the low end |
 
-The sensor choice barely moves the total — even the priciest option (optical prism) adds only
-~$10–15. The **UNO R4 WiFi is the dominant line item**; an ESP32 dev board (~$6–10) would cut it
-if you're willing to port the firmware off the WiFiS3/RA4M1 scaffolding (not recommended — the
-savings aren't worth losing the drop-in reuse). Practically, this is a **~$100 build**, less if
-the odds and ends are already in your parts bin.
+The sensor choice barely moves the total. The **UNO R4 WiFi is the dominant line item**; an ESP32
+dev board (~$6–10) would cut it if you're willing to port the firmware off the WiFiS3/RA4M1
+scaffolding (not recommended — the savings aren't worth losing the drop-in reuse). Practically,
+this is a **~$100 build**, less if the odds and ends are already in your parts bin.
 
 ---
 
 ## 3. Sensor options & recommendation
 
-All options mount **inside the stilling well** at the single trip height (§1). Freezing is a
-non-issue (§1), which widens the field. **The stilling well is the key enabler here:** because the
-water inside it is debris-free, the sensor no longer has to survive pine needles and grit, so the
-simplest possible detector — bare **contact electrodes**, no moving part at all — becomes the
-best choice. A float is now optional, not required.
+All options detect one thing: *water standing at the trip height inside the stilling well.*
+Freezing is a non-issue (§1), which widens the field. **The stilling well is the key enabler:**
+because the water inside it is debris-free, the sensor doesn't have to survive pine needles and
+grit — so the simplest robust detector, a **stainless reed float riding directly in the well**,
+is the pick. The rest are documented alternatives if a float ever disappoints.
 
-### 3.1 Contact / conductivity electrodes — **recommended** (no moving parts)
-Two small stainless (or graphite) electrodes at the trip height; when water rises to bridge them
-the circuit conducts and it reads "wet." **Nothing to jam, wear, silt up, or float-lock** — which
-is exactly why a stilling well makes this the right call: the debris that would have been the
-electrodes' one weakness never reaches them.
-- **Layout:** a **sense rod at the ~2–3" trip height** + a **reference rod just below it** (both
-  bridged only once water stands that deep). Two electrodes, two conductors, one detection level.
-- **Electrolysis mitigation:** don't hold DC on the electrodes. Either **pulse/alternate the
-  excitation** briefly to sample (Arduino toggles a drive pin, reads the sense pin, ~ms), or use
-  a cheap ready-made "liquid-level/contact" detector board (transistor/op-amp front-end) that
-  outputs a clean digital HIGH/LOW to the GPIO. Stainless/graphite electrodes further slow wear.
-- **Conductivity caveat:** storm runoff carries enough dissolved solids to conduct reliably; only
-  near-distilled water would be marginal (not a concern for driveway runoff). Set the detect
-  threshold generously — you only need "clearly wet vs. clearly dry."
+### 3.1 Stainless vertical mini float (reed) — **locked in**
+A stainless magnetic float rides a short M10 stem; a sealed reed closes/opens as the float lifts.
+It mounts **through the well's top cap** on its M10 nut, float hanging into the well, and is a
+**plain dry contact → `INPUT_PULLUP` GPIO, identical to the DomesticWater meter reed** — zero
+firmware porting, no excitation circuit, no power run out to the drain. The one moving part now
+rides *clean* water in the well, so the usual fouling knock is gone. The 45 mm mini size suits a
+shallow pit; trip height is set by the cap height (§4).
+- **NO vs NC is reversible** by flipping the float on the stem. Mount it **NC (closed dry, opens on
+  rising water)** so *wet = pin HIGH* — then a cut/disconnected cable also reads HIGH and
+  **self-alarms**, rather than failing silent (a genuine safety property for a rarely-triggered
+  sensor). Mount NO if you'd rather; firmware handles either (§6).
+- Parts: [YXQ 45 mm](https://www.amazon.com/YXQ-Switch-Stainless-Monitor-Vertical/dp/B08HWRMRQR),
+  [DEVMO 45 mm](https://www.amazon.com/DEVMO-Indicator-Vertical-Sensor-Stainless/dp/B07T18PGJ4).
 
-### 3.2 Vertical stem float switch (reed) — simplest firmware, off-the-shelf
-A magnetic float rides a fixed stem; a sealed reed closes as it passes. Gives a **crisp trip at a
-precise height** and is a **plain dry contact → `INPUT_PULLUP` GPIO, identical to the
-DomesticWater meter reed** (zero firmware porting, no excitation circuit). The tradeoff vs. §3.1
-is the one moving part — now riding *clean* water in the well, so the fouling risk is largely
-gone anyway. Pick this if you'd rather buy a finished part and skip any electrode front-end.
-One single float at the ~2–3" trip height is all that's needed. Stainless/PP wetted parts;
-"stainless steel vertical float switch reed." Generic reeds are a few dollars.
+### 3.2 Alternatives (documented, not chosen)
+All present the same "clean digital wet-at-level signal" the rest of this spec (§5–§10) assumes,
+so any of them is a drop-in swap — differing mainly in whether they need power out to the drain.
 
-### 3.3 Optical (infrared prism) point sensor — no-moving-parts alternative
-IR LED/phototransistor in a prism tip: dry = internal reflection, submerged = light escapes,
-output flips. Also no moving part, and a clean digital output. Costs more than electrodes, is a
-**powered 3-wire** device (needs 5 V out — trivial over the 20 ft cable), and a film on the prism
-can bias it (the well largely prevents this). "Optomax LLC200D3SH" or a generic "photoelectric
-liquid level sensor." Reasonable, but electrodes (§3.1) do the same job for less.
+- **Contact / conductivity electrodes** — a sense rod + reference rod at the trip height; water
+  bridging them reads "wet." No moving part; cheapest. Needs pulsed/alternating excitation (or a
+  cheap "liquid-level/contact detector" board) to avoid electrode electrolysis. Good, but a bare
+  float is simpler to buy and wire.
+- **Clamp-on capacitive (through-wall)** — e.g. Gikfun **XKC-Y25-NPN**
+  ([B086QX726M](https://www.amazon.com/Gikfun-Non-Contact-Liquid-XKC-Y25-NPN-Arduino/dp/B086QX726M)),
+  straps to the *outside* of the well pipe and senses water through the wall. Truly non-contact
+  (no corrosion, no fouling), native 5 V logic out. Caveat: needs a **thin** non-metallic wall —
+  bench-test it triggers through the actual 1½" pipe before committing; needs 5 V out on the cable.
+- **HVAC condensate float switch (inline SS2 type)** — a mechanical float in a clear ¾"-threaded
+  housing ([GAGALOR SS2](https://www.amazon.com/GAGALOR-Condensate-Switch-Overflow-Adaptor/dp/B0CNZ3N7ZS));
+  threads into a PVC standpipe instead of a condensate line. Dry contact, see-through, has its own
+  cleanout. Essentially the §3.1 float with its own chamber — redundant once you have a stilling
+  well, but a clean packaged option. *(The solid-state AG-1250E-style condensate sensor is a
+  24 VAC switch, not a dry contact — it needs a transformer + opto stage to read from a GPIO, so
+  it's a poor fit here despite excellent sensing.)*
+- **Optical (infrared prism)** — IR prism tip, dry = reflect / wet = light escapes. No moving
+  part, clean digital out, but pricier and a film on the prism can bias it (the well helps).
 
-**Recommendation:** with the stilling well in place, go with **contact electrodes (§3.1)** — a
-sense rod + reference rod at the ~2–3" trip height. No moving parts, cheapest, and the well
-removes their only real weakness. Excite them with brief pulses (or a cheap detector board) to
-avoid corrosion. If you'd rather not build any front-end at all, **a reed float (§3.2)** is the
-drop-in dry-contact alternative with identical downstream wiring/firmware — either is a good
-answer, and the rest of this spec (§5–§10) treats both as "a clean digital wet-at-level signal."
+**Recommendation:** **stainless mini float (§3.1)**, mounted **NC** for the self-alarm property.
+If it ever fouls or sticks, the electrodes or the clamp-on capacitive are drop-in replacements
+with the same downstream wiring/firmware.
 
 ---
 
-## 4. Physical install — the stilling well
+## 4. Physical install — stilling well on the drain grate
+
+The well is a **1½" schedule-40 PVC pipe (~6" tall)** with the stainless mini float threaded
+through its top cap. It stands **on top of the 10×10" PVC drain grate** (water pools above the
+grate when it clogs), fastened to the grate's 3/16" slots.
 
 ```
-        driveway corner (fills ~6" deep when clogged)
-        ┌──────────────────────────────────────────────┐
-        │   overflow lip ~6"  ····························│····▶ overflow area (limited)
-        │   ── sense rod ~2–3" (clogged) ─────────────────│
-        │        ┌───┐  ← 2–3" capped PVC "stilling well" │
-        │        │ ┊ │     with ¼" holes near the base    │
-        │  ~~~~~~│ ▪ │~~~~~~~~~~ water level ~~~~~~~~~~~~~~ │
-        │        │ ▪ │  ← electrodes (or float) in clean   │
-        │        │ ▪ │     water; lower ▪ = reference rod  │
-        │  storm │   │     needles/grit stay outside       │
-        │  drain═╧═══╧════════════════════════════════════│
-        └──────────────────────────────────────────────┘
-                  │ 2–3 signal conductors, ~20 ft
-                  ▼
-        protected building: UNO R4 WiFi (USB power) → WiFi
+   IP67 junction (the splice) ── zip-tied to a short stake, ABOVE the 6" flood line
+        │ sealed run cable → building (~20 ft)
+   ┌──┴──┐  top cap: M10 float through it, O-ring sealed
+   │  ╤  │
+   │  │  │  1½" PVC well, ~5–6" tall (ID ~40 mm clears the ~20 mm float)
+   │  ○  │  float bead rides the stem — trip height ≈ (cap height − 45 mm) ≈ 3"
+   │~~~~~│  ← trip level ~3"  (well below the 6" overflow lip)
+   │ ○○○ │  ¼" inlet holes around the base, as low as possible
+   ╞═╤═╤═╡  flat foot (bottom cap / slip-flange) cemented to the well
+─────┼─┼──────────  10×10" PVC grate (3/16" slots)
+     █ █   ← SS #8 screws through two slots, washer + nut underneath (or SS zip ties)
 ```
 
-- **Stilling well:** cap the top; drill several **¼" holes around the base** so water inside
-  tracks the corner while pine needles stay out. Stand it vertically in the corner, anchored so
-  it can't float or tip. Drill a small vent hole high up so the pipe doesn't air-lock.
-- **Set the trip height on site:** fix the sense rod (or float) at **~2–3"** — low enough to trip
-  as soon as water backs up, high enough to ignore a passing splash/puddle, and well below the 6"
-  overflow lip. Put the reference rod an inch or so below the sense rod. Mount via bulkhead ports
-  or a bracket. (Optional redundancy electrode: a second sense rod near the lip — see §1.)
-- **Field junction:** the electrode/float leads join the run cable in **one sealed IP67 junction**
-  (gel/potted) at the drain — the only wet connection. Everything downstream is dry.
+**Pipe & float:**
+- **1½" sch-40** (ID ~40 mm) gives the ~20 mm float free travel. Verify the float's OD first (§1).
+- Drill a **10 mm hole in the top cap**, thread the float through, snug the M10 nut with an
+  **O-ring/silicone** so the wire pass-through stays dry. Mount **NC** (§3.1) for the self-alarm.
+- Drill **4–6 ¼" inlet holes around the base**, as low as possible so shallow pooling enters
+  immediately. Optional stainless-mesh band over them as a needle guard.
+- **Trip height = cap height − ~45 mm.** Cut the well so the float bead lands ~2–4" above the grate
+  (well below the 6" overflow). Dry-fit and bucket-test before final assembly — the one dimension
+  that matters.
+
+**Grate mount (uses the slots — no drilling the grate):**
+- Cement a **flat foot** (a bottom cap or a 1½" slip-flange) to the well so it can't rock.
+- **Bolted:** 2–4 **stainless #8 machine screws** (≈4.2 mm, pass a 3/16" slot) through the foot and
+  a slot, **washer + nut underneath**. Two hold it; four for dead-rigid.
+- **No-drill:** loop 2–3 **stainless zip ties / lockwire** from the foot through adjacent slots and
+  cinch — fully removable for cleaning.
+- Place the well in the grate corner toward where water actually pools; its ~1.9" footprint on a
+  10×10" grate barely affects normal drainage.
+
+**Wire routing / the one height detail:** the stainless float and its O-ring-sealed pass-through
+are submersible, so brief shallow flooding (up to 6") doesn't hurt them. The only connection that
+must stay dry is the **splice to the run cable** — put it in the **IP67 junction mounted above the
+6" flood line** (on a short stake or the adjacent wall). So: float low, splice high — no geometry
+fight. Everything downstream of the junction is dry.
 
 ---
 
 ## 5. Wiring
 
-One detection level → one signal to the node, plus GPIO protection.
+One detection level → one dry-contact signal to the node, plus GPIO protection. Just **2
+conductors** from the float.
 
-**Float variant (dry contact — simplest):**
 ```
-  Stilling-well float (dry contact, no polarity)
-     float lead 1 ─── conductor 1 ──[~1kΩ]──▶ D2   (INPUT_PULLUP — idles HIGH, LOW when tripped)
+  Stilling-well float (reed, dry contact, mounted NC — opens on rising water)
+     float lead 1 ─── conductor 1 ──[~1kΩ]──▶ D2   (INPUT_PULLUP)
      float lead 2 ─── conductor 2 ───────────▶ GND
 
-  Per input at the node: TVS/clamp diode from the GPIO to 3V3, series ~1kΩ as above.
+  Per input at the node: TVS/clamp diode from D2 to 3V3, series ~1kΩ as above.
   UNO R4 WiFi power ◀── 5 V USB-C supply (in the building)
 ```
-- **`INPUT_PULLUP`**: the pin idles HIGH; a submerged (tripped) float closes to GND → reads LOW.
-  Debounce/sustain is in firmware (§6), so ripple and a passing splash don't alert.
-
-**Electrode variant (recommended — no moving parts):**
-```
-  Stilling-well electrodes
-     drive rod  ─── conductor 1 ──▶ D4 (drive: pulsed HIGH briefly to sample)
-     sense rod  ─── conductor 2 ──[~1kΩ]──▶ D2 (INPUT_PULLDOWN; reads HIGH only when water bridges)
-     (share the run cable's GND if using a detector board instead)
-```
-- The firmware **pulses D4 and reads D2** for a few ms, then idles both — so no sustained DC sits
-  on the electrodes (electrolysis/corrosion guard). Water bridging the rods pulls D2 to the drive
-  level during the pulse. Or drop in a cheap **liquid-level/contact detector board** (its digital
-  out → D2, `INPUT`), which handles excitation for you.
-
-**Both variants:**
+- **`INPUT_PULLUP` + NC float:** the pin idles HIGH via the pull-up. Dry → contact **closed** →
+  pin pulled to GND → **LOW**. Water up → contact **opens** → pin floats to pull-up → **HIGH = wet**.
+  A cut/disconnected cable also reads HIGH → **self-alarms** instead of failing silent. (Mount NO
+  and invert if you prefer; firmware handles either — §6.) Debounce/sustain lives in firmware, so
+  ripple and a passing splash don't alert.
 - **Surge protection matters here.** A ~20 ft outdoor cable entering a building is a transient/
   static path. Put a **series ~1 kΩ + a clamp diode (TVS to 3V3)** on the sense line. pivac has
   already lost one GPIO (pin 26) to a power-event transient — don't repeat it on an exposed line.
-- **Optical-sensor variant:** add conductors for **5 V** + **sensor GND**; its digital output
-  goes to D2 (`INPUT`, match the sensor's active level). Cat5e's spare pairs cover any of these.
+- **Alternate sensors (§3.2):** electrodes add a pulsed drive pin (D4) + `INPUT_PULLDOWN` on D2;
+  clamp-on capacitive / optical add **5 V + GND** conductors and drive D2 (`INPUT`) directly. The
+  Cat5e spare pairs cover any of these without re-pulling cable.
 
 ---
 
@@ -228,22 +238,19 @@ on the first line matching `.*\{.*\}`, so the dict must use **single quotes** (a
 // One wet-at-level sensor in a stilling well: water standing in the corner = clogged.
 #include <WiFiS3.h>
 
-const uint8_t PIN_SENSE = 2;   // wet-at-level input (float via INPUT_PULLUP, or electrode/board out)
+const uint8_t PIN_SENSE = 2;   // reed float, NC + INPUT_PULLUP: dry=LOW (closed), wet=HIGH (open)
 const unsigned long SUSTAIN_MS = 45000UL;   // must hold ~45 s before it counts (real clog holds; splash doesn't)
 const unsigned long CLEAR_MS   = 15000UL;   // must be dry ~15 s before clearing (hysteresis)
 
 bool clogged = false;
 unsigned long wetSince = 0, drySince = 0, cloggedStartMs = 0;
 
-// Read the sensor. Float: tripped = pin LOW. Electrode: pulse the drive pin, sample, idle it
-// (no sustained DC → no electrolysis). Return true when water is bridging at the trip level.
+// Return true when water is standing at the trip level.
+// NC float (recommended): opens on water → pin HIGH.  (NO float: wet = LOW — flip the compare.)
+// Alt sensors (§3.2): electrode = pulse D4 HIGH, read D2 (INPUT_PULLDOWN), idle D4; capacitive/
+// optical = a direct digital line on D2 — swap this one line to match the part.
 bool readWet() {
-  // Float variant:  return digitalRead(PIN_SENSE) == LOW;
-  // Electrode variant (drive on D4, sense on D2 INPUT_PULLDOWN):
-  digitalWrite(4, HIGH); delayMicroseconds(200);
-  bool wet = digitalRead(PIN_SENSE) == HIGH;
-  digitalWrite(4, LOW);
-  return wet;
+  return digitalRead(PIN_SENSE) == HIGH;   // NC float + INPUT_PULLUP
 }
 
 // Debounced, sustained latch with hysteresis.
@@ -255,7 +262,7 @@ bool sustainedLatch(bool raw) {
 }
 
 void setup() {
-  pinMode(PIN_SENSE, INPUT_PULLUP);   // electrode variant: INPUT_PULLDOWN + pinMode(4, OUTPUT)
+  pinMode(PIN_SENSE, INPUT_PULLUP);   // alt: electrode → INPUT_PULLDOWN + pinMode(4, OUTPUT)
   // ... WiFi connect + watchdog (copy from ArduinoPSI sketch) ...
 }
 
@@ -355,8 +362,8 @@ Deploy the YAML the same way as the others (copy to `/etc/grafana/provisioning/a
 
 A Grafana panel on `clogged` + `cloggedFor` gives an at-a-glance history of how often and how
 long the drain backs up — useful for deciding whether to address the pine-needle source (a screen
-or guard over the grate). *(If you add the optional overflow-lip redundancy electrode from §1,
-give it its own `clogged`-style path + rule as an "actually overflowing now" escalation.)*
+or guard over the grate). *(If you add the optional overflow-lip redundancy sensor from §1, give
+it its own `clogged`-style path + rule as an "actually overflowing now" escalation.)*
 
 ---
 
@@ -365,9 +372,9 @@ give it its own `clogged`-style path + rule as an "actually overflowing now" esc
 | Event | Behaviour |
 |-------|-----------|
 | Splash / wind chop / brief rain surge | `SUSTAIN_MS` latch (~45 s) suppresses it — no alert |
-| Real clog | water stands at the trip level → `clogged` latches → email |
-| Sensor fouled by debris | Stilling well prevents most of it; electrodes (§3.1) have no moving part to stick — a float can swap to electrodes/optical with only a pin-mode change |
-| Electrode corrosion | Pulsed excitation (§5/§6) avoids sustained DC; stainless/graphite rods |
+| Real clog | water stands at the trip level → float opens → `clogged` latches → email |
+| Cut / disconnected sensor cable | NC float → reads HIGH → **self-alarms** (`clogged`) rather than failing silent |
+| Float fouled/stuck by debris | Stilling well keeps needle mats off it; if it ever sticks, swap to electrodes or clamp-on capacitive (§3.2) — one firmware line |
 | Deep-winter freeze / ice-lock | **Out of scope** — drain not needed when freezing (§1) |
 | WiFi down | Board keeps sensing locally; pivac shows stale → `storm-drain-stale` email |
 | Node hung | RA4M1 watchdog resets it; `uptime_ms` reveals the reset |
@@ -380,12 +387,14 @@ pivac never actuates anything — this node is monitor-only by construction.
 
 ## 10. Deployment & test checklist
 
-1. Acquire a **UNO R4 WiFi** + the sensor (electrodes or one float) + stilling-well PVC + burial cable.
-2. Build the stilling well; measure the overflow lip; fix the sensor at the ~2–3" trip height (§4).
-3. Wire per §5 (sense → D2, electrode drive → D4 if used, series R + clamp, sealed field
-   junction); USB-power the node.
+1. Acquire a **UNO R4 WiFi** + the **stainless M10 mini float** + 1½" PVC (well/caps/foot) +
+   grate-mount hardware + burial cable. Verify the float OD fits the 1½" ID (§1).
+2. Build the well (§4): drill the cap M10 hole + base inlet holes, cement the foot, mount the
+   float **NC**; measure the overflow lip; cut the well so the float trips at ~2–3".
+3. Fasten the foot to the grate through the slots (SS screws or zip ties); mount the IP67 junction
+   above the 6" line. Wire per §5 (float → D2 + GND, series R + clamp); USB-power the node.
 4. Flash the sketch; confirm WiFi join + `GET /` returns the single-quoted dict; bench-test by
-   dipping the sensor in water and watching `clogged` latch after `SUSTAIN_MS`.
+   raising the water in the well and watching `clogged` latch after `SUSTAIN_MS`.
 5. DHCP-reserve the board IP in UniFi by its WiFi MAC; set it in the config `ipaddr`.
 6. Add the config block + `pivac-stormdrain.service`; `daemon-reload`; enable; start.
 7. Confirm `environment.water.stormdrain.*` flowing into Signal K, then InfluxDB/Grafana.
