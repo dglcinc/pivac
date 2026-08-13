@@ -595,7 +595,29 @@ minimum for the unit rather than for the climate.
   then BOS2's draw is only visible mixed into `utility_sub_panel`.
 - Decide the fate of the freed Y2ON timer and Y2FAN relays (spares vs. removal) — no impact on
   the Pi side either way.
-- Update the **HVAC System Manual's CDP Relays Walkthrough** (§6.4) — still describes two chillers.
+- **HVAC System Manual — v1.8 drafted 2026-08-12, needs David's review then structural work.**
+  `~/OneDrive - DGLC/Claude/HVAC System Manual - 68 Lookout Road v1.8.docx` (v1.7 untouched).
+  **23 paragraphs rewritten, text-only** — paragraph count, styles, bookmarks and all 38 embedded
+  images preserved; no figures, tables or sections were added or removed. Covers the CDP Relays
+  Walkthrough (LCHL/RCHL → BOS1/BOS2, Y2ON/YOFF/YALT marked DECOMMISSIONED, SCALA → CHIL), the
+  glossary, and the spring/fall seasonal checklists.
+  **Deliberately left for David — these need new photos and layout judgement, which is why they
+  were not attempted:**
+  - The **Chillers** hardware section (Figure 10 "The 5-ton UniChillers", ~p421–428): still
+    describes two 5-ton units in the chiller shack, activated via LCHL/RCHL dry contacts.
+  - **Chiller Tuning Settings + aquastat tables** (~p429–472, Figure 11): Left Chiller / Right
+    Chiller / CWRA columns, all obsolete — the Chiltrix regulates internally.
+  - **Figure 12 "Chiller Return Water Thermal Mass Tank"** (~p477) — this is now the 37 gal buffer
+    tank with the UBT/LBT probes on it.
+  - **CRWA section and Figures 13/14** (~p483–531): the aquastat is decommissioned; the whole
+    section can go once its figures are dealt with.
+  - **"Alternative approach to winterize chillers"** (~p768–770) and the emergency-shutdown and
+    zone-controller paragraphs (p173, p286, p289) — all still written for two chillers.
+  - **p473** still carries the 2025 "left chiller decommissioned" note, now superseded.
+  **Also worth knowing:** the v1.7 glossary entry for SCALA was already wrong before this pass —
+  it described SCALA as "chiller sequencing" when the walkthrough correctly had it as the booster
+  pump leak pan. And **the leak pan is now genuinely unmonitored**, since that input became CHIL;
+  v1.8 states this explicitly in the CHIL entry.
 - The standing **GPIO 26 dead-pad** carryover in `CLAUDE.md` is now **moot rather than pending** —
   it only mattered because YOFF needed that pin, and YOFF is retired. The pad is still dead on the
   current Pi; it simply no longer blocks anything. `CLAUDE.md` and the session-state notes still
