@@ -164,14 +164,32 @@ tank at setpoint continuously rather than only while a zone demands cooling.
 > *result* rather than the chiller's control input — the Chiltrix regulates on its own return-water
 > sensor, so our tank probes are a downstream proxy for it, not the same measurement.
 
-### Control-logic consequences — **verify at the panel before cutting**
+### Control-logic consequences — **SETTLED 2026-08-12**
 
-These follow from the v1.7 manual's CDP Relays Walkthrough. They are inferences from documentation,
-not from tracing live wiring, so confirm each one physically (ideally with your HVAC contractor):
+These started as inferences from the v1.7 manual's CDP Relays Walkthrough, flagged for physical
+verification. **David has since confirmed the end state, so they are now statements of fact rather
+than things to check.** The v1.7 manual describes the *old* plant and is superseded on every point
+below — do not re-derive control logic from it.
 
-1. **YALT removal breaks the chiller call path.** The manual states YALT "uses lead and lag calls
-   from the zone controller, CWRA, and Y2 relays to energize the chiller relays." With YALT gone,
-   whatever fed YALT must now drive the **new chiller** directly.
+**The whole intermediate control layer is gone.** `CRWA`/`CWRA` (the chilled-water return
+aquastat), the **alternating relay** (`YALT`) and the **low-ambient cutoff** (`YOFF`) are all
+decommissioned. What remains for the water-cooled zones is:
+
+```
+HZ432 "Y" ──→ CHIL relay ──→ Chiltrix Y dry contacts ──→ Chiltrix controller
+                                    ▲                     (owns everything from here:
+override relay (manual) ────────────┘                      staging, capacity, tank temp
+                                                           via its own return-water sensor)
+```
+
+**The Chiltrix controller and the CHIL relay together perform every function for the
+water-cooled zones.** There is no external aquastat gating it, no alternation to arbitrate (one
+unit), and no external staging.
+
+1. **YALT is decommissioned.** The manual's description — YALT "uses lead and lag calls from the
+   zone controller, CWRA, and Y2 relays to energize the chiller relays" — describes plant that no
+   longer exists. Alternation is meaningless with one chiller. The HZ432 Y call now drives the
+   CHIL relay directly.
 2. **YOFF is retired. The seasonal cutoff is now powering the chiller down at the breaker.** The
    old YOFF opened a N/C contact to disable power to YALT and the CWRA; with YALT gone and YOFF
    out of service, **no CDP interlock inhibits cooling seasonally, by design**. Winter shutdown is
@@ -188,11 +206,13 @@ not from tracing live wiring, so confirm each one physically (ideally with your 
      protection, outdoor unit included. That is what the glycol concentration is protecting, and
      it is the reason the concentration matters more now than it did under the old always-powered
      arrangement. See §7.
-3. **Two-stage staging disappears with Y2ON/Y2FAN.** Confirm the new chiller either handles its own
-   staging internally or genuinely doesn't need it. If it does need an external stage-2 call, stop
-   and re-plan — one of the freed inputs would have to come back.
-4. **CRWA / CWRA aquastat.** Confirm whether the return-water aquastat still gates the new chiller,
-   and if so where it sits in the simplified path.
+3. **Two-stage staging is gone with Y2ON/Y2FAN, and nothing external replaces it.** The Chiltrix
+   modulates internally, so no external stage-2 call is needed. The freed inputs stay freed — the
+   earlier caveat about having to bring one back does not apply.
+4. **CRWA / CWRA is decommissioned.** The return-water aquastat no longer gates the chiller. The
+   Chiltrix regulates on its **own internal return-water sensor** instead, which is the same
+   mechanism that lets it hold buffer-tank temperature under the override — the sensing moved
+   inside the unit rather than disappearing.
 
 ### Zone → equipment map
 
@@ -211,8 +231,11 @@ Notes:
   often than either BOS relay, and a quiet `CHIL` on a hot day is more suspicious than a quiet
   `BOS1`.
 - **`bova_kitchen` is the Emporia rename that finally disambiguates the two BOVAs** — it is the
-  BOS1 unit. The BOS2 unit has no circuit of its own; it sits inside `utility_sub_panel` along
-  with the fridge and shop outlets, so its draw cannot be read in isolation.
+  BOS1 unit. The BOS2 unit currently has **no circuit of its own**: it sits inside
+  `utility_sub_panel` with the fridge and shop outlets, so its draw cannot be read in isolation.
+  **This is temporary — a CT for BOS2 is on order (2026-08-12).** Once fitted, BOS2 gets its own
+  Emporia circuit and `utility_sub_panel` drops to the fridge and shop outlets; expect to add the
+  new series to Grafana panel 10 then.
 - Because the Chiltrix runs to buffer-tank setpoint rather than to zone demand (above), zone
   demand and `CHIL` are correlated but **not** identical — the chiller can run with no zone
   calling, and the override forces exactly that.
@@ -543,8 +566,10 @@ minimum for the unit rather than for the climate.
   longer a cutoff for it to verify either. Reasonable to leave unmonitored.
 - **Buffer-tank alerting is the real chiller-failure detector** (§5.5) — undesigned, and blocked
   on confirming UBT/LBT actually stratify.
-- Confirm the new chiller needs no external stage-2 call. The Y2ON/Y2FAN inputs are **already
-  freed in software**, so if an external stage-2 call turns out to be needed, one has to come back.
+- ~~Confirm the new chiller needs no external stage-2 call~~ — **settled**: the Chiltrix modulates
+  internally, no external staging (§3, item 3). The freed inputs stay freed.
+- **Add the BOS2 series to Grafana panel 10 once its CT is fitted** (on order 2026-08-12). Until
+  then BOS2's draw is only visible mixed into `utility_sub_panel`.
 - Decide the fate of the freed Y2ON timer and Y2FAN relays (spares vs. removal) — no impact on
   the Pi side either way.
 - Update the **HVAC System Manual's CDP Relays Walkthrough** (§6.4) — still describes two chillers.
