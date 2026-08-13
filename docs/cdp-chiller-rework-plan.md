@@ -5,10 +5,16 @@
 
 > **⚠️ The naming scheme in the original plan was superseded before it was built.** This plan
 > specified `RCHL→CHIL` and `LCHL→BOS2`. What actually shipped on 2026-08-02 was
-> **`RCHL→BOS2`** and **`LCHL→BOS1`**, with **no `CHIL` relay at all** — the new chiller does not
-> work in a way that gives it a call relay, so its call state is deliberately unmonitored. The old
-> `BOS1` on BCM 24 was dropped in favour of the reclaimed relay. Sections 2–6 below have been
-> rewritten to the shipped scheme; the original is recoverable from this file's git history.
+> **`RCHL→BOS2`** and **`LCHL→BOS1`**, with the old `BOS1` on BCM 24 dropped in favour of the
+> reclaimed relay. Sections 2–6 have been rewritten to the shipped scheme; the original is
+> recoverable from this file's git history.
+>
+> **`CHIL` arrived later, on a different pin (2026-08-11).** The CHIL *relay* always existed in the
+> panel — the 2026-08-02 change simply landed no Pi input on it. On 2026-08-11 the `SCALA`
+> booster-pump-leak-pan input on **BCM 25 / phys 22** was renamed to **`CHIL`** and now senses the
+> chiller call, so the chiller **is** monitored. Earlier revisions of this document said the chiller
+> gives no call contact and is deliberately unmonitored — **both statements are wrong** and are
+> corrected throughout. The leak-pan signal is no longer published.
 
 **What is done:** the chiller conversion itself (two UniChillers → one Chiltrix CX75, 2026-08),
 and the `pivac.GPIO` software side — live on the Pi and verified, with the repo-side changes
@@ -68,11 +74,11 @@ is one revision ahead of the repo's `config/config.yml.sample`, which is missing
 
 ## 2. Target state
 
-**Decisions as shipped (2026-08-02):** both old chiller relays were reclaimed **in place** as Bosch
-compressor monitoring inputs — no header wire moved. **There is no `CHIL` relay**: the new chiller
-provides no call contact to sense, so the chiller's own call state is not monitored at all. That is
-a deliberate accepted loss, not an oversight, and is the single biggest functional difference from
-the original plan — see §3.
+**Decisions as shipped (2026-08-02, amended 2026-08-11):** both old chiller relays were reclaimed
+**in place** as Bosch compressor monitoring inputs — no header wire moved. The chiller call is
+sensed too, but on a **different pin than this plan originally proposed**: `SCALA` on **BCM 25 /
+phys 22** was renamed **`CHIL`** on 2026-08-11 and now watches the chiller call relay. Note what
+`CHIL` actually reports — it is the *zone-demand* side, not the compressor (§3).
 
 **YOFF is retired — it is no longer in use.** BCM 26 / phys 37 becomes a spare, and the dead-pad
 question is moot: there is **no rewire to BCM 19**, on either the current Pi or the new one. The
@@ -89,14 +95,14 @@ seasonal-cutoff function it performed no longer exists as a CDP interlock (§3, 
 | 7 | UNUSED | 26 | 37 | **retired** — YOFF no longer in use; the dead pad on the current Pi is now irrelevant |
 | 8 | UNUSED | 16 | 36 | **freed** — pull wire at header + relay |
 | 9 | DEHUM | 12 | 32 | unchanged |
-| 10 | SCALA | 25 | 22 | unchanged (fill in on the docx) |
+| 10 | **CHIL** | 25 | 22 | **rename only** (was SCALA, 2026-08-11) — now senses the chiller call; leak-pan signal dropped |
 | 11 | UNUSED | 24 | 18 | **freed** — the old BOS1 input, superseded by row 5 |
 | 12 | UNUSED | 23 | 16 | unchanged — remains a true spare, still unwired |
 
-**Net effect:** 7 active inputs (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA). Spares: BCM 13/33,
-16/36, 24/18, 26/37, 23/16 — **five**, against the original plan's three, because dropping both
-CHIL and YOFF frees two extra slots. All but 23/16 already have wire runs to the header, so most
-are cheap to press into service (§8).
+**Net effect:** 7 active inputs (ZV, DHW, BLR, BOS2, BOS1, DEHUM, **CHIL**). Spares: BCM 13/33,
+16/36, 24/18, 26/37, 23/16 — **five**, against the original plan's three, because retiring YOFF and
+the old BOS1 input frees extra slots while `CHIL` reused an existing input rather than a spare. All
+but 23/16 already have wire runs to the header, so most are cheap to press into service (§8).
 
 > **Spare caveat while the current Pi is still in service** (the new Pi is not built yet):
 > **BCM 26 / phys 37 is not usable** — that pad is electrically dead on this board, which is why
@@ -134,35 +140,55 @@ untouched, and keeps the DIN layout dense with no shuffling.
 
 ### The chiller call path and the override
 
-The Chiltrix is called by closing a pair of **dry contacts** on the unit (its Y input). **Two
-things in parallel can close them:**
+> **⚠️ `CHIL` is the DEMAND side, not the chiller's run command.** The single most important thing
+> to understand about this plant: **the CHIL relay operates independently of whether the chiller
+> is running.** Do not read `CHIL` asserted as "the chiller is on".
+
+The system is **decoupled across the buffer tank**, with the tank acting as the thermal buffer
+between two independent controls:
 
 ```
-HZ432 "Y" call ──→ CHIL relay ──→ N.O. pole ─┐
-                                             ├──→ chiller Y dry contacts ──→ Chiltrix runs
-override relay (manual, N.O.) ───────────────┘
+DEMAND SIDE                                  SUPPLY SIDE
+water-cooled zone calls (HZ432 "Y")          Chiltrix's own controller
+        │                                            │
+        ▼                                            ▼
+   CHIL relay ──→ pulls chilled water          runs the compressor when buffer-tank
+   (+ closes the chiller's Y contacts,         RETURN WATER hits setpoint
+    enabling it)                               (50, with a 2 °C hysteresis)
+        │                                            │
+        └──────────────→ BUFFER TANK ←───────────────┘
+                       (37 gal, UBT/LBT)
 ```
 
-- **The CHIL relay** is triggered by a **Y call from the Honeywell HZ432** zone controller. It is
-  present and in service — what the 2026-08-02 change dropped was the *Pi input* watching it, not
-  the relay.
-- **The override relay** is a second N.O. relay bridging the same dry contacts. Closing it holds
-  the chiller's Y call closed continuously, independent of the HZ432. It is **manual, currently
-  unlabeled, and has no signal wired to energize it** — it is closed by hand when wanted.
+- **The CHIL relay** is triggered by a **Y call from the Honeywell HZ432** when one of the three
+  water-cooled zones calls for cool. What it does is **draw chilled water out of the buffer tank**
+  to that zone. It also closes the chiller's Y dry contacts, but that is an **enable**, not a run
+  command — the chiller still decides for itself whether to fire.
+- **The chiller runs as needed**, on its own return-water thermostat: it starts when return water
+  from the buffer tank reaches setpoint (**50, plus a 2 °C hysteresis**) and stops when satisfied.
+  *(Recorded as David stated it — note the mixed units; 50 is presumably °F with a 2 °C band.
+  Confirm against the Chiltrix controller before relying on the exact figures.)*
+- **The override relay** is a second N.O. relay bridging the same Y dry contacts. It holds the
+  chiller **enabled** continuously, independent of the HZ432, so the unit keeps the tank at
+  setpoint even with no zone calling. It is **manual, currently unlabeled, and has no signal wired
+  to energize it**.
 
-**Why the override exists:** the Chiltrix maintains buffer-tank temperature even when no zone is
-calling for cool. It does this on its **own internal control loop, measuring return-water
-temperature at the chiller** — not from any sensor pivac owns. Holding Y closed lets it keep the
-tank at setpoint continuously rather than only while a zone demands cooling.
-
-> **Consequence for monitoring: the CHIL relay is an incomplete signal.** With the override
-> engaged the relay reads idle while the chiller runs; and even without it, the chiller cycles on
-> its own return-water loop rather than on zone demand. "A zone is calling" and "the chiller is
-> running" are decoupled by design.
+> **Consequences for monitoring — three different questions, three different signals:**
 >
-> **UBT/LBT are therefore the meaningful observable for chiller operation.** Note they observe the
-> *result* rather than the chiller's control input — the Chiltrix regulates on its own return-water
-> sensor, so our tank probes are a downstream proxy for it, not the same measurement.
+> | Question | Signal | Notes |
+> |---|---|---|
+> | Is a water zone calling? | `CHIL` relay | demand only; says nothing about the compressor |
+> | Is the chiller actually running? | **`electrical.emporia.house.chiltrix`** (power draw) | the only direct run signal we have |
+> | Is the loop keeping up? | `UBT` / `LBT` | the outcome; what actually matters |
+>
+> This is why a `CHIL` freshness rule was the wrong shape for chiller-failure detection (§5.5).
+> `CHIL` can be asserted for a long stretch with the compressor cycling on and off underneath it,
+> and the override makes the chiller run with `CHIL` idle. **Emporia's `chiltrix` circuit is the
+> run signal**; UBT/LBT show whether the run is achieving anything.
+>
+> Note UBT/LBT observe the *result*, not the chiller's control input — the Chiltrix regulates on
+> its own internal return-water sensor, so our tank probes are a downstream proxy, not the same
+> measurement.
 
 ### Control-logic consequences — **SETTLED 2026-08-12**
 
@@ -173,18 +199,14 @@ below — do not re-derive control logic from it.
 
 **The whole intermediate control layer is gone.** `CRWA`/`CWRA` (the chilled-water return
 aquastat), the **alternating relay** (`YALT`) and the **low-ambient cutoff** (`YOFF`) are all
-decommissioned. What remains for the water-cooled zones is:
+decommissioned. **The Chiltrix controller and the CHIL relay together perform every function for
+the water-cooled zones** — there is no external aquastat gating it, no alternation to arbitrate
+(one unit), and no external staging.
 
-```
-HZ432 "Y" ──→ CHIL relay ──→ Chiltrix Y dry contacts ──→ Chiltrix controller
-                                    ▲                     (owns everything from here:
-override relay (manual) ────────────┘                      staging, capacity, tank temp
-                                                           via its own return-water sensor)
-```
-
-**The Chiltrix controller and the CHIL relay together perform every function for the
-water-cooled zones.** There is no external aquastat gating it, no alternation to arbitrate (one
-unit), and no external staging.
+See the decoupled demand/supply diagram above for what remains; it is not repeated here, because
+two drawings of the same plant is exactly how the old architecture diagrams came to disagree with
+reality. **The one-line version: `CHIL` moves water out of the tank, the Chiltrix decides on its
+own when to refill it with cold.**
 
 1. **YALT is decommissioned.** The manual's description — YALT "uses lead and lag calls from the
    zone controller, CWRA, and Y2 relays to energize the chiller relays" — describes plant that no
@@ -236,9 +258,10 @@ Notes:
   **This is temporary — a CT for BOS2 is on order (2026-08-12).** Once fitted, BOS2 gets its own
   Emporia circuit and `utility_sub_panel` drops to the fridge and shop outlets; expect to add the
   new series to Grafana panel 10 then.
-- Because the Chiltrix runs to buffer-tank setpoint rather than to zone demand (above), zone
-  demand and `CHIL` are correlated but **not** identical — the chiller can run with no zone
-  calling, and the override forces exactly that.
+- **`CHIL` asserting means a zone is drawing chilled water, NOT that the chiller is running**
+  (see the decoupled diagram above). The compressor cycles on its own return-water setpoint
+  underneath a long `CHIL` call, and the override runs it with `CHIL` idle. For "is the chiller
+  actually running", use `electrical.emporia.house.chiltrix`.
 
 ### BOS1 / BOS2 sensing
 
@@ -409,7 +432,9 @@ this chiller**: the override bypasses the CHIL relay, and the Chiltrix runs to b
 rather than to zone demand (§3). A CHIL rule would therefore alarm on a chiller that is running
 fine under override, and stay quiet on one that has failed while the tank drifts.
 
-Chiller-failure detection belongs on the **process side**: `environment.inside.hvac.{UBT,LBT}.
+`CHIL` is also the *demand* signal rather than the run signal — the compressor cycles
+independently underneath it (§3) — so even a perfectly fresh `CHIL` says nothing about whether
+the chiller fired. Chiller-failure detection belongs on the **process side**: `environment.inside.hvac.{UBT,LBT}.
 temperature` failing to fall — or drifting up — over a sustained window is the signal that the
 chiller is not doing its job, regardless of which path called it. That is the right shape but
 genuinely harder to get right than a freshness check (it needs a window long enough to survive
@@ -461,8 +486,8 @@ the live Pi is already at the target state, so a clone-based build inherits it.
    ```bash
    python -c "import pivac.GPIO as m, json; print(json.dumps(m.status(), indent=2))"
    ```
-   Expect exactly **7 inputs** (ZV, DHW, BLR, BOS2, BOS1, DEHUM, SCALA) — no LCHL, RCHL, Y2ON,
-   Y2FAN or YOFF. If any retired name is still present in the **Signal K API** rather than the
+   Expect exactly **7 inputs** (ZV, DHW, BLR, BOS2, BOS1, DEHUM, CHIL) — no LCHL, RCHL, Y2ON,
+   Y2FAN, YOFF or SCALA. If any retired name is still present in the **Signal K API** rather than the
    module output, that is the missing `restart signalk` (§5.2), not a config fault.
 
    Then: **call the `KITCHEN` zone and confirm `BOS1` asserts, then the `GREAT_ROOM` zone and
@@ -559,11 +584,9 @@ minimum for the unit rather than for the climate.
 - **Decide whether call-only monitoring is enough.** `BOS1`/`BOS2` record the air handler's call,
   so a compressor that fails to start still reads as asserted (§3). Pairing them with Emporia
   circuit draw would turn "was it called" into "did it actually run" — not designed.
-- **Decide whether to land CHIL on a freed input.** The relay exists (HZ432 Y → CHIL → Chiltrix);
-  only the Pi input was dropped, and **BCM 24 / phys 18** is free with a wire run already in place.
-  Weaker case than it first appears: it would show when the *HZ432* is calling, but not when the
-  override is, and not whether the chiller is actually running (§3). With YOFF retired there is no
-  longer a cutoff for it to verify either. Reasonable to leave unmonitored.
+- ~~Decide whether to land CHIL on a freed input~~ — **done 2026-08-11**, though on BCM 25 by
+  renaming `SCALA` rather than on a spare. Remember what it does and does not tell you: it reports
+  the HZ432 zone call, not the override and not the compressor (§3).
 - **Buffer-tank alerting is the real chiller-failure detector** (§5.5) — undesigned, and blocked
   on confirming UBT/LBT actually stratify.
 - ~~Confirm the new chiller needs no external stage-2 call~~ — **settled**: the Chiltrix modulates
