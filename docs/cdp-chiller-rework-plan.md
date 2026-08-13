@@ -194,6 +194,29 @@ not from tracing live wiring, so confirm each one physically (ideally with your 
 4. **CRWA / CWRA aquastat.** Confirm whether the return-water aquastat still gates the new chiller,
    and if so where it sits in the simplified path.
 
+### Zone → equipment map
+
+Which thermostat zone is served by which cooling source. All five RedLink zones are accounted
+for, so any zone calling for cool should assert exactly one of `CHIL`, `BOS1` or `BOS2`.
+
+| Cooling source | Relay | RedLink zone(s) | Emporia circuit |
+|----------------|-------|-----------------|-----------------|
+| **Chiltrix CX75** (hydronic, via buffer tank) | `CHIL` | `MASTER_BR`, `DSTRS_FAM_ROOM`, `KIDS_ROOM` | `electrical.emporia.house.chiltrix` |
+| **Bosch BOVA** (kitchen) | `BOS1` | `KITCHEN` | `electrical.emporia.house.bova_kitchen` |
+| **Bosch BOVA** (great room) | `BOS2` | `GREAT_ROOM` | on `electrical.emporia.house.utility_sub_panel` |
+
+Notes:
+
+- **The chiller carries three zones; each Bosch carries one.** So `CHIL` should assert far more
+  often than either BOS relay, and a quiet `CHIL` on a hot day is more suspicious than a quiet
+  `BOS1`.
+- **`bova_kitchen` is the Emporia rename that finally disambiguates the two BOVAs** — it is the
+  BOS1 unit. The BOS2 unit has no circuit of its own; it sits inside `utility_sub_panel` along
+  with the fridge and shop outlets, so its draw cannot be read in isolation.
+- Because the Chiltrix runs to buffer-tank setpoint rather than to zone demand (above), zone
+  demand and `CHIL` are correlated but **not** identical — the chiller can run with no zone
+  calling, and the override forces exactly that.
+
 ### BOS1 / BOS2 sensing
 
 **The CDP relay is not in the compressor's control path.** When an air handler calls for cooling
@@ -419,10 +442,16 @@ the live Pi is already at the target state, so a clone-based build inherits it.
    Y2FAN or YOFF. If any retired name is still present in the **Signal K API** rather than the
    module output, that is the missing `restart signalk` (§5.2), not a config fault.
 
-   Then: **run the Kitchen and Living Room zones independently and confirm BOS1 and BOS2 assert
-   separately.** This proves each air handler's call relay landed on the right CDP relay rather
-   than the two being swapped — the failure mode that a config-only rename cannot distinguish. It
-   is the only physical check left in this plan; the YOFF cutoff test is gone with YOFF.
+   Then: **call the `KITCHEN` zone and confirm `BOS1` asserts, then the `GREAT_ROOM` zone and
+   confirm `BOS2` asserts** — one at a time (see the zone map in §3). This proves each air
+   handler's call relay landed on the right CDP relay rather than the two being swapped, which is
+   the failure mode a config-only rename cannot distinguish: crossed relays look perfectly healthy
+   until you check which zone drives which. It is the only physical check left in this plan; the
+   YOFF cutoff test is gone with YOFF.
+
+   Optionally also call one of `MASTER_BR` / `DSTRS_FAM_ROOM` / `KIDS_ROOM` and confirm `CHIL`
+   asserts — weaker evidence, since the Chiltrix runs to tank setpoint and may already be calling
+   for reasons unrelated to the zone.
 
 4. **Document** — `CLAUDE.md` is already updated for the relay roster and the retired-name/InfluxDB
    note (PR #96); the GPIO 26 item resolves when the new Pi is fitted. Still outstanding: the
