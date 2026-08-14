@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -8,6 +9,12 @@ logger = logging.getLogger(__name__)
 # re-authentication and re-discovery on every poll cycle.
 _vue = None
 _device_cache = {}  # gid (int) -> {'name': str, 'channels': {channel_num: channel_name}}
+_device_cache_time = 0.0  # monotonic timestamp of the last successful refresh
+
+# Channel names live in the Emporia app, not in our config, so renaming a circuit
+# there must eventually reach us. Re-read them periodically rather than caching
+# for the life of the daemon -- see the note in _get_device_cache().
+NAME_REFRESH_S = 3600
 
 
 def _sanitize(name):
@@ -47,16 +54,36 @@ def _get_device_cache(vue, config):
             "987654321": apartment
 
     Channel names come from the Emporia app via populate_device_properties().
+
+    The cache is refreshed every `name_refresh_s` seconds (default 3600) rather
+    than held for the life of the daemon. Renaming a circuit in the Emporia app
+    otherwise has no effect until the service is restarted by hand: the module
+    keeps emitting the old Signal K path, which looks like a stale sensor rather
+    than a stale label. Refreshing is not free -- populate_device_properties() is
+    an extra cloud call per device -- so it is done on a timer, not every cycle.
+
+    A refresh that raises keeps the previous cache, so a transient Emporia API
+    failure degrades to slightly stale names rather than losing all of them.
     """
-    global _device_cache
-    if _device_cache:
+    global _device_cache, _device_cache_time
+
+    ttl = config.get('name_refresh_s', NAME_REFRESH_S)
+    if _device_cache and (time.monotonic() - _device_cache_time) < ttl:
         return _device_cache
 
     panels = config.get('panels', {})
-    devices = vue.get_devices()
-    for device in devices:
-        vue.populate_device_properties(device)
+    try:
+        devices = vue.get_devices()
+        for device in devices:
+            vue.populate_device_properties(device)
+    except Exception as e:
+        if _device_cache:
+            logger.warning("Emporia channel-name refresh failed (%s: %s); "
+                           "keeping the previous names" % (type(e).__name__, e))
+            return _device_cache
+        raise
 
+    fresh = {}
     for device in devices:
         gid = device.device_gid
         panel_name = panels.get(str(gid), 'panel_%s' % gid)
@@ -64,13 +91,29 @@ def _get_device_cache(vue, config):
         if device.channels:
             for ch in device.channels:
                 channel_names[ch.channel_num] = ch.name or ('channel_%s' % ch.channel_num)
-        _device_cache[gid] = {
+        fresh[gid] = {
             'name': panel_name,
             'channel_names': channel_names,
         }
-        logger.info("Discovered Emporia device GID %s -> panel '%s' with %d channels" % (
-            gid, panel_name, len(channel_names)))
 
+    # A rename changes the Signal K path and the InfluxDB measurement, and leaves
+    # the old path frozen in Signal K until the server restarts -- worth a WARNING
+    # so the cause is obvious in the journal rather than looking like a dead sensor.
+    for gid, entry in fresh.items():
+        old = (_device_cache.get(gid) or {}).get('channel_names', {})
+        new = entry['channel_names']
+        if old and old != new:
+            changed = sorted('%s: %r -> %r' % (n, old.get(n), new.get(n))
+                             for n in set(old) | set(new) if old.get(n) != new.get(n))
+            logger.warning("Emporia channel names changed on GID %s (%s). New Signal K "
+                           "paths start fresh; restart signalk to drop the old ones."
+                           % (gid, '; '.join(changed)))
+        elif not old:
+            logger.info("Discovered Emporia device GID %s -> panel '%s' with %d channels" % (
+                gid, entry['name'], len(new)))
+
+    _device_cache = fresh
+    _device_cache_time = time.monotonic()
     return _device_cache
 
 

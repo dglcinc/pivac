@@ -2512,7 +2512,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.house.main.mean"
+              "options": "Total (main)"
             },
             "properties": [
               {
@@ -2536,17 +2536,13 @@
               {
                 "id": "custom.lineWidth",
                 "value": 2
-              },
-              {
-                "id": "displayName",
-                "value": "Total (main)"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.house.balance.mean"
+              "options": "Everything else"
             },
             "properties": [
               {
@@ -2555,70 +2551,51 @@
                   "fixedColor": "text",
                   "mode": "fixed"
                 }
-              },
-              {
-                "id": "displayName",
-                "value": "Everything else"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.house.chiltrix.mean"
+              "options": "Chiltrix"
             },
             "properties": [
               {
-                "id": "displayName",
-                "value": "Chiltrix"
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.house.utility_sub_panel.mean"
+              "options": "BOVA (great room)"
             },
             "properties": [
               {
-                "id": "displayName",
-                "value": "Utility subpanel"
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.house.bova_kitchen.mean"
+              "options": "BOVA (kitchen)"
             },
             "properties": [
               {
-                "id": "displayName",
-                "value": "BOVA (kitchen)"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electrical.emporia.house.hall_sub_panel.mean"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Hall subpanel"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electrical.emporia.house.wall_oven.mean"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Wall oven"
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -2687,7 +2664,8 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Total (main)"
         },
         {
           "datasource": {
@@ -2728,7 +2706,8 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Everything else"
         },
         {
           "datasource": {
@@ -2749,7 +2728,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.chiltrix",
+          "measurement": "electrical.emporia.house.hall_sub_panel",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -2769,7 +2748,8 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Hall subpanel"
         },
         {
           "datasource": {
@@ -2810,7 +2790,50 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Utility subpanel (gross)"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.house.bova_great_room",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "BOVA (great room)"
         },
         {
           "datasource": {
@@ -2834,7 +2857,7 @@
           "measurement": "electrical.emporia.house.bova_kitchen",
           "orderByTime": "ASC",
           "policy": "default",
-          "refId": "E",
+          "refId": "F",
           "resultFormat": "time_series",
           "select": [
             [
@@ -2851,7 +2874,8 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "BOVA (kitchen)"
         },
         {
           "datasource": {
@@ -2872,10 +2896,10 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.hall_sub_panel",
+          "measurement": "electrical.emporia.house.chiltrix",
           "orderByTime": "ASC",
           "policy": "default",
-          "refId": "F",
+          "refId": "G",
           "resultFormat": "time_series",
           "select": [
             [
@@ -2892,7 +2916,134 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Chiltrix"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.house.microwave_+_refrigerator",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "H",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "Microwave + refrigerator"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.house.downstairs_bath_and_floor",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "I",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "Downstairs bath & floor"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.house.don't_know",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "J",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "Unidentified (ch 8)"
         },
         {
           "datasource": {
@@ -2916,7 +3067,7 @@
           "measurement": "electrical.emporia.house.wall_oven",
           "orderByTime": "ASC",
           "policy": "default",
-          "refId": "G",
+          "refId": "K",
           "resultFormat": "time_series",
           "select": [
             [
@@ -2933,11 +3084,56 @@
             ]
           ],
           "tags": [],
-          "hide": false
+          "hide": false,
+          "alias": "Wall oven"
         }
       ],
       "title": "House Power",
-      "type": "timeseries"
+      "type": "timeseries",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Utility subpanel (gross)",
+              "operator": "-",
+              "right": "BOVA (great room)"
+            },
+            "alias": "Utility subpanel (net of great-room BOVA)",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Utility subpanel (gross)": true
+            },
+            "indexByName": {
+              "Total (main)": 0,
+              "Everything else": 1,
+              "Utility subpanel (net of great-room BOVA)": 2,
+              "BOVA (great room)": 3,
+              "Hall subpanel": 4,
+              "BOVA (kitchen)": 5,
+              "Chiltrix": 6,
+              "Microwave + refrigerator": 7,
+              "Downstairs bath & floor": 8,
+              "Unidentified (ch 8)": 9,
+              "Wall oven": 10
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "datasource": {
