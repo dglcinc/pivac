@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 from datetime import datetime, timezone
 
@@ -17,9 +18,27 @@ _device_cache_time = 0.0  # monotonic timestamp of the last successful refresh
 NAME_REFRESH_S = 3600
 
 
+# Characters that read as word separators become underscores; everything else that
+# is not [a-z0-9_] is dropped. Anything surviving here ends up in a Signal K path
+# AND an InfluxDB measurement name, so it has to be quoting-safe and dot-free --
+# a '.' would silently split the path into an extra level of nesting.
+_SEPARATORS = re.compile(r'[\s/\-+&,]+')
+_ILLEGAL = re.compile(r'[^a-z0-9_]')
+
+
 def _sanitize(name):
-    """Convert a human-readable circuit name into a Signal K path component."""
-    return name.lower().replace(' ', '_').replace('/', '_').replace('-', '_').replace('(', '').replace(')', '')
+    """Convert a human-readable circuit name into a Signal K path component.
+
+    Emporia app labels are free text ("Don't know", "Microwave + Refrigerator"),
+    but the result is used as both a Signal K path component and an InfluxDB
+    measurement name. Punctuation that needs quoting in InfluxQL -- apostrophes
+    especially -- is stripped rather than escaped, and '.' is removed because it
+    would otherwise create an unintended nested path.
+    """
+    s = _SEPARATORS.sub('_', name.lower())
+    s = _ILLEGAL.sub('', s)
+    s = re.sub(r'_+', '_', s).strip('_')
+    return s or 'unnamed'
 
 
 def _get_vue(config):

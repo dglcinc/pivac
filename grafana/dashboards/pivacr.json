@@ -2938,7 +2938,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.microwave_+_refrigerator",
+          "measurement": "electrical.emporia.house.microwave_refrigerator",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "H",
@@ -3022,7 +3022,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.don't_know",
+          "measurement": "electrical.emporia.house.dont_know",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "J",
