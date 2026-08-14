@@ -2980,7 +2980,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.house.downstairs_bath_and_floor",
+          "measurement": "electrical.emporia.house.downstairs_bath_floor",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "I",
@@ -3001,7 +3001,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Downstairs bath & floor"
+          "alias": "Downstairs bath floor"
         },
         {
           "datasource": {
@@ -3126,7 +3126,7 @@
               "BOVA (kitchen)": 5,
               "Chiltrix": 6,
               "Microwave + refrigerator": 7,
-              "Downstairs bath & floor": 8,
+              "Downstairs bath floor": 8,
               "Unidentified (ch 8)": 9,
               "Wall oven": 10
             },
