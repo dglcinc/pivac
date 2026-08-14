@@ -2707,7 +2707,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Everything else"
+          "alias": "Everything else (raw)"
         },
         {
           "datasource": {
@@ -3112,10 +3112,24 @@
           }
         },
         {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Everything else (raw)",
+              "operator": "+",
+              "right": "BOVA (great room)"
+            },
+            "alias": "Everything else",
+            "replaceFields": false
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Utility subpanel (gross)": true
+              "Utility subpanel (gross)": true,
+              "Everything else (raw)": true
             },
             "indexByName": {
               "Total (main)": 0,
