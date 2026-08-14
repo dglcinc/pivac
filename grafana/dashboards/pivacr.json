@@ -3287,18 +3287,6 @@
                 "value": "Furnace"
               }
             ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "electrical.emporia.apartment.clothes_washer.mean"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Clothes washer"
-              }
-            ]
           }
         ]
       },
@@ -3472,47 +3460,6 @@
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdxaqnfllu5fkf"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "electrical.emporia.apartment.clothes_washer",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "E",
           "resultFormat": "time_series",
           "select": [
             [
