@@ -3107,7 +3107,7 @@
               "operator": "-",
               "right": "BOVA (great room)"
             },
-            "alias": "Utility subpanel (net of great-room BOVA)",
+            "alias": "Utility subpanel",
             "replaceFields": false
           }
         },
@@ -3120,7 +3120,7 @@
             "indexByName": {
               "Total (main)": 0,
               "Everything else": 1,
-              "Utility subpanel (net of great-room BOVA)": 2,
+              "Utility subpanel": 2,
               "BOVA (great room)": 3,
               "Hall subpanel": 4,
               "BOVA (kitchen)": 5,
