@@ -2518,7 +2518,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "dark-blue",
+                  "fixedColor": "purple",
                   "mode": "fixed"
                 }
               },
@@ -2563,22 +2563,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "dark-green",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "BOVA (great room)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-blue",
+                  "fixedColor": "#1F5FBF",
                   "mode": "fixed"
                 }
               }
@@ -2593,7 +2578,112 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "semi-dark-blue",
+                  "fixedColor": "#4C9BE8",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BOVA (great room)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#A8D3F5",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Utility subpanel"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#C99700",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Hall subpanel"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F7E77A",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wall oven"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1B6B36",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Microwave + refrigerator"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#3D9A57",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Downstairs bath floor"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#7ECB8B",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unidentified (ch 8)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#C6E9C1",
                   "mode": "fixed"
                 }
               }
@@ -3134,15 +3224,15 @@
             "indexByName": {
               "Total (main)": 0,
               "Everything else": 1,
-              "Utility subpanel": 2,
-              "BOVA (great room)": 3,
-              "Hall subpanel": 4,
-              "BOVA (kitchen)": 5,
-              "Chiltrix": 6,
-              "Microwave + refrigerator": 7,
-              "Downstairs bath floor": 8,
-              "Unidentified (ch 8)": 9,
-              "Wall oven": 10
+              "Chiltrix": 2,
+              "BOVA (kitchen)": 3,
+              "BOVA (great room)": 4,
+              "Utility subpanel": 5,
+              "Hall subpanel": 6,
+              "Wall oven": 7,
+              "Microwave + refrigerator": 8,
+              "Downstairs bath floor": 9,
+              "Unidentified (ch 8)": 10
             },
             "renameByName": {}
           }
