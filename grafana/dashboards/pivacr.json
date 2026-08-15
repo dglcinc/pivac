@@ -3310,7 +3310,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "dark-green",
+                  "fixedColor": "purple",
                   "mode": "fixed"
                 }
               },
@@ -3363,7 +3363,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "light-blue",
+                  "fixedColor": "#1F5FBF",
                   "mode": "fixed"
                 }
               },
@@ -3382,7 +3382,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "orange",
+                  "fixedColor": "#3D9A57",
                   "mode": "fixed"
                 }
               },
