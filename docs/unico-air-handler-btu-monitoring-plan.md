@@ -847,91 +847,87 @@ neither repo.
 
 ### 4.8 Utility-room instrumentation beyond this node
 
-The air handler answers "is *this coil* delivering". The mechanical room answers "is the
-*plant* healthy", and several of those sensors are cheaper and higher-value than the coil node.
-Ranked by value per dollar **against the §0 objective: summer comfort and capacity.**
+The air handler measures whether this coil is delivering. The mechanical room measures whether
+the plant is healthy, and several of those sensors cost less and return more than the coil node.
+Ranked by value per dollar against the §0 objective, summer comfort and capacity.
 
-#### Tier 1 — do these
+#### Tier 1
 
 | Sensor | Where | Why |
 |---|---|---|
-| 4× DS18B20 — supply + return on each secondary loop | Loop A and Loop B, at the tees | §2.6.4. Starvation, flow ratios, mixing, loop-idle detection. The highest-value addition in this document |
-| 1× DS18B20 — boiler *return* | Boiler return, before the primary tee | Condensing verification. Monitor-only per §0 — David is content for the boiler not to condense, so this is a "know the number" probe, not an optimisation target |
-| 1× T/RH sensor — room ambient | Mechanical room, away from the boiler | Standby losses, and it explains a *documented* problem — see below |
-| Leak / flood detection | Pan under boiler, buffer tank, booster pump | This is a regression — see below |
+| 4× DS18B20, supply and return on each secondary loop | Loop A and Loop B, at the tees | §2.6.4. Starvation, flow ratios, mixing, loop-idle detection. The highest-value addition in this document |
+| 1× DS18B20, boiler return | Boiler return, before the primary tee | Condensing verification. Monitor-only per §0 |
+| 1× T/RH sensor, room ambient | Mechanical room, away from the boiler | Standby losses, and the Pi's thermal ceiling. See below |
+| Leak and flood detection | Pan under boiler, buffer tank, booster pump | Closes a regression. See below |
 
-**Boiler return temperature: record it, do not chase it (§0).** A
-Trinity Ti-200 is a *condensing* boiler, and it only condenses when return water is below the
-flue-gas dew point — roughly **130 °F**. Above that you lose most of the condensing gain
-(order 10 % efficiency). Hydronic air-handler coils are commonly designed around 140–180 °F
-supply, which puts return water **above** the condensing threshold, so it is entirely possible
-this boiler **never condenses in this application** and nobody would know. The Sentry already
-gives boiler supply (`hvac.boiler.sentry.waterTemp`) and outdoor temp; one DS18B20 on the
-return closes it. If it confirms non-condensing, the remedy would be **outdoor reset** — lower supply temperature
-in mild weather — but that trades **coil capacity** for efficiency, and per §0 capacity is the
-priority and heating is rarely the problem. **So: record it, do not act on it.** Kept in Tier 1
-only because it is one probe on a bus that is already being extended.
+Boiler return temperature is worth recording and not worth chasing (§0). A Trinity Ti-200
+condenses only when return water sits below the flue-gas dew point, roughly 130 °F. Above that
+it loses most of the condensing gain, on the order of 10 % efficiency. Hydronic air-handler coils
+are commonly designed around 140 to 180 °F supply, which puts return water above the threshold,
+so this boiler may never condense in this application and nobody would know. The Sentry already
+supplies boiler supply temperature (`hvac.boiler.sentry.waterTemp`) and outdoor temperature; one
+DS18B20 on the return completes the picture. Confirming non-condensing would point to outdoor
+reset, lowering supply temperature in mild weather, which trades coil capacity for efficiency.
+Capacity is the priority and heating is rarely the problem, so record the number and leave it
+alone. It stays in Tier 1 only because it is one more probe on a bus already being extended.
 
-**Room ambient explains a problem already in CLAUDE.md.** The Pi is a **fanless Pi 4** that runs
-at ~76 °C with ~83 °C peaks during Sentry capture bursts, grazing the 80 °C soft-temp limit —
-and CLAUDE.md explicitly notes "Ambient matters too (summer boiler-room heat)" while having no
-way to measure it. A room temperature series turns that from a hypothesis into a correlation,
-and tells you whether ventilation would buy more than any further `daemon_sleep` tuning (which
-CLAUDE.md says cannot fix the peaks anyway). Humidity is a bonus: a mechanical room that runs
-humid in summer is a mold and corrosion risk, and it also flags chilled-pipe sweating from
-insulation gaps.
+Room ambient explains a problem CLAUDE.md already documents. The Pi is a fanless Pi 4 running at
+about 76 °C with 83 °C peaks during Sentry capture bursts, grazing the 80 °C soft-temp limit,
+and CLAUDE.md notes that ambient boiler-room heat matters while offering no way to measure it. A
+room temperature series turns that from hypothesis into correlation and shows whether ventilation
+would return more than further `daemon_sleep` tuning, which CLAUDE.md says cannot fix the peaks.
+Humidity comes free with the same sensor: a mechanical room that runs humid in summer carries
+mold and corrosion risk, and flags chilled-pipe sweating from insulation gaps.
 
-> **⚠️ Leak detection was lost, not retired.** CLAUDE.md records that BCM 25 carried the
-> **booster-pump leak pan** as `SCALA` until 2026-08-11, when the input was renamed in place to
-> `CHIL` to sense the chiller call — "the leak-pan signal is no longer published." That was a
-> deliberate trade of one input for another, but the *result* is that a room containing the
-> boiler, buffer tank, DHW, booster pump and the domestic water main **currently has no water
-> detection at all.** Free GPIO inputs with existing wire runs are listed as BCM 13/33, 16/36
-> and 24/18. This is the cheapest insurance in the whole document and it is not about
-> BTUs. (Avoid BCM 26 — CLAUDE.md documents that pad as permanently dead.)
+> ⚠️ Leak detection was lost rather than retired. CLAUDE.md records that BCM 25 carried the
+> booster-pump leak pan as `SCALA` until 2026-08-11, when the input was renamed in place to
+> `CHIL` to sense the chiller call, and the leak-pan signal stopped being published. That traded
+> one input for another, and the result is that a room holding the boiler, buffer tank, DHW,
+> booster pump and the domestic water main has no water detection. Free GPIO inputs with existing
+> wire runs are BCM 13/33, 16/36 and 24/18. Avoid BCM 26, which CLAUDE.md documents as a
+> permanently dead pad. This is the cheapest insurance in the document and has nothing to do with
+> BTUs.
 
-#### Tier 2 — high value, some cost
+#### Tier 2
 
 | Sensor | Why |
 |---|---|
-| Flow meter on the primary loop | §2.6.1 — whole-house delivered BTU, system COP, boiler delivered-vs-fired efficiency. Converts every ratio in §2.6.2 into an absolute number |
-| 2× DS18B20 — Chiltrix entering/leaving water | Chiller-side ΔT; with `electrical.emporia.house.chiltrix` gives chiller COP directly, separate from distribution losses. Skip if the CX75 exposes these over Modbus (§10) |
-| CTs on the circulators | Definitive pump-running state (better than the §2.6.3 inference), pump energy accounting so the §7.7 flow tradeoff is *measurable* rather than argued, and a failing circulator shows as changed draw. Needs spare Emporia channels — note CLAUDE.md records four CTs were borrowed from the apartment panel for the Chiltrix |
+| Flow meter on the primary loop | §2.6.1. Whole-house delivered BTU, system COP, boiler delivered-versus-fired efficiency. Converts every ratio in §2.6.2 into an absolute number |
+| 2× DS18B20, Chiltrix entering and leaving water | Chiller-side ΔT. With `electrical.emporia.house.chiltrix` this gives chiller COP directly, separate from distribution losses. Skip if the CX75 exposes them over Modbus (§10) |
+| CTs on the circulators | Definitive pump-running state, better than the §2.6.3 inference, plus pump energy accounting that makes the §7.7 flow tradeoff measurable. A failing circulator shows as changed draw. Needs spare Emporia channels, and CLAUDE.md records that four CTs were borrowed from the apartment panel for the Chiltrix |
 
 #### Tier 3
 
 | Sensor | Why |
 |---|---|
-| Differential-pressure transducer across a secondary loop | An alternative to a flow meter: read ΔP, look up flow on the pump curve. Often taps existing ports, so no pipe cutting — attractive if opening a glycol loop is the objection |
-| Boiler flue temperature | Direct efficiency indicator; high flue temp is heat going up the stack. Complements the condensing check above |
-| Condensate trap float switch | A blocked condensate trap shuts a condensing boiler down. Cheap, and it fails at the worst time of year |
-| CO detector with a monitored contact | Safety rather than optimization, but it is a gas appliance in an occupied building and the GPIO inputs are already there |
+| Differential-pressure transducer across a secondary loop | An alternative to a flow meter: read ΔP and look up flow on the pump curve. Often taps existing ports, so no pipe cutting, which suits a reluctance to open a glycol loop |
+| Boiler flue temperature | Direct efficiency indicator. High flue temperature is heat going up the stack, and it complements the condensing check above |
+| Condensate trap float switch | A blocked trap shuts a condensing boiler down, and it fails at the worst time of year |
+| CO detector with a monitored contact | Safety rather than optimisation, but this is a gas appliance in an occupied building and the GPIO inputs already exist |
 
-#### Wiring note
+#### Wiring
 
-Tier 1's five DS18B20s go on the **Pi's existing 1-wire bus**, taking it from 4 sensors to 9.
-That is well within 1-Wire's addressing limits, but watch total cable length and topology —
-prefer a daisy chain over a star, and consider dropping the pull-up to **2.2–3.3 kΩ** as the
-bus grows (§5 of `docs/circ-loop-temp-monitoring-plan.md` covers this). `pivac.OneWireTherm`
-re-scans every cycle since 2026-07-06, so sensors can be added live and appear within one
-daemon cycle with **no restart**. The T/RH sensor and the leak detector are not 1-Wire: RH
-wants I²C (so it belongs on an Arduino, or a small dedicated node), and a leak pan is a dry
-contact straight into a spare GPIO.
+Tier 1's five DS18B20s go on the Pi's existing 1-wire bus, taking it from 4 sensors to 9, well
+within 1-Wire's addressing limits. Watch total cable length and topology: prefer a daisy chain
+over a star, and consider dropping the pull-up to 2.2–3.3 kΩ as the bus grows, which §5 of
+`docs/circ-loop-temp-monitoring-plan.md` covers. `pivac.OneWireTherm` re-scans every cycle since
+2026-07-06, so sensors added live appear within one daemon cycle and need no restart.
+
+The T/RH sensor and the leak detector are not 1-Wire. RH wants I²C, so it belongs on an Arduino
+or a small dedicated node, and a leak pan is a dry contact into a spare GPIO.
 
 ---
 
 ## 5. Firmware contract
 
-**The Arduino emits raw measurements only. It computes no BTUs.**
-
-Rationale, and it is a repo-grounded one: the DHW board's recirc-temperature sketch was never
-committed and exists only on the M2 MacBook, so reflashing that board would silently drop a
-sensor. Firmware here is the *expensive, fragile* place to put anything you might want to
-change. Calibration offsets, the glycol constant `K`, and the capacity maths all belong in
+The Arduino emits raw measurements and computes no BTUs. The DHW board's recirc-temperature
+sketch was never committed and exists only on the M2 MacBook, so reflashing that board would
+silently drop a sensor. Firmware is the expensive, fragile place for anything that might change.
+Calibration offsets, the glycol constant `K`, and the capacity arithmetic all belong in
 `config.yml` and Python, where they are version-controlled and deploy with a `git pull`.
 
-Response dict, matching the existing single-quoted pseudo-JSON convention that
-`ArduinoSensor` parses with `ast.literal_eval`:
+The response dict matches the single-quoted pseudo-JSON convention `ArduinoSensor` parses with
+`ast.literal_eval`:
 
 ```
 {'wsup' : 118.42, 'wret' : 108.31, 'asup' : 96.10, 'aret' : 70.44,
@@ -942,32 +938,33 @@ Response dict, matching the existing single-quoted pseudo-JSON convention that
 |---|---|---|
 | `wsup` | °F | Water entering the coil |
 | `wret` | °F | Water leaving the coil |
-| `asup` | °F | Supply (leaving) air |
-| `aret` | °F | Return (entering) air |
+| `asup` | °F | Supply, or leaving, air |
+| `aret` | °F | Return, or entering, air |
 | `flow` | gal/min | Rolling-window instantaneous flow |
 | `volume` | gal | Lifetime totalizer, EEPROM-persisted |
-| `uptime_ms` | ms | Low value ⇒ recently rebooted (power event) — same diagnostic as the pressure boards |
+| `uptime_ms` | ms | A low value means a recent reboot, the same power-event diagnostic the pressure boards use |
 
-**Emit two decimal places on every temperature.** The precision has to survive all the way to
-the delta; see §6.
+Emit two decimal places on every temperature. The precision has to survive as far as the delta
+(§6).
 
-Reuse the proven scaffolding from `DomesticWater.ino`: D-pin reed/pulse interrupt with
-debounce, EEPROM totalizer with magic marker, 10 s rolling flow window, RA4M1 watchdog,
-bounded WiFi/HTTP handling. Add the DS18B20 read (12-bit) and the two averaged ADC reads.
+Reuse the scaffolding proven in `DomesticWater.ino`: a D-pin reed or pulse interrupt with
+debounce, an EEPROM totalizer with a magic marker, a 10 s rolling flow window, the RA4M1
+watchdog, and bounded WiFi and HTTP handling. Add the 12-bit DS18B20 read and the two averaged
+ADC reads.
 
-**Disconnected-sensor behaviour:** a DS18B20 that fails to read returns `-127` and an open NTC
-divider rails to full scale. Emit a sentinel (`-999`) rather than a plausible-looking number,
-so the Pi side can drop the sample instead of computing a confident, wrong BTU figure.
+Handle disconnected sensors explicitly. A DS18B20 that fails to read returns −127, and an open
+NTC divider rails to full scale. Emit a −999 sentinel rather than a plausible number, so the Pi
+can drop the sample instead of computing a confident and wrong BTU figure.
 
 ---
 
 ## 6. pivac integration
 
-### 6.1 Required change to `pivac.ArduinoSensor` — add `rounding:`
+### 6.1 `pivac.ArduinoSensor` needs a `rounding:` key
 
-`ArduinoSensor` currently hardcodes `int(round(...))` on every `type: temperature` field.
-Add an optional per-input `rounding:` key, **defaulting to `0` so every existing input is
-byte-for-byte unchanged**:
+`ArduinoSensor` hardcodes `int(round(...))` on every `type: temperature` field. Add an optional
+per-input `rounding:` key defaulting to `0`, which leaves every existing input byte-for-byte
+unchanged:
 
 ```python
 digits = scfg.get("rounding", 0)
@@ -975,40 +972,40 @@ k = _to_kelvin(raw, scfg.get("scale", "fahrenheit"))
 kelvin = int(round(k)) if digits == 0 else round(k, digits)
 ```
 
-This mirrors `pivac.OneWireTherm` (`pivac/OneWireTherm.py:113`), which has had exactly this
-per-sensor `rounding` key all along — so it is not a new concept in the codebase, just one
-that never made it into the Arduino path. The DHW recirc input keeps `rounding: 0` and its
-InfluxDB series is undisturbed; the new inputs use `rounding: 2`.
+This mirrors `pivac.OneWireTherm` (`pivac/OneWireTherm.py:113`), which has carried the same
+per-sensor `rounding` key all along, so the concept already exists in the codebase and simply
+never reached the Arduino path. The DHW recirc input keeps `rounding: 0` and its InfluxDB series
+stays undisturbed. The new inputs use `rounding: 2`.
 
-### 6.2 New module `pivac.UnicoAH` — wrapping, not replacing
+### 6.2 `pivac.UnicoAH` wraps `ArduinoSensor` rather than replacing it
 
-Same pattern as `pivac.DomesticWater` wrapping `pivac.ArduinoSensor`: call through for the raw
-fields, then append derived values. Keeps all physics in Python, all constants in config.
+The pattern follows `pivac.DomesticWater`: call through for the raw fields, then append derived
+values. All physics stays in Python and all constants stay in config.
 
-Derived, per cycle:
+Derived per cycle:
 
 ```
 ΔT_water  = wsup - wret                       (°F, sign follows mode)
 ΔT_air    = asup - aret
 Q_total   = K × GPM × |ΔT_water|              (BTU/hr)
-Q_sens    = 1.08 × CFM × |ΔT_air|             (BTU/hr, needs CFM — §7.2)
+Q_sens    = 1.08 × CFM × |ΔT_air|             (BTU/hr, needs CFM, §7.2)
 SHR       = Q_sens / Q_total                  (cooling only)
-UA        = Q_total / |aret - wsup|           (BTU/hr·°F — the fouling metric, §7.4)
+UA        = Q_total / |aret - wsup|           (BTU/hr·°F, the fouling metric, §7.4)
 running   = flow > flow_threshold             (0/1)
 ```
 
-**Gate everything on `running`.** A ΔT computed on a dead coil is noise, and a UA computed on
-a near-zero denominator is a divide-by-zero waiting to happen. Emit `0`/null for the derived
-values when the coil is off rather than propagating garbage — and additionally suppress the
-first **5 minutes** after start, because the coil, the water in it, and the duct mass all need
-to reach steady state before the energy balance closes.
+Gate everything on `running`. A ΔT computed on a dead coil is noise, and a UA computed on a
+near-zero denominator is a divide-by-zero waiting to happen. Emit zero or null for the derived
+values while the coil is off, and suppress the first 5 minutes after a start, because the coil,
+the water in it, and the duct mass all need to reach steady state before the energy balance
+closes.
 
 ### 6.3 Signal K paths
 
-> **Name these carefully now.** The SK path *is* the InfluxDB measurement name. CLAUDE.md
-> records four separate renames (CRW→UBT, AMB→LBT, the relay roster, the Emporia circuits)
-> that each orphaned their history. Adding a second air handler later must not force a rename
-> of the first, hence the `<unit>` level in the path.
+> Name these carefully now. The Signal K path becomes the InfluxDB measurement name, and
+> CLAUDE.md records four renames, CRW to UBT, AMB to LBT, the relay roster and the Emporia
+> circuits, that each orphaned their history. Adding a second air handler later must not force a
+> rename of the first, which is why the path carries a `<unit>` level.
 
 | Path | Unit | Source |
 |---|---|---|
@@ -1017,7 +1014,7 @@ to reach steady state before the energy balance closes.
 | `environment.inside.hvac.ah.mbr.air.supply.temperature` | K | node |
 | `environment.inside.hvac.ah.mbr.air.return.temperature` | K | node |
 | `environment.inside.hvac.ah.mbr.water.flowRate` | gal/min | node |
-| `environment.inside.hvac.ah.mbr.water.consumption` | gal | node (totalizer, drift check) |
+| `environment.inside.hvac.ah.mbr.water.consumption` | gal | node, totalizer for drift checks |
 | `environment.inside.hvac.ah.mbr.water.deltaT` | °F | derived |
 | `environment.inside.hvac.ah.mbr.air.deltaT` | °F | derived |
 | `environment.inside.hvac.ah.mbr.capacity.total` | BTU/hr | derived |
@@ -1026,16 +1023,16 @@ to reach steady state before the energy balance closes.
 | `environment.inside.hvac.ah.mbr.shr` | ratio | derived |
 | `environment.inside.hvac.ah.mbr.running` | 0/1 | derived |
 
-> **⚠️ A ΔT must never go through `type: temperature`.** That branch adds 273.15 — correct for
-> an absolute temperature, catastrophic for a difference. Emit the deltas as plain untyped
-> numbers from the wrapper module. A `deltaT` of 10 °F arriving in InfluxDB as 283.15 is the
-> kind of bug that looks like a plausible temperature and survives review.
+> ⚠️ A ΔT must never pass through `type: temperature`. That branch adds 273.15, which is correct
+> for an absolute temperature and destroys a difference. Emit the deltas as plain untyped numbers
+> from the wrapper module. A `deltaT` of 10 °F arriving in InfluxDB as 283.15 looks like a
+> plausible temperature and survives review.
 
 ### 6.4 Config sketch
 
 ```yaml
 pivac.UnicoAH_MBR:
-    description: Unico M2430 hydronic air handler — capacity monitoring
+    description: Unico M2430 hydronic air handler capacity monitoring
     module: pivac.UnicoAH
     enabled: true
     ipaddr: 10.0.0.xxx
@@ -1043,8 +1040,8 @@ pivac.UnicoAH_MBR:
     sk_path: environment.inside.hvac.ah.mbr
 
     # --- physics constants (see §2.2) ---
-    fluid_k: 481.0          # 25% PG today -> ~476.0 after the 30% top-up (§2.2)
-    nominal_cfm:            # COMMANDED airflow from the Unico Smart Controller (§7.2)
+    fluid_k: 481.0          # 25% PG; ~476.0 after the 30% top-up (§2.2)
+    nominal_cfm:            # commanded airflow from the Unico Smart Controller (§7.2)
         cooling: 900        #   read off the controller config, per mode
         heating: 800
     flow_gpm_fixed: null    # set a number for the Phase-0 constant-flow shortcut
@@ -1064,7 +1061,7 @@ pivac.UnicoAH_MBR:
             outname: ""
             type: temperature
             scale: fahrenheit
-            rounding: 2     # REQUIRED — see §6.1
+            rounding: 2     # required, see §6.1
         # ... wret / asup / aret identically
         flow:
             sk_path: environment.inside.hvac.ah.mbr.water
@@ -1075,408 +1072,387 @@ pivac.UnicoAH_MBR:
 
 ## 7. Calibration and analysis
 
-### 7.1 Matched-pair calibration (do this before install — it is not optional)
+### 7.1 Matched-pair calibration, before install
 
-Per §2.3 this is what turns a ±18 % measurement into a ±1 % one.
+Per §2.3 this turns a ±18 % measurement into a ±1 % one, so it is required rather than optional.
 
-1. Wire all four sensors to the board **on the bench**, running the final firmware.
-2. Bundle the two **water** probes together in a stirred bath (an insulated jug of water is
-   fine — stability matters far more than knowing the true temperature).
-3. Log for **≥15 minutes** at the production sample rate. Take the **mean difference**, not a
-   spot reading.
-4. Repeat at a second temperature spanning the working range — ice water and hand-hot — so you
-   know whether the offset is constant or drifts with temperature. If it drifts materially,
-   fit a slope instead of a constant.
-5. Repeat steps 2–4 for the two **air** NTCs.
-6. Write the offsets into `offsets:` in config. **Do not bake them into firmware** — you will
-   want to re-verify them annually.
+1. Wire all four sensors to the board on the bench, running the final firmware.
+2. Bundle the two water probes together in a stirred bath. An insulated jug of water serves;
+   stability matters far more than knowing the true temperature.
+3. Log for at least 15 minutes at the production sample rate, and take the mean difference
+   rather than a spot reading.
+4. Repeat at a second temperature spanning the working range, ice water and hand-hot, to learn
+   whether the offset holds constant or drifts with temperature. Fit a slope instead of a
+   constant if it drifts materially.
+5. Repeat steps 2 to 4 for the two air NTCs.
+6. Write the offsets into `offsets:` in config. Keep them out of firmware, because they need
+   annual re-verification.
 
-**Acceptance:** after applying offsets, the two water probes in a common bath should agree to
-**within 0.1 °F**. If they do not, you cannot trust a 10 °F ΔT to better than a few percent.
+Acceptance: with offsets applied, the two water probes in a common bath should agree within
+0.1 °F. Failing that, a 10 °F ΔT cannot be trusted to better than a few percent.
 
-### 7.2 CFM is *commanded*, not unknown — so the energy balance becomes a diagnostic
+### 7.2 CFM is commanded, which turns the energy balance into a diagnostic
 
-The Unico Smart Controller's ECM is configured in software, so **read the commanded airflow
-per mode off the controller** and put it in `nominal_cfm`. That removes the hardest unknown on
-the air side outright — no derivation needed to get sensible capacity.
+The Unico Smart Controller's ECM is configured in software, so read the commanded airflow per
+mode off the controller and put it in `nominal_cfm`. That removes the hardest unknown on the air
+side, and sensible capacity needs no derivation.
 
-The interesting part is what the energy balance is now *for*. In **heating there is no latent
-load** (§2.1), so the two sides must agree, and you can solve the balance for airflow:
+The energy balance then serves a different purpose. Heating carries no latent load (§2.1), so
+the two sides must agree and the balance solves for airflow:
 
 ```
 CFM_derived = (K × GPM × ΔT_water) / (1.08 × ΔT_air)      [heating only]
 ```
 
-Because you already know what the ECM was *told* to deliver, comparing the two is far more
-valuable than either number alone. **Track `CFM_derived / CFM_commanded` as a first-class
-series:**
+Since the ECM's commanded value is known, comparing the two returns more than either number
+alone. Track `CFM_derived / CFM_commanded` as a first-class series.
 
 | Ratio | Meaning |
 |---|---|
-| ≈ 1.0 | The entire measurement chain is validated end to end — flow-meter calibration, all four temperature offsets, and the blower all agree. This is also your acceptance test for the whole build |
-| Drifting down over weeks/months | The ECM is losing its fight with static pressure. Dirty filter or developing duct restriction. This is the *early* warning the ECM otherwise hides (§2.4) — it masks restriction by drawing more torque until it can't |
-| Sudden step | Something changed physically — filter swap, damper position, a sensor knocked loose, or the controller reconfigured |
-| Persistently ≠ 1.0 from day one | A calibration error, not a fault. Suspect the flow meter's K-factor first, then the temperature offsets |
+| ≈ 1.0 | The measurement chain is validated end to end: flow-meter calibration, all four temperature offsets, and the blower agree. This doubles as the acceptance test for the build |
+| Drifting down over weeks or months | The ECM is losing its fight with static pressure, from a dirty filter or a developing duct restriction. This is the early warning the ECM otherwise hides (§2.4), since it masks restriction by drawing more torque until it cannot |
+| Sudden step | Something changed physically: a filter swap, a damper position, a sensor knocked loose, or the controller reconfigured |
+| Persistently off 1.0 from day one | A calibration error rather than a fault. Suspect the flow meter's K-factor first, then the temperature offsets |
 
-Because this coil does **both** heating and cooling off the same water, you get this check
-every winter for free. Then carry `nominal_cfm` into cooling to split total capacity into
-sensible and latent.
+This coil runs heating and cooling off the same water, so the check comes free every winter.
+Carry `nominal_cfm` into cooling afterwards to split total capacity into sensible and latent.
 
-**Capture the commanded CFM per mode.** A Smart Controller will typically be configured with
-*different* airflow for heating and cooling, and possibly per stage or per demand level — so
-`nominal_cfm` should be a small map keyed by mode, not one number. If the controller can
-report its live commanded airflow over a serial/Modbus link, reading it directly is better
-than a static config value; check the controller documentation.
+Capture the commanded CFM per mode. A Smart Controller is typically configured with different
+airflow for heating and cooling, and possibly per stage or demand level, so `nominal_cfm` should
+be a small map keyed by mode rather than one number.
 
-Minor caveats, both ignorable next to everything else here: air density differs a little
-between 110 °F and 55 °F supply air (~5 %), and the balance assumes steady state, which §7.6
-already enforces.
+Two minor caveats, both small beside everything else here: air density differs by about 5 %
+between 110 °F and 55 °F supply air, and the balance assumes steady state, which §7.6 enforces.
 
-### 7.3 Phase 2 — you may already have the humidity you need
+### 7.3 Phase 2 humidity may already be available
 
-Entering-air wet-bulb drives a chilled-water coil's capacity, and it is
-what splits total into sensible and latent. Getting it needs entering dry-bulb (you will have
-that at full precision from your own `aret` NTC) plus entering RH.
+Entering-air wet-bulb drives a chilled-water coil's capacity and splits total capacity into
+sensible and latent. It needs entering dry-bulb, available at full precision from the `aret`
+NTC, plus entering RH.
 
-**The IAQ thermostat already supplies the RH.** `pivac.RedLink` publishes
-`environment.inside.thermostat.<ZONE>.humidity` for every zone today
-(`pivac/RedLink.py:331`, emitted as a 0–1 fraction). Return air *is* room air, so the zone
-thermostat's RH is a good proxy for entering-air RH — the error is duct leakage and
-infiltration into the return, not a modelling gap.
+The IAQ thermostat supplies the RH. `pivac.RedLink` publishes
+`environment.inside.thermostat.<ZONE>.humidity` for every zone today (`pivac/RedLink.py:331`, as
+a 0 to 1 fraction). Return air is room air, so the zone thermostat's RH proxies entering-air RH
+well; the error comes from duct leakage and infiltration into the return rather than from the
+model.
 
-So Phase 2 is largely **a software join, not a hardware purchase**: combine your `aret`
-dry-bulb with the RedLink humidity for the same zone to get entering enthalpy, which supplies
+Phase 2 is therefore a software join rather than a hardware purchase. Combining the `aret`
+dry-bulb with the RedLink humidity for the same zone gives entering enthalpy, which supplies a
+true SHR and latent split independent of the stored CFM, a CFM derivation that works in cooling
+through `Q_total = 4.5 × CFM × Δh` rather than only in winter (§7.2), and the physically correct
+denominator for coil performance in §7.4.
 
-- **True SHR / latent split**, independent of the stored CFM;
-- **A CFM derivation that works in cooling too**, via `Q_total = 4.5 × CFM × Δh`, so you are
-  no longer restricted to the winter check in §7.2;
-- The physically correct denominator for coil performance in §7.4.
+Two caveats. Take temperature from the node's own NTC and only humidity from the thermostat,
+since RedLink temperatures now carry 2 decimals but still lag the node. RedLink also polls on its
+own schedule with a documented 15 to 25 % per-device timeout rate, so the humidity series is
+coarser and gappier than the node's own data; interpolate and tolerate gaps rather than dropping
+the sample.
 
-Two caveats worth respecting. RedLink temperatures are rounded to whole Kelvin
-(`int(ktemp)`, `pivac/RedLink.py:329`) — so take **temperature from your own NTC** and only
-**humidity** from the thermostat. And RedLink polls on its own schedule with a documented
-15–25 % per-device timeout rate, so the humidity series is coarser and gappier than the node's
-own data; interpolate and tolerate gaps rather than dropping the sample.
-
-**Add an SHT41 in the return plenum only if that proves inadequate** — measure first. Measuring
-*supply* humidity is deliberately not proposed either way: off a wet coil that air sits at
-90–98 % RH, which is both hard to measure accurately and hard on the sensor.
+Add an SHT41 in the return plenum only if that proves inadequate, and measure first. Supply
+humidity is not proposed either way: off a wet coil that air sits at 90 to 98 % RH, which is hard
+to measure accurately and hard on the sensor.
 
 ### 7.4 What "maximum BTUs" means, and how to tell if you have it
 
-Capacity is a function of five things: **entering water temp, water flow, air flow, entering
-air wet-bulb, and coil cleanliness.** Raw BTU/hr is therefore not a target — it legitimately
-varies with weather. Two normalised metrics are:
+Capacity depends on five things: entering water temperature, water flow, air flow, entering air
+wet-bulb, and coil cleanliness. Raw BTU/hr is therefore not a target, since it varies with
+weather. Two normalised metrics work better.
 
-**a) UA — the fouling and health metric**
+UA is the fouling and health metric:
 
 ```
 UA = Q_total / |T_return_air − T_water_supply|
 ```
 
-This divides out both the weather and the plant, leaving coil effectiveness. **At a given
-GPM and CFM, UA should be constant.** Plot it over months: a steady decline is fouling
-(air-side dirt or water-side scale/sludge) and is the clearest possible "your coil is getting
-worse" signal. This is the single most valuable series this project produces.
+This divides out both the weather and the plant, leaving coil effectiveness. At a given GPM and
+CFM, UA should hold constant. Plotted over months, a steady decline means fouling, either
+air-side dirt or water-side scale and sludge, and it is the clearest available signal that the
+coil is degrading. This is the most valuable series the project produces.
 
-**b) Capacity vs. the manufacturer's rating**
+Capacity against the manufacturer's rating is the second. Pull the Unico coil rating table at
+your EWT, GPM and CFM and compare. That answers whether you fall short of design, a separate
+question from whether you fall short of last year.
 
-Pull the Unico coil rating table for your coil at your EWT/GPM/CFM and compare. That tells you
-whether you are short of *design*, which is a different question from whether you are short of
-*last year*.
+Then apply the §2.4 table. Sort the steady-state samples by capacity, take the worst decile, and
+find which delta is anomalous. That identifies the constraint.
 
-**Then apply the §2.4 table.** Sort your steady-state samples by capacity, take the worst
-decile, and look at which delta is anomalous. That is your constraint.
+### 7.5 The highest-value analysis needs no new hardware
 
-### 7.5 Use the data you already have — the highest-value analysis needs no new hardware
-
-Already flowing into InfluxDB and directly relevant:
+These series already flow into InfluxDB and bear directly on the question:
 
 | Existing series | Use |
 |---|---|
-| `electrical.emporia.house.chiltrix` (W) | Plant power — the denominator of COP |
-| `environment.inside.hvac.UBT/LBT.temperature` | Buffer tank stratification — is the plant keeping up? |
-| `environment.inside.hvac.IN/OUT.temperature` | Primary header supply/return — plant-level ΔT, and the reference for the reverse-mixing check `wsup − IN` (§2.5c) |
+| `electrical.emporia.house.chiltrix` (W) | Plant power, the denominator of COP |
+| `environment.inside.hvac.UBT/LBT.temperature` | Buffer tank stratification: is the plant keeping up? |
+| `environment.inside.hvac.IN/OUT.temperature` | Primary header supply and return: plant-level ΔT, and the reference for the reverse-mixing check `wsup − IN` (§2.5c) |
 | `environment.inside.thermostat.<zone>.temperature` | Zone response: is the room recovering? |
-| `environment.inside.thermostat.<zone>.humidity` | Entering-air RH — the latent split, free (§7.3) |
+| `environment.inside.thermostat.<zone>.humidity` | Entering-air RH, which supplies the latent split (§7.3) |
 | `environment.outside.thermostat.temperature` | Load normalisation |
-| `electrical.ac.switch.utility.CHIL` / `BLR` | Changeover mode (chilled vs hot water) — *not* a per-zone gate, see below |
-| `electrical.ac.switch.utility.ZV` | Any zone valve open — system-level, same caveat |
-| `electrical.ac.arduinoThermPSI.psi` | Loop pressure — a drop precedes air-bound-coil symptoms |
+| `electrical.ac.switch.utility.CHIL` and `BLR` | Changeover mode, chilled against hot water. See the caveat below |
+| `electrical.ac.switch.utility.ZV` | Any zone valve open. System-level, same caveat |
+| `electrical.ac.arduinoThermPSI.psi` | Loop pressure. A drop precedes air-bound-coil symptoms |
 
-> **⚠️ `CHIL` is a system-wide call, not this zone's.** It asserts when **any** water-cooled
-> zone calls via the HZ-432, so with three zone valves on three air handlers it is true during
-> plenty of periods when *this* coil's valve is shut and its flow is zero. **Never gate a
-> per-air-handler calculation on `CHIL`** — the correct gate is the node's own flow
-> (`running = flow > flow_threshold`, §6.2), which is per-coil by construction.
+> ⚠️ `CHIL` is a system-wide call rather than this zone's. It asserts when any water-cooled zone
+> calls through the HZ-432, so with three zone valves on three air handlers it reads true during
+> periods when this coil's valve is shut and its flow is zero. Never gate a per-air-handler
+> calculation on `CHIL`. The correct gate is the node's own flow, `running = flow >
+> flow_threshold` (§6.2), which is per-coil by construction.
 >
-> What `CHIL` and `BLR` *are* good for is **changeover mode** — telling you whether the water
-> arriving is chilled or hot, which selects the sign convention, the mode's `nominal_cfm`, and
-> whether a latent term exists at all. Even that is available without them: `wsup` around 45 °F
-> is cooling and around 120–140 °F is heating, so **the node can determine its own mode from
-> the supply water temperature** and the relays are only a cross-check. Prefer the
-> self-determining version — it keeps the node correct even if the relay roster changes again.
+> `CHIL` and `BLR` serve for changeover mode, telling you whether the arriving water is chilled
+> or hot, which selects the sign convention, the mode's `nominal_cfm`, and whether a latent term
+> exists. Even that is available without them: `wsup` near 45 °F means cooling and 120 to 140 °F
+> means heating, so the node can determine its own mode from supply water temperature with the
+> relays as a cross-check. Prefer the self-determining version, which stays correct through
+> another relay-roster change.
 
-> **The shortcut worth considering before the per-air-handler build.** If `IN`/`OUT` are the
-> primary-loop supply and return, then **one flow meter on the primary loop** gives you
-> whole-system capacity — and combined with `electrical.emporia.house.chiltrix` you get
-> **system COP**, today, from data you already collect:
+> Consider one shortcut before the per-air-handler build. If `IN` and `OUT` are the primary-loop
+> supply and return, one flow meter on the primary gives whole-system capacity, and with
+> `electrical.emporia.house.chiltrix` it gives system COP from data already collected:
 >
 > ```
 > COP = (K × GPM_primary × |T_IN − T_OUT|) / (W_chiltrix × 3.412)
 > ```
 >
-> That answers "is the plant efficient" for one sensor. The per-air-handler build answers a
-> different and complementary question — "is *this zone* getting its share" — which plant-level data cannot answer. One meter
-> buys the other half cheaply. **Confirm what `IN`/`OUT` are physically on before relying on
-> this** — it is an inference from the naming, not a verified fact.
+> One sensor answers whether the plant is efficient. The per-air-handler build answers the
+> complementary question, whether this zone is getting its share, which plant-level data cannot
+> reach. One meter buys the other half cheaply. Confirm what `IN` and `OUT` sit on physically
+> before relying on this, since it is an inference from the naming rather than a verified fact.
 
-Also worth checking: **the Chiltrix CX-series exposes Modbus RTU** with entering/leaving water
-temperature, compressor state, and on some models flow. If the CX75 does, an RS485 adapter
-gets plant-side data with no plumbing work at all. Verify against the unit's manual.
+Check whether the CX75 exposes Modbus RTU. The Chiltrix CX-series publishes entering and leaving
+water temperature, compressor state, and on some models flow. An RS485 adapter would then supply
+plant-side data with no plumbing work. Verify against the unit's manual.
 
 ### 7.6 Sampling discipline
 
-- **Gate on `running` and discard the first 5 minutes** of every call (§6.2). Startup
-  transients will otherwise dominate your dataset and they are not representative of anything.
-- Aggregate to **1–5 minute means** before analysis. Instantaneous BTU/hr is noisy; nothing in
-  this problem changes fast.
-- Keep **at least one full heating and one full cooling season** before drawing conclusions
-  about fouling — UA drift is a slow signal and a month of data cannot distinguish it from
-  seasonal variation.
+Gate on `running` and discard the first 5 minutes of every call (§6.2), or startup transients
+will dominate the dataset while representing nothing.
+
+Aggregate to 1 to 5 minute means before analysis. Instantaneous BTU/hr is noisy and nothing in
+this problem changes quickly.
+
+Collect at least one full heating and one full cooling season before drawing conclusions about
+fouling. UA drift is a slow signal, and a month of data cannot separate it from seasonal
+variation.
 
 ---
 
 ### 7.7 Would variable flow buy you BTUs?
 
-You raised this as the likely next step. The honest answer is **usually no for capacity, yes
-for efficiency and fairness** — and the instrumentation in this plan is what tells you which
-case you are in.
+Usually no for capacity, and yes for efficiency and fairness. The instrumentation in this plan
+identifies which case applies.
 
-**Coil capacity versus water flow is a saturating curve.** Below design flow, capacity climbs
-steeply — recovering from 50 % to 100 % of design flow can be worth 20–25 % capacity. Above
-design flow it flattens hard: going from 100 % to 150 % buys perhaps 3–5 %, while pumping power
-rises roughly with the cube of flow. So:
+Coil capacity against water flow is a saturating curve. Below design flow capacity climbs
+steeply, and recovering from 50 % to 100 % of design flow can be worth 20 to 25 %. Above design
+flow the curve flattens: 100 % to 150 % buys perhaps 3 to 5 %, while pumping power rises roughly
+with the cube of flow. Flow below design therefore leaves real capacity available, usually
+through the cheapest fix on the list. Flow at or above design offers almost nothing, because the
+ceiling comes from entering water temperature and coil UA, and the extra flow burns pump watts.
 
-- **Flow below design ⇒ real capacity on the table.** Fix it, and it is usually the cheapest
-  fix available.
-- **Flow at or above design ⇒ almost nothing to gain from more.** The ceiling is set by
-  entering water temperature and coil UA, and more flow just burns pump watts.
-
-**Balancing *redistributes* capacity between zones, it does not create
-it.** Total loop capacity is set by the plant and the pump. So read your data this way:
+Balancing redistributes capacity between zones rather than creating it. Total loop capacity comes
+from the plant and the pump. Read the data accordingly:
 
 | Symptom | Meaning | Right intervention |
 |---|---|---|
-| One room short while another overshoots | Maldistribution | Balance the branches — this is exactly what balancing fixes |
-| All rooms on a loop short together | Loop-wide shortfall | Speed tap, or the plant (EWT). Balancing does nothing |
-| Water ΔT very low (3–5 °F) | Overpumped | Lower the tap. Also check for reverse mixing (§2.5f) |
-| Water ΔT high (>15 °F) with low capacity | Starved | More flow, or find the restriction |
+| One room short while another overshoots | Maldistribution | Balance the branches, which is what balancing fixes |
+| All rooms on a loop short together | Loop-wide shortfall | Speed tap, or the plant and its EWT. Balancing achieves nothing |
+| Water ΔT very low, 3 to 5 °F | Overpumped | Lower the tap, and check for reverse mixing (§2.5f) |
+| Water ΔT high, above 15 °F, with low capacity | Starved | More flow, or find the restriction |
 
-**Intervention ladder, cheapest first:**
+The intervention ladder, cheapest first:
 
-1. **Check the existing speed taps.** Free, already installed, and per §2.5b Loop B is a
-   plausible candidate for being one tap too high in summer. Do this before anything else.
-2. **Static balancing valves** per branch, set so each zone gets design flow in the *worst*
-   case (all zones open). Cheap, mechanical, no controls, and it directly targets the
-   maldistribution row above.
-3. **Pressure-independent balancing valves (PIBV)** per branch — mechanically hold per-branch
-   flow regardless of what other valves do. This is the clean answer to "flow varies with how
-   many zones are calling" and needs no controls at all.
-4. **Swap the UP26-99F for a ΔP-controlled ECM circulator** (Grundfos ALPHA2 / MAGNA3 class).
-   Constant-ΔP mode holds per-zone flow roughly steady as valves open and close, and cuts pump
-   energy substantially. **This is the standard "dynamic flow" answer and it is a drop-in
-   replacement** — no custom control scheme, no pivac involvement required.
-5. **Modulating zone valves under active control.** Variable per-handler flow. This
-   is where a custom pivac control loop would live — and it is the *last* resort, because
-   items 2–4 capture most of the benefit with no software, no failure modes, and nothing to
-   maintain.
+1. Check the existing speed taps. Free, already installed, and per §2.5b Loop B is a candidate
+   for sitting one tap too high in summer. Do this before anything else.
+2. Static balancing valves per branch, set so each zone gets design flow in the worst case with
+   all zones open. Cheap, mechanical, no controls, and aimed directly at maldistribution.
+3. Pressure-independent balancing valves per branch, which hold branch flow mechanically
+   regardless of what other valves do. This answers "flow varies with how many zones are
+   calling" and needs no controls.
+4. Swap the UP26-99F for a ΔP-controlled ECM circulator, Grundfos ALPHA2 or MAGNA3 class.
+   Constant-ΔP mode holds per-zone flow roughly steady as valves open and close and cuts pump
+   energy substantially. This is the standard answer to varying flow and it is a drop-in
+   replacement needing no custom control scheme and no pivac involvement.
+5. Modulating zone valves under active control, giving variable per-handler flow. A custom pivac
+   control loop would live here, and it is the last resort, because items 2 to 4 capture most of
+   the benefit with no software, no failure modes and nothing to maintain.
 
-**Do not skip to 5.** A ΔP circulator plus PIBVs solves the stated problem mechanically and
-permanently. The value pivac adds here is measuring whether any of it worked, which you cannot do today. That is why the
-instrumentation comes first.
+Do not skip to item 5. A ΔP circulator with PIBVs solves the problem mechanically and
+permanently. What pivac adds is measuring whether any of it worked, which you cannot do today,
+and that is why the instrumentation comes first.
 
-One caveat if you do pursue lower flow: the Chiltrix has a **minimum flow requirement**, and
-the buffer tank exists partly to satisfy it. Reducing *secondary* flow is safe because
-primary/secondary decouples the two — but confirm that decoupling is intact (§2.5f)
-before assuming it.
+One caveat on pursuing lower flow: the Chiltrix has a minimum flow requirement, and the buffer
+tank exists partly to satisfy it. Reducing secondary flow is safe because primary/secondary
+decouples the two, but confirm that decoupling is intact (§2.5f) before assuming it.
 
-### 7.8 The right pump speed, and whether per-zone flow can be varied dynamically
+### 7.8 Pump speed, and whether per-zone flow can be varied
 
-Two questions David raised once CFM turned out to be static (§0.3). They have different answers.
+#### 7.8.1 The right pump speed is the lowest tap that holds ΔT in band
 
-#### 7.8.1 The right pump speed is *measurable* — and it is the lowest tap that holds ΔT in band
+Water ΔT is the readout, so the setting needs no calculation.
 
-You do not need to compute it. **Water ΔT is the readout:**
-
-| Loop ΔT (with every zone on that loop calling) | Verdict |
+| Loop ΔT, every zone on that loop calling | Verdict |
 |---|---|
-| 8–12 °F | Right. This is design |
-| > 15 °F | Starved — raise the tap |
-| < 6 °F | Overpumped — lower the tap, and check for reverse mixing (§2.5f) |
+| 8–12 °F | Design. Correct |
+| Above 15 °F | Starved. Raise the tap |
+| Below 6 °F | Overpumped. Lower the tap and check for reverse mixing (§2.5f) |
 
-Sanity-check against first principles: a 2-ton coil at 10 °F design ΔT on 25 % glycol needs
-`24,000 ÷ (481 × 10) ≈ 5 GPM`, so a three-zone loop wants roughly **15 GPM** at full call.
+Against first principles, a 2-ton coil at 10 °F design ΔT on 25 % glycol needs
+`24,000 ÷ (481 × 10) ≈ 5 GPM`, so a three-zone loop wants roughly 15 GPM at full call.
 
-**Pick the *lowest* tap that stays in band at the worst case** — all zones on that loop calling.
-Lowest, not highest, for three reasons: capacity saturates above design flow (§7.7) so the extra
-buys nothing; pump power rises steeply with flow; and **secondary flow must stay under primary
-flow or you get reverse mixing** (§2.5f).
+Pick the lowest tap that stays in band at the worst case, with all zones on that loop calling.
+Lowest rather than highest for three reasons: capacity saturates above design flow (§7.7) so the
+extra buys nothing, pump power rises steeply with flow, and secondary flow must stay under
+primary flow to avoid reverse mixing (§2.5f).
 
-> **This is step 5 of the build order.** The four secondary-loop DS18B20s (§2.6.4)
-> measure exactly this, on the Pi's existing bus, with no Arduino and no flow meter.
+> This is step 5 of the build order. The four secondary-loop DS18B20s (§2.6.4) measure it on the
+> Pi's existing bus, with no Arduino and no flow meter.
 >
-> **But mind what loop ΔT can and cannot tell you.** It is the *aggregate* across every open
-> zone. A loop in band does **not** prove each zone is in band — one coil can be starved while
-> another runs generous, and the aggregate looks fine. **Loop sensors answer "is this loop pumped
-> right"; only per-coil sensors answer "is this zone getting its share."** That is the specific
-> gap the Arduino node fills, and the reason it stays on the roadmap rather than being dropped.
+> Mind what loop ΔT can and cannot show. It aggregates across every open zone, so a loop in band
+> does not prove each zone is in band; one coil can starve while another runs generous and the
+> aggregate still looks fine. Loop sensors answer whether the loop is pumped right, and only
+> per-coil sensors answer whether a zone is getting its share. That gap is what the Arduino node
+> fills, and why it stays on the roadmap.
 
-#### 7.8.2 Dynamic per-zone flow — you want *stable* flow, not *varying* flow
+#### 7.8.2 Per-zone flow should be stable rather than varying
 
-The instinct is right but the target is inverted. Because capacity saturates (§7.7), there is
-little to gain from varying flow with load. What varies today is flow with
-zone count** — a coil gets generous flow calling alone and a fraction of it when its
-loop-mates join, which is backwards, since the many-zones case is the design day.
+Capacity saturates (§7.7), so varying flow with load returns little. What varies today is flow
+with zone count: a coil gets generous flow calling alone and a fraction of it once its loop-mates
+join. That is backwards, since the many-zones case is the design day.
 
-**So the goal is per-zone flow that holds steady regardless of what other zones do.** Two
-standard, purely mechanical solutions do exactly that — and note that both *are* "dynamically
-adjusting flow per zone", just implemented in brass rather than software:
+The goal is therefore per-zone flow that holds steady regardless of what other zones do. Two
+mechanical solutions deliver exactly that, and both adjust flow per zone in brass rather than
+software.
 
 | Solution | How it works | Notes |
 |---|---|---|
-| Pressure-independent balancing valves (PIBV) per branch | Mechanically hold branch flow at a set GPM regardless of system ΔP | Directly answers the question. No controls, no failure modes. Often taps existing ports |
-| ΔP-controlled ECM circulator (Grundfos ALPHA2 / MAGNA3) replacing a UP26-99F | Varies pump speed to hold constant differential pressure as valves open/close, so per-branch flow stays near-constant | Drop-in. Also cuts pump energy substantially. The clean version of "step the pump up when more zones call" |
+| Pressure-independent balancing valves per branch | Hold branch flow at a set GPM mechanically, regardless of system ΔP | Answers the question directly. No controls, no failure modes, and often taps existing ports |
+| ΔP-controlled ECM circulator (Grundfos ALPHA2 or MAGNA3) replacing a UP26-99F | Varies pump speed to hold constant differential pressure as valves open and close, keeping per-branch flow near-constant | Drop-in, and cuts pump energy substantially. The clean version of stepping the pump up when more zones call |
 
-> **On relay-switching the UP26-99F's three taps:** technically some 3-speed circulators allow
-> external speed selection by energising different windings (never two at once), and pivac will
-> know zone-call state. **Don't.** An ALPHA2 in constant-ΔP mode does the same job autonomously,
-> continuously rather than in three steps, with a proper ECM instead of switched windings, and
-> with no wiring hazard. If the goal is pump speed that follows demand, buy the pump.
+> Some three-speed circulators allow external speed selection by energising different windings,
+> never two at once, and pivac will know zone-call state. Avoid that route. An ALPHA2 in
+> constant-ΔP mode does the same job autonomously and continuously rather than in three steps,
+> with a proper ECM instead of switched windings and no wiring hazard. If the goal is pump speed
+> that follows demand, buy the pump.
 
-#### 7.8.3 There *is* a real case for modulating flow — but it is comfort, not capacity
+#### 7.8.3 Modulating flow has a real use, and it is comfort rather than capacity
 
-This aligns with the §0 objective. In **cooling**, water flow sets the coil
-surface temperature, which sets the sensible/latent split:
+This aligns with the §0 objective. In cooling, water flow sets the coil surface temperature,
+which sets the sensible and latent split. Higher flow gives a warmer coil, more sensible capacity
+and less dehumidification. Lower flow gives a colder coil, less total capacity and more moisture
+removed. A zone that holds setpoint yet feels clammy can therefore improve with reduced flow,
+while its BTU output falls. This mirrors the CFM tradeoff in §0.3, so optimising BTU and
+optimising comfort diverge on the water side too.
 
-- **Higher flow → warmer coil → more sensible, less dehumidification**
-- **Lower flow → colder coil → less total capacity, but more moisture removed**
+Heating carries no latent load and offers nothing to modulate; take flow up to saturation and
+stop. Any modulating-flow project would earn its keep in cooling alone, on the humidity axis.
 
-So for a zone that holds setpoint yet feels clammy, *reducing* flow can improve comfort while
-*reducing* BTU output. **That is the exact mirror of the CFM tradeoff in §0.3** — and it means
-"optimise BTU" and "optimise comfort" are not the same objective on the water side either.
+Defer it regardless. The zone valves are two-position, so this needs modulating or characterised
+control valves per branch, Belimo CCV class with 0–10 V or 3-point actuation, something to drive
+them, and flow measurement to close the loop. That inserts a software failure mode into both the
+heating and cooling paths for a gain bounded by saturation. Exhaust §7.8.1 and §7.8.2 first,
+since they are cheaper, mechanical and permanent.
 
-**In heating there is no latent load, so there is nothing to modulate** — take flow up to
-saturation and stop. Which means any modulating-flow project would earn its keep only in
-cooling, on the humidity axis.
-
-**What it would take, and why to defer it:** the zone valves are 2-position, so this needs
-**modulating/characterised control valves** per branch (Belimo CCV class, 0–10 V or 3-point),
-something to drive them, and flow measurement to close the loop. That inserts a software failure
-mode into the heating *and* cooling path for a gain bounded by saturation. **Exhaust §7.8.1 and
-§7.8.2 first** — they are cheaper, mechanical, and permanent.
-
-> **A ceiling that bounds all of the above:** secondary flow must stay below primary flow
-> (§2.5f), and **both primary pumps are already on HIGH.** If a loop turns out to need more flow
-> than its primary can supply, the answer is a **larger primary pump**, not a faster secondary —
-> and no per-zone valve arrangement avoids it. The ΔT-ratio method in §2.6.2 tells
-> you how close to that ceiling you already are, from thermometers alone.
+> One ceiling bounds all of the above. Secondary flow must stay below primary flow (§2.5f), and
+> both primary pumps already run on HIGH. A loop needing more flow than its primary can supply
+> calls for a larger primary pump rather than a faster secondary, and no per-zone valve
+> arrangement avoids that. The ΔT-ratio method in §2.6.2 shows how close to the ceiling you
+> already are, from thermometers alone.
 
 ---
 
 ## 8. Operational integration
 
-- **Freshness alert.** Add rules to `grafana/provisioning/alerting/sensor-freshness.yaml`
-  following the existing pattern — 30 min staleness, `noDataState: Alerting`, with a
-  never-true sentinel for the threshold. Temperatures publish in Kelvin, so reuse the
-  `value < 100` sentinel; `flowRate` is never negative, so use `value < -1` (the shape already
-  used by `domestic-water-stale`).
-- **Watchdog.** `scripts/arduino-watchdog.sh` currently pings only `.114` and `.219`, and
-  power-cycles the shared "Arduinos" Shelly at `10.0.0.61`. If this board is on a different
-  circuit — likely, since it lives at the air handler — it gets **no auto-recovery**. Either
-  extend the watchdog with a second plug, or accept alert-only and document that.
-- **Grafana.** New row. Follow the house conventions: `custom.axisWidth: 50` on every
-  timeseries, no per-panel `axisLabel`, and stepped-line timeseries rather than state-timeline
-  for the boolean `running` (state-timeline cannot set row-label width, so it will not align).
-  Panels: the two ΔTs on one axis, capacity, UA, and SHR.
-- **Restart order.** Config edit → `restart pivac-unico-mbr` → `restart signalk`. Signal K
-  freezes retired paths at their last value until the server restarts — documented three times
-  in CLAUDE.md (relays, 1-Wire, Emporia) and it will bite here too during development.
+**Freshness alerts.** Add rules to `grafana/provisioning/alerting/sensor-freshness.yaml`
+following the existing pattern: 30 min staleness, `noDataState: Alerting`, and a never-true
+sentinel for the threshold. Temperatures publish in Kelvin, so reuse the `value < 100` sentinel.
+`flowRate` is never negative, so use `value < -1`, the shape `domestic-water-stale` already uses.
+
+**Watchdog.** `scripts/arduino-watchdog.sh` pings only `.114` and `.219` and power-cycles the
+shared Arduinos Shelly at `10.0.0.61`. This board will sit at the air handler and probably on a
+different circuit, leaving it without auto-recovery. Either extend the watchdog with a second
+plug or accept alert-only coverage and record that choice.
+
+**Grafana.** Add a new row following the house conventions: `custom.axisWidth: 50` on every
+timeseries, no per-panel `axisLabel`, and stepped-line timeseries rather than state-timeline for
+the boolean `running`, since state-timeline cannot set row-label width and will not align.
+Panels: the two ΔTs on one axis, capacity, UA, and SHR.
+
+**Restart order.** Config edit, then `restart pivac-unico-mbr`, then `restart signalk`. Signal K
+freezes retired paths at their last value until the server restarts, which CLAUDE.md documents
+three times for relays, 1-Wire and Emporia, and which will recur here during development.
 
 ---
 
 ## 9. Build order
 
-Sequenced against the §0 objective: **summer comfort and capacity, both systems.**
+Sequenced against the §0 objective, summer comfort and capacity across both systems.
 
-### Costs nothing — do these first
+### Costs nothing
 
-1. **Run the §0.1 analysis on existing data.** Droop vs equipment power vs humidity, per zone,
-   on hot afternoons. All three cooling units are individually metered as of August. **This
-   decides which zone to instrument first** and may show the answer outright.
-2. ✅ **Temperature-precision fixes deployed 2026-08-18** — `pivac.OneWireTherm` (#118) and
-   `pivac.RedLink` (#119). Droop and every ΔT are quantitative from that date; earlier history
+1. Run the §0.1 analysis on existing data: droop against equipment power against humidity, per
+   zone, on hot afternoons. All three cooling units have been individually metered since August.
+   This decides which zone to instrument first and may answer the question outright.
+2. ✅ Temperature-precision fixes deployed 2026-08-18, `pivac.OneWireTherm` (#118) and
+   `pivac.RedLink` (#119). Droop and every ΔT are quantitative from that date and earlier history
    is not (§2.6.0).
-3. **Confirm which loop the 2430 is on** (§4.6). ✅ Pump taps surveyed — primary HIGH, both
-   secondaries LOW (§2.5); Loop B set to LOW (§2.5b), **raise again before heating season.**
+3. Confirm which loop the 2430 is on (§4.6). ✅ Pump taps surveyed, primary HIGH and both
+   secondaries LOW (§2.5). Loop B set to LOW (§2.5b); raise it again before heating season.
 
 ### Cheap, high value against the objective
 
-4. **Two 10K NTCs in whichever BOVA zone step 1 identifies** (§0.2) — measured sensible capacity
-   plus the airflow-starvation signature, with no water side and no flow meter. Also the way to
-   verify a zone's latent performance once its settings are biased toward sensible (§0.3).
-5. **Four DS18B20s on the two secondary loops** (§2.6.4) — starvation, mixing, flow ratios and
-   loop-idle detection for the entire chilled side, on the Pi's existing bus.
-6. **Utility-room Tier 1 sensors** (§4.8) — room ambient, and **restore leak detection**, which
-   is a regression rather than a gap.
+4. Two 10K NTCs in whichever BOVA zone step 1 identifies (§0.2), giving measured sensible
+   capacity and the airflow-starvation signature with no water side and no flow meter. This also
+   verifies latent performance in a zone whose settings are biased toward sensible (§0.3).
+5. Four DS18B20s on the two secondary loops (§2.6.4): starvation, mixing, flow ratios and
+   loop-idle detection for the whole chilled side, on the Pi's existing bus.
+6. Utility-room Tier 1 sensors (§4.8): room ambient, and restore leak detection, which closes a
+   regression.
 
 ### The node itself
 
-7. **Verify the fluid** (§2.2) and **read commanded CFM per mode** off the Smart Controller
-   (§7.2). Consider doing the 30 % glycol top-up *before* commissioning so the baseline is on
-   the final fluid.
-8. **Verify the NTC curve** (§2.3) — ice-bath check, Type II vs Type III.
-9. **Bench-build the node**, all four sensors, final firmware. **Matched-pair calibration
-    (§7.1)** — record offsets and both DS18B20 ROM addresses in this document.
-10. **`ArduinoSensor` `rounding:` change (§6.1)** → PR. Small, isolated, backwards-compatible.
-11. **Install**, DHCP-reserve by MAC, add config and the service unit.
-12. **`pivac.UnicoAH` wrapper (§6.2)** → PR. **Grafana row + freshness alerts (§8)** → PR.
-13. **Join RedLink humidity (§7.3)** for the latent split — software only, and latent is comfort.
+7. Verify the fluid (§2.2) and read commanded CFM per mode off the Smart Controller (§7.2).
+   Consider doing the 30 % glycol top-up before commissioning, so the baseline sits on the final
+   fluid.
+8. Verify the NTC curve (§2.3) with an ice-bath check, Type II against Type III.
+9. Bench-build the node with all four sensors and final firmware, then run matched-pair
+   calibration (§7.1). Record the offsets and both DS18B20 ROM addresses in this document.
+10. `ArduinoSensor` `rounding:` change (§6.1) as a PR. Small, isolated, backwards-compatible.
+11. Install, DHCP-reserve by MAC, and add the config and service unit.
+12. `pivac.UnicoAH` wrapper (§6.2) as a PR, then the Grafana row and freshness alerts (§8).
+13. Join RedLink humidity (§7.3) for the latent split. Software only, and latent is comfort.
 
 ### Only if the data asks for it
 
-14. **Flow meter**, primary loop first (§2.6.1) — it converts every ratio into an absolute
-    number for *all* loops, which is better value than a per-coil meter.
-15. **Commissioning check (§7.2):** in heating, `CFM_derived / CFM_commanded` ≈ 1.0. This is the
-    acceptance test for the whole chain — heating is otherwise deprioritised, but it is the only
-    latent-free window in which to validate the measurement.
-16. **`wsup − IN` reverse-mixing series (§2.5f)** — one subtraction, verification not diagnosis.
-17. **Collect a cooling season.** Analyse per §7.4, decide the flow question per §7.7.
+14. Flow meter, primary loop first (§2.6.1), which converts every ratio into an absolute number
+    for all loops and returns more than a per-coil meter.
+15. Commissioning check (§7.2): in heating, `CFM_derived / CFM_commanded` should approach 1.0.
+    This is the acceptance test for the whole chain. Heating is otherwise deprioritised, but it
+    is the only latent-free window for validating the measurement.
+16. `wsup − IN` reverse-mixing series (§2.5f), one subtraction, verification rather than
+    diagnosis.
+17. Collect a cooling season. Analyse per §7.4 and decide the flow question per §7.7.
 
 ## 10. Open questions
 
-- **Which loop is the 2430 on — utility room (Loop B) or one of the Loop A zones?** This is
-  the most consequential unknown left: it decides whether cooling-season flow is constant,
-  and therefore whether the flow meter is needed now or can wait a season (§4.6).
-- **Are there any balancing valves on the branches today?** Speed taps are known (§2.5);
-  per-branch balancing is the remaining unknown on the distribution side, and it is what decides
-  whether a starved loop can be fixed by redistribution or only by more total flow (§7.7).
-- **What is the Taco model on the chiller primary, and what is its curve?** Needed to judge
-  primary-vs-secondary flow in cooling (§2.5c).
-- **Does the Taco run continuously through a cooling call, or only with the compressor?** And
-  is it powered from the Chiltrix circuit (i.e. visible in `electrical.emporia.house.chiltrix`)
-  or separately?
-- **How many hydronic zones are there in total?** Four water zones fit an HZ-432 exactly
-  (3 on Loop A + utility on Loop B), but in winter kitchen and great room take hot water too,
-  which implies more zone valves than one HZ-432 has. Worth pinning down before assuming the
-  zone-valve roster.
-- **In heating, where does the hot water come from — the NTI boiler, or the Chiltrix running as
-  a heat pump?** It does not affect the capacity measurement at all (the water side is the
-  water side), but it decides whether a heating-season efficiency figure is a **COP** against
-  `electrical.emporia.house.chiltrix` or a **combustion efficiency** against gas input, which
-  is a different calculation with a different denominator (§7.5).
-- Are `IN`/`OUT` the primary-loop supply/return? (§7.5)
-- Does the CX75 expose Modbus RTU? (§7.5)
-- Which glycol — propylene or ethylene? (§2.2)
-- Is there a balancing valve on this coil with a published flow chart? (§4.6)
-
+- Which loop is the 2430 on, utility room on Loop B or one of the Loop A zones? The most
+  consequential unknown left, since it decides whether cooling-season flow is constant and
+  therefore whether the flow meter is needed now or can wait a season (§4.6).
+- Are there balancing valves on the branches today? Speed taps are known (§2.5), so per-branch
+  balancing is the remaining unknown on the distribution side. It decides whether a starved loop
+  can be fixed by redistribution or only by more total flow (§7.7).
+- What is the Taco model on the chiller primary, and what is its curve? Needed to judge
+  primary-against-secondary flow in cooling (§2.5c).
+- Does the Taco run continuously through a cooling call or only with the compressor, and is it
+  powered from the Chiltrix circuit and therefore visible in
+  `electrical.emporia.house.chiltrix`?
+- How many hydronic zones are there in total? Four water zones fit an HZ-432 exactly, three on
+  Loop A plus utility on Loop B, but in winter the kitchen and great room take hot water too,
+  implying more zone valves than one HZ-432 provides.
+- In heating, does the hot water come from the NTI boiler or from the Chiltrix running as a heat
+  pump? This does not affect the capacity measurement, since the water side is the water side,
+  but it decides whether a heating-season efficiency figure is a COP against
+  `electrical.emporia.house.chiltrix` or a combustion efficiency against gas input, which is a
+  different calculation with a different denominator (§7.5).
+- Are `IN` and `OUT` the primary-loop supply and return (§7.5)?
+- Does the CX75 expose Modbus RTU (§7.5)?
+- Which glycol, propylene or ethylene (§2.2)?
+- Is there a balancing valve on this coil with a published flow chart (§4.6)?
