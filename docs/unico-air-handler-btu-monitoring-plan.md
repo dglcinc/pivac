@@ -14,6 +14,12 @@ and cooling** (two-pipe changeover off the buffer tank). First of potentially se
   `pivac.RedLink` **already publishes that zone's humidity**
   (`environment.inside.thermostat.<ZONE>.humidity`, `pivac/RedLink.py:331`). That is the
   entering-air humidity this project would otherwise need new hardware to get (§7.3).
+- **Topology confirmed (David, 2026-08-18): the HZ-432 drives one zone valve per zone, each
+  feeding its own air handler. There are no dampers.** So this node measures one coil with its
+  own dedicated blower — CFM per handler is constant, and the RedLink thermostat maps 1:1 to
+  the air handler. But the zones **share a circulator**, which makes per-zone water flow a
+  variable rather than a constant (§4.6) — this is the fact that decides whether you buy a flow
+  meter.
 
 **Goal:** Measure the actual BTU/hr the coil delivers, and enough surrounding state to tell
 *why* it isn't delivering more. Feed it into pivac like every other sensor
@@ -286,22 +292,39 @@ domestic water meters.
 > instantaneous flow resolution. Do not rule out turbines on the strength of that note; rule
 > out *plastic* ones on the strength of the temperature and duty cycle.
 
-### 4.6 Phase 0 — you may not need a flow meter at all yet
+### 4.6 Do you need a flow meter? With shared zone valves, probably yes
 
-**Check whether this zone is constant-flow before buying anything.** If the coil is fed by a
-fixed-speed circulator through a zone valve that is simply open or closed — which is the usual
-arrangement, and is consistent with the `ZV` relay being documented as carrying no independent
-information — then GPM is a **constant**, not a variable. In that case:
+The tempting shortcut is to treat GPM as a constant: measure it once, put it in `config.yml`,
+instrument only the two water temperatures, and get ~90 % of the answer for ~10 % of the cost.
 
 ```
 Q = K × GPM_fixed × ΔT_water     →     all the variation lives in ΔT
 ```
 
-Measure flow **once** (borrowed clamp-on ultrasonic, or read the balancing valve's
-Circuit-Setter chart), put the number in `config.yml`, and instrument only the two water
-temperatures. That gets you ~90 % of the answer for ~10 % of the cost and effort, and it tells
-you immediately whether a permanent flow meter is worth it. If the zone turns out to modulate
-(variable-speed circulator, ECM pump on ΔP control), buy the meter.
+**The confirmed topology probably rules this out.** Three zone valves feeding three air
+handlers off a **common circulator** means the zones are hydraulically coupled: when a second
+zone valve opens, total system flow rises but head falls, so **flow through *this* coil drops**.
+Per-zone GPM is therefore a function of how many other zones happen to be calling — and it
+varies most on design days, when two or three zones run together, which is exactly when you
+most want the capacity number to be right. A fixed constant would be accurate only in the
+single-zone case and would silently overstate capacity whenever it matters.
+
+The shortcut is only safe if one of these holds:
+
+| Condition | Why it rescues the shortcut |
+|---|---|
+| Only ever **one zone calls at a time** | No sharing. Check the data — you already log all three zones' call state |
+| **ΔP-controlled (ECM) circulator** at constant Δ*P* | The pump actively holds head as valves open, so per-zone flow stays near-constant |
+| **Pressure-independent balancing valves** (PIBV) on each branch | Mechanically holds per-branch flow regardless of what else is open |
+
+**A cheap decisive test before you spend anything:** at a steady outdoor condition, log this
+coil's ΔT_water with **one zone calling**, then with **two or three**. If ΔT rises materially
+when the other zones open — at the same entering water temperature — the zones are sharing and
+flow is not constant. That test costs an afternoon and settles a $200–400 purchase.
+
+If flow does turn out to be shared, **buy the meter.** Measuring the sharing is not a
+consolation prize; per-zone flow starvation under simultaneous demand is a genuine and common
+cause of "this room can't keep up on hot days", and it is invisible without a flow measurement.
 
 ### 4.7 Pin map
 
@@ -603,8 +626,22 @@ Already flowing into InfluxDB and directly relevant:
 | `environment.inside.thermostat.<zone>.temperature` | Zone response — is the room actually recovering? |
 | `environment.inside.thermostat.<zone>.humidity` | **Entering-air RH** — the latent split, free (§7.3) |
 | `environment.outside.thermostat.temperature` | Load normalisation |
-| `electrical.ac.switch.utility.CHIL` / `ZV` / `BLR` | Call state — gate every calculation on this |
+| `electrical.ac.switch.utility.CHIL` / `BLR` | **Changeover mode** (chilled vs hot water) — *not* a per-zone gate, see below |
+| `electrical.ac.switch.utility.ZV` | Any zone valve open — system-level, same caveat |
 | `electrical.ac.arduinoThermPSI.psi` | Loop pressure — a drop precedes air-bound-coil symptoms |
+
+> **⚠️ `CHIL` is a system-wide call, not this zone's.** It asserts when **any** water-cooled
+> zone calls via the HZ-432, so with three zone valves on three air handlers it is true during
+> plenty of periods when *this* coil's valve is shut and its flow is zero. **Never gate a
+> per-air-handler calculation on `CHIL`** — the correct gate is the node's own flow
+> (`running = flow > flow_threshold`, §6.2), which is per-coil by construction.
+>
+> What `CHIL` and `BLR` *are* good for is **changeover mode** — telling you whether the water
+> arriving is chilled or hot, which selects the sign convention, the mode's `nominal_cfm`, and
+> whether a latent term exists at all. Even that is available without them: `wsup` around 45 °F
+> is cooling and around 120–140 °F is heating, so **the node can determine its own mode from
+> the supply water temperature** and the relays are only a cross-check. Prefer the
+> self-determining version — it keeps the node correct even if the relay roster changes again.
 
 > **The shortcut worth considering before the per-air-handler build.** If `IN`/`OUT` are the
 > primary-loop supply and return, then **one flow meter on the primary loop** gives you
@@ -684,12 +721,14 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
 
 ## 10. Open questions
 
-- **How many air handlers are on water?** The HZ-432 is a TrueZONE panel — if it is driving
-  **dampers** on a single air handler, then one node covers all three Chiltrix zones but CFM
-  varies with which dampers are open (which breaks the fixed-`nominal_cfm` assumption in
-  §6.2). If it is driving **zone valves** to separate air handlers — which the `ZV` relay and
-  the "secondary loops" plural in CLAUDE.md suggest — then CFM per handler is constant and the
-  design above holds as written. **This is the one unknown that changes the air-side maths.**
+- **Is the circulator fixed-speed or ΔP-controlled, and are there pressure-independent
+  balancing valves?** This decides whether per-zone flow is shared, and therefore whether the
+  flow meter is required or optional (§4.6). The two-zone-vs-one-zone ΔT test settles it.
+- **In heating, where does the hot water come from — the NTI boiler, or the Chiltrix running as
+  a heat pump?** It does not affect the capacity measurement at all (the water side is the
+  water side), but it decides whether a heating-season efficiency figure is a **COP** against
+  `electrical.emporia.house.chiltrix` or a **combustion efficiency** against gas input, which
+  is a different calculation with a different denominator (§7.5).
 - Are `IN`/`OUT` the primary-loop supply/return? (§7.5)
 - Does the CX75 expose Modbus RTU? (§7.5)
 - Can the **Unico Smart Controller report its live commanded CFM** over serial/Modbus, or does
@@ -700,4 +739,8 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
 
 *Resolved by David 2026-08-18:* the blower is a software-configurable ECM (so CFM is commanded,
 §7.2); the zone has an IAQ thermostat on RedLink (so entering-air RH is already collected,
-§7.3); the loop goes to 30 % glycol before winter (§2.2).
+§7.3); the loop goes to 30 % glycol before winter (§2.2); and **the HZ-432 drives one zone
+valve per zone, each feeding its own air handler — there are no dampers.** That last one
+confirms constant per-handler CFM and a clean 1:1 thermostat mapping, but it also means the
+zones share a circulator, which is what put the flow meter back on the required list (§4.6)
+and what makes `CHIL` invalid as a per-zone gate (§7.5).
