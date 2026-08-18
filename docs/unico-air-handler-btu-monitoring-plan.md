@@ -19,7 +19,7 @@ and cooling** (two-pipe changeover off the buffer tank). First of potentially se
   own dedicated blower — CFM per handler is constant, and the RedLink thermostat maps 1:1 to
   the air handler. But the zones **share a circulator**, which makes per-zone water flow a
   variable rather than a constant (§4.6) — this is the fact that decides whether you buy a flow
-  meter — though on Loop B in cooling it is a single-zone loop and genuinely constant (§2.5).
+  meter — though on Loop B in cooling it is a single-zone loop and constant (§2.5).
 
 **Goal:** Measure the actual BTU/hr the coil delivers, and enough surrounding state to tell
 *why* it isn't delivering more. Feed it into pivac like every other sensor
@@ -27,88 +27,78 @@ and cooling** (two-pipe changeover off the buffer tank). First of potentially se
 
 ---
 
-## 0. Priorities — read this before the rest (David, 2026-08-18)
+## 0. Priorities (David, 2026-08-18)
 
-**The objective is summer comfort and capacity, across *both* cooling systems — the two Bosch
-BOVA zones and the Chiltrix zones. Efficiency and running cost are secondary. Heating is rarely
-a problem: monitor it, do not optimise it.**
+The objective is summer comfort and capacity across both cooling systems, the two Bosch BOVA
+zones and the Chiltrix zones. Efficiency and running cost are secondary. Heating is rarely a
+problem, so monitor it and leave it alone.
 
 | Primary | Secondary / monitor-only |
 |---|---|
-| Cooling capacity and where it is lost | Boiler condensing (§4.8) — **monitor, do not chase** |
-| **Latent capacity / humidity** — comfort is not just dry-bulb | System COP, kW/ton, pump energy |
-| **The BOVA (DX) zones** (§0.2) | Unbuffered-heating short cycling (§2.5e) |
-| Airflow, on both systems | Heating-season anything, except as a calibration window (§7.2) |
+| Cooling capacity and where it is lost | Boiler condensing (§4.8): monitor, do not chase |
+| Latent capacity and humidity | System COP, kW/ton, pump energy |
+| The BOVA (DX) zones (§0.2) | Unbuffered-heating short cycling (§2.5e) |
+| Airflow, on both systems | Heating season, except as a calibration window (§7.2) |
 
-Two consequences worth stating plainly:
+The BOVA zones have no water side, so §2.2 (glycol), §2.6 (tees) and §4.5 (flow meter) do not
+apply to them. The air-side instrumentation does, and for those zones it is most of the job.
+Efficiency metrics stay in the plan only where they fall out of data already collected, and
+they never justify buying hardware.
 
-- **The BOVA (DX) zones are in scope.** They have no water side at all, so most of §2 does not
-  apply to them — but the **air-side instrumentation in this plan is identical**, and it is the
-  part that matters for them. See §0.2.
-- **Efficiency metrics are kept where they cost nothing** (they fall out of data already
-  collected) and are not a reason to buy hardware.
+### 0.1 The first question is already answerable from existing data
 
-### 0.1 Step zero costs nothing: the question is already answerable
-
-Every cooling unit in the house is **individually metered** — verified live 2026-08-18:
-`electrical.emporia.house.bova_great_room`, `…bova_kitchen`, `…chiltrix`.
-
-So the central question can be answered from existing InfluxDB data, with no new hardware:
-
-> **On a hot afternoon, is a drooping zone running its equipment at maximum, or not?**
+Every cooling unit in the house is individually metered, verified live 2026-08-18:
+`electrical.emporia.house.bova_great_room`, `…bova_kitchen`, `…chiltrix`. That settles the
+question this plan exists to answer: on a hot afternoon, is a drooping zone running its
+equipment at maximum?
 
 | Droop (zone temp − `coolset`) | Equipment power | Diagnosis |
 |---|---|---|
-| High | at/near max, near-continuous | **Capacity-limited** — need more capacity, more airflow, or less load |
-| High | well below max | **Control-limited** — the unit is not trying. Modulation, staging, or sensing |
-| Low, but the room feels wrong | any | **Latent** — check `…thermostat.<ZONE>.humidity`; sensible is fine, moisture is not |
+| High | at or near max, near-continuous | Capacity-limited: needs more capacity, more airflow, or less load |
+| High | well below max | Control-limited: the unit is not trying. Modulation, staging, or sensing |
+| Low, but the room feels wrong | any | Latent: check `…thermostat.<ZONE>.humidity`. Sensible is fine, moisture is not |
 
-Series to join: `environment.inside.thermostat.<ZONE>.temperature` and `.coolset` and
-`.humidity`, `environment.outside.thermostat.temperature`, and the three power measurements
-above. **Run this before buying anything** — it decides which zone deserves instrumentation
-first.
+Join `environment.inside.thermostat.<ZONE>.temperature`, `.coolset` and `.humidity` with
+`environment.outside.thermostat.temperature` and the three power measurements. Run this before
+buying anything; it decides which zone deserves instrumentation first.
 
-> **⚠️ Droop data is only quantitative from 2026-08-18.** Both `pivac.OneWireTherm` and
-> `pivac.RedLink` emitted whole-Kelvin temperatures until then — and `RedLink` *truncated*, so
-> every zone read up to 1.8 °F cold, always downward, which biased droop **low**. Both are fixed
-> (PRs #118, #119) and now emit 2-decimal Kelvin. **InfluxDB history before that date stays
-> quantised, so start any droop analysis at the fix date.** Setpoints likewise now keep
-> Honeywell's half-degree steps.
+> ⚠️ Droop data is quantitative only from 2026-08-18. `pivac.OneWireTherm` and `pivac.RedLink`
+> both emitted whole-Kelvin temperatures until then, and `RedLink` truncated rather than
+> rounded, so every zone read up to 1.8 °F cold and droop was biased low. PRs #118 and #119
+> fixed both; they now emit 2-decimal Kelvin, and setpoints keep Honeywell's half-degree steps.
+> InfluxDB history before that date stays quantised, so start any droop analysis at the fix date.
 
-### 0.2 The BOVA (DX) zones — same air-side rig, no water side
+### 0.2 The BOVA (DX) zones use the same air-side rig with no water side
 
-The kitchen (`BOS1`) and great room (`BOS2`) are Unico air handlers on **Bosch BOVA inverter
-condensers**. There is no water, so §2.2 (glycol), §2.6 (tees), §4.5 (flow meter) and the
-water-side half of §4 are all irrelevant to them. What *does* apply is **§4.4 — two 10K NTCs in
-the supply and return plenums** — plus the commanded ECM airflow, and that is nearly the whole
-job:
+The kitchen (`BOS1`) and great room (`BOS2`) are Unico air handlers on Bosch BOVA inverter
+condensers. Two 10K NTCs in the supply and return plenums (§4.4), plus the commanded ECM
+airflow, give measured sensible capacity:
 
 ```
 Q_sensible = 1.08 × CFM_commanded × ΔT_air
 ```
 
-with latent inferred from the zone's RedLink humidity (§7.3) and the condenser's own power
-already metered. **Two thermistors per BOVA zone gets you measured sensible capacity, a latent
-estimate, and an EER cross-check** — no Arduino water plumbing, no flow meter.
+Latent comes from the zone's RedLink humidity (§7.3), and the condenser's power is already
+metered, which supplies an EER cross-check. No water plumbing and no flow meter.
 
-> **The mechanism that makes airflow the lever on these units.** Prior analysis established
-> from the BOVA IOM that **the compressor modulates on suction pressure only** — `Y2` never
-> reaches the condenser, so the thermostat cannot ask it to work harder. That makes low airflow
-> **self-reinforcing**: less air over the coil → lower suction pressure → the compressor
-> modulates *down* → less capacity → the room drifts further. Note this means a zone can look
-> "control-limited" (compressor below max) and be "airflow-limited" at the same time, because
-> the airflow is what *causes* the modulation.
+> Airflow drives capacity on these units because the compressor modulates on suction pressure.
+> The thermostat's `Y2` selects the air handler's second-stage fan speed, so a second-stage call
+> reaches the compressor through airflow rather than through any wire to the condenser (§0.3).
+> Low airflow is therefore self-reinforcing: less air over the coil lowers suction pressure, the
+> compressor modulates down, capacity falls, and the room drifts further. A zone can read as
+> control-limited, with the compressor below maximum, and be airflow-limited at the same time,
+> because the airflow causes the modulation.
 >
-> **Diagnostic signature, readable from two thermistors plus the existing CT:**
+> Two thermistors plus the existing CT separate the cases:
 >
 > | Air ΔT | Condenser power | Meaning |
 > |---|---|---|
-> | **High** | **low** | Airflow-starved, self-limiting via suction pressure — the case above |
-> | normal | at max | Genuinely capacity-limited at these conditions |
+> | High | low | Airflow-starved, self-limiting through suction pressure |
+> | normal | at max | Capacity-limited at these conditions |
 > | low | low | Not calling, or short-cycling |
 >
-> Optional and cheap: a thermistor clamped to the **suction line** at the air handler. A
-> persistently very cold suction line with low airflow is the freezing/starvation signature.
+> A thermistor clamped to the suction line is a cheap addition. A persistently cold suction line
+> with low airflow indicates starvation or freezing.
 
 ### 0.3 Can `Y2` be signalled, or the compressor driven higher? — answered from the IOM
 
@@ -133,14 +123,13 @@ is no second-stage input on the condenser and nothing to wire to it.
 > **`Y2` is not useless, though — it belongs to the *air handler*.** The thermostat's `Y2` drives
 > the Unico blower's **second-stage fan speed**, and that is how a second-stage call reaches the
 > compressor: **indirectly, through air.** More airflow puts more heat into the coil, which
-> raises evaporator pressure, which ramps the compressor (§0.3 below). So `Y2` is a real and
-> important lever — just an *airflow* lever, not a compressor one. **A disabled `Y2` fan wire
+> raises evaporator pressure, which ramps the compressor (§0.3 below). So `Y2` controls airflow, not the compressor. **A disabled `Y2` fan wire
 > starves the coil on exactly the hot days when the second stage is called for**, and because the
 > compressor modulates on suction pressure it responds by slowing down, which is the
 > self-reinforcing failure in §0.2. Confirm `Y2` is connected and functional at the air handler
 > before diagnosing anything else on a BOVA zone.
 
-#### Suction pressure — the right lever exists, and it is already pulled
+#### Suction pressure has one adjustment, and it is already set
 
 Suction pressure is a *dependent* variable: it is the result of load, airflow, and charge, so
 it cannot be "managed" directly to make the compressor work harder. What the manual does expose
@@ -168,13 +157,13 @@ capacity switch. **The compressor is already running as hard as the controls all
 > **Which relocates the problem, and confirms where this plan should spend.** If the unit is at
 > maximum commanded speed and the zone still drifts, the constraint is **downstream of the
 > compressor** — refrigerant **mass flow** (charge) or **evaporator heat transfer** (airflow),
-> not control. That is precisely the pair §0.2 is built to separate, and it is why two
+> not control. §0.2 is built to separate that pair, which is why two
 > thermistors on that air handler are worth more here than any further control tinkering.
 > The outstanding **subcooling check** is the other half: the manual makes subcooling the *only*
 > recommended charging method above 55 °F outdoor ambient (weigh-in below that), and prior notes
 > carry a target of **10 ± 2 °F**.
 
-#### ⚠️ SW4-3 may be trading away the comfort you actually want
+#### ⚠️ SW4-3 may be trading away the comfort you want
 
 The manual ties SW4 to "improved **dehumidification** *and* capacity demands" — the two are a
 **tradeoff**, not a package. Disabling adaptive capacity holds the target evaporator pressure
@@ -187,14 +176,14 @@ per-zone humidity. **Run SW4-3 OFF for a few comparable hot days and compare dro
 humidity against the SW4-3 ON period.** If droop is unchanged and humidity falls, adaptive
 capacity was the better setting all along.
 
-#### Two board features worth knowing
+#### Two board features
 
 - **"Forced operation button"** (control-board legend items 16/21, with its own display code) —
   a **service/commissioning** function that runs the unit independent of the thermostat. Useful
   for a controlled capacity test; **not** a capacity boost and not for continuous operation.
 - **"Digital tube display"** (item 18) — the Hz readout already used once. Read it *during* the
   air-side measurements so commanded frequency, air ΔT and condenser watts are captured
-  together; that triple is what distinguishes starved from genuinely maxed.
+  together; that triple distinguishes a starved coil from a maxed one.
 
 #### Should it "just work"? Yes — and the way to help it is to *feed* the loop, not fool it
 
@@ -211,8 +200,7 @@ coil*, which is `airflow × enthalpy difference`. It **cannot distinguish "low l
 with constrained airflow, a hot room produces a *slow* compressor, which is the opposite of what
 you want and is self-reinforcing (§0.2).
 
-**Therefore the lever is airflow, and using it is not a trick — it is the control working as
-designed:**
+**Airflow is therefore the adjustment, and using it is the control working as designed:**
 
 ```
 more CFM → more heat into the coil → higher suction pressure → compressor ramps up
@@ -221,7 +209,7 @@ more CFM → more heat into the coil → higher suction pressure → compressor 
 There are two ways to deliver it, and they stack:
 
 - **The thermostat's `Y2`**, which selects the blower's second-stage speed on a second-stage
-  call. This is the demand-following half — it only raises airflow when the zone actually asks
+  call. This is the demand-following half — it only raises airflow when the zone asks
   for more. **It must be connected for a BOVA zone to reach full capacity on a hot day.**
 - **The base CFM setting** on the Unico Smart Controller, which sets the floor both stages work
   from. Software, free, reversible (§0.3 below).
@@ -246,7 +234,7 @@ the SW4-3 question above. A zone can be pushed to setpoint and still feel clammy
 
 **Judging an airflow change costs nothing.** Both BOVAs have their own CT and RedLink logs
 per-zone humidity, so compare **droop *and* humidity** across comparable hot days. Two
-thermistors (§0.2) additionally show whether air ΔT moved as expected, confirming airflow really
+thermistors (§0.2) additionally show whether air ΔT moved as expected, confirming airflow
 changed rather than the ECM merely being told to change it.
 
 > **The structural limit.** The Unico blower and the BOVA compressor **do not communicate** —
@@ -258,7 +246,7 @@ changed rather than the ECM merely being told to change it.
 > protocol would not help: the pause is the blocker, not the protocol. **CFM is a static
 > setting. Plan around that rather than against it.**
 
-#### What a static CFM actually means — it is the knob that biases the compressor
+#### A static CFM sets where the compressor operates
 
 This is the useful mental model, and it follows directly from §0.3. The compressor is the only
 dynamic element in the pair, and it modulates on suction pressure, which is set by how much heat
@@ -269,11 +257,11 @@ the airflow delivers. So:
 > capacity, at a warmer coil and less dehumidification. Lower CFM → the opposite.
 
 That converts an apparently open-ended control problem into a **small, finite tuning exercise**:
-two knobs, both static, both free to change, with measurable outcomes.
+two static settings, both free to change, with measurable outcomes.
 
-| Knob | Options | Effect |
+| Setting | Options | Effect |
 |---|---|---|
-| **Unico CFM** | a few settings via USB | Biases the compressor's operating point (above) |
+| Unico CFM | a few settings via USB | Sets the compressor's operating point (above) |
 | **SW4-3** | ON / OFF | Adaptive capacity disabled vs enabled (§0.3) |
 
 Evaluate each combination on **droop *and* humidity** over comparable hot days — both already
@@ -364,7 +352,7 @@ compute, so it is worth ten minutes with a refractometer.
 > anticipated they will read as a fault:
 >
 > 1. **`K` drops ~481 → ~476.** Update `fluid_k` in `config.yml` **on the day of the change**.
->    Leave it stale and every subsequent BTU figure is ~1 % high. This is precisely why the
+>    Leave it stale and every subsequent BTU figure is ~1 % high. This is why the
 >    constant lives in config and the Arduino computes no BTUs (§5) — it is a `git pull`, not
 >    a reflash.
 > 2. **Real capacity drops slightly.** Higher glycol means lower specific heat, higher
@@ -378,7 +366,7 @@ compute, so it is worth ten minutes with a refractometer.
 > **Add a Grafana annotation on the changeover date.** A year from now, an unexplained step in
 > the UA trend is exactly the kind of thing that gets misdiagnosed as fouling.
 
-### 2.3 ΔT precision is the entire ballgame
+### 2.3 ΔT precision sets the accuracy of every capacity figure
 
 Capacity error is directly proportional to ΔT error. At a design ΔT_water of 10 °F:
 
@@ -465,7 +453,7 @@ Three consequences fall straight out of this:
 
 **a) Loop B in cooling is a single-zone loop — hydraulically isolated.** With one zone valve
 open and one pump running, there is nothing to share flow with. **If the 2430 is the utility
-room, its cooling-season flow genuinely is constant**, the fixed-GPM shortcut in §4.6 is valid
+room, its cooling-season flow is constant**, the fixed-GPM shortcut in §4.6 is valid
 for the whole cooling season, and it is by far the easiest first instrumentation target. It
 only becomes a shared loop in winter, when kitchen and great room join it.
 
@@ -489,7 +477,7 @@ shows up as zones that cannot hold setpoint on a cold design day. **Treat a very
 > into winter would starve the kitchen and great room in heating, and it would present as a
 > boiler or zone-valve fault rather than as a pump setting.
 
-**What to watch on LOW**, while nothing on this loop is instrumented: **if the loop is genuinely
+**What to watch on LOW**, while nothing on this loop is instrumented: **if the loop is
 overpumped, the utility room should hold setpoint exactly as it does on MED** — coil capacity
 saturates above design flow (§7.7), so the only thing that changes is pump energy. *No comfort
 change is the success case here, not a null result.* If the utility room instead starts drifting
@@ -522,7 +510,7 @@ generally runs only when that source runs — so if a source stops while a secon
 circulating, primary flow goes to zero and the secondary recirculates its own return water,
 delivering *return* temperature to the coil while the zone still calls.
 
-**In cooling the buffer tank prevents this**, which is precisely its job: the primary return is
+In cooling the buffer tank prevents this, which is its job: the primary return is
 routed through the tank, so there is a reservoir of chilled water between compressor cycles.
 
 **In heating the primary return goes to the boiler loop, bypassing the tank — so there is no
@@ -566,9 +554,9 @@ misdiagnosed as an undersized chiller.
 > **but this is the constraint that bounds how far you can raise the secondaries** if §2.5d
 > turns out to be right and the zones are starved. Raising a secondary tap trades a starvation
 > problem for a mixing problem, and `wsup − IN` is what tells you where the line is. If you hit
-> it, the primary taps are already at HIGH, so the next lever is a larger primary pump. **Plot `wsup − IN` as a first-class series.** It is nearly
+> it, the primary taps are already at HIGH, so the next step is a larger primary pump. **Plot `wsup − IN` as a first-class series.** It is nearly
 > free and it catches a design-level fault that no amount of coil-side analysis would find.
-> (Confirm `IN`/`OUT` really are the primary header before relying on the sign — §10.)
+> (Confirm `IN`/`OUT` are the primary header before relying on the sign — §10.)
 
 ---
 
@@ -615,7 +603,7 @@ zone**, from sensors already installed. Add the one missing term and it also giv
 - **Delivered-vs-fired efficiency in heating** — against `hvac.boiler.sentry.gasInputValue`.
 
 **This is the single highest-value flow meter in the system**, and it is *not* on a coil. One
-sensor answers "is the plant efficient and how much heat is this house actually moving",
+sensor answers "is the plant efficient and how much heat is this house moving",
 which no amount of per-coil instrumentation reaches.
 
 #### 2.6.2 The flow ratio falls out of temperatures alone — no meter at all
@@ -634,8 +622,7 @@ GPM_sec / GPM_pri  =  (T_ps − T_pr) / (T_ps − T_sr)  =  ΔT_primary / ΔT_se
 ```
 
 **So the ratio of the two ΔTs *is* the flow ratio.** It holds in both regimes — if the
-secondary overdraws, it pulls back through the return tee, the ratio exceeds 1, and that is
-precisely the reverse-mixing condition:
+secondary overdraws, it pulls back through the return tee, the ratio exceeds 1, which is the reverse-mixing condition:
 
 | ΔT_pri / ΔT_sec | Meaning |
 |---|---|
@@ -666,7 +653,7 @@ its zone valve shut shows supply ≈ return and both drifting toward ambient. So
 hard signal is ever wanted, CLAUDE.md lists BCM 13/33, 16/36 and 24/18 as free inputs with
 existing wire runs.)
 
-#### 2.6.4 Four DS18B20s, and what they unlock
+#### 2.6.4 What four DS18B20s measure
 
 Add supply and return on each secondary loop — `LOOPA_SUP`, `LOOPA_RET`, `LOOPB_SUP`,
 `LOOPB_RET` — on the Pi's existing 1-wire bus, taking it from 4 sensors to 8. Together with
@@ -835,7 +822,7 @@ domestic water meters.
 
 | If the 2430 is… | Cooling season | Winter | Verdict |
 |---|---|---|---|
-| **Utility room** (Loop B) | **Single-zone loop — flow genuinely constant.** Nothing to share with | Shares Loop B with kitchen + great room | **Start without a meter.** Measure GPM once, run all cooling season on a constant, add the meter before winter if the data warrants |
+| **Utility room** (Loop B) | Single-zone loop, flow constant. Nothing to share with | Shares Loop B with kitchen + great room | **Start without a meter.** Measure GPM once, run all cooling season on a constant, add the meter before winter if the data warrants |
 | **Family room / kids / master** (Loop A) | Shares with two other zones, which all call together on hot days | Same | **Buy the meter.** Per-zone flow varies exactly when it matters |
 
 If the target is the utility room you can commission the whole chain cheaply, on constant flow,
@@ -855,7 +842,7 @@ capacity whenever it matters most.
 same entering water temperature, the zones are sharing and flow is not constant. An afternoon
 settles a $200–400 purchase — and on Loop A it also quantifies the starvation directly.
 
-Note the three-speed tap is a **per-loop** lever, not per-zone: it changes total loop flow, so
+The three-speed tap acts per loop rather than per zone: it changes total loop flow, so
 it can raise everyone or lower everyone, but it cannot redistribute between zones. That
 distinction drives §7.7.
 
@@ -894,14 +881,14 @@ Ranked by value per dollar **against the §0 objective: summer comfort and capac
 | **1× T/RH sensor — room ambient** | Mechanical room, away from the boiler | Standby losses, and it explains a *documented* problem — see below |
 | **Leak / flood detection** | Pan under boiler, buffer tank, booster pump | **This is a regression** — see below |
 
-**Boiler return temperature — worth knowing, explicitly not worth chasing (§0).** A
+**Boiler return temperature: record it, do not chase it (§0).** A
 Trinity Ti-200 is a *condensing* boiler, and it only condenses when return water is below the
 flue-gas dew point — roughly **130 °F**. Above that you lose most of the condensing gain
 (order 10 % efficiency). Hydronic air-handler coils are commonly designed around 140–180 °F
 supply, which puts return water **above** the condensing threshold, so it is entirely possible
 this boiler **never condenses in this application** and nobody would know. The Sentry already
 gives boiler supply (`hvac.boiler.sentry.waterTemp`) and outdoor temp; one DS18B20 on the
-return closes it. If it confirms non-condensing, the lever would be **outdoor reset** — lower supply temperature
+return closes it. If it confirms non-condensing, the remedy would be **outdoor reset** — lower supply temperature
 in mild weather — but that trades **coil capacity** for efficiency, and per §0 capacity is the
 priority and heating is rarely the problem. **So: record it, do not act on it.** Kept in Tier 1
 only because it is one probe on a bus that is already being extended.
@@ -921,7 +908,7 @@ insulation gaps.
 > deliberate trade of one input for another, but the *result* is that a room containing the
 > boiler, buffer tank, DHW, booster pump and the domestic water main **currently has no water
 > detection at all.** Free GPIO inputs with existing wire runs are listed as BCM 13/33, 16/36
-> and 24/18. This is the cheapest insurance in the whole document and it is not really about
+> and 24/18. This is the cheapest insurance in the whole document and it is not about
 > BTUs. (Avoid BCM 26 — CLAUDE.md documents that pad as permanently dead.)
 
 #### Tier 2 — high value, some cost
@@ -932,7 +919,7 @@ insulation gaps.
 | **2× DS18B20 — Chiltrix entering/leaving water** | Chiller-side ΔT; with `electrical.emporia.house.chiltrix` gives **chiller COP directly**, separate from distribution losses. Skip if the CX75 exposes these over Modbus (§10) |
 | **CTs on the circulators** | Definitive pump-running state (better than the §2.6.3 inference), pump energy accounting so the §7.7 flow tradeoff is *measurable* rather than argued, and a failing circulator shows as changed draw. Needs spare Emporia channels — note CLAUDE.md records four CTs were borrowed from the apartment panel for the Chiltrix |
 
-#### Tier 3 — worth knowing about
+#### Tier 3
 
 | Sensor | Why |
 |---|---|
@@ -1168,7 +1155,7 @@ already enforces.
 
 ### 7.3 Phase 2 — you may already have the humidity you need
 
-Entering-air **wet-bulb** is what actually drives a chilled-water coil's capacity, and it is
+Entering-air wet-bulb drives a chilled-water coil's capacity, and it is
 what splits total into sensible and latent. Getting it needs entering dry-bulb (you will have
 that at full precision from your own `aret` NTC) plus entering RH.
 
@@ -1179,7 +1166,7 @@ thermostat's RH is a good proxy for entering-air RH — the error is duct leakag
 infiltration into the return, not a modelling gap.
 
 So Phase 2 is largely **a software join, not a hardware purchase**: combine your `aret`
-dry-bulb with the RedLink humidity for the same zone to get entering enthalpy, which unlocks
+dry-bulb with the RedLink humidity for the same zone to get entering enthalpy, which supplies
 
 - **True SHR / latent split**, independent of the stored CFM;
 - **A CFM derivation that works in cooling too**, via `Q_total = 4.5 × CFM × Δh`, so you are
@@ -1196,7 +1183,7 @@ own data; interpolate and tolerate gaps rather than dropping the sample.
 *supply* humidity is deliberately not proposed either way: off a wet coil that air sits at
 90–98 % RH, which is both hard to measure accurately and hard on the sensor.
 
-### 7.4 What "maximum BTUs" actually means, and how to tell if you have it
+### 7.4 What "maximum BTUs" means, and how to tell if you have it
 
 Capacity is a function of five things: **entering water temp, water flow, air flow, entering
 air wet-bulb, and coil cleanliness.** Raw BTU/hr is therefore not a target — it legitimately
@@ -1231,7 +1218,7 @@ Already flowing into InfluxDB and directly relevant:
 | `electrical.emporia.house.chiltrix` (W) | **Plant power** — the denominator of COP |
 | `environment.inside.hvac.UBT/LBT.temperature` | Buffer tank stratification — is the plant keeping up? |
 | `environment.inside.hvac.IN/OUT.temperature` | Primary header supply/return — **plant-level ΔT**, and the reference for the reverse-mixing check `wsup − IN` (§2.5c) |
-| `environment.inside.thermostat.<zone>.temperature` | Zone response — is the room actually recovering? |
+| `environment.inside.thermostat.<zone>.temperature` | Zone response: is the room recovering? |
 | `environment.inside.thermostat.<zone>.humidity` | **Entering-air RH** — the latent split, free (§7.3) |
 | `environment.outside.thermostat.temperature` | Load normalisation |
 | `electrical.ac.switch.utility.CHIL` / `BLR` | **Changeover mode** (chilled vs hot water) — *not* a per-zone gate, see below |
@@ -1261,8 +1248,7 @@ Already flowing into InfluxDB and directly relevant:
 > ```
 >
 > That answers "is the plant efficient" for one sensor. The per-air-handler build answers a
-> different and complementary question — "is *this zone* getting its share" — which is the one
-> you actually asked, and which plant-level data cannot answer. Worth knowing that one meter
+> different and complementary question — "is *this zone* getting its share" — which plant-level data cannot answer. One meter
 > buys the other half cheaply. **Confirm what `IN`/`OUT` are physically on before relying on
 > this** — it is an inference from the naming, not a verified fact.
 
@@ -1282,7 +1268,7 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
 
 ---
 
-### 7.7 Would variable flow actually buy you BTUs?
+### 7.7 Would variable flow buy you BTUs?
 
 You raised this as the likely next step. The honest answer is **usually no for capacity, yes
 for efficiency and fairness** — and the instrumentation in this plan is what tells you which
@@ -1298,7 +1284,7 @@ rises roughly with the cube of flow. So:
 - **Flow at or above design ⇒ almost nothing to gain from more.** The ceiling is set by
   entering water temperature and coil UA, and more flow just burns pump watts.
 
-**The key distinction: balancing *redistributes* capacity between zones, it does not create
+**Balancing *redistributes* capacity between zones, it does not create
 it.** Total loop capacity is set by the plant and the pump. So read your data this way:
 
 | Symptom | Meaning | Right intervention |
@@ -1322,18 +1308,18 @@ it.** Total loop capacity is set by the plant and the pump. So read your data th
    Constant-ΔP mode holds per-zone flow roughly steady as valves open and close, and cuts pump
    energy substantially. **This is the standard "dynamic flow" answer and it is a drop-in
    replacement** — no custom control scheme, no pivac involvement required.
-5. **Modulating zone valves under active control.** Genuinely variable per-handler flow. This
+5. **Modulating zone valves under active control.** Variable per-handler flow. This
    is where a custom pivac control loop would live — and it is the *last* resort, because
    items 2–4 capture most of the benefit with no software, no failure modes, and nothing to
    maintain.
 
 **Do not skip to 5.** A ΔP circulator plus PIBVs solves the stated problem mechanically and
-permanently. The value pivac adds here is **measuring whether any of it worked** — which is
-precisely what you cannot do today, and precisely why the instrumentation comes first.
+permanently. The value pivac adds here is measuring whether any of it worked, which you cannot do today. That is why the
+instrumentation comes first.
 
 One caveat if you do pursue lower flow: the Chiltrix has a **minimum flow requirement**, and
 the buffer tank exists partly to satisfy it. Reducing *secondary* flow is safe because
-primary/secondary decouples the two — but confirm that decoupling really is intact (§2.5f)
+primary/secondary decouples the two — but confirm that decoupling is intact (§2.5f)
 before assuming it.
 
 ### 7.8 The right pump speed, and whether per-zone flow can be varied dynamically
@@ -1370,7 +1356,7 @@ flow or you get reverse mixing** (§2.5f).
 #### 7.8.2 Dynamic per-zone flow — you want *stable* flow, not *varying* flow
 
 The instinct is right but the target is inverted. Because capacity saturates (§7.7), there is
-little to gain from varying flow **with load**. What actually varies today is flow **with
+little to gain from varying flow with load. What varies today is flow with
 zone count** — a coil gets generous flow calling alone and a fraction of it when its
 loop-mates join, which is backwards, since the many-zones case is the design day.
 
@@ -1391,7 +1377,7 @@ adjusting flow per zone", just implemented in brass rather than software:
 
 #### 7.8.3 There *is* a real case for modulating flow — but it is comfort, not capacity
 
-Worth knowing because it aligns with the §0 objective. In **cooling**, water flow sets the coil
+This aligns with the §0 objective. In **cooling**, water flow sets the coil
 surface temperature, which sets the sensible/latent split:
 
 - **Higher flow → warmer coil → more sensible, less dehumidification**
@@ -1414,7 +1400,7 @@ mode into the heating *and* cooling path for a gain bounded by saturation. **Exh
 > **A ceiling that bounds all of the above:** secondary flow must stay below primary flow
 > (§2.5f), and **both primary pumps are already on HIGH.** If a loop turns out to need more flow
 > than its primary can supply, the answer is a **larger primary pump**, not a faster secondary —
-> and no amount of per-zone valve cleverness gets around it. The ΔT-ratio method in §2.6.2 tells
+> and no per-zone valve arrangement avoids it. The ΔT-ratio method in §2.6.2 tells
 > you how close to that ceiling you already are, from thermometers alone.
 
 ---
@@ -1491,7 +1477,7 @@ Sequenced against the §0 objective: **summer comfort and capacity, both systems
 ## 10. Open questions
 
 - **Which loop is the 2430 on — utility room (Loop B) or one of the Loop A zones?** This is
-  the single highest-leverage unknown left: it decides whether cooling-season flow is constant,
+  the most consequential unknown left: it decides whether cooling-season flow is constant,
   and therefore whether the flow meter is needed now or can wait a season (§4.6).
 - **Are there any balancing valves on the branches today?** Speed taps are known (§2.5);
   per-branch balancing is the remaining unknown on the distribution side, and it is what decides
