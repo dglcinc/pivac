@@ -19,7 +19,7 @@ and cooling** (two-pipe changeover off the buffer tank). First of potentially se
   own dedicated blower — CFM per handler is constant, and the RedLink thermostat maps 1:1 to
   the air handler. But the zones **share a circulator**, which makes per-zone water flow a
   variable rather than a constant (§4.6) — this is the fact that decides whether you buy a flow
-  meter.
+  meter — though on Loop B in cooling it is a single-zone loop and genuinely constant (§2.5).
 
 **Goal:** Measure the actual BTU/hr the coil delivers, and enough surrounding state to tell
 *why* it isn't delivering more. Feed it into pivac like every other sensor
@@ -161,6 +161,66 @@ A single delta is ambiguous. Both deltas together isolate the fault. That is the
 
 ---
 
+### 2.5 System topology — primary/secondary, two loops, and what it implies
+
+Confirmed by David 2026-08-18:
+
+```
+   boiler ──┐                            ┌──── Loop A pump (Grundfos UP26-99F, hi/med/lo)
+            ├──►  PRIMARY LOOP HEADER ───┤       └─ lower fam. room · kids room · master BR
+  chiller ──┘      (closely spaced tees) └──── Loop B pump (Grundfos UP26-99F, hi/med/lo)
+                                                 └─ utility room · kitchen · great room
+```
+
+One circulator per secondary loop, three speed taps each. Zone valves (HZ-432) per zone.
+
+**The seasonal asymmetry is the important part:**
+
+| | Loop A | Loop B |
+|---|---|---|
+| **Summer (chilled)** | all 3 zones on chilled water | **only the utility room** — kitchen and great room cool via their BOVAs |
+| **Winter (hot)** | all 3 zones | all 3 zones |
+
+Three consequences fall straight out of this:
+
+**a) Loop B in cooling is a single-zone loop — hydraulically isolated.** With one zone valve
+open and one pump running, there is nothing to share flow with. **If the 2430 is the utility
+room, its cooling-season flow genuinely is constant**, the fixed-GPM shortcut in §4.6 is valid
+for the whole cooling season, and it is by far the easiest first instrumentation target. It
+only becomes a shared loop in winter, when kitchen and great room join it.
+
+**b) Loop B in summer is probably overpumped.** That circulator is sized and speed-tapped for
+*three* zones in winter. Running the same tap for **one** zone in summer drives far more flow
+through that single coil than design — which shows up as an implausibly small water ΔT (3–5 °F
+rather than 8–12 °F), wasted pump energy, and elevated mixing risk (below). **Dropping Loop B
+to LOW for the cooling season is a free, reversible experiment** and the instrumentation in
+this plan is exactly what proves whether it helped. Treat a very low measured ΔT as a finding,
+not a sensor fault.
+
+**c) Primary/secondary decoupling has a specific failure mode: reverse mixing at the tees.**
+Closely spaced tees only deliver full primary supply temperature to a secondary loop while
+**secondary flow ≤ primary flow**. If a secondary pump draws *more* than the primary supplies,
+the deficit is made up by pulling water **backwards** from the return tee — blending return
+water into the supply. In cooling that means warmer water reaching the coil; in heating,
+cooler. Capacity drops and it looks exactly like "the plant can't keep up", so it gets
+misdiagnosed as an undersized chiller.
+
+> **You can already detect this, and it costs one comparison.** The node's `wsup` (water
+> entering this coil) against `environment.inside.hvac.IN.temperature` (primary supply, already
+> in InfluxDB):
+>
+> - **In cooling, `wsup` warmer than `IN` by more than pipe gain ⇒ reverse mixing.** The
+>   secondary pump is overpumping its loop relative to primary flow.
+> - **In heating, `wsup` cooler than `IN` by the same logic ⇒ same fault, opposite sign.**
+>
+> With **both** secondary pumps running, combined secondary flow is what has to stay under
+> primary flow — so the worst case is a winter day with both loops calling, and the fix is a
+> speed tap, not a bigger chiller. **Plot `wsup − IN` as a first-class series.** It is nearly
+> free and it catches a design-level fault that no amount of coil-side analysis would find.
+> (Confirm `IN`/`OUT` really are the primary header before relying on the sign — §10.)
+
+---
+
 ## 3. Scope boundary (what this plan does *not* touch)
 
 Explicitly out of scope, so the change stays reviewable:
@@ -292,39 +352,35 @@ domestic water meters.
 > instantaneous flow resolution. Do not rule out turbines on the strength of that note; rule
 > out *plastic* ones on the strength of the temperature and duty cycle.
 
-### 4.6 Do you need a flow meter? With shared zone valves, probably yes
+### 4.6 Do you need a flow meter? It depends which loop the 2430 is on
 
-The tempting shortcut is to treat GPM as a constant: measure it once, put it in `config.yml`,
-instrument only the two water temperatures, and get ~90 % of the answer for ~10 % of the cost.
+**This is the one fact that decides the BOM**, and §2.5 splits it cleanly:
 
-```
-Q = K × GPM_fixed × ΔT_water     →     all the variation lives in ΔT
-```
+| If the 2430 is… | Cooling season | Winter | Verdict |
+|---|---|---|---|
+| **Utility room** (Loop B) | **Single-zone loop — flow genuinely constant.** Nothing to share with | Shares Loop B with kitchen + great room | **Start without a meter.** Measure GPM once, run all cooling season on a constant, add the meter before winter if the data warrants |
+| **Family room / kids / master** (Loop A) | Shares with two other zones, which all call together on hot days | Same | **Buy the meter.** Per-zone flow varies exactly when it matters |
 
-**The confirmed topology probably rules this out.** Three zone valves feeding three air
-handlers off a **common circulator** means the zones are hydraulically coupled: when a second
-zone valve opens, total system flow rises but head falls, so **flow through *this* coil drops**.
-Per-zone GPM is therefore a function of how many other zones happen to be calling — and it
-varies most on design days, when two or three zones run together, which is exactly when you
-most want the capacity number to be right. A fixed constant would be accurate only in the
-single-zone case and would silently overstate capacity whenever it matters.
+If the target is the utility room you can commission the whole chain cheaply, on constant flow,
+and let a season of data tell you whether the meter is worth it. That is a materially better
+starting position than Loop A, and worth considering when choosing which handler to do first
+even if Loop A is where the comfort complaint lives.
 
-The shortcut is only safe if one of these holds:
+**Why sharing matters on Loop A.** Three zone valves on one fixed-speed circulator are
+hydraulically coupled: opening a second valve lowers loop head, so **flow through this coil
+drops**. Per-zone GPM becomes a function of how many other zones are calling — and it is
+lowest on design days when all three run together, which is exactly when the capacity number
+needs to be right. A fixed constant would be accurate single-zone and would silently overstate
+capacity whenever it matters most.
 
-| Condition | Why it rescues the shortcut |
-|---|---|
-| Only ever **one zone calls at a time** | No sharing. Check the data — you already log all three zones' call state |
-| **ΔP-controlled (ECM) circulator** at constant Δ*P* | The pump actively holds head as valves open, so per-zone flow stays near-constant |
-| **Pressure-independent balancing valves** (PIBV) on each branch | Mechanically holds per-branch flow regardless of what else is open |
+**The cheap decisive test, either way:** at a steady outdoor condition, log this coil's
+ΔT_water with **one zone calling**, then with **two or three**. If ΔT rises materially at the
+same entering water temperature, the zones are sharing and flow is not constant. An afternoon
+settles a $200–400 purchase — and on Loop A it also quantifies the starvation directly.
 
-**A cheap decisive test before you spend anything:** at a steady outdoor condition, log this
-coil's ΔT_water with **one zone calling**, then with **two or three**. If ΔT rises materially
-when the other zones open — at the same entering water temperature — the zones are sharing and
-flow is not constant. That test costs an afternoon and settles a $200–400 purchase.
-
-If flow does turn out to be shared, **buy the meter.** Measuring the sharing is not a
-consolation prize; per-zone flow starvation under simultaneous demand is a genuine and common
-cause of "this room can't keep up on hot days", and it is invisible without a flow measurement.
+Note the three-speed tap is a **per-loop** lever, not per-zone: it changes total loop flow, so
+it can raise everyone or lower everyone, but it cannot redistribute between zones. That
+distinction drives §7.7.
 
 ### 4.7 Pin map
 
@@ -622,7 +678,7 @@ Already flowing into InfluxDB and directly relevant:
 |---|---|
 | `electrical.emporia.house.chiltrix` (W) | **Plant power** — the denominator of COP |
 | `environment.inside.hvac.UBT/LBT.temperature` | Buffer tank stratification — is the plant keeping up? |
-| `environment.inside.hvac.IN/OUT.temperature` | Hydronic loop supply/return — **plant-level ΔT** |
+| `environment.inside.hvac.IN/OUT.temperature` | Primary header supply/return — **plant-level ΔT**, and the reference for the reverse-mixing check `wsup − IN` (§2.5c) |
 | `environment.inside.thermostat.<zone>.temperature` | Zone response — is the room actually recovering? |
 | `environment.inside.thermostat.<zone>.humidity` | **Entering-air RH** — the latent split, free (§7.3) |
 | `environment.outside.thermostat.temperature` | Load normalisation |
@@ -674,6 +730,62 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
 
 ---
 
+### 7.7 Would variable flow actually buy you BTUs?
+
+You raised this as the likely next step. The honest answer is **usually no for capacity, yes
+for efficiency and fairness** — and the instrumentation in this plan is what tells you which
+case you are in.
+
+**Coil capacity versus water flow is a saturating curve.** Below design flow, capacity climbs
+steeply — recovering from 50 % to 100 % of design flow can be worth 20–25 % capacity. Above
+design flow it flattens hard: going from 100 % to 150 % buys perhaps 3–5 %, while pumping power
+rises roughly with the cube of flow. So:
+
+- **Flow below design ⇒ real capacity on the table.** Fix it, and it is usually the cheapest
+  fix available.
+- **Flow at or above design ⇒ almost nothing to gain from more.** The ceiling is set by
+  entering water temperature and coil UA, and more flow just burns pump watts.
+
+**The key distinction: balancing *redistributes* capacity between zones, it does not create
+it.** Total loop capacity is set by the plant and the pump. So read your data this way:
+
+| Symptom | Meaning | Right intervention |
+|---|---|---|
+| One room short while another overshoots | Maldistribution | **Balance the branches** — this is exactly what balancing fixes |
+| All rooms on a loop short together | Loop-wide shortfall | Speed tap, or the plant (EWT). Balancing does nothing |
+| Water ΔT very low (3–5 °F) | Overpumped | Lower the tap. Also check for reverse mixing (§2.5c) |
+| Water ΔT high (>15 °F) with low capacity | Starved | More flow, or find the restriction |
+
+**Intervention ladder, cheapest first:**
+
+1. **Check the existing speed taps.** Free, already installed, and per §2.5b Loop B is a
+   plausible candidate for being one tap too high in summer. Do this before anything else.
+2. **Static balancing valves** per branch, set so each zone gets design flow in the *worst*
+   case (all zones open). Cheap, mechanical, no controls, and it directly targets the
+   maldistribution row above.
+3. **Pressure-independent balancing valves (PIBV)** per branch — mechanically hold per-branch
+   flow regardless of what other valves do. This is the clean answer to "flow varies with how
+   many zones are calling" and needs no controls at all.
+4. **Swap the UP26-99F for a ΔP-controlled ECM circulator** (Grundfos ALPHA2 / MAGNA3 class).
+   Constant-ΔP mode holds per-zone flow roughly steady as valves open and close, and cuts pump
+   energy substantially. **This is the standard "dynamic flow" answer and it is a drop-in
+   replacement** — no custom control scheme, no pivac involvement required.
+5. **Modulating zone valves under active control.** Genuinely variable per-handler flow. This
+   is where a custom pivac control loop would live — and it is the *last* resort, because
+   items 2–4 capture most of the benefit with no software, no failure modes, and nothing to
+   maintain.
+
+**Do not skip to 5.** A ΔP circulator plus PIBVs solves the stated problem mechanically and
+permanently. The value pivac adds here is **measuring whether any of it worked** — which is
+precisely what you cannot do today, and precisely why the instrumentation comes first.
+
+One caveat if you do pursue lower flow: the Chiltrix has a **minimum flow requirement**, and
+the buffer tank exists partly to satisfy it. Reducing *secondary* flow is safe because
+primary/secondary decouples the two — but confirm that decoupling really is intact (§2.5c)
+before assuming it.
+
+---
+
 ## 8. Operational integration
 
 - **Freshness alert.** Add rules to `grafana/provisioning/alerting/sensor-freshness.yaml`
@@ -697,8 +809,12 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
 
 ## 9. Build order
 
-1. **Phase 0 (§4.6)** — determine whether the zone is constant-flow. Measure GPM once. This
-   may remove the flow meter from the BOM entirely.
+0. **Free levers first, before buying anything.** Confirm which loop the 2430 is on (§4.6);
+   check both Grundfos speed taps and consider dropping Loop B to LOW for the cooling season
+   (§2.5b). Neither costs anything and both change what the baseline data means.
+1. **Phase 0 (§4.6)** — determine whether this zone is constant-flow. On Loop B in cooling it
+   is by construction; on Loop A run the one-zone-vs-three ΔT test. This may remove the flow
+   meter from the BOM for now.
 2. **Verify the fluid (§2.2)** — glycol type and concentration by refractometer → set `fluid_k`.
    If the 30 % top-up is imminent, consider doing it **before** commissioning so the baseline
    is taken on the final fluid and there is no discontinuity to explain later.
@@ -715,15 +831,23 @@ gets plant-side data with no plumbing work at all. Verify against the unit's man
     This is the acceptance test for the whole chain — if it fails, the flow meter or the
     temperature offsets are wrong, and no amount of later analysis will fix that.
 12. **Join RedLink humidity (§7.3)** for the latent split. Software only.
-13. **Collect a season.** Then analyse per §7.4.
+13. **Add the `wsup − IN` reverse-mixing series (§2.5c).** One subtraction, no new hardware,
+    and it catches a design-level fault that coil-side analysis cannot.
+14. **Collect a season.** Then analyse per §7.4 and decide the flow question per §7.7.
 
 ---
 
 ## 10. Open questions
 
-- **Is the circulator fixed-speed or ΔP-controlled, and are there pressure-independent
-  balancing valves?** This decides whether per-zone flow is shared, and therefore whether the
-  flow meter is required or optional (§4.6). The two-zone-vs-one-zone ΔT test settles it.
+- **Which loop is the 2430 on — utility room (Loop B) or one of the Loop A zones?** This is
+  the single highest-leverage unknown left: it decides whether cooling-season flow is constant,
+  and therefore whether the flow meter is needed now or can wait a season (§4.6).
+- **Are there any balancing valves on the branches today, and what are both Grundfos speed taps
+  set to?** Free to check, and §2.5b suggests Loop B may be a tap too high in summer.
+- **How many hydronic zones are there in total?** Four water zones fit an HZ-432 exactly
+  (3 on Loop A + utility on Loop B), but in winter kitchen and great room take hot water too,
+  which implies more zone valves than one HZ-432 has. Worth pinning down before assuming the
+  zone-valve roster.
 - **In heating, where does the hot water come from — the NTI boiler, or the Chiltrix running as
   a heat pump?** It does not affect the capacity measurement at all (the water side is the
   water side), but it decides whether a heating-season efficiency figure is a **COP** against
