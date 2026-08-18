@@ -116,6 +116,86 @@ estimate, and an EER cross-check** — no Arduino water plumbing, no flow meter.
 > Optional and cheap: a thermistor clamped to the **suction line** at the air handler. A
 > persistently very cold suction line with low airflow is the freezing/starvation signature.
 
+### 0.3 Can `Y2` be signalled, or the compressor driven higher? — answered from the IOM
+
+Checked against the **BOVA-36HDN1-M18M Installation Instructions** (Bosch Thermotechnology,
+06.2016) — the exact model installed here.
+
+#### `Y2` — no, and it is not a wiring omission
+
+**`Y2` does not appear anywhere in the manual (zero occurrences).** The low-voltage hook-up
+(Figure 26) gives the terminal blocks as:
+
+| Block | Terminals |
+|---|---|
+| **Outdoor unit** | `C` `Y` `B` `D/W` — *B and D/W on heat-pump models only* |
+| Indoor unit | `G` `R` `C` `W1` |
+| Thermostat | `W2` `B` `C` `R` `Y` `G` |
+
+The condenser accepts **one `Y`** — a single 24 V cooling call. §15.1 states the unit "adopts
+the same 24VAC control as any conventional Heat Pump" and does all staging *internally*. So the
+earlier note that "`Y2` never reaches the condenser" is a **property of the equipment, not of
+this installation** — there is no second-stage input to wire, and running a wire would achieve
+nothing.
+
+#### Suction pressure — the right lever exists, and it is already pulled
+
+Suction pressure is a *dependent* variable: it is the result of load, airflow, and charge, so
+it cannot be "managed" directly to make the compressor work harder. What the manual does expose
+is the **target** it modulates toward (§15.1, verbatim):
+
+> "The compressor's speed is controlled based on coil pressures monitored by pressure
+> transducer… the compressor speed will modulate relative to **evaporator pressure during
+> cooling operation**… The target pressure can automatically adjust based on compressor
+> operation so optimal capacity can be achieved. **Target pressure can manually be adjusted
+> (SW4)** to achieve improved dehumidification and capacity demands."
+
+`SW4` on the outdoor control board (Table 8):
+
+| Switch | ON | OFF |
+|---|---|---|
+| SW4-1 | *Not used* | |
+| SW4-2 | *Not used* | |
+| **SW4-3** | Adaptive capacity output **disable** | Adaptive capacity output enable |
+| **SW4-4** | **Accelerated** cooling/heating | Normally cooling/heating |
+
+**Both are already set on the great-room unit** — SW4-4 accelerated on both units, and SW4-3
+switched on in July, after which its board display read **75–77 Hz**. There is no third
+capacity switch. **The compressor is already running as hard as the controls allow.**
+
+> **Which relocates the problem, and confirms where this plan should spend.** If the unit is at
+> maximum commanded speed and the zone still drifts, the constraint is **downstream of the
+> compressor** — refrigerant **mass flow** (charge) or **evaporator heat transfer** (airflow),
+> not control. That is precisely the pair §0.2 is built to separate, and it is why two
+> thermistors on that air handler are worth more here than any further control tinkering.
+> The outstanding **subcooling check** is the other half: the manual makes subcooling the *only*
+> recommended charging method above 55 °F outdoor ambient (weigh-in below that), and prior notes
+> carry a target of **10 ± 2 °F**.
+
+#### ⚠️ SW4-3 may be trading away the comfort you actually want
+
+The manual ties SW4 to "improved **dehumidification** *and* capacity demands" — the two are a
+**tradeoff**, not a package. Disabling adaptive capacity holds the target evaporator pressure
+*higher*, which means a **warmer coil**, which means **less moisture removal**. Since the
+objective in §0 is comfort rather than raw sensible output, a great room sitting at 77 °F *and*
+humid could be **worse off** with SW4-3 on, even if sensible capacity rose.
+
+**This is now testable, and it was not before.** Both BOVAs have their own CT, and RedLink logs
+per-zone humidity. **Run SW4-3 OFF for a few comparable hot days and compare droop *and*
+humidity against the SW4-3 ON period.** If droop is unchanged and humidity falls, adaptive
+capacity was the better setting all along.
+
+#### Two board features worth knowing
+
+- **"Forced operation button"** (control-board legend items 16/21, with its own display code) —
+  a **service/commissioning** function that runs the unit independent of the thermostat. Useful
+  for a controlled capacity test; **not** a capacity boost and not for continuous operation.
+- **"Digital tube display"** (item 18) — the Hz readout already used once. Read it *during* the
+  air-side measurements so commanded frequency, air ΔT and condenser watts are captured
+  together; that triple is what distinguishes starved from genuinely maxed.
+
+**Source:** [BOVA-36HDN1-M18M Installation Instructions (Bosch, 06.2016)](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
+
 ---
 
 ## 1. Two corrections before anything else
