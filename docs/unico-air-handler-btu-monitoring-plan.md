@@ -192,13 +192,33 @@ room, its cooling-season flow genuinely is constant**, the fixed-GPM shortcut in
 for the whole cooling season, and it is by far the easiest first instrumentation target. It
 only becomes a shared loop in winter, when kitchen and great room join it.
 
-**b) Loop B in summer is probably overpumped.** That circulator is sized and speed-tapped for
-*three* zones in winter. Running the same tap for **one** zone in summer drives far more flow
-through that single coil than design — which shows up as an implausibly small water ΔT (3–5 °F
-rather than 8–12 °F), wasted pump energy, and elevated mixing risk (below). **Dropping Loop B
-to LOW for the cooling season is a free, reversible experiment** and the instrumentation in
-this plan is exactly what proves whether it helped. Treat a very low measured ΔT as a finding,
-not a sensor fault.
+**b) Loop B's speed tap is inherently a *seasonal* setting — ✅ set to LOW 2026-08-18.** That
+circulator is sized and tapped for *three* zones in winter but drives **one** zone in summer, so
+a single tap cannot be right all year:
+
+| Season | Zones on Loop B | Right tap |
+|---|---|---|
+| Summer (chilled) | 1 — utility room only | **LOW** — anything more overpumps a single coil |
+| Winter (hot) | 3 — utility, kitchen, great room | **higher** — LOW across three zones risks starving them |
+
+Overpumping a single coil shows up as an implausibly small water ΔT (3–5 °F rather than
+8–12 °F), wasted pump energy, and elevated mixing risk (§2.5c/e). Under-pumping three zones
+shows up as zones that cannot hold setpoint on a cold design day. **Treat a very low measured
+ΔT as a finding, not a sensor fault** — in either direction.
+
+> **⚠️ This must be raised again before heating season.** Nothing automates it; it is a manual
+> switch on the pump. Add it to the same seasonal ritual that already carries the manual
+> breaker-off at the chiller and the 25 % → 30 % glycol top-up (§2.2). Leaving Loop B on LOW
+> into winter would starve the kitchen and great room in heating, and it would present as a
+> boiler or zone-valve fault rather than as a pump setting.
+
+**Expected observable from the 2026-08-18 change**, given nothing on this loop is instrumented
+yet: **if the loop was genuinely overpumped, the utility room should hold setpoint exactly as
+before** — because coil capacity saturates above design flow (§7.7), the only thing that should
+change is pump energy. *No comfort change is the success case, not a null result.* If instead
+the utility room starts drifting on hot afternoons, LOW is below design flow for that coil and
+it should go back to MED. Either outcome is informative, and it costs nothing to find out —
+but it is a comfort judgement until the coil is instrumented, which is the point of the build.
 
 **c) The pump count is lopsided — two secondary pumps against one primary pump.** In winter
 every zone runs on boiler hot water, so **both** secondary UP26-99Fs can be pulling while a
@@ -842,9 +862,10 @@ before assuming it.
 
 ## 9. Build order
 
-0. **Free levers first, before buying anything.** Confirm which loop the 2430 is on (§4.6);
-   check both Grundfos speed taps and consider dropping Loop B to LOW for the cooling season
-   (§2.5b). Neither costs anything and both change what the baseline data means.
+0. **Free levers first, before buying anything.** Confirm which loop the 2430 is on (§4.6) and
+   check both Grundfos speed taps. ✅ **Loop B set to LOW 2026-08-18** (§2.5b) — watch whether
+   the utility room still holds setpoint on a hot afternoon, and **remember to raise it again
+   before heating season.** This changes what any baseline taken from here means.
 1. **Phase 0 (§4.6)** — determine whether this zone is constant-flow. On Loop B in cooling it
    is by construction; on Loop A run the one-zone-vs-three ΔT test. This may remove the flow
    meter from the BOM for now.
