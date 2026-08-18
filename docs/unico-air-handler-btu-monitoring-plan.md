@@ -194,6 +194,57 @@ capacity was the better setting all along.
   air-side measurements so commanded frequency, air ΔT and condenser watts are captured
   together; that triple is what distinguishes starved from genuinely maxed.
 
+#### Should it "just work"? Yes — and the way to help it is to *feed* the loop, not fool it
+
+**Suction pressure *is* the load signal.** Evaporator pressure settles where heat arriving at
+the coil balances heat the compressor removes. A hotter, wetter return means more heat into the
+refrigerant, higher evaporator pressure, and the control ramps the compressor up. That is a
+genuine closed loop on **actual thermal load** — arguably better than a `Y2` contact, which is
+only a proxy for load derived from room temperature. So in principle it *does* just work, and
+`Y2` would add nothing even if the terminal existed.
+
+**The catch is exactly the one you are circling.** The loop sees load *as delivered to the
+coil*, which is `airflow × enthalpy difference`. It **cannot distinguish "low load" from
+"plenty of load but not enough air to carry it"** — both present as low suction pressure. So
+with constrained airflow, a hot room produces a *slow* compressor, which is the opposite of what
+you want and is self-reinforcing (§0.2).
+
+**Therefore the lever is airflow, and using it is not a trick — it is the control working as
+designed:**
+
+```
+more CFM → more heat into the coil → higher suction pressure → compressor ramps up
+```
+
+On this air handler that is a **software CFM setting on the Unico Smart Controller** — free,
+reversible, and it needs no `Y2` and no rewiring. If `Y2` were ever wired to a higher blower
+tap it would work by this same mechanism, so a configurable ECM makes it redundant.
+
+> **⚠️ Do not raise suction pressure artificially.** Overcharging or interfering with the
+> pressure transducer would raise the number without raising real capacity — and the board runs
+> **low-pressure protection (cooling)** and **compression-ratio protection** off that same
+> transducer, so a falsified signal defeats the protections. Feed the coil more heat; do not
+> lie to it about how much heat it is getting.
+
+**The tradeoff, which matters because the objective is comfort (§0):** more CFM means a
+**warmer coil**, so sensible capacity rises and **dehumidification falls** — the same tension as
+the SW4-3 question above. Raising CFM to chase a 77 °F great room could leave it at 75 °F and
+clammy.
+
+**Zero-cost experiment available today.** The Smart Controller setting is software, both BOVAs
+have their own CT, and RedLink logs per-zone humidity — so raise CFM one step and compare
+**droop *and* humidity** across comparable hot days. Two thermistors (§0.2) would additionally
+show whether air ΔT fell as expected, confirming the airflow actually changed rather than the
+ECM merely being told to change it.
+
+> **The structural limit worth knowing.** The Unico blower and the BOVA compressor **do not
+> communicate** — no `Y2`, no comms bus, nothing. So one fixed CFM has to serve the compressor's
+> entire modulation range: too high and dehumidification suffers at low compressor speed, too
+> low and the coil starves at high speed. **That compromise is inherent to pairing a
+> non-communicating inverter with a third-party air handler, and no dip switch resolves it.**
+> The only real escape is airflow that tracks load — worth revisiting *if* the Smart Controller
+> exposes an external interface pivac could drive (§10). Speculative until the docs are checked.
+
 **Source:** [BOVA-36HDN1-M18M Installation Instructions (Bosch, 06.2016)](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
 
 ---
@@ -1339,6 +1390,9 @@ Sequenced against the §0 objective: **summer comfort and capacity, both systems
   is a different calculation with a different denominator (§7.5).
 - Are `IN`/`OUT` the primary-loop supply/return? (§7.5)
 - Does the CX75 expose Modbus RTU? (§7.5)
+- **Does the Unico Smart Controller expose an external interface** (serial/Modbus/contact) that
+  could *set* CFM, not merely report it? If so, airflow could track load and resolve the
+  non-communicating-inverter compromise in §0.3. Speculative until the controller docs are read.
 - Can the **Unico Smart Controller report its live commanded CFM** over serial/Modbus, or does
   `nominal_cfm` have to be a static config map? Does it vary airflow by stage/demand as well as
   by mode? (§7.2)
