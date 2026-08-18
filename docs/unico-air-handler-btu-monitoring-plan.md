@@ -166,13 +166,16 @@ A single delta is ambiguous. Both deltas together isolate the fault. That is the
 Confirmed by David 2026-08-18:
 
 ```
-   boiler ──┐                            ┌──── Loop A pump (Grundfos UP26-99F, hi/med/lo)
-            ├──►  PRIMARY LOOP HEADER ───┤       └─ lower fam. room · kids room · master BR
-  chiller ──┘      (closely spaced tees) └──── Loop B pump (Grundfos UP26-99F, hi/med/lo)
-                                                 └─ utility room · kitchen · great room
+  boiler ──[Grundfos UP26-99F]──┐                    ┌── Loop A [UP26-99F, hi/med/lo]
+                                ├── PRIMARY HEADER ──┤     └─ lower fam. room · kids · master BR
+ chiller ──[Taco, model TBD]────┘  (closely spaced   └── Loop B [UP26-99F, hi/med/lo]
+                                       tees)               └─ utility room · kitchen · great room
 ```
 
-One circulator per secondary loop, three speed taps each. Zone valves (HZ-432) per zone.
+**Each source carries its own primary pump** — there is no separate always-on primary
+circulator. Primary flow is therefore whatever the *currently active source* pump delivers:
+the Taco in cooling, the boiler's UP26-99F in heating. One three-speed circulator per secondary
+loop. Zone valves (HZ-432) per zone.
 
 **The seasonal asymmetry is the important part:**
 
@@ -197,7 +200,33 @@ to LOW for the cooling season is a free, reversible experiment** and the instrum
 this plan is exactly what proves whether it helped. Treat a very low measured ΔT as a finding,
 not a sensor fault.
 
-**c) Primary/secondary decoupling has a specific failure mode: reverse mixing at the tees.**
+**c) The pump count is lopsided — two secondary pumps against one primary pump.** In winter
+every zone runs on boiler hot water, so **both** secondary UP26-99Fs can be pulling while a
+**single** UP26-99F pushes the primary. If the three pumps are at comparable taps, combined
+secondary flow can approach twice primary flow. Pump count alone does not settle it — the
+primary header is typically short and fat, so one pump there may move considerably more than
+one on a long, branch-heavy secondary — but a 2-against-1 arrangement is enough of a structural
+risk that the check below belongs in the build from day one rather than in a someday list.
+**The predicted worst case is a design-day winter afternoon with both loops calling**, and the
+symptom would be reduced heating capacity that reads as a boiler falling short.
+
+**d) Source-dedicated primary pumps mean primary flow can be *zero*.** Because the primary pump
+belongs to the source, it generally runs only when that source runs. If the Chiltrix satisfies
+and its Taco stops while a secondary pump keeps circulating, primary flow through the header
+goes to zero and the secondary loop simply recirculates its own return water — the coil then
+receives *return* temperature and capacity collapses while the zone is still calling. The
+**buffer tank is what is supposed to prevent this**, by keeping a reservoir of conditioned water
+available between compressor cycles. Which makes the tank's position a load-bearing detail
+(§10): if it sits in the chilled primary, cooling is buffered and **heating may not be** — another
+reason winter is the suspect season.
+
+> **This one is directly observable with data you already collect.** `electrical.emporia.house.chiltrix`
+> distinguishes idle (~10 W) from compressor-running (up to ~3.6 kW), so correlate the coil's
+> `wsup` against it: **if entering water temperature degrades during compressor-off periods,
+> the buffer/primary is not carrying the gap.** Caveat — that CT covers the Chiltrix circuit, so
+> whether it also sees the Taco depends on how the pump is powered (§10).
+
+**e) Primary/secondary decoupling has a specific failure mode: reverse mixing at the tees.**
 Closely spaced tees only deliver full primary supply temperature to a secondary loop while
 **secondary flow ≤ primary flow**. If a secondary pump draws *more* than the primary supplies,
 the deficit is made up by pulling water **backwards** from the return tee — blending return
@@ -205,7 +234,8 @@ water into the supply. In cooling that means warmer water reaching the coil; in 
 cooler. Capacity drops and it looks exactly like "the plant can't keep up", so it gets
 misdiagnosed as an undersized chiller.
 
-> **You can already detect this, and it costs one comparison.** The node's `wsup` (water
+> **You can already detect this, and it costs one comparison — and per (c) you should expect
+> to find it.** The node's `wsup` (water
 > entering this coil) against `environment.inside.hvac.IN.temperature` (primary supply, already
 > in InfluxDB):
 >
@@ -214,8 +244,11 @@ misdiagnosed as an undersized chiller.
 > - **In heating, `wsup` cooler than `IN` by the same logic ⇒ same fault, opposite sign.**
 >
 > With **both** secondary pumps running, combined secondary flow is what has to stay under
-> primary flow — so the worst case is a winter day with both loops calling, and the fix is a
-> speed tap, not a bigger chiller. **Plot `wsup − IN` as a first-class series.** It is nearly
+> primary flow — which per (c) is exactly the 2-against-1 case, so the worst case is a winter
+> day with both loops calling, and the fix is a speed tap, not a bigger boiler. Remedies in
+> order of cost: **drop the secondary taps**, **raise the primary tap** (the boiler's UP26-99F
+> has the same three speeds), then a larger primary pump. The buffer tank smooths this
+> thermally but cannot fix a flow deficit at the tees. **Plot `wsup − IN` as a first-class series.** It is nearly
 > free and it catches a design-level fault that no amount of coil-side analysis would find.
 > (Confirm `IN`/`OUT` really are the primary header before relying on the sign — §10.)
 
@@ -844,6 +877,13 @@ before assuming it.
   and therefore whether the flow meter is needed now or can wait a season (§4.6).
 - **Are there any balancing valves on the branches today, and what are both Grundfos speed taps
   set to?** Free to check, and §2.5b suggests Loop B may be a tap too high in summer.
+- **What is the Taco model on the chiller primary, and what is its curve?** Needed to judge
+  primary-vs-secondary flow in cooling (§2.5c). *David is supplying this.*
+- **Where does the buffer tank sit — chilled primary only, or common to both sources?** Decides
+  whether the (§2.5d) zero-primary-flow gap is buffered in heating as well as cooling.
+- **Does the Taco run continuously through a cooling call, or only with the compressor?** And
+  is it powered from the Chiltrix circuit (i.e. visible in `electrical.emporia.house.chiltrix`)
+  or separately?
 - **How many hydronic zones are there in total?** Four water zones fit an HZ-432 exactly
   (3 on Loop A + utility on Loop B), but in winter kitchen and great room take hot water too,
   which implies more zone valves than one HZ-432 has. Worth pinning down before assuming the
