@@ -1324,6 +1324,87 @@ the buffer tank exists partly to satisfy it. Reducing *secondary* flow is safe b
 primary/secondary decouples the two — but confirm that decoupling really is intact (§2.5c)
 before assuming it.
 
+### 7.8 The right pump speed, and whether per-zone flow can be varied dynamically
+
+Two questions David raised once CFM turned out to be static (§0.3). They have different answers.
+
+#### 7.8.1 The right pump speed is *measurable* — and it is the lowest tap that holds ΔT in band
+
+You do not need to compute it. **Water ΔT is the readout:**
+
+| Loop ΔT (with every zone on that loop calling) | Verdict |
+|---|---|
+| **8–12 °F** | Right. This is design |
+| **> 15 °F** | **Starved** — raise the tap |
+| **< 6 °F** | **Overpumped** — lower the tap, and check for reverse mixing (§2.5e) |
+
+Sanity-check against first principles: a 2-ton coil at 10 °F design ΔT on 25 % glycol needs
+`24,000 ÷ (481 × 10) ≈ 5 GPM`, so a three-zone loop wants roughly **15 GPM** at full call.
+
+**Pick the *lowest* tap that stays in band at the worst case** — all zones on that loop calling.
+Lowest, not highest, for three reasons: capacity saturates above design flow (§7.7) so the extra
+buys nothing; pump power rises steeply with flow; and **secondary flow must stay under primary
+flow or you get reverse mixing** (§2.5e).
+
+> **This is already step 6 of the build order.** The four secondary-loop DS18B20s (§2.6.4)
+> measure exactly this, on the Pi's existing bus, with no Arduino and no flow meter.
+>
+> **But mind what loop ΔT can and cannot tell you.** It is the *aggregate* across every open
+> zone. A loop in band does **not** prove each zone is in band — one coil can be starved while
+> another runs generous, and the aggregate looks fine. **Loop sensors answer "is this loop pumped
+> right"; only per-coil sensors answer "is this zone getting its share."** That is the specific
+> gap the Arduino node fills, and the reason it stays on the roadmap rather than being dropped.
+
+#### 7.8.2 Dynamic per-zone flow — you want *stable* flow, not *varying* flow
+
+The instinct is right but the target is inverted. Because capacity saturates (§7.7), there is
+little to gain from varying flow **with load**. What actually varies today is flow **with
+zone count** — a coil gets generous flow calling alone and a fraction of it when its
+loop-mates join, which is backwards, since the many-zones case is the design day.
+
+**So the goal is per-zone flow that holds steady regardless of what other zones do.** Two
+standard, purely mechanical solutions do exactly that — and note that both *are* "dynamically
+adjusting flow per zone", just implemented in brass rather than software:
+
+| Solution | How it works | Notes |
+|---|---|---|
+| **Pressure-independent balancing valves (PIBV)** per branch | Mechanically hold branch flow at a set GPM regardless of system ΔP | Directly answers the question. No controls, no failure modes. Often taps existing ports |
+| **ΔP-controlled ECM circulator** (Grundfos ALPHA2 / MAGNA3) replacing a UP26-99F | Varies pump speed to hold constant differential pressure as valves open/close, so per-branch flow stays near-constant | **Drop-in.** Also cuts pump energy substantially. The clean version of "step the pump up when more zones call" |
+
+> **On relay-switching the UP26-99F's three taps:** technically some 3-speed circulators allow
+> external speed selection by energising different windings (never two at once), and pivac will
+> know zone-call state. **Don't.** An ALPHA2 in constant-ΔP mode does the same job autonomously,
+> continuously rather than in three steps, with a proper ECM instead of switched windings, and
+> with no wiring hazard. If the goal is pump speed that follows demand, buy the pump.
+
+#### 7.8.3 There *is* a real case for modulating flow — but it is comfort, not capacity
+
+Worth knowing because it aligns with the §0 objective. In **cooling**, water flow sets the coil
+surface temperature, which sets the sensible/latent split:
+
+- **Higher flow → warmer coil → more sensible, less dehumidification**
+- **Lower flow → colder coil → less total capacity, but more moisture removed**
+
+So for a zone that holds setpoint yet feels clammy, *reducing* flow can improve comfort while
+*reducing* BTU output. **That is the exact mirror of the CFM tradeoff in §0.3** — and it means
+"optimise BTU" and "optimise comfort" are not the same objective on the water side either.
+
+**In heating there is no latent load, so there is nothing to modulate** — take flow up to
+saturation and stop. Which means any modulating-flow project would earn its keep only in
+cooling, on the humidity axis.
+
+**What it would take, and why to defer it:** the zone valves are 2-position, so this needs
+**modulating/characterised control valves** per branch (Belimo CCV class, 0–10 V or 3-point),
+something to drive them, and flow measurement to close the loop. That inserts a software failure
+mode into the heating *and* cooling path for a gain bounded by saturation. **Exhaust §7.8.1 and
+§7.8.2 first** — they are cheaper, mechanical, and permanent.
+
+> **A ceiling that bounds all of the above:** secondary flow must stay below primary flow
+> (§2.5e), and **both primary pumps are already on HIGH.** If a loop turns out to need more flow
+> than its primary can supply, the answer is a **larger primary pump**, not a faster secondary —
+> and no amount of per-zone valve cleverness gets around it. The ΔT-ratio method in §2.6.2 tells
+> you how close to that ceiling you already are, from thermometers alone.
+
 ---
 
 ## 8. Operational integration
