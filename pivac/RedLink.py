@@ -311,8 +311,11 @@ def status(config={}, output="default"):
             state = "off"
 
         humidity_pct = float(dev.current_humidity) if dev.current_humidity is not None else 0.0
-        heatset = int(float(dev.setpoint_heat)) if dev.setpoint_heat is not None else None
-        coolset = int(float(dev.setpoint_cool)) if dev.setpoint_cool is not None else None
+        # Setpoints are degrees F and Honeywell supports half-degree steps, so int() both
+        # quantised them to 1 F *and* truncated (72.5 -> 72, always downward). Rounding to
+        # 1 dp preserves the half-degree the thermostat actually holds.
+        heatset = round(float(dev.setpoint_heat), 1) if dev.setpoint_heat is not None else None
+        coolset = round(float(dev.setpoint_cool), 1) if dev.setpoint_cool is not None else None
 
         if dev.outdoor_humidity is not None and outdoor_humidity_pct is None:
             outdoor_humidity_pct = float(dev.outdoor_humidity)
@@ -326,7 +329,12 @@ def status(config={}, output="default"):
             outdoor_temp_scale = scale
 
         if output == "signalk":
-            sk_add_value(sk_source, f"{inside_path}.{fname}.temperature", int(ktemp))
+            # Kelvin, 2 dp. int() here was TRUNCATION, not rounding: it discarded up to a
+            # whole Kelvin (1.8 F) and always downward, so every zone read up to 1.8 F cold
+            # (mean ~0.9 F). That biases droop (temperature - coolset) *low*, understating
+            # how far a room actually drifts -- the one number the comfort analysis turns on.
+            # Same defect and same fix as pivac.OneWireTherm (PR #118). See CLAUDE.md.
+            sk_add_value(sk_source, f"{inside_path}.{fname}.temperature", round(ktemp, 2))
             sk_add_value(sk_source, f"{inside_path}.{fname}.scale", scale)
             sk_add_value(sk_source, f"{inside_path}.{fname}.humidity", humidity_pct / 100.0)
             sk_add_value(sk_source, f"{inside_path}.{fname}.redlinkid", str(dev.deviceid))
@@ -351,7 +359,8 @@ def status(config={}, output="default"):
         if outdoor_humidity_pct is not None:
             sk_add_value(sk_source, f"{outside_path}.humidity", outdoor_humidity_pct / 100.0)
         if outdoor_temp_raw is not None:
-            sk_add_value(sk_source, f"{outside_path}.temperature", int(_to_kelvin(outdoor_temp_raw, outdoor_temp_scale)))
+            sk_add_value(sk_source, f"{outside_path}.temperature",
+                         round(_to_kelvin(outdoor_temp_raw, outdoor_temp_scale), 2))
         return deltas
 
     if outdoor_humidity_pct is not None:
