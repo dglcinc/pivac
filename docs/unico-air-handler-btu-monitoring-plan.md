@@ -237,13 +237,41 @@ have their own CT, and RedLink logs per-zone humidity — so raise CFM one step 
 show whether air ΔT fell as expected, confirming the airflow actually changed rather than the
 ECM merely being told to change it.
 
-> **The structural limit worth knowing.** The Unico blower and the BOVA compressor **do not
-> communicate** — no `Y2`, no comms bus, nothing. So one fixed CFM has to serve the compressor's
-> entire modulation range: too high and dehumidification suffers at low compressor speed, too
-> low and the coil starves at high speed. **That compromise is inherent to pairing a
-> non-communicating inverter with a third-party air handler, and no dip switch resolves it.**
-> The only real escape is airflow that tracks load — worth revisiting *if* the Smart Controller
-> exposes an external interface pivac could drive (§10). Speculative until the docs are checked.
+> **The structural limit, now confirmed closed.** The Unico blower and the BOVA compressor **do
+> not communicate** — no `Y2`, no comms bus. And per David (2026-08-18) the **Smart Controller's
+> only interface is USB for changing settings, and the air handler pauses while fan speed is
+> changed** — so dynamic, load-following airflow is off the table. Reverse-engineering the USB
+> protocol would not help: the pause is the blocker, not the protocol. **CFM is a static
+> setting. Plan around that rather than against it.**
+
+#### What a static CFM actually means — it is the knob that biases the compressor
+
+This is the useful mental model, and it follows directly from §0.3. The compressor is the only
+dynamic element in the pair, and it modulates on suction pressure, which is set by how much heat
+the airflow delivers. So:
+
+> **The static CFM setting decides *where in its modulation range the compressor lives*.**
+> Higher CFM → higher suction pressure → the compressor runs faster and makes more sensible
+> capacity, at a warmer coil and less dehumidification. Lower CFM → the opposite.
+
+That converts an apparently open-ended control problem into a **small, finite tuning exercise**:
+two knobs, both static, both free to change, with measurable outcomes.
+
+| Knob | Options | Effect |
+|---|---|---|
+| **Unico CFM** | a few settings via USB | Biases the compressor's operating point (above) |
+| **SW4-3** | ON / OFF | Adaptive capacity disabled vs enabled (§0.3) |
+
+Evaluate each combination on **droop *and* humidity** over comparable hot days — both already
+logged per zone. There is no need to solve this dynamically; there is a need to **measure which
+static pair is best**, which is exactly what §0.2's two thermistors plus the existing CT and
+RedLink humidity deliver.
+
+> **CFM is therefore a seasonal setting, like the Loop B pump tap (§2.5b).** Peak summer wants
+> more airflow (maximum sensible, the compressor pushed high); shoulder season wants less
+> (better dehumidification at part load). A USB change twice a year is entirely practical even
+> though a dynamic one is not — and it is the same kind of manual seasonal ritual already
+> established for the pump tap and the glycol top-up. **If you adopt it, add it to that list.**
 
 **Source:** [BOVA-36HDN1-M18M Installation Instructions (Bosch, 06.2016)](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
 
@@ -1390,12 +1418,11 @@ Sequenced against the §0 objective: **summer comfort and capacity, both systems
   is a different calculation with a different denominator (§7.5).
 - Are `IN`/`OUT` the primary-loop supply/return? (§7.5)
 - Does the CX75 expose Modbus RTU? (§7.5)
-- **Does the Unico Smart Controller expose an external interface** (serial/Modbus/contact) that
-  could *set* CFM, not merely report it? If so, airflow could track load and resolve the
-  non-communicating-inverter compromise in §0.3. Speculative until the controller docs are read.
-- Can the **Unico Smart Controller report its live commanded CFM** over serial/Modbus, or does
-  `nominal_cfm` have to be a static config map? Does it vary airflow by stage/demand as well as
-  by mode? (§7.2)
+- ~~Can the Unico Smart Controller be driven externally, or report live CFM?~~ **Resolved
+  (David, 2026-08-18): USB-only for settings, and the air handler pauses while fan speed is
+  changed.** So dynamic airflow is out, `nominal_cfm` is a static config value entered by hand,
+  and reverse-engineering the USB protocol is not worth it — the pause is the blocker, not the
+  protocol. See §0.3.
 - Which glycol — propylene or ethylene? (§2.2)
 - Is there a balancing valve on this coil with a published flow chart? (§4.6)
 
