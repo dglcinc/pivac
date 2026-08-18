@@ -61,7 +61,14 @@ pivac.OneWireTherm:
     scale: "fahrenheit"
 
     # value is number of desired digits right of decimal for a temp value; 0 gets you an int; -1 gets no rounding
-    rounding: 0
+    #
+    # KEEP THIS >= 2. Signal K output is always read in KELVIN (OneWireTherm.py), so
+    # `rounding: 0` quantises every temperature to a whole Kelvin = 1.8 F. That is coarser
+    # than the DS18B20's own 0.0625 C resolution and it destroys any delta-T built from two
+    # sensors: a 10 F loop delta carries ~18% error, and the ~4 F primary delta across the
+    # closely spaced tees is unusable. 2 decimals in Kelvin (0.018 F) captures full sensor
+    # resolution. See docs/unico-air-handler-btu-monitoring-plan.md 2.6.
+    rounding: 2
 
     sk_path: environment.inside.hvac
     sk_literal: false
