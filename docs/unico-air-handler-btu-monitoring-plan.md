@@ -27,6 +27,97 @@ and cooling** (two-pipe changeover off the buffer tank). First of potentially se
 
 ---
 
+## 0. Priorities — read this before the rest (David, 2026-08-18)
+
+**The objective is summer comfort and capacity, across *both* cooling systems — the two Bosch
+BOVA zones and the Chiltrix zones. Efficiency and running cost are secondary. Heating is rarely
+a problem: monitor it, do not optimise it.**
+
+That reorders this document, which was drafted efficiency-first. What it means concretely:
+
+| Now primary | Now secondary / monitor-only |
+|---|---|
+| Cooling capacity and where it is lost | Boiler condensing (§4.8) — **monitor, do not chase** |
+| **Latent capacity / humidity** — comfort is not just dry-bulb | System COP, kW/ton, pump energy |
+| **The BOVA zones**, which are DX and were previously out of scope (§0.2) | Unbuffered-heating short cycling (§2.5d) |
+| Airflow, on both systems | Heating-season anything, except as a calibration window (§7.2) |
+
+Two consequences worth stating plainly:
+
+- **The BOVA (DX) zones are now in scope.** They have no water side at all, so most of §2 does
+  not apply to them — but the **air-side instrumentation in this plan is identical**, and it is
+  the part that matters for them. See §0.2.
+- **Efficiency metrics are kept where they cost nothing** (they fall out of data already
+  collected) and are not a reason to buy hardware.
+
+### 0.1 Step zero costs nothing: the question is already answerable
+
+Every cooling unit in the house is **now individually metered** — verified live 2026-08-18:
+`electrical.emporia.house.bova_great_room`, `…bova_kitchen`, `…chiltrix`. The great-room BOVA
+got its own CT in August; **that was the missing term in the 2026-07 zone analysis**, which
+could only infer the 32×40 zone's draw from the utility subpanel plateau.
+
+So the central question can be answered from existing InfluxDB data, with no new hardware:
+
+> **On a hot afternoon, is a drooping zone running its equipment at maximum, or not?**
+
+| Droop (zone temp − `coolset`) | Equipment power | Diagnosis |
+|---|---|---|
+| High | at/near max, near-continuous | **Capacity-limited** — need more capacity, more airflow, or less load |
+| High | well below max | **Control-limited** — the unit is not trying. Modulation, staging, or sensing |
+| Low, but the room feels wrong | any | **Latent** — check `…thermostat.<ZONE>.humidity`; sensible is fine, moisture is not |
+
+Series to join: `environment.inside.thermostat.<ZONE>.temperature` and `.coolset` and
+`.humidity`, `environment.outside.thermostat.temperature`, and the three power measurements
+above. **Run this before buying anything** — it decides which zone deserves instrumentation
+first, and prior sessions flagged the 32×40 great room as losing setpoint to 77 °F on hot days
+while the 20×32 zone holds 75 °F.
+
+> **⚠️ A precision caveat that mirrors the one just fixed for 1-wire.** `pivac.RedLink` emits
+> `int(ktemp)` (`pivac/RedLink.py:329`) — **whole Kelvin, 1.8 °F granularity** — so zone
+> temperature, and therefore droop, is quantised in 1.8 °F bins even though the thermostat
+> reports finer. For a droop of 2–5 °F that is marginal. **Recommend the same one-line fix
+> applied to `pivac.OneWireTherm` in PR #118**: emit a rounded float instead of an int. It costs
+> nothing, orphans no history (the InfluxDB column is already `double`), and it makes comfort
+> analysis quantitative rather than banded.
+
+### 0.2 The BOVA (DX) zones — same air-side rig, no water side
+
+The kitchen (`BOS1`) and great room (`BOS2`) are Unico air handlers on **Bosch BOVA inverter
+condensers**. There is no water, so §2.2 (glycol), §2.6 (tees), §4.5 (flow meter) and the
+water-side half of §4 are all irrelevant to them. What *does* apply is **§4.4 — two 10K NTCs in
+the supply and return plenums** — plus the commanded ECM airflow, and that is nearly the whole
+job:
+
+```
+Q_sensible = 1.08 × CFM_commanded × ΔT_air
+```
+
+with latent inferred from the zone's RedLink humidity (§7.3) and the condenser's own power
+already metered. **Two thermistors per BOVA zone gets you measured sensible capacity, a latent
+estimate, and an EER cross-check** — no Arduino water plumbing, no flow meter.
+
+> **The mechanism that makes airflow the lever on these units.** Prior analysis established
+> from the BOVA IOM that **the compressor modulates on suction pressure only** — `Y2` never
+> reaches the condenser, so the thermostat cannot ask it to work harder. That makes low airflow
+> **self-reinforcing**: less air over the coil → lower suction pressure → the compressor
+> modulates *down* → less capacity → the room drifts further. It also reconciles two earlier
+> readings of the same zone — it can look "control-limited" (compressor below max) and be
+> "airflow-limited" at the same time, because the airflow *causes* the modulation.
+>
+> **Diagnostic signature, readable from two thermistors plus the existing CT:**
+>
+> | Air ΔT | Condenser power | Meaning |
+> |---|---|---|
+> | **High** | **low** | Airflow-starved, self-limiting via suction pressure — the case above |
+> | normal | at max | Genuinely capacity-limited at these conditions |
+> | low | low | Not calling, or short-cycling |
+>
+> Optional and cheap: a thermistor clamped to the **suction line** at the air handler. A
+> persistently very cold suction line with low airflow is the freezing/starvation signature.
+
+---
+
 ## 1. Two corrections before anything else
 
 **1. The Honeywell "10K sensors" are thermistors, not flow sensors.** The 10K parts bundled
@@ -619,28 +710,30 @@ exists nowhere in either repo. Do not repeat that.
 ### 4.8 Utility-room instrumentation beyond this node
 
 The air handler answers "is *this coil* delivering". The mechanical room answers "is the
-*plant* healthy and efficient", and several of those sensors are cheaper and higher-value than
-the coil node. Ranked by value per dollar.
+*plant* healthy", and several of those sensors are cheaper and higher-value than the coil node.
+Ranked by value per dollar **against the §0 objective (summer comfort and capacity)** — which
+demotes the efficiency-flavoured items that an earlier draft ranked higher.
 
 #### Tier 1 — do these
 
 | Sensor | Where | Why |
 |---|---|---|
 | **4× DS18B20** — supply + return on each secondary loop | Loop A and Loop B, at the tees | §2.6.4. Starvation, flow ratios, mixing, loop-idle detection. **The highest-value addition in this document** |
-| **1× DS18B20 — boiler *return*** | Boiler return, before the primary tee | **Condensing verification** — see below |
+| **1× DS18B20 — boiler *return*** | Boiler return, before the primary tee | Condensing verification. **Monitor-only per §0** — David is content for the boiler not to condense, so this is a "know the number" probe, not an optimisation target |
 | **1× T/RH sensor — room ambient** | Mechanical room, away from the boiler | Standby losses, and it explains a *documented* problem — see below |
 | **Leak / flood detection** | Pan under boiler, buffer tank, booster pump | **This is a regression** — see below |
 
-**Boiler return temperature is the highest-value single probe after the loop sensors.** A
+**Boiler return temperature — worth knowing, explicitly not worth chasing (§0).** A
 Trinity Ti-200 is a *condensing* boiler, and it only condenses when return water is below the
 flue-gas dew point — roughly **130 °F**. Above that you lose most of the condensing gain
 (order 10 % efficiency). Hydronic air-handler coils are commonly designed around 140–180 °F
 supply, which puts return water **above** the condensing threshold, so it is entirely possible
 this boiler **never condenses in this application** and nobody would know. The Sentry already
 gives boiler supply (`hvac.boiler.sentry.waterTemp`) and outdoor temp; one DS18B20 on the
-return closes it. If it confirms non-condensing, the lever is **outdoor reset** — lower supply
-temperature in mild weather — which trades coil capacity for efficiency, and **evaluating that
-tradeoff is exactly what the BTU instrumentation in this plan is for.**
+return closes it. If it confirms non-condensing, the lever would be **outdoor reset** — lower supply temperature
+in mild weather — but that trades **coil capacity** for efficiency, and per §0 capacity is the
+priority and heating is rarely the problem. **So: record it, do not act on it.** Kept in Tier 1
+only because it is one probe on a bus that is already being extended.
 
 **Room ambient explains a problem already in CLAUDE.md.** The Pi is a **fanless Pi 4** that runs
 at ~76 °C with ~83 °C peaks during Sentry capture bursts, grazing the 80 °C soft-temp limit —
@@ -1097,39 +1190,50 @@ before assuming it.
 
 ## 9. Build order
 
-0. **Free levers first, before buying anything.** Confirm which loop the 2430 is on (§4.6).
-   ✅ Pump taps surveyed 2026-08-18 — primary HIGH, both secondaries LOW (§2.5); **Loop B set to
-   LOW** (§2.5b) — watch whether the utility room still holds setpoint on a hot afternoon, and
-   **remember to raise it again before heating season.** This changes what any baseline taken
-   from here means.
-0b. **Costs nothing and needs no new hardware:** plot boiler cycles per hour against zones
-   calling, from `hvac.boiler.sentry.gasInputValue` already in InfluxDB (§2.5d). If heating
-   short-cycles on single-zone calls, that is an unbuffered-heating finding worth more than
-   anything this coil node will measure — and it is available today.
-1. **Phase 0 (§4.6)** — determine whether this zone is constant-flow. On Loop B in cooling it
-   is by construction; on Loop A run the one-zone-vs-three ΔT test. This may remove the flow
-   meter from the BOM for now.
-2. **Verify the fluid (§2.2)** — glycol type and concentration by refractometer → set `fluid_k`.
-   If the 30 % top-up is imminent, consider doing it **before** commissioning so the baseline
-   is taken on the final fluid and there is no discontinuity to explain later.
-3. **Read the commanded CFM per mode** off the Unico Smart Controller → `nominal_cfm` (§7.2).
-4. **Verify the NTC curve (§2.3)** — ice-bath resistance check → Type II vs Type III.
-5. **Bench-build the node**, all four sensors, final firmware.
-6. **Matched-pair calibration (§7.1).** Record offsets. Record both DS18B20 ROM addresses here.
-7. **`ArduinoSensor` `rounding:` change (§6.1)** → PR. Small, isolated, backwards-compatible —
-   land it independently of everything else.
-8. **Install**, DHCP-reserve by MAC, add config, add the service unit.
-9. **`pivac.UnicoAH` wrapper (§6.2)** → PR.
-10. **Grafana row + freshness alerts (§8)** → PR.
-11. **Commissioning check (§7.2):** in heating, confirm `CFM_derived / CFM_commanded` ≈ 1.0.
-    This is the acceptance test for the whole chain — if it fails, the flow meter or the
-    temperature offsets are wrong, and no amount of later analysis will fix that.
-12. **Join RedLink humidity (§7.3)** for the latent split. Software only.
-13. **Add the `wsup − IN` reverse-mixing series (§2.5c).** One subtraction, no new hardware,
-    and it catches a design-level fault that coil-side analysis cannot.
-14. **Collect a season.** Then analyse per §7.4 and decide the flow question per §7.7.
+Sequenced against the §0 objective: **summer comfort and capacity, both systems.**
 
----
+### Costs nothing — do these first
+
+1. **Run the §0.1 analysis on existing data.** Droop vs equipment power vs humidity, per zone,
+   on hot afternoons. All three cooling units are individually metered as of August. **This
+   decides which zone to instrument first** and may show the answer outright.
+2. ✅ **1-wire precision fix** — landed as PR #118, deployed 2026-08-18.
+3. **Apply the same fix to `pivac.RedLink`** (§0.1) so droop is quantitative, not banded.
+4. **Confirm which loop the 2430 is on** (§4.6). ✅ Pump taps surveyed — primary HIGH, both
+   secondaries LOW (§2.5); Loop B set to LOW (§2.5b), **raise again before heating season.**
+
+### Cheap, high value against the objective
+
+5. **Two 10K NTCs in the worst-performing BOVA zone** (§0.2) — almost certainly the great room.
+   Measured sensible capacity plus the airflow-starvation signature, with no water side and no
+   flow meter. **This is the most direct attack on the known comfort complaint.**
+6. **Four DS18B20s on the two secondary loops** (§2.6.4) — starvation, mixing, flow ratios and
+   loop-idle detection for the entire chilled side, on the Pi's existing bus.
+7. **Utility-room Tier 1 sensors** (§4.8) — room ambient, and **restore leak detection**, which
+   is a regression rather than a gap.
+
+### The node itself
+
+8. **Verify the fluid** (§2.2) and **read commanded CFM per mode** off the Smart Controller
+   (§7.2). Consider doing the 30 % glycol top-up *before* commissioning so the baseline is on
+   the final fluid.
+9. **Verify the NTC curve** (§2.3) — ice-bath check, Type II vs Type III.
+10. **Bench-build the node**, all four sensors, final firmware. **Matched-pair calibration
+    (§7.1)** — record offsets and both DS18B20 ROM addresses in this document.
+11. **`ArduinoSensor` `rounding:` change (§6.1)** → PR. Small, isolated, backwards-compatible.
+12. **Install**, DHCP-reserve by MAC, add config and the service unit.
+13. **`pivac.UnicoAH` wrapper (§6.2)** → PR. **Grafana row + freshness alerts (§8)** → PR.
+14. **Join RedLink humidity (§7.3)** for the latent split — software only, and latent is comfort.
+
+### Only if the data asks for it
+
+15. **Flow meter**, primary loop first (§2.6.1) — it converts every ratio into an absolute
+    number for *all* loops, which is better value than a per-coil meter.
+16. **Commissioning check (§7.2):** in heating, `CFM_derived / CFM_commanded` ≈ 1.0. This is the
+    acceptance test for the whole chain — heating is otherwise deprioritised, but it is the only
+    latent-free window in which to validate the measurement.
+17. **`wsup − IN` reverse-mixing series (§2.5e)** — one subtraction, verification not diagnosis.
+18. **Collect a cooling season.** Analyse per §7.4, decide the flow question per §7.7.
 
 ## 10. Open questions
 
