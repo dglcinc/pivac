@@ -310,6 +310,131 @@ misdiagnosed as an undersized chiller.
 
 ---
 
+### 2.6 `IN`/`OUT` straddle the tees — which is worth more than a coil node
+
+Confirmed by David 2026-08-18: **`IN` sits on the primary supply just before the closely spaced
+tees, `OUT` on the primary return just after them.** They bracket the entire secondary-side
+extraction, which makes them far more useful than "two hydronic temperatures".
+
+#### 2.6.0 ⚠️ First, a one-line config fix — the existing data is quantized to 1.8 °F
+
+`pivac.OneWireTherm` reads in **Kelvin** whenever the output is Signal K
+(`pivac/OneWireTherm.py:99`), and the live `/etc/pivac/config.yml` sets **`rounding: 0`**,
+propagated to every sensor. So each 1-wire temperature reaching InfluxDB is an **integer
+Kelvin = 1.8 °F granularity**, and a ΔT built from two of them moves in 1.8 °F steps with up to
+±1.8 °F of error:
+
+| Quantity | True value | What the data can say |
+|---|---|---|
+| Secondary ΔT | 10 °F | ±18 %, ~6 distinct values across the whole operating range |
+| Primary ΔT | 4 °F | **±45 %, two or three distinct values — unusable** |
+
+**Fix: set `rounding: 2` on the `pivac.OneWireTherm` block** (it propagates), then
+`sudo systemctl restart pivac-1wire`. No Signal K restart — no path changes, and the InfluxDB
+field is already a float, so no measurement is orphaned and no history is lost. This costs
+nothing, is independent of everything else in this plan, and **every analysis below is blocked
+without it.**
+
+> **Historical IN/OUT data stays coarse.** The fix is not retroactive, so quantitative
+> work starts from the day it lands. Do it early.
+
+#### 2.6.1 One flow meter on the *primary* measures the whole house
+
+```
+Q_all_zones = K × GPM_primary × (IN − OUT)
+```
+
+Because `IN`/`OUT` bracket the tees, that is **total delivered capacity across every hydronic
+zone**, from sensors already installed. Add the one missing term and it also gives, for free:
+
+- **System COP in cooling** — against `electrical.emporia.house.chiltrix`, already collected.
+- **Delivered-vs-fired efficiency in heating** — against `hvac.boiler.sentry.gasInputValue`.
+
+**This is the single highest-value flow meter in the system**, and it is *not* on a coil. One
+sensor answers "is the plant efficient and how much heat is this house actually moving",
+which no amount of per-coil instrumentation reaches.
+
+#### 2.6.2 The flow ratio falls out of temperatures alone — no meter at all
+
+Closely spaced tees mix, and mixing is arithmetic. With one secondary loop active, primary
+supply `T_ps` (= `IN`), primary return `T_pr` (= `OUT`), secondary return `T_sr`:
+
+```
+T_pr = [ (GPM_pri − GPM_sec)·T_ps  +  GPM_sec·T_sr ] / GPM_pri
+```
+
+which rearranges to
+
+```
+GPM_sec / GPM_pri  =  (T_ps − T_pr) / (T_ps − T_sr)  =  ΔT_primary / ΔT_secondary
+```
+
+**So the ratio of the two ΔTs *is* the flow ratio.** It holds in both regimes — if the
+secondary overdraws, it pulls back through the return tee, the ratio exceeds 1, and that is
+precisely the reverse-mixing condition:
+
+| ΔT_pri / ΔT_sec | Meaning |
+|---|---|
+| **< 1** | Primary flow exceeds secondary — healthy decoupling, coil gets full primary temperature |
+| **≈ 1** | Flows matched — on the edge |
+| **> 1** | **Secondary overdraws — reverse mixing.** Coil entering temperature is degraded (§2.5e) |
+
+Adding a supply sensor to each loop gives the same answer a second way, as a direct check:
+**loop supply temperature equal to `IN` means no mixing; diverging from it means mixing.** Two
+independent routes to the same conclusion, both from thermometers.
+
+**Accuracy caveat:** this is a ratio of two differences, and when primary flow greatly exceeds
+secondary, ΔT_primary is *small* and its relative error dominates. At a 0.4 flow ratio and a
+10 °F secondary ΔT, primary ΔT is 4 °F — fine after §2.6.0 and pair calibration, hopeless
+before. **`IN`/`OUT` need the same matched-pair treatment as §7.1**, and they have almost
+certainly never had it.
+
+#### 2.6.3 Loop B idling isolates Loop A — and the sensors self-indicate it
+
+David's observation: in summer, Loop B serves only the utility room, so **whenever that zone is
+not calling, `IN − OUT` reflects Loop A alone** — which is exactly the single-secondary case
+§2.6.2 assumes.
+
+The utility zone has no RedLink thermostat, so its call state is not in pivac today. It does
+not need to be: **the new Loop B sensors report it themselves.** A loop with its pump off and
+its zone valve shut shows supply ≈ return and both drifting toward ambient. So
+`|ΔT_loopB| < ~1 °F` is a reliable "Loop B idle" flag, and no GPIO input is required. (If a
+hard signal is ever wanted, CLAUDE.md lists BCM 13/33, 16/36 and 24/18 as free inputs with
+existing wire runs.)
+
+#### 2.6.4 Four DS18B20s, and what they unlock
+
+Add supply and return on each secondary loop — `LOOPA_SUP`, `LOOPA_RET`, `LOOPB_SUP`,
+`LOOPB_RET` — on the Pi's existing 1-wire bus, taking it from 4 sensors to 8. Together with
+`IN`/`OUT` that yields, **with no Arduino and no flow meter**:
+
+- **Per-loop ΔT** → the starvation question from §2.5c′ (>15 °F = starved), which is the
+  biggest open question in this plan.
+- **Per-loop flow ratio** → §2.6.2, including whether reverse mixing occurs and under what
+  combination of calls.
+- **Mixing check** → loop supply vs `IN`, §2.6.2.
+- **Loop-idle detection** → §2.6.3, enabling the Loop A isolation.
+- **Loop-level attribution** → whether a shortfall is Loop A, Loop B, or the plant.
+
+Then one primary flow meter (§2.6.1) converts every ratio into an absolute GPM and every ΔT
+into absolute BTU/hr, for **all** loops at once.
+
+**This substantially re-sequences the project.** The per-coil Arduino node still earns its
+place — it is the only way to attribute *within* a loop, and the only route to air-side
+sensible/latent split and airflow health — but it is now **step 4, not step 1.** Steps 1–3 are
+cheaper, faster, and answer the bigger questions.
+
+> **Naming, once.** These become InfluxDB measurement names. CLAUDE.md records four renames
+> that each orphaned history — pick `LOOPA_SUP`/`LOOPA_RET`/`LOOPB_SUP`/`LOOPB_RET` (or better)
+> now and do not revisit. Adding paths needs no Signal K restart; only *removing* them does.
+>
+> **While editing that config block:** the `0316a015e7ff: Unassigned` entry is the ROM of the
+> DS18B20 on the **.114 DHW Arduino**, which is not on the Pi's bus at all. It is harmless
+> (OneWireTherm iterates found sensors and looks names up) but it is misleading next to eight
+> real ones — worth a clarifying comment or removal.
+
+---
+
 ## 3. Scope boundary (what this plan does *not* touch)
 
 Explicitly out of scope, so the change stays reviewable:
@@ -488,6 +613,80 @@ D2, D3, D6, D7, D8, D9 — this uses two of them.
 carries a hard-won warning that the printed tags on these probes are not reliable physical
 identifiers (one probe was found carrying two tags), and that the .114 board's DS18B20 ROM
 exists nowhere in either repo. Do not repeat that.
+
+---
+
+### 4.8 Utility-room instrumentation beyond this node
+
+The air handler answers "is *this coil* delivering". The mechanical room answers "is the
+*plant* healthy and efficient", and several of those sensors are cheaper and higher-value than
+the coil node. Ranked by value per dollar.
+
+#### Tier 1 — do these
+
+| Sensor | Where | Why |
+|---|---|---|
+| **4× DS18B20** — supply + return on each secondary loop | Loop A and Loop B, at the tees | §2.6.4. Starvation, flow ratios, mixing, loop-idle detection. **The highest-value addition in this document** |
+| **1× DS18B20 — boiler *return*** | Boiler return, before the primary tee | **Condensing verification** — see below |
+| **1× T/RH sensor — room ambient** | Mechanical room, away from the boiler | Standby losses, and it explains a *documented* problem — see below |
+| **Leak / flood detection** | Pan under boiler, buffer tank, booster pump | **This is a regression** — see below |
+
+**Boiler return temperature is the highest-value single probe after the loop sensors.** A
+Trinity Ti-200 is a *condensing* boiler, and it only condenses when return water is below the
+flue-gas dew point — roughly **130 °F**. Above that you lose most of the condensing gain
+(order 10 % efficiency). Hydronic air-handler coils are commonly designed around 140–180 °F
+supply, which puts return water **above** the condensing threshold, so it is entirely possible
+this boiler **never condenses in this application** and nobody would know. The Sentry already
+gives boiler supply (`hvac.boiler.sentry.waterTemp`) and outdoor temp; one DS18B20 on the
+return closes it. If it confirms non-condensing, the lever is **outdoor reset** — lower supply
+temperature in mild weather — which trades coil capacity for efficiency, and **evaluating that
+tradeoff is exactly what the BTU instrumentation in this plan is for.**
+
+**Room ambient explains a problem already in CLAUDE.md.** The Pi is a **fanless Pi 4** that runs
+at ~76 °C with ~83 °C peaks during Sentry capture bursts, grazing the 80 °C soft-temp limit —
+and CLAUDE.md explicitly notes "Ambient matters too (summer boiler-room heat)" while having no
+way to measure it. A room temperature series turns that from a hypothesis into a correlation,
+and tells you whether ventilation would buy more than any further `daemon_sleep` tuning (which
+CLAUDE.md says cannot fix the peaks anyway). Humidity is a bonus: a mechanical room that runs
+humid in summer is a mold and corrosion risk, and it also flags chilled-pipe sweating from
+insulation gaps.
+
+> **⚠️ Leak detection was lost, not retired.** CLAUDE.md records that BCM 25 carried the
+> **booster-pump leak pan** as `SCALA` until 2026-08-11, when the input was renamed in place to
+> `CHIL` to sense the chiller call — "the leak-pan signal is no longer published." That was a
+> deliberate trade of one input for another, but the *result* is that a room containing the
+> boiler, buffer tank, DHW, booster pump and the domestic water main **currently has no water
+> detection at all.** Free GPIO inputs with existing wire runs are listed as BCM 13/33, 16/36
+> and 24/18. This is the cheapest insurance in the whole document and it is not really about
+> BTUs. (Avoid BCM 26 — CLAUDE.md documents that pad as permanently dead.)
+
+#### Tier 2 — high value, some cost
+
+| Sensor | Why |
+|---|---|
+| **Flow meter on the primary loop** | §2.6.1 — whole-house delivered BTU, system COP, boiler delivered-vs-fired efficiency. Converts every ratio in §2.6.2 into an absolute number |
+| **2× DS18B20 — Chiltrix entering/leaving water** | Chiller-side ΔT; with `electrical.emporia.house.chiltrix` gives **chiller COP directly**, separate from distribution losses. Skip if the CX75 exposes these over Modbus (§10) |
+| **CTs on the circulators** | Definitive pump-running state (better than the §2.6.3 inference), pump energy accounting so the §7.7 flow tradeoff is *measurable* rather than argued, and a failing circulator shows as changed draw. Needs spare Emporia channels — note CLAUDE.md records four CTs were borrowed from the apartment panel for the Chiltrix |
+
+#### Tier 3 — worth knowing about
+
+| Sensor | Why |
+|---|---|
+| **Differential-pressure transducer across a secondary loop** | An alternative to a flow meter: read ΔP, look up flow on the pump curve. Often taps existing ports, so **no pipe cutting** — attractive if opening a glycol loop is the objection |
+| **Boiler flue temperature** | Direct efficiency indicator; high flue temp is heat going up the stack. Complements the condensing check above |
+| **Condensate trap float switch** | A blocked condensate trap shuts a condensing boiler down. Cheap, and it fails at the worst time of year |
+| **CO detector with a monitored contact** | Safety rather than optimization, but it is a gas appliance in an occupied building and the GPIO inputs are already there |
+
+#### Wiring note
+
+Tier 1's five DS18B20s go on the **Pi's existing 1-wire bus**, taking it from 4 sensors to 9.
+That is well within 1-Wire's addressing limits, but watch total cable length and topology —
+prefer a daisy chain over a star, and consider dropping the pull-up to **2.2–3.3 kΩ** as the
+bus grows (§5 of `docs/circ-loop-temp-monitoring-plan.md` covers this). `pivac.OneWireTherm`
+re-scans every cycle since 2026-07-06, so sensors can be added live and appear within one
+daemon cycle with **no restart**. The T/RH sensor and the leak detector are not 1-Wire: RH
+wants I²C (so it belongs on an Arduino, or a small dedicated node), and a leak pan is a dry
+contact straight into a spare GPIO.
 
 ---
 
