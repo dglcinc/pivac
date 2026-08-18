@@ -66,8 +66,7 @@ So the central question can be answered from existing InfluxDB data, with no new
 Series to join: `environment.inside.thermostat.<ZONE>.temperature` and `.coolset` and
 `.humidity`, `environment.outside.thermostat.temperature`, and the three power measurements
 above. **Run this before buying anything** — it decides which zone deserves instrumentation
-first, and prior sessions flagged the 32×40 great room as losing setpoint to 77 °F on hot days
-while the 20×32 zone holds 75 °F.
+first.
 
 > **⚠️ Droop data is only quantitative from 2026-08-18.** Both `pivac.OneWireTherm` and
 > `pivac.RedLink` emitted whole-Kelvin temperatures until then — and `RedLink` *truncated*, so
@@ -128,10 +127,18 @@ Checked against the **BOVA-36HDN1-M18M Installation Instructions** (Bosch Thermo
 | Thermostat | `W2` `B` `C` `R` `Y` `G` |
 
 The condenser accepts **one `Y`** — a single 24 V cooling call. §15.1 states the unit "adopts
-the same 24VAC control as any conventional Heat Pump" and does all staging *internally*. So the
-earlier note that "`Y2` never reaches the condenser" is a **property of the equipment, not of
-this installation** — there is no second-stage input to wire, and running a wire would achieve
-nothing.
+the same 24VAC control as any conventional Heat Pump" and does all staging *internally*. There
+is no second-stage input on the condenser and nothing to wire to it.
+
+> **`Y2` is not useless, though — it belongs to the *air handler*.** The thermostat's `Y2` drives
+> the Unico blower's **second-stage fan speed**, and that is how a second-stage call reaches the
+> compressor: **indirectly, through air.** More airflow puts more heat into the coil, which
+> raises evaporator pressure, which ramps the compressor (§0.3 below). So `Y2` is a real and
+> important lever — just an *airflow* lever, not a compressor one. **A disabled `Y2` fan wire
+> starves the coil on exactly the hot days when the second stage is called for**, and because the
+> compressor modulates on suction pressure it responds by slowing down, which is the
+> self-reinforcing failure in §0.2. Confirm `Y2` is connected and functional at the air handler
+> before diagnosing anything else on a BOVA zone.
 
 #### Suction pressure — the right lever exists, and it is already pulled
 
@@ -211,9 +218,13 @@ designed:**
 more CFM → more heat into the coil → higher suction pressure → compressor ramps up
 ```
 
-On this air handler that is a **software CFM setting on the Unico Smart Controller** — free,
-reversible, and it needs no `Y2` and no rewiring. If `Y2` were ever wired to a higher blower
-tap it would work by this same mechanism, so a configurable ECM makes it redundant.
+There are two ways to deliver it, and they stack:
+
+- **The thermostat's `Y2`**, which selects the blower's second-stage speed on a second-stage
+  call. This is the demand-following half — it only raises airflow when the zone actually asks
+  for more. **It must be connected for a BOVA zone to reach full capacity on a hot day.**
+- **The base CFM setting** on the Unico Smart Controller, which sets the floor both stages work
+  from. Software, free, reversible (§0.3 below).
 
 > **⚠️ Do not raise suction pressure artificially.** Overcharging or interfering with the
 > pressure transducer would raise the number without raising real capacity — and the board runs
@@ -223,17 +234,25 @@ tap it would work by this same mechanism, so a configurable ECM makes it redunda
 
 **The tradeoff, which matters because the objective is comfort (§0):** more CFM means a
 **warmer coil**, so sensible capacity rises and **dehumidification falls** — the same tension as
-the SW4-3 question above. Raising CFM to chase a 77 °F great room could leave it at 75 °F and
-clammy.
+the SW4-3 question above. A zone can be pushed to setpoint and still feel clammy.
 
-**Zero-cost experiment available today.** The Smart Controller setting is software, both BOVAs
-have their own CT, and RedLink logs per-zone humidity — so raise CFM one step and compare
-**droop *and* humidity** across comparable hot days. Two thermistors (§0.2) would additionally
-show whether air ΔT fell as expected, confirming the airflow actually changed rather than the
-ECM merely being told to change it.
+> **⚠️ The great room now carries three sensible-biased settings at once** — `Y2` fan connected,
+> base CFM raised, and `SW4-3` on (adaptive capacity disabled, which holds the coil warmer). All
+> three trade latent for sensible in the same direction, so **humidity is the thing to watch
+> there**, not temperature. `environment.inside.thermostat.GREAT_ROOM.humidity` is already
+> logged, and droop is quantitative from 2026-08-18 (§2.6.0). If that zone holds setpoint but
+> reads humid against the other zones, **`SW4-3` off is the setting to give back first** — it
+> costs the least capacity now that airflow is no longer the constraint.
 
-> **The structural limit, now confirmed closed.** The Unico blower and the BOVA compressor **do
-> not communicate** — no `Y2`, no comms bus. And per David (2026-08-18) the **Smart Controller's
+**Judging an airflow change costs nothing.** Both BOVAs have their own CT and RedLink logs
+per-zone humidity, so compare **droop *and* humidity** across comparable hot days. Two
+thermistors (§0.2) additionally show whether air ΔT moved as expected, confirming airflow really
+changed rather than the ECM merely being told to change it.
+
+> **The structural limit.** The Unico blower and the BOVA compressor **do not communicate** —
+> `Y2` couples the *thermostat* to the blower, not the blower to the compressor, so airflow
+> follows the thermostat's two-stage demand rather than the compressor's actual state. The
+> **Smart Controller's
 > only interface is USB for changing settings, and the air handler pauses while fan speed is
 > changed** — so dynamic, load-following airflow is off the table. Reverse-engineering the USB
 > protocol would not help: the pause is the blocker, not the protocol. **CFM is a static
@@ -1438,9 +1457,9 @@ Sequenced against the §0 objective: **summer comfort and capacity, both systems
 
 ### Cheap, high value against the objective
 
-4. **Two 10K NTCs in the worst-performing BOVA zone** (§0.2) — almost certainly the great room.
-   Measured sensible capacity plus the airflow-starvation signature, with no water side and no
-   flow meter. **This is the most direct attack on the known comfort complaint.**
+4. **Two 10K NTCs in whichever BOVA zone step 1 identifies** (§0.2) — measured sensible capacity
+   plus the airflow-starvation signature, with no water side and no flow meter. Also the way to
+   verify a zone's latent performance once its settings are biased toward sensible (§0.3).
 5. **Four DS18B20s on the two secondary loops** (§2.6.4) — starvation, mixing, flow ratios and
    loop-idle detection for the entire chilled side, on the Pi's existing bus.
 6. **Utility-room Tier 1 sensors** (§4.8) — room ambient, and **restore leak detection**, which
