@@ -5,7 +5,7 @@
 **Target:** One Unico M2430 air handler with a chilled-water coil serving both heating and
 cooling, on two-pipe changeover off the buffer tank. The first of potentially several.
 
-Three facts shape the design more than anything else.
+Three facts shape the design.
 
 The air handler runs a Unico Smart Controller with a software-configurable ECM blower, so CFM is
 a commanded value (§7.2). That removes the hardest unknown on the air side and replaces it with
