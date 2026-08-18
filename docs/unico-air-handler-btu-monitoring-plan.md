@@ -2,28 +2,29 @@
 
 **Status:** Design / not yet built.
 **Date:** 2026-08-18.
-**Target:** One **Unico M2430** air handler with a **chilled-water coil used for both heating
-and cooling** (two-pipe changeover off the buffer tank). First of potentially several.
+**Target:** One Unico M2430 air handler with a chilled-water coil serving both heating and
+cooling, on two-pipe changeover off the buffer tank. The first of potentially several.
 
-**Two facts that shape the design more than anything else:**
+Three facts shape the design more than anything else.
 
-- The air handler runs a **Unico Smart Controller with a software-configurable ECM blower**,
-  so **CFM is commanded, not guessed** (§7.2). This removes the hardest unknown on the air
-  side — and replaces it with a much better diagnostic.
-- A **Honeywell IAQ thermostat on RedLink** is attached to this air handler, and
-  `pivac.RedLink` **already publishes that zone's humidity**
-  (`environment.inside.thermostat.<ZONE>.humidity`, `pivac/RedLink.py:331`). That is the
-  entering-air humidity this project would otherwise need new hardware to get (§7.3).
-- **Topology confirmed (David, 2026-08-18): the HZ-432 drives one zone valve per zone, each
-  feeding its own air handler. There are no dampers.** So this node measures one coil with its
-  own dedicated blower — CFM per handler is constant, and the RedLink thermostat maps 1:1 to
-  the air handler. But the zones **share a circulator**, which makes per-zone water flow a
-  variable rather than a constant (§4.6) — this is the fact that decides whether you buy a flow
-  meter — though on Loop B in cooling it is a single-zone loop and constant (§2.5).
+The air handler runs a Unico Smart Controller with a software-configurable ECM blower, so CFM is
+a commanded value (§7.2). That removes the hardest unknown on the air side and replaces it with
+a better diagnostic.
 
-**Goal:** Measure the actual BTU/hr the coil delivers, and enough surrounding state to tell
-*why* it isn't delivering more. Feed it into pivac like every other sensor
-(Arduino → `pivac.*` → Signal K → InfluxDB → Grafana).
+A Honeywell IAQ thermostat on RedLink is attached to this air handler, and `pivac.RedLink`
+already publishes that zone's humidity (`environment.inside.thermostat.<ZONE>.humidity`,
+`pivac/RedLink.py:331`). That supplies the entering-air humidity this project would otherwise
+need new hardware to obtain (§7.3).
+
+The HZ-432 drives one zone valve per zone, each feeding its own air handler, with no dampers. So
+this node measures one coil with its own dedicated blower, per-handler CFM is constant, and the
+RedLink thermostat maps one-to-one to the air handler. The zones share a circulator, which makes
+per-zone water flow a variable and decides whether you buy a flow meter (§4.6), except on Loop B
+in cooling, where it is a single-zone loop and constant (§2.5).
+
+**Goal:** Measure the BTU/hr the coil delivers, plus enough surrounding state to explain any
+shortfall. Feed it into pivac like every other sensor: Arduino → `pivac.*` → Signal K → InfluxDB
+→ Grafana.
 
 ---
 
@@ -100,40 +101,38 @@ metered, which supplies an EER cross-check. No water plumbing and no flow meter.
 > A thermistor clamped to the suction line is a cheap addition. A persistently cold suction line
 > with low airflow indicates starvation or freezing.
 
-### 0.3 Can `Y2` be signalled, or the compressor driven higher? — answered from the IOM
+### 0.3 Signalling `Y2` and driving the compressor higher, answered from the IOM
 
-Checked against the **BOVA-36HDN1-M18M Installation Instructions** (Bosch Thermotechnology,
-06.2016) — the exact model installed here.
+Checked against the BOVA-36HDN1-M18M Installation Instructions (Bosch Thermotechnology,
+06.2016), the model installed here.
 
-#### `Y2` — no, and it is not a wiring omission
+#### `Y2` has no terminal on the condenser
 
-**`Y2` does not appear anywhere in the manual (zero occurrences).** The low-voltage hook-up
-(Figure 26) gives the terminal blocks as:
+`Y2` appears nowhere in the manual. The low-voltage hook-up (Figure 26) gives the terminal
+blocks as:
 
 | Block | Terminals |
 |---|---|
-| Outdoor unit | `C` `Y` `B` `D/W` — *B and D/W on heat-pump models only* |
+| Outdoor unit | `C` `Y` `B` `D/W`, with B and D/W on heat-pump models only |
 | Indoor unit | `G` `R` `C` `W1` |
 | Thermostat | `W2` `B` `C` `R` `Y` `G` |
 
-The condenser accepts **one `Y`** — a single 24 V cooling call. §15.1 states the unit "adopts
-the same 24VAC control as any conventional Heat Pump" and does all staging *internally*. There
-is no second-stage input on the condenser and nothing to wire to it.
+The condenser accepts one `Y`, a single 24 V cooling call. §15.1 states the unit "adopts the
+same 24VAC control as any conventional Heat Pump" and stages internally. The condenser has no
+second-stage input and nothing to wire to it.
 
-> **`Y2` is not useless, though — it belongs to the *air handler*.** The thermostat's `Y2` drives
-> the Unico blower's **second-stage fan speed**, and that is how a second-stage call reaches the
-> compressor: **indirectly, through air.** More airflow puts more heat into the coil, which
-> raises evaporator pressure, which ramps the compressor (§0.3 below). So `Y2` controls airflow, not the compressor. **A disabled `Y2` fan wire
-> starves the coil on exactly the hot days when the second stage is called for**, and because the
-> compressor modulates on suction pressure it responds by slowing down, which is the
-> self-reinforcing failure in §0.2. Confirm `Y2` is connected and functional at the air handler
-> before diagnosing anything else on a BOVA zone.
+> `Y2` belongs to the air handler. The thermostat's `Y2` drives the Unico blower's second-stage
+> fan speed, which is how a second-stage call reaches the compressor: through air. More airflow
+> puts more heat into the coil, raising evaporator pressure and ramping the compressor. A
+> disabled `Y2` fan wire therefore starves the coil on the hot days the second stage exists for,
+> and the compressor answers by slowing down, the self-reinforcing failure in §0.2. Confirm `Y2`
+> is connected and working at the air handler before diagnosing anything else on a BOVA zone.
 
 #### Suction pressure has one adjustment, and it is already set
 
-Suction pressure is a *dependent* variable: it is the result of load, airflow, and charge, so
-it cannot be "managed" directly to make the compressor work harder. What the manual does expose
-is the **target** it modulates toward (§15.1, verbatim):
+Suction pressure is a dependent variable, set by load, airflow and charge, so it cannot be
+managed directly to make the compressor work harder. The manual exposes the target it modulates
+toward (§15.1, verbatim):
 
 > "The compressor's speed is controlled based on coil pressures monitored by pressure
 > transducer… the compressor speed will modulate relative to **evaporator pressure during
@@ -150,130 +149,117 @@ is the **target** it modulates toward (§15.1, verbatim):
 | SW4-3 | Adaptive capacity output disable | Adaptive capacity output enable |
 | SW4-4 | Accelerated cooling/heating | Normally cooling/heating |
 
-**Both are already set on the great-room unit** — SW4-4 accelerated on both units, and SW4-3
-switched on in July, after which its board display read **75–77 Hz**. There is no third
-capacity switch. **The compressor is already running as hard as the controls allow.**
+Both are already set on the great-room unit: SW4-4 accelerated on both units, and SW4-3 switched
+on in July, after which its board display read 75–77 Hz. No third capacity switch exists, so the
+compressor already runs as hard as the controls allow.
 
-> **Which relocates the problem, and confirms where this plan should spend.** If the unit is at
-> maximum commanded speed and the zone still drifts, the constraint is **downstream of the
-> compressor** — refrigerant **mass flow** (charge) or **evaporator heat transfer** (airflow),
-> not control. §0.2 is built to separate that pair, which is why two
-> thermistors on that air handler are worth more here than any further control tinkering.
-> The outstanding **subcooling check** is the other half: the manual makes subcooling the *only*
-> recommended charging method above 55 °F outdoor ambient (weigh-in below that), and prior notes
-> carry a target of **10 ± 2 °F**.
+> That relocates the problem. A unit at maximum commanded speed with a zone still drifting is
+> constrained downstream of the compressor, in refrigerant mass flow from charge or in evaporator
+> heat transfer from airflow. §0.2 separates that pair, which is why two thermistors on that air
+> handler return more than further control adjustment. The outstanding subcooling check covers
+> the other half: the manual makes subcooling the only recommended charging method above 55 °F
+> outdoor ambient, with weigh-in below that, and prior notes carry a target of 10 ± 2 °F.
 
 #### ⚠️ SW4-3 may be trading away the comfort you want
 
-The manual ties SW4 to "improved **dehumidification** *and* capacity demands" — the two are a
-**tradeoff**, not a package. Disabling adaptive capacity holds the target evaporator pressure
-*higher*, which means a **warmer coil**, which means **less moisture removal**. Since the
-objective in §0 is comfort rather than raw sensible output, a great room sitting at 77 °F *and*
-humid could be **worse off** with SW4-3 on, even if sensible capacity rose.
+The manual ties SW4 to improved dehumidification and capacity demands, and those trade against
+each other. Disabling adaptive capacity holds the target evaporator pressure higher, giving a
+warmer coil and less moisture removal. The §0 objective is comfort rather than raw sensible
+output, so a great room sitting at 77 °F and humid could be worse off with SW4-3 on even as
+sensible capacity rises.
 
-**This is now testable, and it was not before.** Both BOVAs have their own CT, and RedLink logs
-per-zone humidity. **Run SW4-3 OFF for a few comparable hot days and compare droop *and*
-humidity against the SW4-3 ON period.** If droop is unchanged and humidity falls, adaptive
-capacity was the better setting all along.
+This is testable. Both BOVAs have their own CT and RedLink logs per-zone humidity, so run SW4-3
+off for a few comparable hot days and compare droop and humidity against the SW4-3 on period. If
+droop holds steady while humidity falls, adaptive capacity was the better setting.
 
 #### Two board features
 
-- **"Forced operation button"** (control-board legend items 16/21, with its own display code) —
-  a **service/commissioning** function that runs the unit independent of the thermostat. Useful
-  for a controlled capacity test; **not** a capacity boost and not for continuous operation.
-- **"Digital tube display"** (item 18) — the Hz readout already used once. Read it *during* the
-  air-side measurements so commanded frequency, air ΔT and condenser watts are captured
-  together; that triple distinguishes a starved coil from a maxed one.
+The forced operation button, control-board legend items 16 and 21 with its own display code, is
+a service and commissioning function that runs the unit independent of the thermostat. It suits
+a controlled capacity test and should stay out of continuous operation.
 
-#### Should it "just work"? Yes — and the way to help it is to *feed* the loop, not fool it
+The digital tube display, item 18, carries the Hz readout. Read it during the air-side
+measurements so commanded frequency, air ΔT and condenser watts are captured together. That
+triple distinguishes a starved coil from a maxed one.
 
-**Suction pressure *is* the load signal.** Evaporator pressure settles where heat arriving at
-the coil balances heat the compressor removes. A hotter, wetter return means more heat into the
-refrigerant, higher evaporator pressure, and the control ramps the compressor up. That is a
-genuine closed loop on **actual thermal load** — arguably better than a `Y2` contact, which is
-only a proxy for load derived from room temperature. So in principle it *does* just work, and
-`Y2` would add nothing even if the terminal existed.
+#### It does work on its own, and airflow is how you help it
 
-**The catch is exactly the one you are circling.** The loop sees load *as delivered to the
-coil*, which is `airflow × enthalpy difference`. It **cannot distinguish "low load" from
-"plenty of load but not enough air to carry it"** — both present as low suction pressure. So
-with constrained airflow, a hot room produces a *slow* compressor, which is the opposite of what
-you want and is self-reinforcing (§0.2).
+Suction pressure is the load signal. Evaporator pressure settles where heat arriving at the coil
+balances heat the compressor removes, so a hotter, wetter return puts more heat into the
+refrigerant, raises evaporator pressure, and the control ramps the compressor up. That is a
+closed loop on actual thermal load, and it beats a `Y2` contact, which only proxies load from
+room temperature. `Y2` would add nothing at the condenser even if the terminal existed.
 
-**Airflow is therefore the adjustment, and using it is the control working as designed:**
+The catch is that the loop sees load as delivered to the coil, `airflow × enthalpy difference`.
+It cannot separate low load from ample load with too little air to carry it, since both present
+as low suction pressure. With constrained airflow a hot room therefore produces a slow
+compressor, and the effect is self-reinforcing (§0.2).
+
+Airflow is the adjustment, and using it is the control working as designed:
 
 ```
 more CFM → more heat into the coil → higher suction pressure → compressor ramps up
 ```
 
-There are two ways to deliver it, and they stack:
+Two paths deliver it, and they stack. The thermostat's `Y2` selects the blower's second-stage
+speed on a second-stage call, raising airflow only when the zone asks for more, and it must be
+connected for a BOVA zone to reach full capacity on a hot day. The base CFM setting on the Unico
+Smart Controller sets the floor both stages work from, in software, free and reversible.
 
-- **The thermostat's `Y2`**, which selects the blower's second-stage speed on a second-stage
-  call. This is the demand-following half — it only raises airflow when the zone asks
-  for more. **It must be connected for a BOVA zone to reach full capacity on a hot day.**
-- **The base CFM setting** on the Unico Smart Controller, which sets the floor both stages work
-  from. Software, free, reversible (§0.3 below).
+> ⚠️ Do not raise suction pressure artificially. Overcharging or interfering with the pressure
+> transducer raises the number without raising capacity, and the board runs low-pressure
+> protection in cooling and compression-ratio protection off that same transducer, so a falsified
+> signal defeats the protections. Feed the coil more heat rather than misreporting it.
 
-> **⚠️ Do not raise suction pressure artificially.** Overcharging or interfering with the
-> pressure transducer would raise the number without raising real capacity — and the board runs
-> **low-pressure protection (cooling)** and **compression-ratio protection** off that same
-> transducer, so a falsified signal defeats the protections. Feed the coil more heat; do not
-> lie to it about how much heat it is getting.
+More CFM means a warmer coil, so sensible capacity rises and dehumidification falls, the same
+tension as the SW4-3 question above. A zone can reach setpoint and still feel clammy, which
+matters because the §0 objective is comfort.
 
-**The tradeoff, which matters because the objective is comfort (§0):** more CFM means a
-**warmer coil**, so sensible capacity rises and **dehumidification falls** — the same tension as
-the SW4-3 question above. A zone can be pushed to setpoint and still feel clammy.
+> ⚠️ The great room carries three sensible-biased settings at once: `Y2` fan connected, base CFM
+> raised, and `SW4-3` on, which holds the coil warmer. All three trade latent for sensible in the
+> same direction, so watch humidity there rather than temperature.
+> `environment.inside.thermostat.GREAT_ROOM.humidity` is already logged, and droop is
+> quantitative from 2026-08-18 (§2.6.0). If that zone holds setpoint while reading humid against
+> the others, give `SW4-3` back first, since it costs the least capacity now that airflow is
+> unconstrained.
 
-> **⚠️ The great room now carries three sensible-biased settings at once** — `Y2` fan connected,
-> base CFM raised, and `SW4-3` on (adaptive capacity disabled, which holds the coil warmer). All
-> three trade latent for sensible in the same direction, so **humidity is the thing to watch
-> there**, not temperature. `environment.inside.thermostat.GREAT_ROOM.humidity` is already
-> logged, and droop is quantitative from 2026-08-18 (§2.6.0). If that zone holds setpoint but
-> reads humid against the other zones, **`SW4-3` off is the setting to give back first** — it
-> costs the least capacity now that airflow is no longer the constraint.
+Judging an airflow change costs nothing. Both BOVAs have their own CT and RedLink logs per-zone
+humidity, so compare droop and humidity across comparable hot days. Two thermistors (§0.2) also
+show whether air ΔT moved as expected, confirming the airflow changed rather than the ECM merely
+being told to change it.
 
-**Judging an airflow change costs nothing.** Both BOVAs have their own CT and RedLink logs
-per-zone humidity, so compare **droop *and* humidity** across comparable hot days. Two
-thermistors (§0.2) additionally show whether air ΔT moved as expected, confirming airflow
-changed rather than the ECM merely being told to change it.
-
-> **The structural limit.** The Unico blower and the BOVA compressor **do not communicate** —
-> `Y2` couples the *thermostat* to the blower, not the blower to the compressor, so airflow
-> follows the thermostat's two-stage demand rather than the compressor's actual state. The
-> **Smart Controller's
-> only interface is USB for changing settings, and the air handler pauses while fan speed is
-> changed** — so dynamic, load-following airflow is off the table. Reverse-engineering the USB
-> protocol would not help: the pause is the blocker, not the protocol. **CFM is a static
-> setting. Plan around that rather than against it.**
+> The structural limit is that the Unico blower and the BOVA compressor do not communicate.
+> `Y2` couples the thermostat to the blower, so airflow follows the thermostat's two-stage demand
+> rather than the compressor's state. The Smart Controller's only interface is USB for changing
+> settings, and the air handler pauses while fan speed changes, which puts dynamic load-following
+> airflow out of reach. Reverse-engineering the USB protocol would not help, because the pause is
+> the blocker. CFM is a static setting, so plan around that.
 
 #### A static CFM sets where the compressor operates
 
-This is the useful mental model, and it follows directly from §0.3. The compressor is the only
-dynamic element in the pair, and it modulates on suction pressure, which is set by how much heat
-the airflow delivers. So:
+The compressor is the only dynamic element in the pair, and it modulates on suction pressure,
+which is set by how much heat the airflow delivers. The static CFM setting therefore decides
+where in its modulation range the compressor lives. Higher CFM raises suction pressure, so the
+compressor runs faster and makes more sensible capacity at a warmer coil with less
+dehumidification. Lower CFM does the reverse.
 
-> **The static CFM setting decides *where in its modulation range the compressor lives*.**
-> Higher CFM → higher suction pressure → the compressor runs faster and makes more sensible
-> capacity, at a warmer coil and less dehumidification. Lower CFM → the opposite.
-
-That converts an apparently open-ended control problem into a **small, finite tuning exercise**:
+That converts an apparently open-ended control problem into a small, finite tuning exercise over
 two static settings, both free to change, with measurable outcomes.
 
 | Setting | Options | Effect |
 |---|---|---|
-| Unico CFM | a few settings via USB | Sets the compressor's operating point (above) |
-| SW4-3 | ON / OFF | Adaptive capacity disabled vs enabled (§0.3) |
+| Unico CFM | a few settings via USB | Sets the compressor's operating point |
+| SW4-3 | ON / OFF | Adaptive capacity disabled or enabled |
 
-Evaluate each combination on **droop *and* humidity** over comparable hot days — both already
-logged per zone. There is no need to solve this dynamically; there is a need to **measure which
-static pair is best**, which is exactly what §0.2's two thermistors plus the existing CT and
-RedLink humidity deliver.
+Evaluate each combination on droop and humidity over comparable hot days, both already logged per
+zone. Nothing here needs solving dynamically; it needs measuring, which §0.2's two thermistors
+plus the existing CT and RedLink humidity supply.
 
-> **CFM is therefore a seasonal setting, like the Loop B pump tap (§2.5b).** Peak summer wants
-> more airflow (maximum sensible, the compressor pushed high); shoulder season wants less
-> (better dehumidification at part load). A USB change twice a year is entirely practical even
-> though a dynamic one is not — and it is the same kind of manual seasonal ritual already
-> established for the pump tap and the glycol top-up. **If you adopt it, add it to that list.**
+> CFM is therefore a seasonal setting, like the Loop B pump tap (§2.5b). Peak summer wants more
+> airflow for maximum sensible with the compressor pushed high, and shoulder season wants less
+> for better dehumidification at part load. A USB change twice a year is practical even though a
+> dynamic one is not, and it belongs on the manual seasonal list already holding the pump tap and
+> the glycol top-up.
 
 **Source:** [BOVA-36HDN1-M18M Installation Instructions (Bosch, 06.2016)](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
 
@@ -324,7 +310,7 @@ below the water-side figure. That gap is the dehumidification.
 Heating has no latent load, so the two sides must agree. That makes heating season the
 calibration window (§7.2).
 
-### 2.2 K is 481, not 500, because the loop is 25 % glycol
+### 2.2 K is 481 for a 25 % glycol loop
 
 The textbook constant 500 assumes pure water (8.337 lb/gal × 60 × Cp 1.0). With glycol:
 
