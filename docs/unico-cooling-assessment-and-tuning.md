@@ -461,10 +461,40 @@ controller's C-parameter list, and those are the same values the bus carries:
 section is available rather than hypothetical. Pump *speed* has no obvious C parameter, so if the
 controller displays it, it sits elsewhere in the map.
 
-**Discovering the addresses is straightforward because the controller is readable.** Poll a block
-of input registers, watch which one tracks the `C05` value on the display as the chiller runs, and
-build the map empirically against the parameter list above. Temperatures in this family are
-normally tenths of a degree Celsius as a signed 16-bit integer, and flow is usually whole L/min.
+**A community register map exists and saves the discovery work.**
+[jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus)
+publishes a Home Assistant configuration covering CX34, CX35 and CX50-2, over Modbus TCP through a
+Waveshare RS-485 gateway on port 502, slave 1, holding registers. The registers that matter here:
+
+| Register | Value | Type | Scale | Use |
+|---|---|---|---|---|
+| 203 | Water outlet temperature | int16 | 0.1 °C | **Chiller leaving water** |
+| 202 | Water inlet temperature | int16 | 0.1 °C | **Chiller entering water** |
+| 257 | Flow rate | uint16 | 0.1 L/min | **The flow term.** 1 L/min = 0.264 GPM |
+| 260 | Pump speed | uint16 | | Confirms the internal circulator's modulation |
+| 258 | Compressor speed | uint16 | | Load state |
+| 256 | Current power | uint16 | 1 W | **Cross-check against `electrical.emporia.house.chiltrix`** |
+| 281 | Compressor starts | uint16 | | Cycling rate, which is what the buffer tank exists to limit |
+| 264 | Total run hours | uint16 | | Duty accounting |
+| 243, 244 | Operating state, error code | uint16 | | Status and freshness |
+| 204 | Ambient temperature | int16 | 0.1 °C | Load normalisation |
+
+Two of those are worth more than they look. **Register 256 reports the unit's own power**, which
+validates the Emporia CT and the CT validates it, so a disagreement points at one or the other
+rather than leaving both suspect. And **register 281 counts compressor starts**, which measures
+short cycling directly against the 37-gallon tank's 2 to 9 minute ride-through
+([3.4](#34-the-buffer-tank-is-fully-mixed)).
+
+> The repository warns that addresses vary by firmware and advises verifying with a scanner first,
+> and it is tested on CX34, CX35 and CX50-2 rather than the CX75. Confirm each register against the
+> controller's C-parameter display before trusting it, which is quick when the display is right
+> there. Use function code 3 only until the map is confirmed.
+
+The same repository carries the CX50-2 IOM, a BACnet gateway guide, and COP calculation templates,
+which is the same arithmetic [4.3](#43-flow-without-a-flow-meter) describes.
+
+**If a register disagrees, the controller settles it.** Poll the block, watch which value tracks
+`C05` on the display as the chiller runs, and correct the map against the parameter list above.
 
 > **Read only.** Writing to a misidentified register can move a setpoint or a protection limit.
 > Use function codes 3 and 4 and never 6 or 16 until the map is confirmed.
@@ -2421,6 +2451,8 @@ them does.
 - [Chiltrix CX65-1 installation and operation manual](https://www.chiltrix.com/documents/CX65-1-IOM.pdf) — C-parameter list, head and flow figures
 - [Chiltrix VCT37C buffer tank specifications](https://www.chiltrix.com/documentation/vct37/vct37C-buffer-tank-specs.pdf)
 - [Chiltrix Modbus RTU overview](https://www.chiltrix.com/systems-design-control/modbus-rtu/)
+- [jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus) — community register map, CX34/CX35/CX50-2
+- [gonzojive/heatpump](https://github.com/gonzojive/heatpump) and [sodabrew/chilctl](https://github.com/sodabrew/chilctl) — CX34 RS-485 tooling
 - [Unico M Series chilled water cooling module, bulletin 20-020.3.020](https://unicosystem.com/wp-content/uploads/literatures/bulletin-20-020.3.020---2019_01.pdf)
 - [Taco 00 Series 3-speed cartridge circulators](https://www.tacocomfort.com/product/00-series-3-speed-cartridge-circulators/)
 - [Grundfos UPS 26-99 FC/BFC technical data](https://www.lockewell.com/pdf/grundfos/ups_26-99_fc_bfc.pdf)
