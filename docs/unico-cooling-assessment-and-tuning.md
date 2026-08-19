@@ -290,6 +290,23 @@ This is the one measured shortfall against the stated objective.
 Upper and lower tank probes differ by 0.03 °F. The tank holds thermal mass and provides no
 stratification, so its state is one temperature rather than a charge profile.
 
+The unit is a Chiltrix 37 gallon buffer, which is **8.6 gallons per ton** against the CX75 and
+generous by the usual rule. On 25 % propylene glycol it stores **304 BTU/°F** including the shell.
+That is enough to stop an inverter chiller short-cycling at part load and not enough to mask a
+capacity shortfall:
+
+| House load | Ride-through on a 6 °F tank swing |
+|---|---|
+| 51,600 BTU/hr, design | 2.1 minutes |
+| 33,000, the measured mean | 3.3 minutes |
+| 20,000 | 5.5 minutes |
+| 12,000, one zone | 9.1 minutes |
+
+**So the tank is an anti-cycling device rather than a reserve.** On a design-day afternoon it buys
+two minutes, which means [6.2](#62-scorecard)'s untested design-day question is about plant
+capacity and cannot be answered by tank size. Its full mixing is also what makes the lumped
+thermal-capacity correction in [4.2](#42-the-sensor-package) valid.
+
 Two consequences follow. Tank depletion shows as the whole tank warming rather than as a
 descending thermocline, so watch `UBT` absolute rather than `UBT − LBT`. And the second probe is
 currently redundant, which makes relocating it to the chiller's own leaving-water line a free
@@ -435,11 +452,34 @@ GPM_distribution  =  GPM_chiller × ΔT_chiller / (IN − OUT)
 [5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) for the price of a register read.**
 Item 10 is then unnecessary rather than merely deferred.
 
-Three conditions make a window usable, and all three are already visible. The chiller has to be
-running, which its power series shows and which holds 46 % of the time. `UBT` has to be flat, since
-a charging or discharging tank breaks the equality; drift under about 0.2 °F across 15 to 30
-minutes is a reasonable bar. And both ΔTs need calibrated pairs, which for `IN` and `OUT` means the
-bench procedure in [G.1](#g1-matched-pair-calibration-before-install).
+**Better still, the tank's volume is known, so no steady state is needed at all.** A Chiltrix 37
+gallon buffer on 25 % propylene glycol holds 317 lb of fluid at Cp 0.935, which is 296 BTU/°F, and
+about 8 BTU/°F more in the shell. Call it **304 BTU/°F**. The imbalance is then a correction rather
+than a disqualification:
+
+```
+Q_house = Q_chiller − 304 × d(UBT)/dt          [BTU/hr, with dUBT/dt in °F per hour]
+```
+
+The measured 0.03 °F of stratification is what makes that valid. A single lumped temperature
+describes a fully mixed tank, and a stratified one would need a layered model
+([3.4](#34-the-buffer-tank-is-fully-mixed)).
+
+If you would rather select steady windows than differentiate a noisy series, 304 BTU/°F sets the
+bar:
+
+| `UBT` drift | Over | Implied imbalance | As a share of a 33,000 BTU/hr flow |
+|---|---|---|---|
+| 0.2 °F | 30 min | 122 BTU/hr | 0.4 % |
+| 0.5 °F | 15 min | 608 BTU/hr | 1.8 % |
+| 1.0 °F | 15 min | 1,217 BTU/hr | 3.7 % |
+| 2.0 °F | 15 min | 2,434 BTU/hr | 7.4 % |
+
+**One degree over fifteen minutes costs under 4 %**, comparable to every other error term here, and
+it will find far more usable windows than a stricter bar. The chiller also has to be running, which
+its power series shows and which holds 46 % of the time, and both ΔTs need calibrated pairs, which
+for `IN` and `OUT` means the bench procedure in
+[G.1](#g1-matched-pair-calibration-before-install).
 
 Accuracy is better than the alternatives. The result is a ratio of two similar deltas, each near
 5 °F, so ±0.2 °F on each gives about ±6 % on the ratio and perhaps ±10 % overall with the chiller's
