@@ -415,17 +415,41 @@ USB free and survives a Pi swap.
 | Compressor frequency | Load state, and it separates a modulating unit from a cycling one |
 | Fault and status codes | Freshness and diagnostics |
 
-**If flow is in the register map, it substitutes for the flow meter.** At steady state, when the
-tank is neither charging nor discharging, chiller output equals house extraction:
+**If flow is in the register map, it substitutes for the flow meter.** The chiller's flow is only
+the chiller-to-tank circuit and never reaches the loops, which is the objection to raise first. It
+is used here as an energy measurement rather than a flow one. **The tank decouples flow and
+conserves energy**, so what crosses it is BTU/hr:
+
+```
+Q_chiller = K × GPM_chiller × ΔT_chiller          both from Modbus
+```
+
+When the tank is thermally steady, whatever the chiller makes is what the house takes, so
+`Q_house = Q_chiller` and the distribution flow follows from a delta already logged:
 
 ```
 GPM_distribution  =  GPM_chiller × ΔT_chiller / (IN − OUT)
 ```
 
-Chiller flow and ΔT come from Modbus, `IN − OUT` is already in InfluxDB, and `UBT` holding flat
-identifies the steady windows. **That measures the Taco's flow with no meter and settles the 13 to
-16 GPM question in [5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) for the price of a
-register read.** Item 10 is then unnecessary rather than merely deferred.
+**That measures the Taco's flow with no meter and settles the 13 to 16 GPM question in
+[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) for the price of a register read.**
+Item 10 is then unnecessary rather than merely deferred.
+
+Three conditions make a window usable, and all three are already visible. The chiller has to be
+running, which its power series shows and which holds 46 % of the time. `UBT` has to be flat, since
+a charging or discharging tank breaks the equality; drift under about 0.2 °F across 15 to 30
+minutes is a reasonable bar. And both ΔTs need calibrated pairs, which for `IN` and `OUT` means the
+bench procedure in [G.1](#g1-matched-pair-calibration-before-install).
+
+Accuracy is better than the alternatives. The result is a ratio of two similar deltas, each near
+5 °F, so ±0.2 °F on each gives about ±6 % on the ratio and perhaps ±10 % overall with the chiller's
+own flow reading. The pump-curve estimate in
+[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) carries ±20 %, so this is the better
+number and it arrives without opening a pipe.
+
+Standby loss is the one bias worth naming. An insulated tank in a warm mechanical room gains a
+little heat, so `Q_house` computed this way runs slightly low. On a well-lagged tank it is a
+percent or two, which does not change any conclusion here.
 
 The same three quantities also close the tank's energy balance. Chiller output minus house
 extraction is the rate the buffer is charging, which is the signal that tells you on a design day
