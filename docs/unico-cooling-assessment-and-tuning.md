@@ -369,51 +369,87 @@ or smaller than assumed.
 
 ### 4.2 The sensor package
 
-Six DS18B20s, three GPIO inputs and one flow meter answer every open question in this document.
-The temperature probes go on the Pi's existing 1-wire bus, taking it from 4 sensors to 10, and
-`pivac.OneWireTherm` re-scans every cycle so they appear within one daemon cycle with no restart.
+Four DS18B20s, three GPIO inputs and a Modbus feed answer every open question in this document. A
+flow meter is the optional tenth item.
 
 | # | Sensor | Where | Answers |
 |---|---|---|---|
-| 1 | `CHLR_SUP` | Chiller leaving water, at the unit | Chiller output with the Emporia CT, and therefore COP |
-| 2 | `CHLR_RET` | Chiller entering water, at the unit | Chiller ΔT, separate from distribution losses |
-| 3 | `LOOPA_SUP` | Loop A supply, just past the tee | Coil entering temperature; against `IN`, the mixing check |
-| 4 | `LOOPA_RET` | Loop A return, just before the tee | Loop A ΔT and capacity |
-| 5 | `LOOPB_SUP` | Loop B supply, just past the tee | Same for Loop B |
-| 6 | `LOOPB_RET` | Loop B return, just before the tee | Same for Loop B |
-| 7–9 | Optoisolated 24 VAC input | Across each Chiltrix zone-valve coil | Zone call state, which separates the two readings in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load) and gives per-zone runtime |
-| 10 | Flow meter, pulse output | Distribution header, near `IN` | Turns every ΔT and ratio into absolute BTU/hr |
+| 1–2 | Modbus from the CX75 | Chiller entering and leaving water, plus pump speed | Chiller output and COP with the existing CT. Pump speed also settles whether the internal circulator modulates |
+| 3 | `LOOPA_SUP` DS18B20 | Loop A supply, on the copper just past its tee | Against `IN` and `UBT`, the mixing check |
+| 4 | `LOOPA_RET` DS18B20 | Loop A return, on the copper just before its tee | Loop A ΔT and capacity |
+| 5 | `LOOPB_SUP` DS18B20 | Loop B supply, same | Same for Loop B |
+| 6 | `LOOPB_RET` DS18B20 | Loop B return, same | Same for Loop B |
+| 7–9 | 24 VAC relay, dry contact to GPIO | One per Chiltrix zone valve | Per-zone call state and runtime |
+| 10 | Flow meter, pulse output | Distribution header near `IN` | Absolute BTU/hr and system COP. Optional |
 
-Cost is about $30 for the probes, $10 for optoisolators onto free inputs BCM 13, 16 and 24, and
-$200 to $400 for the meter. Everything except the meter is Tier 1.
+While reading the CX75's register map, check whether it also reports water flow. Several CX models
+do, and that would supply the chiller circuit's flow with no plumbing at all.
 
-**What the six probes read together.** The four-pipe tank makes two independent circuits, and each
-comparison isolates one thing:
+#### Mounting the four loop probes
 
-| Comparison | Healthy result | What a deviation means |
-|---|---|---|
-| `CHLR_SUP` against `UBT` | Close while the chiller runs | The tank is not accepting charge, or the chiller circuit is starved |
-| `IN` against `UBT` | Equal within pipe gain | The header is not seeing tank temperature |
-| `LOOPA_SUP` against `IN` | Equal | Warmer in cooling means reverse mixing at the tees |
-| `LOOPB_SUP` against `IN` | Equal | Same, for Loop B |
-| `UBT` through a hot afternoon | Flat | Rising means the load has outrun the plant, the design-day case |
-| ΔT ratio, primary against each loop | Below 1 | Above 1 is the reverse-mixing condition ([C.2](#c2-the-flow-ratio-falls-out-of-temperatures-alone)) |
+**Mount on copper, not on PEX.** Copper conducts about a thousand times better than PEX, so a
+strap-on probe on copper equilibrates with the water quickly and one on PEX reads the outside of a
+tube that is thermally distant from the fluid. The header is 1½" copper and the loops transition to
+PEX further out, so **put the probes on the copper at the tees**, which is also where they measure
+the loop rather than the run.
 
-**Placement.** Strap-on to bare, cleaned copper with thermal compound, then at least 25 mm of
-insulation extending 100 mm either side. Mount on straight pipe at least 5 diameters downstream of
-any fitting. An uninsulated probe reads somewhere between the water and the room, and the error
-differs between the hot and cold pipes, which is the worst case for a ΔT
-([E.3](#e3-water-temperature-thermowell-against-strap-on)). Put the loop probes as close to the
-tees as the pipe allows, so they read the loop rather than the run, and the chiller probes close to
-the unit.
+1. Clean the copper to bright metal at the probe position, on straight pipe at least 5 diameters
+   downstream of any fitting, tee or valve.
+2. Thermal compound between the probe body and the pipe, then clamp firmly with a worm-drive clamp
+   or stainless tie. Contact pressure matters more than the amount of compound.
+3. Bury it under **at least 25 mm of insulation, extending at least 100 mm either side of the
+   probe**. The 100 mm matters because copper conducts along its length, so insulating only at the
+   probe leaves the pipe acting as a fin into the room.
+4. **Seal the insulation, including the seam and both ends.** This is a chilled loop below the room
+   dew point, so an open seam admits moist air, condenses on the pipe at the probe, and both
+   corrodes the joint and biases the reading.
+5. Route the leads **downward** away from the probe so condensate cannot wick along the cable into
+   the probe body.
 
-**Calibrate each pair before installing.** Bundle both probes of a pair in a stirred bath, log 15
-minutes at the production rate, and write the mean difference into `offsets:`
+Where the pipe already carries insulation, slit it, fit the probe, and reseal rather than leaving a
+gap. Skimping here is the main failure mode: an uninsulated probe reads somewhere between the water
+and the room, and the error differs between the supply and return pipes, which is the worst case
+for a ΔT.
+
+#### The three zone-valve inputs
+
+Each Chiltrix zone valve is driven at 24 VAC by the HZ-432, and the Pi needs a dry contact rather
+than 24 VAC. Use the pattern already on this system: a small 24 VAC relay per zone with its
+contacts into a spare GPIO, exactly as the Phoenix Contact board carries `BLR`, `CHIL` and the
+rest. A relay also avoids the 60 Hz chatter a bare optocoupler produces on an AC coil.
+
+Tap the valve's **end switch** if it has one, since that reports the valve actually opened. Tap
+across the coil if it does not, which reports the call instead. Free inputs with existing wire runs
+are BCM 13 at physical pin 33, BCM 16 at 36, and BCM 24 at 18. Avoid BCM 26, a permanently dead
+pad. Add three entries to the `pivac.GPIO` block, then restart `pivac-gpio`; adding paths needs no
+Signal K restart, only removing them does.
+
+**This is the input that makes every other measurement interpretable.** A loop ΔT means nothing
+without knowing how many coils were drawing, since flow changes with zone count. It also gives
+per-zone runtime, which tests the kids-room capacity question directly, and it shows how often both
+loops call together, which is the only thing that decides whether the mixing question in
+[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) matters at all.
+
+#### The flow meter is not critical
+
+Defer it. The ΔT ratio between primary and each secondary gives relative flows from thermometers
+alone ([C.2](#c2-the-flow-ratio-falls-out-of-temperatures-alone)), and the pump-curve calculation
+brackets the absolute value to roughly ±20 %. Every live question here is answered by temperatures
+plus zone state.
+
+What a meter adds is absolute BTU/hr and system COP, which is an efficiency and accounting question
+the objective ranks second. Buy it if the ΔT-ratio results come out ambiguous, or when you want to
+compare a coil against its Unico rating table rather than against last month.
+
+#### Calibration
+
+Calibrate each pair before installing. Bundle both probes of a pair in a stirred bath, log 15
+minutes at the production sample rate, and write the mean difference into `offsets:`
 ([G.1](#g1-matched-pair-calibration-before-install)). Without it a 5 °F loop ΔT carries ±36 % of
 error, and the flow-ratio method is a ratio of two such differences. `IN` and `OUT` need the same
 treatment and have almost certainly never had it.
 
-> Fix these six names once. The Signal K path becomes the InfluxDB measurement name, and four prior
+> Fix these names once. The Signal K path becomes the InfluxDB measurement name, and four prior
 > renames each orphaned their history.
 
 ### 4.3 Flow without a flow meter
