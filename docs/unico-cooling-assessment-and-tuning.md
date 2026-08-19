@@ -983,6 +983,46 @@ $350, and it is what makes the Loop A tap change deliver rather than partly canc
 ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Confirm the shortfall with the loop
 sensors first, since the header head is estimated.
 
+#### What the primary upgrade actually recovers
+
+The gap only opens when both loops call at once. Loop A alone draws 9.3 GPM and Loop B alone
+6.5 GPM, both comfortably under the Taco's 13, so each is already decoupled and neither carries any
+penalty. **A bigger primary buys nothing during single-loop operation.**
+
+When both call, the tees blend return water into the supply and the coils see this:
+
+| Condition | Primary | Secondary | Coil entering water | Penalty |
+|---|---|---|---|---|
+| Either loop alone | 13 GPM | 9.3 or 6.5 GPM | 47.5 °F, tank temperature | none |
+| Both loops, today's load | 13 GPM | 15.8 GPM | 48.45 °F | 0.95 °F |
+| Both loops, design load | 13 GPM | 15.8 GPM | 48.96 °F | 1.46 °F |
+| Both loops, primary at 17 GPM | 17 GPM | 15.8 GPM | 47.5 °F | none |
+
+Against the Unico M2430 table, entering water is worth 1.04 MBH per °F in total capacity and
+0.62 MBH per °F in latent, which is 3.9 % and 6.6 % of the coil's output respectively.
+
+| Recovering | Total capacity | Latent capacity |
+|---|---|---|
+| 0.95 °F, today's load | +3.7 % | +6.3 % |
+| 1.46 °F, design load | +5.6 % | +9.7 % |
+
+**So the direct gain is a few percent of capacity and a little under ten percent of latent, and
+only while both loops run.** It costs about 65 W more while circulating, roughly 260 kWh a year at
+the observed duty, and it adds no plant capacity whatever, since the chiller is still 4.3 tons.
+
+The stronger argument is that it removes a ceiling. Every other flow change is currently penalised:
+raising Loop A from LOW to MEDIUM took combined secondary demand from 14.7 to 15.8 GPM and widened
+the gap, so part of that gain came back as warmer entering water. With the primary above the
+secondaries, the taps and any future balancing work behave as calculated instead of trading against
+themselves. It also makes the loop sensors easy to read, since loop supply should then equal tank
+temperature and any deviation is a real fault.
+
+> **Measure before buying.** The 13 GPM figure rests on an estimated header head of 9 ft at 16 GPM.
+> A shorter or fatter header puts the Taco nearer 14.5 GPM and closes most of the gap on its own.
+> Two of the six probes in [4.2](#42-the-sensor-package) settle it, and the three zone-valve inputs
+> show how often both loops call together, which is what decides whether any of this is worth
+> $300.
+
 The secondaries are a different story. Loop A wants 10 GPM at 26 ft, slightly beyond a UP26-99 on
 HIGH. Loop B wants 16.5 GPM at 23 ft in winter against 6 GPM at 12 ft in summer, a three-to-one
 turndown no fixed three-speed pump serves well.
