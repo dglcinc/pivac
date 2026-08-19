@@ -490,24 +490,24 @@ answers a smaller question for the same money, which is why the primary comes fi
 ### 5.1 Primary flow is fixed, so primary delta-T reads house load
 
 The primary loop runs tank → Taco 0015-MSF3-IFC → header with closely spaced tees → tank. No
-evaporator sits in it, so the Taco faces only the header and the tank connections, perhaps 9 ft at
-16 GPM. Against that it delivers about **13 GPM**, and the head barely changes with load, so
-primary flow is effectively constant.
+evaporator sits in it, so the Taco faces only the header and the tank connections, perhaps 9 ft
+at 16 GPM. Against that it delivers **14 to 15 GPM**, and the head barely changes with load, so
+primary flow is effectively constant ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
 
 That makes `IN − OUT` a direct readout of what the house is extracting:
 
 ```
-Q_house = K × GPM_primary × (IN − OUT) = 481 × 13 × ΔT
+Q_house = K × GPM_primary × (IN − OUT) = 481 × ~14.5 × ΔT
 ```
 
-| House load | Primary ΔT at 13 GPM |
+| House load | Primary ΔT at 14.5 GPM |
 |---|---|
-| 51,600 BTU/hr, the CX75's full rating | 8.3 °F |
-| 40,000 | 6.4 °F |
-| 30,000, about 2.5 tons | 4.8 °F |
-| 20,000 | 3.2 °F |
+| 51,600 BTU/hr, the CX75's full rating | 7.4 °F |
+| 40,000 | 5.7 °F |
+| 30,000, about 2.5 tons | 4.3 °F |
+| 20,000 | 2.9 °F |
 
-The measured 5.3 °F mean therefore corresponds to roughly **2.8 tons of extraction** on an 80 °F
+The measured 5.3 °F mean therefore corresponds to roughly **3.1 tons of extraction** on an 80 °F
 evening, against a plant rated at 4.3. **The 8 to 12 °F band arrives at design load and not
 before**, which is the whole answer to the question that opened this document. Nothing is wrong,
 and nothing on the water side needs adjusting to produce it.
@@ -726,31 +726,42 @@ room outright.
 
 ### 5.8 Can the primary supply both loops at maximum call?
 
-**No, in either season, and in cooling the shortfall is about 3 GPM.**
+**Close enough that it cannot be called from the arithmetic.** The primary circuit is short and
+fat: a 6 ft header in 1½" copper, with the tank and boiler beside it and at most 10 ft of pipe
+either side. Velocity at 16 GPM is 2.9 ft/s and friction across the whole circuit is under a foot,
+so the head is set by fittings, tank nozzles and the pump's integral flow check rather than by
+pipe.
 
-The buffer tank is four-pipe, so the chiller circuit is fully decoupled from everything downstream
-and its flow has to match nothing. The Taco is not on that circuit. It draws from the tank, feeds
-the header, and returns to the tank, which makes it the **primary distribution pump**, and the
-closely spaced tees where the secondaries tap it impose the usual rule: primary flow must equal or
-exceed combined secondary flow.
+| Circuit head assumed at 16 GPM | Taco 0015-MSF3-IFC delivers |
+|---|---|
+| 2.6 ft, 26 ft of pipe with a 2× fitting allowance | 16.2 GPM |
+| 4.4 ft, 3× fittings and 2 ft for the check valve and nozzles | 15.2 GPM |
+| 6.8 ft, deliberately pessimistic | 14.2 GPM |
 
-| Season | Combined secondary call | Primary delivers | Gap |
-|---|---|---|---|
-| Cooling | 15.8 GPM: Loop A 9.3 on MEDIUM, Loop B 6.5 on LOW | ~13 GPM, Taco against a ~9 ft header | **~3 GPM short** |
-| Heating | 25.8 GPM: Loop A 9.3, Loop B 16.5 on HIGH | ~19 to 21 GPM, boiler UP26-99F on HIGH | **~5 GPM short** |
+Against a combined secondary call of 15.8 GPM, the primary lands **at or just under demand**. The
+measured data leans the same way from the other side: a primary ΔT of 5.34 °F at 1,903 W implies
+an EER of 17.5 at 13 GPM and 19.6 at 14.5 GPM, and since 19.6 is the CX75's published IPLV rather
+than a mean operating figure, the thermal evidence points to **13 to 14.5 GPM**.
 
-Below that line the secondaries make up the difference by pulling return water backwards through
-the return tee. In cooling the coils then receive water warmer than the tank; in heating, cooler
-than the boiler produces. Both cost capacity at the coil, and both are invisible without a sensor
-on each loop's supply.
+Hydraulics says 14 to 16 GPM and thermodynamics says 13 to 14.5. **Take the overlap, 14 to 15 GPM,
+against a 15.8 GPM demand.** Reverse mixing is possible at the margin and it is not predicted.
 
-**This is the finding that most changes what to do.** Raising Loop A's tap increases secondary
-demand and widens the gap, so part of the flow gain is returned as a warmer entering temperature.
-The four loop sensors in [4.2](#42-the-sensor-package) measure it directly, and
-[7.5](#75-ideal-pump-sizing-ignoring-what-is-installed) shows the primary pump is the cheap fix.
+Heating sits in the same place. The boiler circuit must exceed 25.8 GPM at full winter call, and
+the UP26-99F on HIGH delivers 22 to 26 GPM depending on the Ti-200's exchanger drop.
 
-That the CX75 carries its own circulator now follows by elimination rather than inference: the
-Taco is on the distribution loop, and something has to move water between the chiller and the tank.
+> **The 4 ft of rise from the tank costs nothing.** A closed loop cancels static lift
+> ([5.3](#53-elevation-adds-no-pump-head-in-a-closed-loop)), and this is the same point that
+> disposed of the attic coil.
+
+That a 1/20 HP circulator is well matched here is the correct reading, not an accident. A 3 to 5 ft
+circuit needs flow rather than head, and the Taco runs far right on its curve where it makes little
+head and plenty of flow. An earlier reading in this document put the chiller evaporator in this
+loop and concluded the pump was undersized by half; the evaporator belongs to the chiller's own
+circuit, which the tank decouples entirely.
+
+**The practical consequence is that no pump needs buying.** Two of the six probes in
+[4.2](#42-the-sensor-package) measure whether loop supply matches tank temperature, which settles
+in a week what three pages of estimates cannot.
 
 ### 5.9 What is still unresolved
 
@@ -962,66 +973,30 @@ Each circuit's duty point is its design flow at the head that circuit presents.
 | Circuit | Design flow | Head | What it pushes |
 |---|---|---|---|
 | Chiller to tank | ~10.7 GPM at 10 °F ΔT | ~19 ft | CX-series evaporator plus tank piping. The CX75's internal pump |
-| **Primary distribution, tank to header** | **must exceed 15.8 GPM in summer** | **~9 ft** | Header, tees and tank connections only. No heat exchanger |
-| Boiler circuit, heating | must exceed 25.8 GPM | ~21 ft | Ti-200 exchanger plus the header. No tank in this path |
+| Primary distribution, tank to header | must exceed 15.8 GPM in summer | **~3 to 5 ft** | A 6 ft header in 1½" copper, tank runs, fittings and the pump's check valve |
+| Boiler circuit, heating | must exceed 25.8 GPM | ~9 to 19 ft | Ti-200 exchanger plus the same short header. No tank in this path |
 | Loop A secondary | 10.0 GPM | ~26 ft | 150 ft of 1¼" main, M2430 coil at 7.4 ft, zone valve |
 | Loop B secondary | 16.5 GPM, the winter case | ~23 ft | 120 ft of main across three coils |
 
-**The primary distribution duty is easy, and the Taco does not meet it.** Nine feet at 16 GPM is a
-low-head, moderate-flow duty. A Taco 0015-MSF3-IFC delivers about 13 GPM there, while a UP26-99
-class circulator reaches 16.6 GPM **on speed 1** and 21 GPM on speed 3.
+**Nothing here needs replacing on capacity grounds.** The primary duty is 16 GPM against 3 to 5 ft,
+which wants flow rather than head, and the Taco 0015-MSF3-IFC delivers 14 to 16 GPM there. It is a
+sensible pairing rather than an undersized one
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). The boiler circuit lands at 22 to
+26 GPM against a 25.8 GPM winter demand, equally marginal.
 
-| Candidate on the primary | Delivered against ~9 ft | Verdict |
+If a primary pump were ever replaced, the duty is easy to beat: a UP26-99 class circulator on speed
+1 reaches well past 16 GPM against 5 ft, and an ECM in the 0014e or ALPHA2 25-70 class does the
+same while trimming itself. Neither is worth buying against a gap this uncertain.
+
+| Recovering the mixing penalty | Total capacity | Latent capacity |
 |---|---|---|
-| Taco 0015-MSF3-IFC, speed 3 | 13.4 GPM | Short of the 15.8 GPM the secondaries draw |
-| Grundfos UP26-99 class, speed 1 | 16.6 GPM | Meets it, with the quietest and cheapest setting |
-| Grundfos UP26-99 class, speed 3 | 21.0 GPM | Comfortable margin, more pump energy than needed |
-| ECM in the 0014e or ALPHA2 25-70 class | 18.4 GPM | Meets it and self-adjusts. The tidiest answer |
-
-**Replacing the primary circulator is the cheapest hydraulic fix in the house**, roughly $200 to
-$350, and it is what makes the Loop A tap change deliver rather than partly cancel
-([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Confirm the shortfall with the loop
-sensors first, since the header head is estimated.
-
-#### What the primary upgrade actually recovers
-
-The gap only opens when both loops call at once. Loop A alone draws 9.3 GPM and Loop B alone
-6.5 GPM, both comfortably under the Taco's 13, so each is already decoupled and neither carries any
-penalty. **A bigger primary buys nothing during single-loop operation.**
-
-When both call, the tees blend return water into the supply and the coils see this:
-
-| Condition | Primary | Secondary | Coil entering water | Penalty |
-|---|---|---|---|---|
-| Either loop alone | 13 GPM | 9.3 or 6.5 GPM | 47.5 °F, tank temperature | none |
-| Both loops, today's load | 13 GPM | 15.8 GPM | 48.45 °F | 0.95 °F |
-| Both loops, design load | 13 GPM | 15.8 GPM | 48.96 °F | 1.46 °F |
-| Both loops, primary at 17 GPM | 17 GPM | 15.8 GPM | 47.5 °F | none |
-
-Against the Unico M2430 table, entering water is worth 1.04 MBH per °F in total capacity and
-0.62 MBH per °F in latent, which is 3.9 % and 6.6 % of the coil's output respectively.
-
-| Recovering | Total capacity | Latent capacity |
-|---|---|---|
-| 0.95 °F, today's load | +3.7 % | +6.3 % |
+| 0.95 °F, today's load, if the gap is real at all | +3.7 % | +6.3 % |
 | 1.46 °F, design load | +5.6 % | +9.7 % |
 
-**So the direct gain is a few percent of capacity and a little under ten percent of latent, and
-only while both loops run.** It costs about 65 W more while circulating, roughly 260 kWh a year at
-the observed duty, and it adds no plant capacity whatever, since the chiller is still 4.3 tons.
-
-The stronger argument is that it removes a ceiling. Every other flow change is currently penalised:
-raising Loop A from LOW to MEDIUM took combined secondary demand from 14.7 to 15.8 GPM and widened
-the gap, so part of that gain came back as warmer entering water. With the primary above the
-secondaries, the taps and any future balancing work behave as calculated instead of trading against
-themselves. It also makes the loop sensors easy to read, since loop supply should then equal tank
-temperature and any deviation is a real fault.
-
-> **Measure before buying.** The 13 GPM figure rests on an estimated header head of 9 ft at 16 GPM.
-> A shorter or fatter header puts the Taco nearer 14.5 GPM and closes most of the gap on its own.
-> Two of the six probes in [4.2](#42-the-sensor-package) settle it, and the three zone-valve inputs
-> show how often both loops call together, which is what decides whether any of this is worth
-> $300.
+And it only applies while both loops call together. Loop A alone draws 9.3 GPM and Loop B alone
+6.5, both well under the primary, so each is already decoupled and carries no penalty at any pump
+size. How often the two overlap is unmeasured, which the three zone-valve inputs in
+[4.2](#42-the-sensor-package) answer.
 
 The secondaries are a different story. Loop A wants 10 GPM at 26 ft, slightly beyond a UP26-99 on
 HIGH. Loop B wants 16.5 GPM at 23 ft in winter against 6 GPM at 12 ft in summer, a three-to-one
@@ -1029,8 +1004,7 @@ turndown no fixed three-speed pump serves well.
 
 > **Loop B is the strongest case for an ECM in the house**, precisely because of that turndown. A
 > constant-pressure ECM covers both duties with no seasonal tap change. Loop A gains less, since
-> its duty barely moves between seasons. Neither is urgent while the primary is the binding
-> constraint, and raising a secondary before fixing the primary makes the mixing worse.
+> its duty barely moves between seasons. Buy either when a circulator fails rather than before.
 
 > Upsizing pipe competes with upsizing pumps on the secondaries. Loop A's 26 ft is roughly half
 > main friction and half coil and valve, so a larger main would cut the duty point rather than
