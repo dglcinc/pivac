@@ -290,8 +290,17 @@ This is the one measured shortfall against the stated objective.
 Upper and lower tank probes differ by 0.03 °F. The tank holds thermal mass and provides no
 stratification, so its state is one temperature rather than a charge profile.
 
-The unit is a Chiltrix 37 gallon buffer, which is **8.6 gallons per ton** against the CX75 and
-generous by the usual rule. On 25 % propylene glycol it stores **304 BTU/°F** including the shell.
+The unit is a Chiltrix **VCT37C**: 37 gallons, stainless inner tank and jacket, **2" polyurethane
+insulation**, 18.5" diameter by 58.5" tall, 74 lb empty. It carries six 1" NPT ports on one side,
+three in and three out, four 1½" NPT ports on the other, two in and two out, and **two ½" sensor
+wells**. The 1½" ports match the header, so the four-pipe arrangement uses both sets. At 8.6
+gallons per ton against the CX75 it is generous by the usual rule, and on 25 % propylene glycol it
+stores **304 BTU/°F** including the shell. The 2" of polyurethane also means standby loss is small,
+which keeps the energy-balance bias in [4.2](#42-the-sensor-package) to well under a percent.
+
+> Check whether `UBT` and `LBT` sit in those two ½" wells or are strapped to the shell. In the
+> wells they read fluid directly, which is both more accurate and the likeliest reason the two
+> agree to 0.03 °F.
 That is enough to stop an inverter chiller short-cycling at part load and not enough to mask a
 capacity shortfall:
 
@@ -431,6 +440,39 @@ USB free and survives a Pi swap.
 | Pump speed | Confirms the internal circulator's modulation, and proxies flow if flow is absent |
 | Compressor frequency | Load state, and it separates a modulating unit from a cycling one |
 | Fault and status codes | Freshness and diagnostics |
+
+**The register map is not published, and the parameters are.** Chiltrix states plainly that it
+"does not support Modbus programming or training, it's available for experienced Modbus users
+only", and no register map appears on the site. What the CX-series IOM does publish is the
+controller's C-parameter list, and those are the same values the bus carries:
+
+| Parameter | Meaning | Range | Use here |
+|---|---|---|---|
+| `C05` | AC outlet water temp | −30 to 97 °C | **Chiller leaving water** |
+| `C04` | Plate heat exchanger inlet temperature | −30 to 97 °C | **Chiller entering water** |
+| `C13` | Usage side water flow volume | 0 to 100 L/min | **Flow.** 1 L/min = 0.264 GPM |
+| `C27` | Compressor frequency | actual Hz | Load state, and modulating against cycling |
+| `C09` | Compressor current, from the main IPM | 0 to 30 A | Cross-check against the Emporia CT |
+| `C02` | Ambient temp | −30 to 97 °C | Load normalisation |
+| `C10`, `C11` | High and low pressure | bar | Refrigerant-side diagnostics |
+| `C34`–`C36` | Water pump states | 1 run, 0 stop | Run state, though not speed |
+
+**`C13` is the register that matters**, and its presence means the flow substitution in this
+section is available rather than hypothetical. Pump *speed* has no obvious C parameter, so if the
+controller displays it, it sits elsewhere in the map.
+
+**Discovering the addresses is straightforward because the controller is readable.** Poll a block
+of input registers, watch which one tracks the `C05` value on the display as the chiller runs, and
+build the map empirically against the parameter list above. Temperatures in this family are
+normally tenths of a degree Celsius as a signed 16-bit integer, and flow is usually whole L/min.
+
+> **Read only.** Writing to a misidentified register can move a setpoint or a protection limit.
+> Use function codes 3 and 4 and never 6 or 16 until the map is confirmed.
+
+For reference on what a CX-series pump can drive: the CX65 publishes a maximum flow of 12.5 GPM, a
+design flow of 10.6 GPM, and 16 ft of head at 10 GPM, "leaving about 24 ft of head net of the
+unit". The chiller-to-tank run here is 12 ft of pipe, so the internal pump has far more head
+available than that circuit consumes.
 
 **If flow is in the register map, it substitutes for the flow meter.** The chiller's flow is only
 the chiller-to-tank circuit and never reaches the loops, which is the objection to raise first. It
@@ -919,10 +961,11 @@ lands between 2 and 6 ft at 16 GPM. Against that the Taco's speed switch is wort
 | 3.9 ft, 3× fittings | 12.6 GPM | 14.3 GPM | 15.5 GPM |
 | 5.9 ft, deliberately pessimistic | 11.8 GPM | 13.4 GPM | 14.5 GPM |
 
-Combined secondary call is 15.8 GPM. **On speed 3 the primary covers it in the two likelier cases;
-on speed 1 it does not.** The setting is recorded as HIGH and has never been verified, which makes
-reading that switch the highest-value free action in the document
-([7.1](#71-costs-nothing)).
+Combined secondary call is 15.8 GPM. **The Taco is confirmed on HIGH**, which puts the primary at
+14.5 to 16.4 GPM depending on the fitting allowance, so it covers the secondaries in the two
+likelier cases and falls a little short only in the pessimistic one. **Reverse mixing in cooling is
+therefore unlikely rather than merely unproven**, and the loop probes remain the way to confirm
+it.
 
 The thermal evidence brackets the same range from the other side. A primary ΔT of 5.34 °F at
 1,903 W implies an EER of 17.5 at 13 GPM, 19.6 at 14.5 and 21.3 at 15.8. The CX75's published 19.6
@@ -996,7 +1039,7 @@ Six criteria, in the order the objective ranks them.
 |---|---|---|---|
 | 1 | Zones hold setpoint | **Pass at 80 °F** | Zero droop on all five zones, 8 h |
 | 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
-| 3 | No loss at the tees | **Unknown** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
+| 3 | No loss at the tees | **Likely fine** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
 | 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-what-the-calculation-says-about-each-coil)) |
 | 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
@@ -2375,7 +2418,9 @@ them does.
 
 - [Chiltrix by Unico CX75 sell sheet](https://unicosystem.com/wp-content/uploads/2026/03/Chiltrix-by-Unico_CX75_Sell-Sheet.pdf)
 - [Chiltrix CX50-1 installation and operation manual](https://www.chiltrix.com/documents/CX50-IOM-1.pdf)
-- [Chiltrix CX65-1 installation and operation manual](https://www.chiltrix.com/documents/CX65-1-IOM.pdf)
+- [Chiltrix CX65-1 installation and operation manual](https://www.chiltrix.com/documents/CX65-1-IOM.pdf) — C-parameter list, head and flow figures
+- [Chiltrix VCT37C buffer tank specifications](https://www.chiltrix.com/documentation/vct37/vct37C-buffer-tank-specs.pdf)
+- [Chiltrix Modbus RTU overview](https://www.chiltrix.com/systems-design-control/modbus-rtu/)
 - [Unico M Series chilled water cooling module, bulletin 20-020.3.020](https://unicosystem.com/wp-content/uploads/literatures/bulletin-20-020.3.020---2019_01.pdf)
 - [Taco 00 Series 3-speed cartridge circulators](https://www.tacocomfort.com/product/00-series-3-speed-cartridge-circulators/)
 - [Grundfos UPS 26-99 FC/BFC technical data](https://www.lockewell.com/pdf/grundfos/ups_26-99_fc_bfc.pdf)
