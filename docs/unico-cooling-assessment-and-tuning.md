@@ -1,7 +1,8 @@
 # Unico Hydronic Cooling — Assessment and Tuning
 
-**Date:** 2026-08-18.
-**Status:** Assessment complete against existing instrumentation. Remedies proposed, none built.
+**Date:** 2026-08-19.
+**Status:** Assessment complete against existing instrumentation. Loop A is on MEDIUM and the Taco
+is confirmed on HIGH. Remaining remedies proposed, none built.
 **System:** Chiltrix CX75 air-to-water heat pump feeding Unico M2430 air handlers through a
 primary/secondary glycol loop, plus two Bosch BOVA direct-expansion zones on their own Unico air
 handlers.
@@ -39,6 +40,7 @@ advancing it lives in the appendices.
   - [4.3 Flow without a flow meter](#43-flow-without-a-flow-meter)
   - [4.4 Air-side sensors on one air handler](#44-air-side-sensors-on-one-air-handler)
   - [4.5 A flow meter on the primary](#45-a-flow-meter-on-the-primary)
+  - [4.6 Reading the master bedroom's fan stage](#46-reading-the-master-bedrooms-fan-stage)
 - [5. Hydraulic analysis](#5-hydraulic-analysis)
   - [5.1 Primary flow is fixed, so primary delta-T reads house load](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)
   - [5.2 What that means for the 8 to 12 degree target](#52-what-that-means-for-the-8-to-12-degree-target)
@@ -49,6 +51,7 @@ advancing it lives in the appendices.
   - [5.7 Choosing the pump speed, and whether balancing helps](#57-choosing-the-pump-speed-and-whether-balancing-helps)
   - [5.8 Can the primary supply both loops at maximum call?](#58-can-the-primary-supply-both-loops-at-maximum-call)
   - [5.9 What is still unresolved](#59-what-is-still-unresolved)
+  - [5.10 Why the master bedroom calls its high fan stage](#510-why-the-master-bedroom-calls-its-high-fan-stage)
 - [6. Verdict](#6-verdict)
   - [6.1 What optimal means here](#61-what-optimal-means-here)
   - [6.2 Scorecard](#62-scorecard)
@@ -75,6 +78,7 @@ advancing it lives in the appendices.
 - [Appendix G — Calibration and analysis methods](#appendix-g--calibration-and-analysis-methods)
 - [Appendix H — Utility-room instrumentation](#appendix-h--utility-room-instrumentation)
 - [Appendix I — Operational integration](#appendix-i--operational-integration)
+- [Appendix J — The master bedroom thermostat](#appendix-j--the-master-bedroom-thermostat)
 
 ---
 
@@ -84,16 +88,18 @@ The question is whether the hydronic cooling system is delivering what it can, a
 to change. The system holds every setpoint today, so this is an optimisation exercise rather
 than a fault hunt.
 
-Three observations started it. Secondary-loop water rarely shows the 8 to 12 °F ΔT that a hydronic
+Four observations started it. Secondary-loop water rarely shows the 8 to 12 °F ΔT that a hydronic
 coil is designed around. One circulator serves several air handlers on each secondary loop, which
 raises the question of whether any single coil gets its share. Three of the five zones sit a storey
-above the mechanical room, with one coil in the attic, which raises the question of pump head.
+above the mechanical room, with one coil in the attic, which raises the question of pump head. And
+the master bedroom runs its high fan stage more often than a zone with capacity in hand should.
 
-Section 5 answers all three, and the middle one turns out to be the live problem. The low ΔT is a
-control setpoint held by a modulating pump, and raising it would cost capacity and
-dehumidification, so it should be left alone. Elevation costs no pump head at all in a closed loop.
-The shared-circulator concern is real: the two zones sharing Loop A's 105 ft index circuit read
-humid, and the one zone with a circulator to itself over 15 ft reads dry.
+Section 5 answers all four, and the last two land in the same place. The low ΔT is what a
+fixed-flow primary reads at part load, and the design band arrives at design load. Elevation costs
+no pump head at all in a closed loop. The shared-circulator concern is real: the two zones sharing
+Loop A's 105 ft index circuit read humid, and the one zone with a circulator to itself over 15 ft
+reads dry. The master bedroom sits at the far end of that index circuit, and its high fan stage is
+the symptom that circuit predicts.
 
 Sections 1 to 3 are assessment, section 5 is analysis, sections 6 to 8 are decisions. The
 appendices carry the supporting physics, the build specifications, and the reference tables. A
@@ -162,9 +168,9 @@ spread does not change.
 | Position | Pump | Speed | Rating |
 |---|---|---|---|
 | Boiler primary | Grundfos UP26-99F | HIGH | 1/6 HP |
-| Primary distribution, tank to header | Taco 0015-MSF3-IFC | HIGH assumed, unverified | 1/20 HP, 18 GPM and 17 ft maximum |
-| Chiller to tank | CX75 internal circulator | n/a | Inferred: the Taco is on the distribution loop |
-| Loop A secondary | Grundfos UP26-99F | LOW | 2 zones year-round |
+| Primary distribution, tank to header | Taco 0015-MSF3-IFC | HIGH, read at the switch | 1/20 HP, 18 GPM and 17 ft maximum |
+| Chiller to tank | CX75 internal circulator | n/a | On the far side of the buffer tank |
+| Loop A secondary | Grundfos UP26-99F | MEDIUM | 2 zones year-round |
 | Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
 
 Both secondary loops are **insulated PEX, part 1¼" and part 1"**, with the long main runs believed
@@ -177,10 +183,11 @@ The chiller primary is materially the smallest pump in the system. A Taco 0015-M
 1/20 HP circulator against the UP26-99F's 1/6 HP, and its 17 ft maximum head is roughly half the
 Grundfos figure. Section 5 tests whether that matters.
 
-> Verify the Taco's speed switch position. It is recorded as HIGH and has not been read since the
-> model was identified. The primary must out-flow the combined secondaries for the closely spaced
-> tees to work ([Appendix C](#appendix-c--primarysecondary-hydraulics)), and this is the pump
-> with the least margin.
+> The primary covers the secondaries with little to spare. Loop A on MEDIUM and Loop B on LOW draw
+> 15.8 GPM combined, against a Taco on HIGH delivering 14.5 to 16.4 GPM depending on the fitting
+> allowance ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Raising either secondary
+> again crosses the primary, and the closely spaced tees then mix backwards
+> ([Appendix C](#appendix-c--primarysecondary-hydraulics)).
 
 > Loop B's tap is a seasonal setting. It drives one coil in summer and three in winter, so no
 > single tap suits the whole year. Raise it before heating season, alongside the 25 % to 30 %
@@ -287,8 +294,10 @@ This is the one measured shortfall against the stated objective.
 
 ### 3.4 The buffer tank is fully mixed
 
-Upper and lower tank probes differ by 0.03 °F. The tank holds thermal mass and provides no
-stratification, so its state is one temperature rather than a charge profile.
+Upper and lower tank probes differ by 0.03 °F. Both are fully seated in the tank's two ½" sensor
+wells at different heights, and the chiller does not read them; they serve pivac alone. The pair is
+therefore a genuine top-to-bottom measurement, and it says the tank holds thermal mass with no
+stratification. Its state is one temperature rather than a charge profile.
 
 The unit is a Chiltrix **VCT37C**: 37 gallons, stainless inner tank and jacket, **2" polyurethane
 insulation**, 18.5" diameter by 58.5" tall, 74 lb empty. It carries six 1" NPT ports on one side,
@@ -298,11 +307,8 @@ gallons per ton against the CX75 it is generous by the usual rule, and on 25 % p
 stores **304 BTU/°F** including the shell. The 2" of polyurethane also means standby loss is small,
 which keeps the energy-balance bias in [4.2](#42-the-sensor-package) to well under a percent.
 
-> Check whether `UBT` and `LBT` sit in those two ½" wells or are strapped to the shell. In the
-> wells they read fluid directly, which is both more accurate and the likeliest reason the two
-> agree to 0.03 °F.
-That is enough to stop an inverter chiller short-cycling at part load and not enough to mask a
-capacity shortfall:
+That storage is enough to stop an inverter chiller short-cycling at part load and not enough to
+mask a capacity shortfall:
 
 | House load | Ride-through on a 6 °F tank swing |
 |---|---|
@@ -317,13 +323,9 @@ capacity and cannot be answered by tank size. Its full mixing is also what makes
 thermal-capacity correction in [4.2](#42-the-sensor-package) valid.
 
 Two consequences follow. Tank depletion shows as the whole tank warming rather than as a
-descending thermocline, so watch `UBT` absolute rather than `UBT − LBT`. And the second probe is
-currently redundant, which makes relocating it to the chiller's own leaving-water line a free
-upgrade, discussed in [7.1](#71-costs-nothing).
-
-> Confirm the two probes sit at different heights on the tank before concluding the
-> tank is mixed. Two sensors mounted close together would produce the same reading for a
-> different reason.
+descending thermocline, so watch `UBT` absolute rather than `UBT − LBT`. And the lower probe reads
+nothing the upper one does not, though it is properly mounted and the Modbus feed supplies chiller
+leaving water without disturbing it ([4.2](#42-the-sensor-package)).
 
 ### 3.5 Loop pressure is adequate at the attic coil
 
@@ -340,7 +342,7 @@ a measurement.
 
 ### 3.6 What the existing sensors cannot settle
 
-Three questions remain open, and each needs a sensor the house does not have.
+Four questions remain open, and each needs a sensor the house does not have.
 
 Secondary-loop ΔT is unmeasured. `IN` and `OUT` bracket the primary side of the closely spaced
 tees, so they measure what the whole house extracts and say nothing about either loop
@@ -355,6 +357,14 @@ downstream can distinguish from an undersized chiller.
 
 Flow is unmeasured anywhere. Every capacity figure in this document is derived from electrical
 power and an assumed efficiency, so it carries that assumption's error.
+
+Fan stage is unmeasured, and Honeywell does not supply it. The master bedroom runs its high fan
+stage often enough to be noticeable, and a two-stage thermostat calls stage 2 when stage 1 fails to
+hold setpoint, so this is a capacity statement about that coil. Nothing logs it. The Total Connect
+payload behind `pivac.RedLink` was read directly to check: it carries `EquipmentOutputStatus`, which
+resolves to off, heat or cool and nothing finer, and a `fanData` block giving the user's fan mode
+rather than the speed the equipment runs. Reading Y2 needs a wire
+([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
 ### 3.7 Two limits on the data itself
 
@@ -380,9 +390,11 @@ Ordered by cost. Each entry states what it settles.
 
 Three unknowns need no purchase and change the analysis materially.
 
-**The Taco's speed switch.** Recorded as HIGH, unverified since the model was identified. The
-primary must out-flow both secondaries combined, which sets the ceiling on raising Loop A
-([5.6](#56-what-the-calculation-says-about-each-coil)).
+**The master bedroom's cooling-stage settings.** Whether that thermostat upstages on a differential,
+on a timer, or under a rule that holds the high stage to the end of every call decides whether its
+high fan stage reports a capacity shortfall or a configuration choice
+([Appendix J](#appendix-j--the-master-bedroom-thermostat)). Read these before instrumenting
+anything.
 
 **Whether balancing valves exist on the branches.** The calculation in
 [5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps) puts the master bedroom at 68 to 82 % of design flow at every pump speed while the kids room
@@ -729,6 +741,38 @@ COP         = Q_all_zones / (W_chiltrix × 3.412)
 That is whole-house delivered capacity and system efficiency from one purchase. A per-coil meter
 answers a smaller question for the same money, which is why the primary comes first.
 
+### 4.6 Reading the master bedroom's fan stage
+
+One bit of state settles the fourth observation, and the metric it produces is better than anything
+the thermostats report:
+
+```
+Y2 fraction = time(Y2 asserted) / time(the zone is calling for cool)
+```
+
+The denominator already exists. `environment.inside.thermostat.MASTER_BR.statenum` reads −1 through
+a cooling call, so the zone's cooling runtime is logged back to the date the precision fix landed.
+Adding the numerator turns a yes-or-no impression into a continuous measure of how much of that
+runtime stage 1 could not cover.
+
+Droop cannot do this job. Honeywell reports whole degrees, every zone reads zero droop today, and a
+1 °F signal separates a zone that is losing setpoint from one that is not while ranking nothing in
+between ([3.7](#37-two-limits-on-the-data-itself)). Y2 fraction moves continuously between 0 and 1
+and responds to every change in section 7, which makes it the scoring metric for the tuning work
+rather than one more series.
+
+**Ring out the spare pair first.** The run back from the master's air handler once carried a dry
+contact for this signal. If that pair is still good, the measurement is a 24 VAC coil relay across
+Y2 and C at the air handler with its contacts on the pair, landing on a free Pi input under
+`pivac.GPIO` beside the seven already there. About $15, no firmware, no new service, and it is the
+sensing pattern the CDP relays already use. Free inputs are BCM 13, 16 and 24. Avoid BCM 26, a dead
+pad.
+
+If the pair is open, the same signal becomes one more input on the air-handler node
+([E.9](#e9-sensing-the-y2-call)). That is the stronger reason to build the node at the master
+bedroom rather than at the family room: the zone that raises the question is the zone whose coil,
+air and water the node would read together.
+
 ---
 
 ## 5. Hydraulic analysis
@@ -773,29 +817,29 @@ and nothing on the water side needs adjusting to produce it.
 
 ### 5.2 What that means for the 8 to 12 degree target
 
-A regulated ΔT is a setpoint. Nothing on the coil side moves it, because the pump answers any
-change in load by changing flow to keep the difference where it was told to keep it. Balancing
-valves, pump taps and coil cleaning all leave a controlled ΔT at its target.
+The band is a design-load figure, and this system reaches it at design load. Primary flow is fixed,
+so ΔT rises and falls with what the coils extract: 7.4 °F at the CX75's full rating and 4.3 °F at
+2.5 tons ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). The 5.3 °F measured
+on an 80 °F evening is the correct number for that evening. Balancing valves, pump taps and coil
+cleaning all move flow between zones or change it a little; none of them changes what the house is
+extracting.
 
-**The 8 to 12 °F band is therefore unreachable by tuning, and reaching it means raising the
-control target.** That converts the question from a hydraulic problem into a settings problem.
+**Reaching the band on a mild day means slowing the primary, and that is the wrong move here for two
+reasons.** Lower water flow warms the average coil surface, so more of the coil rises toward the
+entering-air dewpoint and stops condensing
+([B.6](#b6-water-flow-and-dehumidification-move-together)); humidity is already the marginal axis in
+the two Loop A bedrooms ([3.3](#33-humidity-is-the-marginal-axis)). And the primary has 0.6 GPM of
+margin over the combined secondary call, so slowing it puts the secondaries above it and mixes the
+tees backwards ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
 
-**Do not raise it.** Raising the target ΔT lowers flow, and lower flow costs both capacity and
-dehumidification. Water leaving the coil warmer means the average coil surface sits warmer, so
-more of the coil rises toward the entering-air dewpoint and stops condensing
-([B.6](#b6-water-flow-and-dehumidification-move-together)). The objective ranks comfort first, and
-humidity is already the marginal axis in the two Loop A bedrooms
-([3.3](#33-humidity-is-the-marginal-axis)). Trading latent capacity for a tidier number is the
-wrong direction for this house.
+The high flow the system runs today works in its favour. It holds the coils close to entering water
+temperature, which is what keeps their surfaces below the air dewpoint. What it costs is pump
+energy, which the objective ranks last.
 
-The present 5 °F ΔT is therefore working in the system's favour. High flow holds the coils close to
-entering water temperature, which is what keeps their surfaces below the air dewpoint. What it
-costs is pump energy, which the objective ranks last.
-
-That leaves one legitimate use for the setting. If a design-day test ever shows the plant
-saturating while the loops still run a 5 °F ΔT, the chiller is making all the capacity it can.
-The loops are then moving more water than they need. Raising the target then recovers pump
-energy with no comfort cost. Until that test happens, leave it alone.
+One case would justify slowing it. If a design-day test ever shows the plant saturating while the
+loops still run a 5 °F ΔT, the loops are moving more water than the chiller can charge, and the
+primary can come down to recover pump energy at no comfort cost. Until that test happens, leave it
+alone.
 
 ### 5.3 Elevation adds no pump head in a closed loop
 
@@ -932,8 +976,8 @@ The method needs five steps and no new hardware.
 4. Draw the system curve through that point. Friction scales as `H = H_design × (Q/Q_design)^1.85`.
 5. Intersect it with each pump-speed curve. Choose the lowest speed that meets design flow.
 
-**The settings that fall out are MEDIUM for Loop A, LOW for Loop B in summer, and HIGH for Loop B
-in winter.** Loop A on MEDIUM reaches 93 % of design for 29 W more than LOW, and HIGH buys 6 % more
+**The settings that fall out are MEDIUM for Loop A, which is where it now sits, LOW for Loop B in
+summer, and HIGH for Loop B in winter.** Loop A on MEDIUM reaches 93 % of design for 29 W more than LOW, and HIGH buys 6 % more
 for another 18 W while pushing combined secondary flow further past the primary. Loop B already
 over-pumps its single summer coil on LOW. Loop B in winter wants HIGH rather than merely "higher",
 since LOW leaves the great room at 67 % of design.
@@ -959,14 +1003,13 @@ room outright.
 > master's 50.9 %. More total flow helps both, which is what the tap change does, and colder water
 > helps both ([7.1](#71-costs-nothing)).
 
-> ⚠️ One ceiling bounds any increase, and it may already be exceeded. Secondary flow must stay
-> under primary flow or the tees mix backwards
+> ⚠️ One ceiling bounds any further increase, and Loop A on MEDIUM now sits against it. Secondary
+> flow must stay under primary flow or the tees mix backwards
 > ([Appendix C](#appendix-c--primarysecondary-hydraulics)). Loop A on MEDIUM plus Loop B on LOW
-> comes to about **16 GPM**, against a primary that rises with load to about 15 GPM and falls to
-> about 8 GPM at part load ([4.3](#43-flow-without-a-flow-meter)). If that holds, the coils receive
-> water warmer than the tank whenever both loops call, and part of the flow gain is cancelled.
-> **Raising Loop A is worth doing and worth checking**, which moves the four loop sensors in
-> [4.2](#42-the-sensor-package) alongside the tap change rather than after it.
+> draws **15.8 GPM**, against the 14.5 to 16.4 GPM the Taco delivers on HIGH
+> ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Loop A on HIGH would add 0.6 GPM
+> and cross it. **The tap change is made and now wants checking**, which is why the four loop
+> sensors in [4.2](#42-the-sensor-package) matter more than any further speed change.
 
 > What is measured and what is assumed. Coil pressure drops and coil capacities are Unico's
 > published figures. The pump curve is read off the printed SuperBrute chart and interpolated with
@@ -1044,11 +1087,58 @@ possibilities remain for the loops themselves, and one measurement separates the
 Loop supply temperature against `IN` is the discriminator, and it needs two of the four sensors in
 [4.2](#42-the-sensor-package).
 
-The evidence leans toward the first row. Implied primary flow reaches 15 GPM at high load
-([4.3](#43-flow-without-a-flow-meter)), both secondaries run on LOW, and reverse mixing requires
-combined secondary flow to exceed the primary. That ordering is comfortable rather than proven, and
-it inverts on a design day if the primary is already at its ceiling while three Loop A zone valves
-open together.
+The evidence leans toward the first row, by a narrower margin than it did before Loop A went to
+MEDIUM. The Taco on HIGH delivers 14.5 to 16.4 GPM and the two secondaries now draw 15.8 combined
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)), so the ordering holds in the
+optimistic fitting case and comes within a few per cent of reversing in the others. It is
+comfortable rather than proven, and it inverts on a design day when both Loop A zone valves and
+Loop B open together.
+
+### 5.10 Why the master bedroom calls its high fan stage
+
+A two-stage thermostat calls stage 2 when stage 1 fails to hold setpoint, so the observation is a
+statement about that coil's capacity. Four things could produce it, and they separate cleanly.
+
+**The thermostat may be manufacturing it.** ISU 3020, Finish With High Cool Stage, holds the high
+stage on until the setpoint is reached once anything has upstaged, and ISU 3030 sets how far above
+setpoint stage 2 engages at all ([Appendix J](#appendix-j--the-master-bedroom-thermostat)). Either
+produces long stage-2 runtime on a zone with capacity in hand. Read both before fitting a sensor,
+because a finish-on-high rule makes Y2 fraction a record of the setting.
+
+**The coil is the least-fed on the system.** It sits at the far end of Loop A's 105 ft index circuit
+and takes 74 % of its design flow on MEDIUM, against the kids room's 122 %
+([5.6](#56-what-the-calculation-says-about-each-coil)). Capacity saturates with water flow rather
+than tracking it, so 74 % of flow costs well under 26 % of capacity
+([B.5](#b5-coil-capacity-against-water-flow-saturates)). On its own that is a few per cent, and a few
+per cent is the distance between holding on stage 1 and upstaging on the hottest afternoon.
+
+**The tees may be adding to it.** The primary clears the combined secondary call by 0.6 GPM in the
+optimistic fitting case and falls short in the pessimistic one
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Where it falls short the coils
+receive water warmer than the tank, and coil capacity scales with the gap between entering air and
+entering water, so 2 °F of warm supply against a 30 °F gap costs about 7 %. The coil with the least
+flow margin feels that first, and it is this one.
+
+**Some of it is load.** The coil is in the attic and the zone is on the top storey, so its sensible
+load peaks with the roof. Load and shortfall separate on the clock. A zone that upstages through the
+afternoon and not at four in the morning is loaded; one that upstages at both is short of capacity.
+
+The two hydronic causes share a test. Both act through the water the coil receives, so lowering the
+chiller's leaving-water setpoint 2 to 3 °F ([7.1](#71-costs-nothing)) should show as Y2 fraction
+falling at a given outdoor temperature. No flow is left to add: Loop A is on MEDIUM and HIGH would
+cross the primary ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)), which leaves
+colder water and branch balancing as the two routes to more capacity at this coil. If Y2 fraction
+does not move, the cause is the thermostat or the load, and the air-side sensors separate those two
+([4.4](#44-air-side-sensors-on-one-air-handler)).
+
+> **Stage 2 works against the humidity finding.** More airflow over the same coil gives a warmer
+> average surface and a higher sensible heat ratio, so the zone dries the air less on stage 2 than
+> on stage 1 ([B.4](#b4-the-two-deltas-move-in-opposite-directions)). The master bedroom peaks at
+> 60 % RH, the highest in the house ([3.3](#33-humidity-is-the-marginal-axis)). If that thermostat
+> is set to dehumidify with the low-speed fan, the effect is explicit: Honeywell states the
+> thermostat will not lower the fan speed while the second stage of cooling is on, so every minute
+> on Y2 is a minute the zone cannot dehumidify by that route. The high fan stage and the humidity
+> reading may be one problem seen twice.
 
 ## 6. Verdict
 
@@ -1056,7 +1146,7 @@ open together.
 
 Six criteria, in the order the objective ranks them.
 
-1. Every zone holds setpoint on a design day.
+1. Every zone holds setpoint on a design day, and does it on stage 1.
 2. Humidity stays near 50 % RH in occupied zones.
 3. Coil entering water temperature matches the tank, so no capacity is lost at the tees.
 4. Each zone gets its share of flow when all zones on its loop call together.
@@ -1067,10 +1157,10 @@ Six criteria, in the order the objective ranks them.
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| 1 | Zones hold setpoint | **Pass at 80 °F** | Zero droop on all five zones, 8 h |
+| 1 | Zones hold setpoint, on stage 1 | **Pass on temperature, unmeasured on stage** | Zero droop on all five zones over 8 h; the master bedroom's high fan stage is unlogged ([4.6](#46-reading-the-master-bedrooms-fan-stage)) |
 | 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
 | 3 | No loss at the tees | **Likely fine** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
-| 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-what-the-calculation-says-about-each-coil)) |
+| 4 | Fair share between zones | **Suspect on Loop A** | The far coil takes 74 % of design flow against the near coil's 122 %, and it is the zone calling its high fan stage ([5.6](#56-what-the-calculation-says-about-each-coil), [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)) |
 | 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
 
@@ -1080,23 +1170,34 @@ Six criteria, in the order the objective ranks them.
 Every zone holds setpoint with the plant idle more than half the time on a warm evening, which is
 the outcome the objective asks for. Nothing here needs fixing to restore comfort.
 
-The low ΔT has a cause outside the distribution and is better left alone. Primary ΔT holds near
-5 °F while chiller power varies threefold, so flow is being modulated to keep it there ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
-Reaching 8 to 12 °F means raising that control target, which lowers flow, and lower water flow
-costs both capacity and dehumidification ([B.6](#b6-water-flow-and-dehumidification-move-together)). The 5 °F the system runs today is part of why
-the coils keep their surfaces below the air dewpoint. It costs pump energy, which the objective
-ranks last.
+The low ΔT is what a fixed-flow primary reads at part load, and it is better left alone. At roughly
+14.5 GPM the measured 5.3 °F is about 3.1 tons of extraction against a plant rated at 4.3, so the
+design band arrives at design load
+([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). Reaching it on a mild day
+means slowing the primary, which costs capacity and dehumidification and would put the secondaries
+above it ([5.2](#52-what-that-means-for-the-8-to-12-degree-target)). The 5 °F the system runs today
+is part of why the coils keep their surfaces below the air dewpoint. It costs pump energy, which the
+objective ranks last.
 
 **The measured shortfall is humidity, and it falls along the loop split.** The one chilled-water
 coil with a circulator to itself over a 15 ft run reads 45.9 % RH. The two sharing a circulator
-across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. More water flow
-removes more moisture, and Loop A on LOW covers the master bedroom circuit only if the mains are
-1½" ([5.6](#56-what-the-calculation-says-about-each-coil)). Raising Loop A one speed tests
-that for free, and it is the first thing to do.
+across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. Loop A has since
+gone to MEDIUM, which is as far as it can go without crossing the primary
+([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)), so the free routes left to a colder
+coil surface are the chiller's leaving-water setpoint and the two zones' own airflow settings.
 
-Two things remain unverified. Distribution between the two Loop A coils is unbalanced by
-construction and unmeasured, which matters most on the design day nobody has yet observed. And
-whether the tees mix backwards is unknown, which section 7 resolves for about $20.
+**The master bedroom's high fan stage is the sharpest unmeasured signal in the house.** It sits at
+the far end of Loop A on 74 % of its design flow, it reads the highest humidity of the five zones,
+and stage 2 makes that humidity worse for as long as it runs
+([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)). One 24 VAC relay turns it into a
+continuous capacity measure where droop gives a flat zero
+([4.6](#46-reading-the-master-bedrooms-fan-stage)).
+
+Three things remain unverified. Distribution between the two Loop A coils is unbalanced by
+construction and unmeasured, which matters most on the design day nobody has yet observed. Whether
+the tees mix backwards is unknown, which section 7 resolves for about $20. And whether that
+thermostat's own staging settings produce the high fan stage is a menu read away
+([Appendix J](#appendix-j--the-master-bedroom-thermostat)).
 
 ---
 
@@ -1104,18 +1205,23 @@ whether the tees mix backwards is unknown, which section 7 resolves for about $2
 
 ### 7.1 Costs nothing
 
-**Raise Loop A's secondary circulator from LOW to MEDIUM.** The calculation puts Loop A at 82 % of
-design flow on LOW and 93 % on MEDIUM, with the master bedroom moving from 66 % to 74 % of its own
-design, against Loop B's single summer coil already running 109 % of its
-([5.6](#56-what-the-calculation-says-about-each-coil)). Watch both zones' humidity and temperature
-across a few comparable hot days.
+**Read the master bedroom's thermostat settings before touching that zone.** Finish With High Cool
+Stage and the cool-stage differential decide whether its high fan stage is a capacity signal at all,
+and the dehumidification block decides whether the 55 % setpoint every zone carries does anything
+([Appendix J](#appendix-j--the-master-bedroom-thermostat)). Free, and it is the difference between
+measuring a coil and measuring a menu.
 
-MEDIUM rather than HIGH: HIGH buys 6 % more flow for another 18 W and pushes combined secondary
-flow further past the primary. **Then check it rather than assuming it worked.** More secondary
-flow than the primary supplies feeds the coils water warmer than the tank, which cancels part of
+**Set the master bedroom's fan from circulate to auto.** That zone runs fan circulate, so its blower
+moves air across a wet coil between calls and re-evaporates condensate back into the room. The kids
+room runs auto and reads just as humid, so this is not the whole of the humidity finding. It is free
+and reversible, and RH is already logged.
+
+**Check the result of the Loop A tap change rather than assuming it worked.** Loop A is on MEDIUM,
+which the calculation puts at 93 % of design flow against 82 % on LOW, and the master bedroom at
+74 % of its own against 66 % ([5.6](#56-what-the-calculation-says-about-each-coil)). More secondary
+flow than the primary supplies would feed the coils water warmer than the tank and cancel part of
 the gain ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The four loop sensors in
-[4.2](#42-the-sensor-package) show it directly as Loop A's supply drifting above
-`IN`, which is why they belong alongside this change rather than after it.
+[4.2](#42-the-sensor-package) show it directly as Loop A's supply drifting above `IN`.
 
 **Lower the commanded CFM on the kids-room air handler.** That zone carries the laundry room and
 two full baths in a small space, so it runs a large latent load on a small sensible one
@@ -1134,22 +1240,11 @@ system and is likely the highest-value fix available for that room.
 surface, independent of flow, and the one that works if Loop A proves adequately pumped. It costs
 efficiency, which the objective ranks second. Both zones' RH is already logged, so the result is
 readable within a few comparable days. Keep the setpoint above the point where the coil frosts and
-above the chiller's own minimum. Change one of these two at a time.
-
-**Read the Taco's speed switch and set it to 3. Do this first.** It is worth about 3 GPM on the
-primary, which is the difference between covering the 15.8 GPM the secondaries draw and falling
-short of it ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). The setting is recorded
-as HIGH and has never been verified. Free, and it decides whether the Loop A tap change delivers in
-full.
+above the chiller's own minimum. Change one setting at a time so the effect stays attributable.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
-bigger pump is the answer if raising the tap falls short.
-
-**Move the redundant lower buffer-tank probe to the chiller's leaving-water line.** `UBT` and `LBT`
-differ by 0.03 °F, so the second reading carries no information where it is. On the chiller outlet
-it gives the reference that makes every mixing and distribution-loss figure absolute. This is a
-sensor relocation with no purchase.
+bigger pump is the answer if the tap change falls short.
 
 **Add a design-day saturation alert.** Chiller power pinned near 3,537 W for an extended period
 with droop above zero on more than one zone is the signature of the plant running out, and it is
@@ -1168,6 +1263,12 @@ in spring. Set `fluid_k` to 476 on the day of the top-up and add a Grafana annot
 **Four DS18B20s on the secondary loops, about $20.** This is the highest-value purchase in the
 document. It resolves criteria 3 and 4, gives per-loop flow through the ratio method with no
 meter, and detects reverse mixing ([4.2](#42-the-sensor-package)).
+
+**A Y2 sense relay on the master bedroom, about $15.** A 24 VAC coil relay across Y2 and C, its dry
+contacts on the spare pair back to a free Pi input, and one more entry under `pivac.GPIO`. That
+makes the zone's stage-2 runtime a logged series and answers the fourth question this document
+opened with ([4.6](#46-reading-the-master-bedrooms-fan-stage)). Contingent on the pair ringing out;
+if it is open, the signal goes on the air-handler node instead.
 
 **Restore leak detection, about $20.** The booster-pump leak pan lost its GPIO input when BCM 25
 was renamed from `SCALA` to `CHIL` on 11 August 2026. A room holding the boiler, buffer tank, DHW
@@ -1194,11 +1295,16 @@ one.** It is the direct answer to criterion 4: as installed the kids room takes 
 flow on MEDIUM while the master bedroom takes 74 %, and throttling the near branch brings both to
 about 85 % ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). Three things argue
 against doing it now. The exchange rate is about half a gallon per minute gained for every one
-removed. The master bedroom holds setpoint today, so this is design-day insurance rather than a
-fix. And the kids zone carries the house's largest latent load
+removed. The master bedroom holds setpoint today, so this reads as design-day insurance rather than
+a fix. And the kids zone carries the house's largest latent load
 ([3.3](#33-humidity-is-the-marginal-axis)), so cutting its flow works against the one measured
-shortfall. Revisit it if the loop sensors confirm the split and the master bedroom starts drooping
-on hot afternoons.
+shortfall.
+
+**Y2 fraction is what would promote it.** The middle argument rests on the master bedroom holding
+setpoint, and a zone that holds setpoint by running stage 2 half the time is not the same as a zone
+holding it comfortably ([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)). Revisit this
+if the loop sensors confirm the split and Y2 fraction stays high after the leaving-water setpoint
+comes down, or if the zone starts drooping on hot afternoons.
 
 **Pressure-independent control valves, $150 to $300 per branch, are the better version of the same
 idea.** They combine the zone valve and the balancing function in one body and hold branch flow at
@@ -1324,36 +1430,38 @@ settles which, and it costs nothing.
 
 | Step | Action | Cost | Resolves |
 |---|---|---|---|
-| 1 | Read the Taco speed switch and set it to 3; read the secondary main pipe size; check for branch balancing valves | — | [4.1](#41-free-read-the-pipe-and-the-pump) |
-| 2 | Raise Loop A from LOW to MEDIUM; watch master bedroom and kids room RH for a few comparable hot days | — | Criterion 2, and it tests criterion 4 |
-| 3 | If step 2 does not move humidity, lower the chiller leaving-water setpoint 2 to 3 °F | — | Criterion 2 by the other route |
-| 4 | Relocate the redundant `LBT` probe to the chiller leaving-water line | — | Criterion 3 |
-| 5 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
-| 6 | Four DS18B20s on the secondary loops, alongside step 2 rather than after it | ~$20 | Criteria 3 and 4, and it shows whether step 2 delivered |
-| 7 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
-| 8 | Two 10K NTCs in the zone the RH comparison identifies | on hand | Sensible against latent |
-| 9 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
-| 10 | Branch balancing on Loop A, if step 6 shows maldistribution | $200–400 | Criterion 4 |
-| 11 | The air-handler node | ~$300 | Per-coil attribution |
+| 1 | Read the master bedroom's thermostat settings; read the secondary main pipe size; check for branch balancing valves | — | [4.1](#41-free-read-the-pipe-and-the-pump) |
+| 2 | Ring out the spare pair from the master bedroom's air handler | — | Decides step 4 |
+| 3 | Set the master bedroom's fan from circulate to auto; watch its RH for a few comparable hot days | — | Criterion 2 |
+| 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
+| 5 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
+| 6 | If humidity has not moved, lower the chiller leaving-water setpoint 2 to 3 °F | — | Criterion 2 by the other route, and it tests [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage) |
+| 7 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
+| 8 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
+| 9 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
+| 10 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
+| 11 | Branch balancing on Loop A, if step 5 shows maldistribution | $200–400 | Criterion 4 |
+| 12 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
 
-Steps 1 to 5 cost nothing and should run before any purchase. Step 2 is the one most likely to
-move the measured shortfall, and steps 2 and 3 change one variable each so their effects stay
-separable. Step 6 is the decision point for the rest. It either confirms the healthy-decoupling
-reading in [5.9](#59-what-is-still-unresolved) and shows whether step 2 delivered more flow, or it finds mixing or
-maldistribution and sends the work to step 10.
+Steps 1 to 3 cost nothing and should run before any purchase. Step 1 leads because a finish-on-high
+staging rule would make step 4 a record of the thermostat rather than of the coil
+([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)). Step 4 is cheap and belongs early,
+since Y2 fraction is what scores steps 3, 6 and 11, and each of those changes one variable so their
+effects stay separable. Step 5 is the decision point for the rest. It either confirms the
+healthy-decoupling reading in [5.9](#59-what-is-still-unresolved) and shows whether the Loop A tap
+change delivered, or it finds mixing or maldistribution and sends the work to step 11.
 
 ---
 
 ## 9. Open questions
 
-- What holds the primary ΔT at 5 °F, and where is its setpoint? The Chiltrix CX series drives its
-circulator from an inverter against a target water ΔT, which fits the measurement ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). Confirm
-from the unit's controller, and find the adjustment. Needed to interpret every water-side figure
-here, and to know whether the loops can be re-pumped without the chiller answering by changing
-its own flow.
-- Does the CX75 carry its own internal circulator, and if so what is the Taco 0015-MSF3-IFC doing?
-  A 17 ft shutoff head cannot pass 15 GPM through an evaporator the CX65 rates at 16 ft of drop at
-  10 GPM, so the two cannot both be the whole story ([4.3](#43-flow-without-a-flow-meter)).
+- Is the spare pair from the master bedroom's air handler still continuous, and does that handler
+  take Y2 as a blower-speed tap rather than as a second call to something else? Together they decide
+  whether stage-2 runtime costs $15 or waits for the node
+  ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
+- What are ISU 3010, 3020, 3030, 3140, 9000 and 9070 set to on the master bedroom thermostat? The
+  first decides whether the rest are displayed at all
+  ([Appendix J](#appendix-j--the-master-bedroom-thermostat)).
 - How much of each loop is 1¼" PEX and how much is 1"? It is the largest remaining uncertainty in
   the hydraulic calculation. At 1¼" mains Loop A reaches 82 to 99 % of design flow; at 1" it falls
   to 61 to 72 % ([5.6](#56-what-the-calculation-says-about-each-coil)).
@@ -1366,7 +1474,6 @@ its own flow.
 - What is the Ti-200's water-side pressure drop at design flow? It swings the boiler circuit from
   27 GPM to 21 against a 25.8 GPM winter call, which is the difference between adequate and short
   ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
-- Which speed is the Taco 0015-MSF3-IFC set to?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
   both. The neighbouring CX65 publishes 10.6 GPM design and 16 ft of head at 10 GPM, which is the
@@ -1384,8 +1491,6 @@ its own flow.
   combustion efficiency against gas input.
 - Which glycol is in the loop, propylene or ethylene? It moves `K` by 3 %
   ([Appendix B](#appendix-b--measurement-physics)).
-- Confirm `UBT` and `LBT` are at different tank heights
-  ([3.4](#34-the-buffer-tank-is-fully-mixed)).
 
 ---
 
@@ -1934,7 +2039,10 @@ carries none of that risk.
 Precedent comes third. The DHW board at 10.0.0.114 already runs a DS18B20 on an UNO R4 alongside
 its analog sensor, so the pattern is proven on this system.
 
-One board per air handler, DHCP-reserved by MAC in UniFi like the others.
+One board per air handler, DHCP-reserved by MAC in UniFi like the others. **Build the first one at
+the master bedroom.** That is the coil the fourth question is about, it is the least-fed on the
+system ([5.6](#56-what-the-calculation-says-about-each-coil)), and it is the only place where the
+water, the air and the fan stage can be read against each other at the same instant.
 
 ## E.2 Bill of materials
 
@@ -1948,6 +2056,7 @@ One board per air handler, DHCP-reserved by MAC in UniFi like the others.
 | 2 | 10.0 kΩ 0.1 % metal-film resistor | Divider reference. Tolerance becomes temperature error |
 | 2 | 0.1 µF ceramic | ADC anti-alias, across the NTC leg |
 | 1 | Water flow sensor, pulse output | [E.5](#e5-water-flow-sensor-selection) |
+| 1 | 24 VAC opto-isolator module, or a 24 VAC coil relay | Y2 sense. See [E.9](#e9-sensing-the-y2-call) |
 | 1 | 5 V PSU or USB supply | Consider the Arduinos Shelly |
 | — | Pipe insulation, cable glands, enclosure | |
 
@@ -2058,10 +2167,11 @@ lowering every zone together, and cannot redistribute between them.
 | Flow sensor pulse | D3 | Interrupt-capable. Debounce in the ISR |
 | Return-air NTC | A0 | Divider per [E.4](#e4-air-temperature-reading-the-10k-ntcs) |
 | Supply-air NTC | A1 | Divider per [E.4](#e4-air-temperature-reading-the-10k-ntcs) |
+| Y2 call sense | D6 | 24 VAC through an opto or a relay contact, never to the pin directly. See [E.9](#e9-sensing-the-y2-call) |
 | SHT41 temperature and humidity, optional | A4/A5 | I²C |
 
 Avoid D0/D1 (Serial1), D4/D5 (CAN) and D10 to D13 (SPI). The free general-purpose pins on the R4
-are D2, D3, D6, D7, D8 and D9, and this design uses two.
+are D2, D3, D6, D7, D8 and D9, and this design uses three.
 
 **Record both DS18B20 ROM addresses in this document during the build.** The printed tags on these
 probes are unreliable as physical identifiers, one probe having been found carrying two tags, and
@@ -2079,7 +2189,7 @@ The response dict matches the single-quoted pseudo-JSON convention `ArduinoSenso
 
 ```
 {'wsup' : 118.42, 'wret' : 108.31, 'asup' : 96.10, 'aret' : 70.44,
- 'flow' : 4.92, 'volume' : 10432.5, 'uptime_ms' : 84213}
+ 'flow' : 4.92, 'volume' : 10432.5, 'y2' : 1, 'uptime_ms' : 84213}
 ```
 
 | Field | Unit | Meaning |
@@ -2090,6 +2200,7 @@ The response dict matches the single-quoted pseudo-JSON convention `ArduinoSenso
 | `aret` | °F | Return, or entering, air |
 | `flow` | gal/min | Rolling-window instantaneous flow |
 | `volume` | gal | Lifetime totalizer, EEPROM-persisted |
+| `y2` | 0 or 1 | Second-stage call present at the air handler. See [E.9](#e9-sensing-the-y2-call) |
 | `uptime_ms` | ms | A low value means a recent reboot, the same power-event diagnostic the pressure boards use |
 
 Emit two decimal places on every temperature. The precision has to survive as far as the delta.
@@ -2101,6 +2212,34 @@ WiFi and HTTP handling. Add the 12-bit DS18B20 read and the two averaged ADC rea
 Handle disconnected sensors explicitly. A DS18B20 that fails to read returns −127, and an open NTC
 divider rails to full scale. Emit a −999 sentinel rather than a plausible number, so the Pi can
 drop the sample instead of computing a confident and wrong figure.
+
+## E.9 Sensing the Y2 call
+
+Y2 is 24 VAC, so it never reaches a digital pin directly. Two ways to land it, and the choice is
+about what else is in the cabinet.
+
+An **AC opto-isolator module** is the smaller of the two: a bridge, a current-limiting resistor and
+an optocoupler, its output pulled to a digital input. It gives galvanic isolation between the 24 VAC
+control transformer and the Arduino, which matters because the node's ground reaches mains through
+its own supply.
+
+A **24 VAC coil relay** with dry contacts is the alternative, and it is the same part the Pi route
+uses ([4.6](#46-reading-the-master-bedrooms-fan-stage)). It is bulkier and it clicks, and it is
+legible to anyone who opens the panel in five years, which counts on a control nobody will remember
+adding.
+
+**Debounce in time rather than in hardware.** A bare opto follows the waveform and drops out twice a
+cycle, so the input reads a 120 Hz square wave instead of a level. Sample it across a window and
+report the call present when any sample in the last 100 ms was high, or fit an RC filter with a time
+constant well above 8.3 ms and read a level. Either works. The failure is reading the pin once per
+loop and reporting whichever phase the waveform happened to be in.
+
+Report `y2` as 0 or 1 rather than as a duty figure. The Pi polls every few seconds and the
+integration belongs in Grafana, where the denominator already exists.
+
+> **Sense Y2 only.** `pivac.RedLink` already publishes a cooling call for every zone as `statenum`
+> at −1, which is the denominator of the Y2 fraction
+> ([4.6](#46-reading-the-master-bedrooms-fan-stage)). One new wire yields both terms.
 
 ---
 
@@ -2166,6 +2305,12 @@ water in it and the duct mass all need to reach steady state.
 | `environment.inside.hvac.ah.mbr.capacity.ua` | BTU/hr·°F | derived |
 | `environment.inside.hvac.ah.mbr.shr` | ratio | derived |
 | `environment.inside.hvac.ah.mbr.running` | 0/1 | derived |
+| `environment.inside.hvac.ah.mbr.y2` | 0/1 | node, only if the spare pair is open |
+
+> If the spare pair rings out, Y2 arrives through `pivac.GPIO` instead, as
+> `electrical.ac.switch.utility.MBY2.statenum` beside the seven relays already there
+> ([4.6](#46-reading-the-master-bedrooms-fan-stage)). Choose one and keep it. Publishing the same
+> signal on both paths would split its history the day the other is retired.
 
 The four secondary-loop sensors in [4.2](#42-the-sensor-package) go on the Pi's
 1-wire bus instead, under `environment.inside.hvac.{LOOPA_SUP,LOOPA_RET,LOOPB_SUP,LOOPB_RET}`.
@@ -2444,6 +2589,74 @@ them does.
 
 ---
 
+# Appendix J — The master bedroom thermostat
+
+The zone runs a Honeywell **THX9421R5021WW**, the Prestige IAQ 2.0 with an Equipment Interface
+Module, rated for up to 3 heat and 2 cool stages on a conventional system. Installer options are
+reached with MENU > INSTALLER OPTIONS and the date code printed on the back of the thermostat, which
+MENU > EQUIPMENT STATUS also shows. VIEW/EDIT CURRENT SETUP reads one setting without walking the
+whole CREATE SETUP sequence.
+
+## J.1 What the cloud already reports
+
+`pivac.RedLink` reads Honeywell's Total Connect payload, and these values came from it on 19 August
+2026. They cost nothing and they frame everything below.
+
+| Zone | Temp | Cool setpoint | RH | Auto deadband | Fan mode | System mode |
+|---|---|---|---|---|---|---|
+| Master bedroom | 76 °F | 76 °F | 50 % | 5 °F | **circulate** | auto |
+| Kids room | 74 | 74 | 52 | 5 | auto | auto |
+| Downstairs family | 76 | 76 | 48 | 3 | circulate | auto |
+| Kitchen | 76 | 76 | 48 | 3 | circulate | cool |
+| Great room | 75 | 75 | 51 | 5 | on | cool |
+
+Every zone carries a dehumidification setpoint of **55 % RH** against a 40 to 80 % range. The master
+bedroom peaks at 60 % ([3.3](#33-humidity-is-the-marginal-axis)), so either that setpoint is not
+acting or the equipment behind it is not configured. ISU 9000 decides which.
+
+**The payload carries no stage information.** `EquipmentOutputStatus` resolves to off, heat or cool
+and nothing finer, and `fanData` reports the user's fan mode rather than the speed the blower runs.
+That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
+
+**Fan circulate runs the blower between calls**, moving room air across a coil still wet from the
+last call and returning that moisture to the room. Three of the five zones are set this way,
+including this one. Changing it is free and reversible.
+
+## J.2 Settings to read, and what each would mean
+
+| ISU | Setting | Why it matters here |
+|---|---|---|
+| **3010** | Temperature Control Options, Basic or Advanced | Read this first. On Basic, 3020, 3030 and 3140 are not displayed at all |
+| **3020** | Finish With High Cool Stage | If yes, stage 2 holds to setpoint once anything upstages, which inflates Y2 fraction on a zone with capacity in hand |
+| **3030** | Staging Control, Cool Differentials | How far above setpoint stage 2 engages. A small differential upstages a zone that would have held |
+| 3140 | Cool Cycles Per Hour | A high rate shortens cycles, and short cycles upstage sooner |
+| 2070–2090 | Cool/Compressor Stages | Confirms the zone is configured for two-stage cool at all |
+| 3240 | Minimum Compressor Off Time | |
+| 3260 | Extended Fan Run Time in Cool | Run-on after a call re-evaporates condensate, the same effect as fan circulate |
+| **9000** | Dehumidification Equipment | A/C with Low Speed Fan, A/C with High Speed Fan, or Whole House Dehumidifier. Decides whether the 55 % setpoint does anything |
+| 9050 | A/C with Low Speed Fan Setup | Which U terminal, normally open or normally closed |
+| **9070** | Dehumidification, Overcooling Limit | 0 to 3 °F. At 0 the thermostat never overcools to dry the room |
+| 9120 | System Modes Allowing Dehumidification | |
+| 9140 | Dehumidifier Lockout | |
+
+> **Honeywell ties the two questions together.** On the low-speed-fan option the manual states that
+> the thermostat will not lower the fan speed while the second stage of cooling is on. If 9000 is
+> set that way, every minute this zone spends on Y2 is a minute it cannot dehumidify by that route,
+> and it is the zone with the highest humidity in the house
+> ([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)).
+
+## J.3 Air-side sensing the thermostat can do, and why it is not enough
+
+The Prestige IAQ accepts a **return air sensor** (ISU 5070, 5080) and a **discharge air sensor**
+(ISU 5090, 5100), and computes Delta T diagnostics from them (ISU 13010), alerting when the system
+drifts outside limits learned during an installer test. Two things stop that from replacing the
+sensors in [4.4](#44-air-side-sensors-on-one-air-handler). The manual restricts Delta T diagnostics
+to non-zoned forced-air systems. And the result lands in the thermostat's own alert log rather than
+in Total Connect, so pivac cannot read it and nothing reaches InfluxDB. It is a cross-check during a
+service visit and not a data feed.
+
+---
+
 ## Sources
 
 - [Chiltrix by Unico CX75 sell sheet](https://unicosystem.com/wp-content/uploads/2026/03/Chiltrix-by-Unico_CX75_Sell-Sheet.pdf)
@@ -2457,3 +2670,4 @@ them does.
 - [Taco 00 Series 3-speed cartridge circulators](https://www.tacocomfort.com/product/00-series-3-speed-cartridge-circulators/)
 - [Grundfos UPS 26-99 FC/BFC technical data](https://www.lockewell.com/pdf/grundfos/ups_26-99_fc_bfc.pdf)
 - [BOVA-36HDN1-M18M installation instructions, Bosch 06.2016](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
+- [THX9321 Prestige 2.0 and THX9421 Prestige IAQ 2.0 with EIM, system installation guide 69-2490](https://customer.resideo.com/resources/Techlit/TechLitDocuments/69-0000s/69-2490.pdf) — installer setup option list, dehumidification and staging
