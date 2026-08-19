@@ -1,8 +1,9 @@
 # Unico Hydronic Cooling — Assessment and Tuning
 
 **Date:** 2026-08-19.
-**Status:** Assessment complete against existing instrumentation. Loop A is on MEDIUM and the Taco
-is confirmed on HIGH. Remaining remedies proposed, none built.
+**Status:** Assessment complete against existing instrumentation, including a logged comparison
+against the plant this one replaced. Loop A is on MEDIUM and the Taco is confirmed on HIGH.
+Remedies proposed, none built.
 **System:** Chiltrix CX75 air-to-water heat pump feeding Unico M2430 air handlers through a
 primary/secondary glycol loop, plus two Bosch BOVA direct-expansion zones on their own Unico air
 handlers.
@@ -34,6 +35,7 @@ advancing it lives in the appendices.
   - [3.5 Loop pressure is adequate at the attic coil](#35-loop-pressure-is-adequate-at-the-attic-coil)
   - [3.6 What the existing sensors cannot settle](#36-what-the-existing-sensors-cannot-settle)
   - [3.7 Two limits on the data itself](#37-two-limits-on-the-data-itself)
+  - [3.8 The previous plant is a controlled comparison](#38-the-previous-plant-is-a-controlled-comparison)
 - [4. Measurements that would close the gaps](#4-measurements-that-would-close-the-gaps)
   - [4.1 Free: read the pipe and the pump](#41-free-read-the-pipe-and-the-pump)
   - [4.2 The sensor package](#42-the-sensor-package)
@@ -52,6 +54,7 @@ advancing it lives in the appendices.
   - [5.8 Can the primary supply both loops at maximum call?](#58-can-the-primary-supply-both-loops-at-maximum-call)
   - [5.9 What is still unresolved](#59-what-is-still-unresolved)
   - [5.10 Why the master bedroom calls its high fan stage](#510-why-the-master-bedroom-calls-its-high-fan-stage)
+  - [5.11 Water temperature is the larger term, and distribution is the smaller one](#511-water-temperature-is-the-larger-term-and-distribution-is-the-smaller-one)
 - [6. Verdict](#6-verdict)
   - [6.1 What optimal means here](#61-what-optimal-means-here)
   - [6.2 Scorecard](#62-scorecard)
@@ -79,6 +82,7 @@ advancing it lives in the appendices.
 - [Appendix H — Utility-room instrumentation](#appendix-h--utility-room-instrumentation)
 - [Appendix I — Operational integration](#appendix-i--operational-integration)
 - [Appendix J — The master bedroom thermostat](#appendix-j--the-master-bedroom-thermostat)
+- [Appendix K — The previous plant and the Chiltrix controls](#appendix-k--the-previous-plant-and-the-chiltrix-controls)
 
 ---
 
@@ -317,6 +321,10 @@ mask a capacity shortfall:
 | 20,000 | 5.5 minutes |
 | 12,000, one zone | 9.1 minutes |
 
+The chiller's own band sets which row applies. It cuts out at its 50 °F target and restarts 2 °C
+above it, so the working swing is **3.6 °F rather than 6**, and every figure in the table shortens to
+about six-tenths of what it shows: roughly 2 minutes at the measured mean load.
+
 **So the tank is an anti-cycling device rather than a reserve.** On a design-day afternoon it buys
 two minutes, which means [6.2](#62-scorecard)'s untested design-day question is about plant
 capacity and cannot be answered by tank size. Its full mixing is also what makes the lumped
@@ -379,6 +387,68 @@ degrees Fahrenheit, so post-fix each zone has held one constant value. Droop is 
 signal that reads 0 or ±1, which is adequate to detect a zone losing setpoint and inadequate to
 rank zones against each other. Humidity, reported to 1 %, is the finer signal of the two and the
 one that moves.
+
+### 3.8 The previous plant is a controlled comparison
+
+Two Unico UniChillers ran this house until they failed on 4 July 2026, and the same sensors logged
+them. They were 5-ton on/off machines controlling on **leaving** water, set to a 38 °F setpoint with
+a 10 °F differential, so they cut out at 38 °F and back in at 48 °F. Unico's own guide puts the floor
+at exactly that: "no lower than 38 °F for cooling". One ran at a time this season. The Chiltrix
+modulates and controls on **return** water, which is a different control philosophy on the same
+distribution, the same coils and the same zones.
+
+David reports the master bedroom held on its low fan stage under the old plant except on the hottest
+days. The logged data says why. Both eras below are binned by outdoor air, with `IN` taken only while
+the master bedroom was calling and the loop was carrying chilled water:
+
+| Outdoor | Old `IN` | New `IN` | Old duty | New duty | Old RH | New RH |
+|---|---|---|---|---|---|---|
+| 65–70 °F | 41.5 °F | 49.4 °F | 7.1 % | 11.3 % | 54.1 % | 59.0 % |
+| 70–75 | 41.3 | 49.1 | 23.2 | 26.1 | 46.0 | 56.5 |
+| 75–80 | 41.3 | 48.2 | 31.9 | 47.6 | 44.9 | 53.3 |
+| 80–85 | 41.4 | 47.4 | 46.0 | 68.5 | 42.7 | 49.0 |
+| 85–95 | 41.8 | 47.4 | 85.6 | 68.1 | 42.9 | 48.5 |
+
+Duty and RH are the master bedroom's. Old era 1 June to 4 July, new era 30 July to 19 August,
+5-minute samples throughout.
+
+**The loop runs 6 to 8 °F warmer at every outdoor condition, the master bedroom runs longer, and it
+sits 5 to 10 points more humid.** At 80 to 85 °F outdoor the zone went from 46 % of the time to
+68 %. Weather does not flatter the comparison: the new era is the milder of the two, peaking at
+90.1 °F against the old era's 98.3 °F, and its top bin holds only 235 samples, so read that last row
+lightly.
+
+**Neither plant is capacity-limited at these conditions.** `IN` barely moves across the outdoor range
+in either era, which is what a held target looks like; a plant running out would show `IN` climbing
+with load. The 6 to 8 °F is a setting rather than a shortfall, which is what makes it recoverable.
+
+**The setting is 50 °F of return water, and the new plant cycles too.** The Chiltrix cuts out at its
+50 °F target and does not restart until the return rises 2 °C above it, about 53.4 °F, so the loop
+runs a **50 to 53.4 °F band** rather than a steady figure. Set against the UniChillers' 38 to 48 °F,
+the new band sits entirely above the old one's midpoint and its cold end is warmer than the old
+plant's warm end.
+
+> **The era comparison survives an uncalibrated sensor.** `IN` measures 47.4 to 49.4 °F against a
+> band the controller puts at 50 to 53.4, so the DS18B20 and the Chiltrix's own return sensor
+> disagree by two or three degrees, and neither has had matched-pair calibration
+> ([G.1](#g1-matched-pair-calibration-before-install)). It does not matter to the finding. Both eras
+> are measured by the same probe in the same place, so any offset cancels in the difference, and the
+> difference is what this section reports. It does matter when comparing `IN` against a controller
+> reading, which is why the target steps in [7.1](#71-costs-nothing) are scored on the change in
+> `IN` rather than on its absolute value.
+
+**A 42 °F target should therefore put `IN` near 39 to 41 °F**, reproducing the old plant's measured
+41.3 to 41.8 °F. The setpoint route is already exhausted at 50 °F, because that is the floor the
+controller allows until one parameter changes
+([Appendix K](#appendix-k--the-previous-plant-and-the-chiltrix-controls)).
+
+> **Quantisation cuts the right way here.** `pivac.OneWireTherm` rounded to whole Kelvin before 18
+> August, so individual `IN` readings move in 1.8 °F steps across both eras
+> ([3.7](#37-two-limits-on-the-data-itself)). Rounding is unbiased in the mean, and this difference
+> is 6 to 8 °F against a 1.8 °F step, so it survives its own precision by a wide margin. `RedLink`
+> truncated rather than rounded, which biases droop low in both eras alike, so era-to-era droop
+> comparisons hold while absolute droop is understated. The old chillers' call relays are not used
+> here: the comparison rests on water temperature and on the zone's own `statenum`.
 
 ---
 
@@ -498,9 +568,10 @@ short cycling directly against the 37-gallon tank's 2 to 9 minute ride-through
 ([3.4](#34-the-buffer-tank-is-fully-mixed)).
 
 > The repository warns that addresses vary by firmware and advises verifying with a scanner first,
-> and it is tested on CX34, CX35 and CX50-2 rather than the CX75. Confirm each register against the
-> controller's C-parameter display before trusting it, which is quick when the display is right
-> there. Use function code 3 only until the map is confirmed.
+> and it is tested on CX34, CX35 and CX50-2 rather than the CX75. **The CX75's P and C codes match
+> its own controller display for every value of interest here**, so the panel is the reference:
+> confirm each register against it before trusting the map. Use function code 3 only until it is
+> confirmed.
 
 The same repository carries the CX50-2 IOM, a BACnet gateway guide, and COP calculation templates,
 which is the same arithmetic [4.3](#43-flow-without-a-flow-meter) describes.
@@ -1124,7 +1195,7 @@ load peaks with the roof. Load and shortfall separate on the clock. A zone that 
 afternoon and not at four in the morning is loaded; one that upstages at both is short of capacity.
 
 The two hydronic causes share a test. Both act through the water the coil receives, so lowering the
-chiller's leaving-water setpoint 2 to 3 °F ([7.1](#71-costs-nothing)) should show as Y2 fraction
+chiller's return-water target ([7.1](#71-costs-nothing)) should show as Y2 fraction
 falling at a given outdoor temperature. No flow is left to add: Loop A is on MEDIUM and HIGH would
 cross the primary ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)), which leaves
 colder water and branch balancing as the two routes to more capacity at this coil. If Y2 fraction
@@ -1139,6 +1210,54 @@ does not move, the cause is the thermostat or the load, and the air-side sensors
 > thermostat will not lower the fan speed while the second stage of cooling is on, so every minute
 > on Y2 is a minute the zone cannot dehumidify by that route. The high fan stage and the humidity
 > reading may be one problem seen twice.
+
+### 5.11 Water temperature is the larger term, and distribution is the smaller one
+
+Section 5.6 puts the master bedroom's coil at 74 % of design water flow, and 5.8 puts the mixing loss
+at about 7 % when both loops call. Both are real and both are small. The temperature difference
+measured in [3.8](#38-the-previous-plant-is-a-controlled-comparison) is neither.
+
+Sensible capacity at a chilled-water coil scales with the gap between entering air and entering
+water. Taking a 76 °F room and the 80 to 85 °F outdoor bin:
+
+| Era | Entering water | Air-to-water gap | Capacity against the old plant |
+|---|---|---|---|
+| Old UniChiller | 41.4 °F | 34.6 °F | 100 % |
+| Chiltrix today | 47.4 °F | 28.6 °F | **83 %** |
+
+**A 17 % capacity loss at the same airflow is several times every distribution effect in this
+document put together**, and it applies to every coil in the house rather than to one branch. It is
+the direct reason a zone that held on its low fan stage now reaches for its high one, and the
+measured duty increase in the same bin, 46 % to 68 %, is the same story counted a second way.
+
+Latent capacity moves further, because condensation is a threshold rather than a slope. Air gives up
+moisture only where the coil surface sits below its dew point:
+
+| Era, 75–80 °F outdoor | Room RH | Room dew point | `IN` | Primary return `OUT` |
+|---|---|---|---|---|
+| Old | 44.9 % | 53.1 °F | 41.3 °F | 47.8 °F |
+| New | 53.3 % | 57.8 °F | 48.2 °F | 53.4 °F |
+
+The old coil sat below the room's dew point along its whole length. The new one starts below it and
+finishes at it, so the last stretch of coil cools air without drying it. That is the mechanism behind
+[3.3](#33-humidity-is-the-marginal-axis). It is self-limiting rather than self-reinforcing: the room
+settles wherever humidity has risen enough that a warmer coil can still carry the latent load, which
+is a stable operating point and a worse one.
+
+**The buffer tank is not the obstacle.** A fully mixed tank holds one temperature
+([3.4](#34-the-buffer-tank-is-fully-mixed)), and the chiller's target sets that temperature, not the
+tank. Hydraulic separation governs flow, not temperature.
+
+Both plants cycle, and the bands are what separate them. The UniChillers ran 38 to 48 °F on a 10 °F
+differential; the Chiltrix runs 50 to 53.4 °F on a 2 °C one. The old band spent much of every cycle
+far below the room dew point, and its warm end only reached where the new band begins. The new band
+never gets there at all, which is why the narrower, better-regulated plant is the one that dries the
+house less. **Narrow is the right shape and the level is wrong**, and the level is a number in a
+menu.
+
+**So the answer to whether the old operating point is reachable is yes, by setting it.** The route
+and its prerequisite are in [7.1](#71-costs-nothing), and the parameters are in
+[Appendix K](#appendix-k--the-previous-plant-and-the-chiltrix-controls).
 
 ## 6. Verdict
 
@@ -1158,17 +1277,28 @@ Six criteria, in the order the objective ranks them.
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | 1 | Zones hold setpoint, on stage 1 | **Pass on temperature, unmeasured on stage** | Zero droop on all five zones over 8 h; the master bedroom's high fan stage is unlogged ([4.6](#46-reading-the-master-bedrooms-fan-stage)) |
-| 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
+| 2 | Humidity near 50 % | **Fails against the plant it replaced** | 5 to 10 points wetter than the UniChillers at every matched outdoor band ([3.8](#38-the-previous-plant-is-a-controlled-comparison)); 60 % peak in the master bedroom |
 | 3 | No loss at the tees | **Likely fine** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
 | 4 | Fair share between zones | **Suspect on Loop A** | The far coil takes 74 % of design flow against the near coil's 122 %, and it is the zone calling its high fan stage ([5.6](#56-what-the-calculation-says-about-each-coil), [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)) |
-| 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
+| 5 | Reserve at design | **Untested, on a smaller plant than before** | 4.3 tons nominal against the 5-ton UniChiller it replaced, and the Chiltrix era has not exceeded 90.1 °F outdoor |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
 
 ### 6.3 Conclusion
 
-**The system is operating well against its stated objective and is not operating at its limit.**
-Every zone holds setpoint with the plant idle more than half the time on a warm evening, which is
-the outcome the objective asks for. Nothing here needs fixing to restore comfort.
+**The system holds setpoint, and it runs measurably behind the plant it replaced.** Every zone was at
+setpoint through eight hours of an 80 °F evening with the chiller idle more than half the time, so
+nothing here needs fixing to restore comfort. Measured against the UniChillers at matched outdoor
+conditions, though, the master bedroom runs about half again as long, sits 5 to 10 points wetter, and
+reaches for a fan stage it used to leave alone
+([3.8](#38-the-previous-plant-is-a-controlled-comparison)).
+
+**The cause is the chilled-water target, and it is a setting rather than a limitation.** The loop
+runs 6 to 8 °F warmer than it did, which costs about 17 % of sensible capacity at every coil and
+lifts much of the coil surface to the room's dew point
+([5.11](#511-water-temperature-is-the-larger-term-and-distribution-is-the-smaller-one)). That is
+several times every distribution effect in this document put together. The target sits at 50 °F
+because 50 °F is the floor the controller allows until P109 changes, and the glycol top-up is that
+change's prerequisite ([7.1](#71-costs-nothing)).
 
 The low ΔT is what a fixed-flow primary reads at part load, and it is better left alone. At roughly
 14.5 GPM the measured 5.3 °F is about 3.1 tons of extraction against a plant rated at 4.3, so the
@@ -1179,12 +1309,13 @@ above it ([5.2](#52-what-that-means-for-the-8-to-12-degree-target)). The 5 °F t
 is part of why the coils keep their surfaces below the air dewpoint. It costs pump energy, which the
 objective ranks last.
 
-**The measured shortfall is humidity, and it falls along the loop split.** The one chilled-water
-coil with a circulator to itself over a 15 ft run reads 45.9 % RH. The two sharing a circulator
-across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. Loop A has since
+**Humidity also falls along the loop split, and that is the second-order term.** The one
+chilled-water coil with a circulator to itself over a 15 ft run reads 45.9 % RH; the two sharing a
+circulator across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. Loop A has
 gone to MEDIUM, which is as far as it can go without crossing the primary
-([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)), so the free routes left to a colder
-coil surface are the chiller's leaving-water setpoint and the two zones' own airflow settings.
+([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)), so what remains on the distribution
+side is branch balancing. Fix the water temperature first: it is larger, it is free once the glycol
+is up, and it lands on every zone.
 
 **The master bedroom's high fan stage is the sharpest unmeasured signal in the house.** It sits at
 the far end of Loop A on 74 % of its design flow, it reads the highest humidity of the five zones,
@@ -1236,11 +1367,26 @@ remove moisture at its source, before it reaches a coil at all. A dryer venting 
 or a ventless one, would put the whole load on the air handler. This sits outside the hydronic
 system and is likely the highest-value fix available for that room.
 
-**Lower the chiller's leaving-water setpoint by 2 to 3 °F.** The second route to a colder coil
-surface, independent of flow, and the one that works if Loop A proves adequately pumped. It costs
-efficiency, which the objective ranks second. Both zones' RH is already logged, so the result is
-readable within a few comparable days. Keep the setpoint above the point where the coil frosts and
-above the chiller's own minimum. Change one setting at a time so the effect stays attributable.
+**Set P109 to 1, then walk the Chiltrix return-water target down.** This is the largest single
+remedy in the document, and the measured gap to the plant it replaced is 6 to 8 °F
+([3.8](#38-the-previous-plant-is-a-controlled-comparison)). The target is at **50 °F** today, which is
+the floor the controller allows while **P109** sits at its factory `0`; setting P109 to `1` opens the
+range down to 41 °F. Then step rather than jump: 46 °F, then 44, then 42, holding each for a few
+comparable days and scoring on Y2 fraction and master-bedroom RH. Because the tank settles at the
+target, `IN` should follow each step within a degree, which is the check that the change took.
+
+**One prerequisite gates it: the glycol.** The manual attaches a condition to P109 = 1, glycol not
+frozen at −10 °C. **25 % propylene glycol freezes at about −10 °C and 30 % at about −13 °C**, so the
+loop currently sits on the limit rather than inside it. The 25 % to 30 % top-up already planned for
+heating season therefore moves onto the critical path for this change instead of waiting for autumn.
+Set `fluid_k` to 476 on the day and annotate Grafana.
+
+**Two costs come with it, and they are not the same cost.** Efficiency falls as the target falls,
+which the objective ranks second and which the Emporia CT already measures. Capacity falls too, which
+the objective does not rank second: the CX75 is 4.3 tons nominal against the single 5-ton UniChiller
+it replaced, and a lower target derates it further. Watch for `IN` rising above its target on hot
+afternoons, which is the plant running out, and stop stepping down at the point that appears. The new
+era has not yet seen a design day, peaking at 90.1 °F, so that limit is untested.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1286,6 +1432,17 @@ capacity-limited one ([4.4](#44-air-side-sensors-on-one-air-handler)).
 
 ### 7.3 $100 to $500
 
+**Close the loop from the master bedroom back to the chiller with Dynamic Humidity Control.** The
+CX-series controller already does what a home-built feedback loop would do: it takes an indoor
+temperature and humidity sensor on its own RS-485 pair and lowers the water target when room humidity
+passes P114 or room temperature passes P115. Humidity feedback and "this zone cannot hold" feedback
+both arrive from one sensor, so the Y2 wire stays a measurement rather than becoming a control input
+([K.4](#k4-dynamic-humidity-control-is-the-feedback-loop-you-would-have-built)). Site the sensor in
+the master bedroom, which is the binding zone. Cost is the sensor plus a wiring run to the outdoor
+unit and a parameter session; the sensor price is not established here. This is the version of
+[7.1](#71-costs-nothing)'s target reduction that pays the efficiency cost only while humidity asks
+for it.
+
 **A flow meter on the primary, $200 to $400.** Converts every ratio in this document into
 absolute BTU/hr and yields system COP against the existing Chiltrix CT
 ([4.5](#45-a-flow-meter-on-the-primary)). Buy this before any per-coil meter.
@@ -1303,7 +1460,7 @@ shortfall.
 **Y2 fraction is what would promote it.** The middle argument rests on the master bedroom holding
 setpoint, and a zone that holds setpoint by running stage 2 half the time is not the same as a zone
 holding it comfortably ([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)). Revisit this
-if the loop sensors confirm the split and Y2 fraction stays high after the leaving-water setpoint
+if the loop sensors confirm the split and Y2 fraction stays high after the return-water target
 comes down, or if the zone starts drooping on hot afternoons.
 
 **Pressure-independent control valves, $150 to $300 per branch, are the better version of the same
@@ -1434,22 +1591,28 @@ settles which, and it costs nothing.
 | 2 | Ring out the spare pair from the master bedroom's air handler | — | Decides step 4 |
 | 3 | Set the master bedroom's fan from circulate to auto; watch its RH for a few comparable hot days | — | Criterion 2 |
 | 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
-| 5 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
-| 6 | If humidity has not moved, lower the chiller leaving-water setpoint 2 to 3 °F | — | Criterion 2 by the other route, and it tests [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage) |
-| 7 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
-| 8 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
-| 9 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
-| 10 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
-| 11 | Branch balancing on Loop A, if step 5 shows maldistribution | $200–400 | Criterion 4 |
-| 12 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
+| 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for step 6 |
+| 6 | **Set P109 to 1; walk the return-water target 50 → 46 → 44 → 42 °F, holding each a few comparable days** | — | **The largest single remedy.** Criteria 1 and 2 |
+| 7 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 6 can go |
+| 8 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
+| 9 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
+| 10 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
+| 11 | Dynamic Humidity Control sensor, sited in the master bedroom | sensor + wiring | Makes step 6 automatic and seasonal rather than fixed |
+| 12 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
+| 13 | Branch balancing on Loop A, if step 8 shows maldistribution | $200–400 | Criterion 4 |
+| 14 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
 
-Steps 1 to 3 cost nothing and should run before any purchase. Step 1 leads because a finish-on-high
+Steps 1 to 4 are instrumentation and about $15 between them. Step 1 leads because a finish-on-high
 staging rule would make step 4 a record of the thermostat rather than of the coil
-([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)). Step 4 is cheap and belongs early,
-since Y2 fraction is what scores steps 3, 6 and 11, and each of those changes one variable so their
-effects stay separable. Step 5 is the decision point for the rest. It either confirms the
+([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)), and step 4 leads the rest because Y2
+fraction is what scores every change after it.
+
+**Step 6 is the one that matters**, and steps 5 and 7 bracket it. The glycol makes it safe and the
+saturation alert says when to stop stepping down, since capacity falls with the target and this plant
+is smaller than the one it replaced ([7.1](#71-costs-nothing)). Change one step at a time so effects
+stay separable. Step 8 then settles the distribution questions: it either confirms the
 healthy-decoupling reading in [5.9](#59-what-is-still-unresolved) and shows whether the Loop A tap
-change delivered, or it finds mixing or maldistribution and sends the work to step 11.
+change delivered, or it finds mixing or maldistribution and sends the work to step 13.
 
 ---
 
@@ -1474,6 +1637,14 @@ change delivered, or it finds mixing or maldistribution and sends the work to st
 - What is the Ti-200's water-side pressure drop at design flow? It swings the boiler circuit from
   27 GPM to 21 against a 25.8 GPM winter call, which is the difference between adequate and short
   ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
+- What is the loop's glycol percentage, measured with a refractometer rather than assumed? P109 = 1
+  is conditioned on the fluid not freezing at −10 °C, and 25 % propylene glycol sits on that line
+  rather than inside it ([7.1](#71-costs-nothing)).
+- Is P109 currently at its factory `0`? A 50 °F target that will not go lower says yes, but read it.
+- Where does the CX75's capacity land at a 42 °F return target, and does Chiltrix publish the derate?
+  It decides how far step 6 of the sequence can go before the plant becomes the limit.
+- Which indoor sensor does Dynamic Humidity Control take, and what does it cost
+  ([K.4](#k4-dynamic-humidity-control-is-the-feedback-loop-you-would-have-built))?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
   both. The neighbouring CX65 publishes 10.6 GPM design and 16 ft of head at 10 GPM, which is the
@@ -2657,6 +2828,111 @@ service visit and not a data feed.
 
 ---
 
+# Appendix K — The previous plant and the Chiltrix controls
+
+## K.1 The Unico UniChillers
+
+Two 5-ton Unico UniChillers served the house until 4 July 2026, one running at a time this season.
+They pumped chilled water into the primary loop from a pump at the chiller, with no buffer tank
+between plant and distribution.
+
+They were on/off machines under a Digital Temperature Controller:
+
+| Setting | Meaning | Set here | Guide's start-up recommendation |
+|---|---|---|---|
+| `S2` | Cooling setpoint, on **leaving** water | 38 °F | 44 °F |
+| `DIF 2` | Cooling differential | 10 °F | 10 |
+| `C2/H2` | Mode select | C2, cooling | |
+
+The plant therefore cut out at 38 °F and back in at 48 °F, and the loop ran a sawtooth between them.
+Unico puts the floor at exactly that setpoint: adjust the controller "no lower than 38 °F for
+cooling". The logged distribution agrees, `IN` running a 38.4 to 45.9 °F fifth-to-95th percentile
+while the master bedroom called ([3.8](#38-the-previous-plant-is-a-controlled-comparison)).
+
+## K.2 How the Chiltrix differs
+
+| | UniChiller | Chiltrix CX75 |
+|---|---|---|
+| Capacity control | On/off | Inverter, modulating |
+| Sensed water | Leaving | **Return** |
+| Set here | 38 °F leaving | **50 °F return** |
+| Differential | 10 °F | 2 °C, restarting near 53.4 °F |
+| Delivered band | 38 to 48 °F | 50 to 53.4 °F |
+| Nominal capacity | 5 tons, one running | 4.3 tons |
+| Separation | None; pumped into the primary | Four-pipe buffer tank |
+
+The return-water target is the part that surprises, and Chiltrix documents it plainly: "for heating
+and cooling, the set target refers to the return water temperature, in steady-state operation, the
+leaving temper will be +/= 5C (9F). The normal cooling set target is 53F which implies a leaving
+steady-state temperature of 44F." Because the buffer tank is fully mixed, the tank settles near the
+target and the house sees the target rather than the leaving temperature.
+
+## K.3 The parameters that matter
+
+Read and set at the controller's LCD. The CX75's P and C codes match its controller display for every
+value of interest here, which is what makes the Modbus map in [4.2](#42-the-sensor-package)
+verifiable against the panel.
+
+| Code | Function | Range | Factory | Note |
+|---|---|---|---|---|
+| **P109** | Cooling inlet target range | `0`: 10–25 °C, 50–77 °F. `1`: 5–25 °C, **41**–77 °F | `0` | `1` is conditioned on "glycol no frozen at −10C" |
+| P114 | DHC room humidity above which the unit lowers water temperature | 0–100 % | 50 % | |
+| P115 | DHC room temperature above which the unit lowers water temperature | 10–32 °C | 27 °C | |
+| P116 | DHC resting target when not actively controlling | 10–21 °C | 12 °C, 53.6 °F | |
+| P117 | DHC maximum allowed target | 10–24 °C | 20 °C | |
+| P118 | DHC minimum allowed target | 4–12 °C | 10 °C, 50 °F | |
+| **P119** | DHC enable | On/Off | **Off** | |
+| P71 | Cooling maximum set temperature | 15–35 °C | 25 °C | A ceiling, not the floor |
+| C04, C05 | Inlet and outlet water temperature | | | Status |
+| C13 | Usage-side water flow | 0–100 L/min | | Status, and the flow term in [4.3](#43-flow-without-a-flow-meter) |
+| C67 | Cooling target temperature | 5–60 °C | | Status. Log it once the target moves |
+| C68, C69, C70 | Room temperature, humidity, dew point | | | Status, readable only with P119 on |
+
+**P109 is the gate.** At its factory value the controller will not accept a target below 50 °F, which
+is where this system already sits, so nothing at the panel moves the water colder until P109 changes.
+
+Glycol decides whether P109 may change. **25 % propylene glycol freezes at about −10 °C and 30 % at
+about −13 °C**, so the loop as it stands sits on the stated limit rather than inside it, and the
+25 % to 30 % top-up already planned for heating season becomes the prerequisite
+([7.1](#71-costs-nothing)). Measure the actual concentration before relying on either figure.
+
+## K.4 Dynamic Humidity Control is the feedback loop you would have built
+
+The obvious next thought is to feed humidity, or the master bedroom's Y2 call, back to the chiller so
+it lowers water temperature on demand. The CX-series controller already does this. It accepts an
+indoor temperature and humidity sensor on a 12 VDC and RS-485 pair and lowers the water target when
+the room passes **P114** on humidity or **P115** on temperature. Chiltrix suggests siting the sensor
+as you would a thermostat, centrally, and at the top of the stairway in a two-storey house.
+
+**Both of the signals you would have wired arrive from that one sensor.** Humidity feedback is P114
+directly. The Y2 signal is a statement that a zone cannot hold setpoint on stage 1, and P115 responds
+to the same condition from the temperature side, so a Y2 wire into the chiller adds little that P115
+does not already carry. That keeps Y2 as a measurement rather than a control input, which is the
+better place for it: it stays the metric that scores every change
+([4.6](#46-reading-the-master-bedrooms-fan-stage)).
+
+Four things to hold in mind before enabling it.
+
+**One sensor reads one room.** Siting it in the master bedroom optimises the binding zone and gives
+the rest of the house colder water whenever that room is humid. The zone valves and thermostats stop
+that from overcooling anyone, since colder water only reaches a zone that is calling, but it does
+mean the whole plant's efficiency follows one bedroom.
+
+**P109 still gates the floor.** P118 bottoms at 4 °C, and the cooling target range passes through
+P109 regardless, so the glycol prerequisite applies to DHC exactly as it applies to a fixed lower
+target.
+
+**Do not run a second control loop on top of it.** Writing the target over Modbus from the Pi would
+duplicate DHC with worse hardware and needs function code 6 or 16 into a register map that is
+community-sourced and untested on this model ([4.2](#42-the-sensor-package)). Keep pivac read-only.
+
+**Log C67 if DHC is enabled.** The target stops being a constant, so without it the loop temperature
+will appear to wander for no visible reason on the dashboards. Record the change in `CLAUDE.md` too:
+a second controller acting on water temperature is exactly the kind of thing that makes a system
+unexplainable to whoever looks at it next.
+
+---
+
 ## Sources
 
 - [Chiltrix by Unico CX75 sell sheet](https://unicosystem.com/wp-content/uploads/2026/03/Chiltrix-by-Unico_CX75_Sell-Sheet.pdf)
@@ -2667,6 +2943,7 @@ service visit and not a data feed.
 - [jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus) — community register map, CX34/CX35/CX50-2
 - [gonzojive/heatpump](https://github.com/gonzojive/heatpump) and [sodabrew/chilctl](https://github.com/sodabrew/chilctl) — CX34 RS-485 tooling
 - [Unico M Series chilled water cooling module, bulletin 20-020.3.020](https://unicosystem.com/wp-content/uploads/literatures/bulletin-20-020.3.020---2019_01.pdf)
+- [Unico UniChiller installation and user's guide, bulletin 30-032](https://unicosystem.com/wp-content/uploads/literatures/bulletin_30-032_2011-01.pdf) — DTC programming, `S2`/`DIF 2`, the 38 °F cooling floor
 - [Taco 00 Series 3-speed cartridge circulators](https://www.tacocomfort.com/product/00-series-3-speed-cartridge-circulators/)
 - [Grundfos UPS 26-99 FC/BFC technical data](https://www.lockewell.com/pdf/grundfos/ups_26-99_fc_bfc.pdf)
 - [BOVA-36HDN1-M18M installation instructions, Bosch 06.2016](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
