@@ -35,12 +35,12 @@ advancing it lives in the appendices.
   - [3.7 Two limits on the data itself](#37-two-limits-on-the-data-itself)
 - [4. Measurements that would close the gaps](#4-measurements-that-would-close-the-gaps)
   - [4.1 Free: read the pipe and the pump](#41-free-read-the-pipe-and-the-pump)
-  - [4.2 Four DS18B20s on the secondary loops](#42-four-ds18b20s-on-the-secondary-loops)
+  - [4.2 The sensor package](#42-the-sensor-package)
   - [4.3 Flow without a flow meter](#43-flow-without-a-flow-meter)
   - [4.4 Air-side sensors on one air handler](#44-air-side-sensors-on-one-air-handler)
   - [4.5 A flow meter on the primary](#45-a-flow-meter-on-the-primary)
 - [5. Hydraulic analysis](#5-hydraulic-analysis)
-  - [5.1 Primary delta-T is held at a setpoint](#51-primary-delta-t-is-held-at-a-setpoint)
+  - [5.1 Primary flow is fixed, so primary delta-T reads house load](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)
   - [5.2 What that means for the 8 to 12 degree target](#52-what-that-means-for-the-8-to-12-degree-target)
   - [5.3 Elevation adds no pump head in a closed loop](#53-elevation-adds-no-pump-head-in-a-closed-loop)
   - [5.4 What elevation does affect](#54-what-elevation-does-affect)
@@ -58,8 +58,9 @@ advancing it lives in the appendices.
   - [7.2 Under $100](#72-under-100)
   - [7.3 $100 to $500](#73-100-to-500)
   - [7.4 $500 to $2,000](#74-500-to-2000)
-  - [7.5 Above $2,000, and the last resort](#75-above-2000-and-the-last-resort)
-  - [7.6 What not to do](#76-what-not-to-do)
+  - [7.5 Ideal pump sizing, ignoring what is installed](#75-ideal-pump-sizing-ignoring-what-is-installed)
+  - [7.6 Above $2,000, and the last resort](#76-above-2000-and-the-last-resort)
+  - [7.7 What not to do](#77-what-not-to-do)
 - [8. Sequence](#8-sequence)
 - [9. Open questions](#9-open-questions)
 
@@ -161,7 +162,8 @@ spread does not change.
 | Position | Pump | Speed | Rating |
 |---|---|---|---|
 | Boiler primary | Grundfos UP26-99F | HIGH | 1/6 HP |
-| Chiller primary | Taco 0015-MSF3-IFC | HIGH assumed, unverified | 1/20 HP, 18 GPM and 17 ft maximum |
+| Primary distribution, tank to header | Taco 0015-MSF3-IFC | HIGH assumed, unverified | 1/20 HP, 18 GPM and 17 ft maximum |
+| Chiller to tank | CX75 internal circulator | n/a | Inferred: the Taco is on the distribution loop |
 | Loop A secondary | Grundfos UP26-99F | LOW | 2 zones year-round |
 | Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
 
@@ -213,9 +215,8 @@ warm evening rather than a design day. Values are conditioned on the chiller dra
 | `IN − UBT` | 0.35 °F |
 | Hydronic loop pressure, 24 h mean | 21.1 psi, range 19.4 to 22.7 |
 
-Primary ΔT binned against chiller power over 24 hours appears in
-[5.1](#51-primary-delta-t-is-held-at-a-setpoint), and it carries this document's central
-finding.
+Primary ΔT binned against chiller power over 24 hours appears in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load), and it carries this
+document's central finding.
 
 Zone state over the same window:
 
@@ -366,23 +367,54 @@ already exists decides the cost.
 friction, and the copper runs are the easier pipe. Their length matters only if they are shorter
 or smaller than assumed.
 
-### 4.2 Four DS18B20s on the secondary loops
+### 4.2 The sensor package
 
-Roughly $20 of parts on the Pi's existing 1-wire bus, taking it from four sensors to eight.
-Supply and return on each loop, named `LOOPA_SUP`, `LOOPA_RET`, `LOOPB_SUP` and `LOOPB_RET`.
+Six DS18B20s, three GPIO inputs and one flow meter answer every open question in this document.
+The temperature probes go on the Pi's existing 1-wire bus, taking it from 4 sensors to 10, and
+`pivac.OneWireTherm` re-scans every cycle so they appear within one daemon cycle with no restart.
 
-They deliver five things at once. Per-loop ΔT answers the starvation question directly. Loop
-supply against `IN` detects reverse mixing. The ratio of primary to secondary ΔT gives the ratio
-of secondary to primary flow with no flow meter
-([Appendix C](#appendix-c--primarysecondary-hydraulics)). Supply and return converging identifies
-an idle loop, which isolates Loop A whenever Loop B is quiet. And a shortfall becomes
-attributable to Loop A, Loop B or the plant.
+| # | Sensor | Where | Answers |
+|---|---|---|---|
+| 1 | `CHLR_SUP` | Chiller leaving water, at the unit | Chiller output with the Emporia CT, and therefore COP |
+| 2 | `CHLR_RET` | Chiller entering water, at the unit | Chiller ΔT, separate from distribution losses |
+| 3 | `LOOPA_SUP` | Loop A supply, just past the tee | Coil entering temperature; against `IN`, the mixing check |
+| 4 | `LOOPA_RET` | Loop A return, just before the tee | Loop A ΔT and capacity |
+| 5 | `LOOPB_SUP` | Loop B supply, just past the tee | Same for Loop B |
+| 6 | `LOOPB_RET` | Loop B return, just before the tee | Same for Loop B |
+| 7–9 | Optoisolated 24 VAC input | Across each Chiltrix zone-valve coil | Zone call state, which separates the two readings in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load) and gives per-zone runtime |
+| 10 | Flow meter, pulse output | Distribution header, near `IN` | Turns every ΔT and ratio into absolute BTU/hr |
 
-This is the highest-value addition in the document. `pivac.OneWireTherm` re-scans the bus every
-cycle, so sensors added live appear within one daemon cycle with no restart.
+Cost is about $30 for the probes, $10 for optoisolators onto free inputs BCM 13, 16 and 24, and
+$200 to $400 for the meter. Everything except the meter is Tier 1.
 
-> Fix these four names once. The Signal K path becomes the InfluxDB measurement name, and four
-> prior renames each orphaned their history.
+**What the six probes read together.** The four-pipe tank makes two independent circuits, and each
+comparison isolates one thing:
+
+| Comparison | Healthy result | What a deviation means |
+|---|---|---|
+| `CHLR_SUP` against `UBT` | Close while the chiller runs | The tank is not accepting charge, or the chiller circuit is starved |
+| `IN` against `UBT` | Equal within pipe gain | The header is not seeing tank temperature |
+| `LOOPA_SUP` against `IN` | Equal | Warmer in cooling means reverse mixing at the tees |
+| `LOOPB_SUP` against `IN` | Equal | Same, for Loop B |
+| `UBT` through a hot afternoon | Flat | Rising means the load has outrun the plant, the design-day case |
+| ΔT ratio, primary against each loop | Below 1 | Above 1 is the reverse-mixing condition ([C.2](#c2-the-flow-ratio-falls-out-of-temperatures-alone)) |
+
+**Placement.** Strap-on to bare, cleaned copper with thermal compound, then at least 25 mm of
+insulation extending 100 mm either side. Mount on straight pipe at least 5 diameters downstream of
+any fitting. An uninsulated probe reads somewhere between the water and the room, and the error
+differs between the hot and cold pipes, which is the worst case for a ΔT
+([E.3](#e3-water-temperature-thermowell-against-strap-on)). Put the loop probes as close to the
+tees as the pipe allows, so they read the loop rather than the run, and the chiller probes close to
+the unit.
+
+**Calibrate each pair before installing.** Bundle both probes of a pair in a stirred bath, log 15
+minutes at the production rate, and write the mean difference into `offsets:`
+([G.1](#g1-matched-pair-calibration-before-install)). Without it a 5 °F loop ΔT carries ±36 % of
+error, and the flow-ratio method is a ratio of two such differences. `IN` and `OUT` need the same
+treatment and have almost certainly never had it.
+
+> Fix these six names once. The Signal K path becomes the InfluxDB measurement name, and four prior
+> renames each orphaned their history.
 
 ### 4.3 Flow without a flow meter
 
@@ -394,8 +426,8 @@ Q       [BTU/hr]  =  EER × P_electrical [W]
 GPM     [gal/min] =  Q / (K × ΔT)                    K = 481 for 25 % propylene glycol
 ```
 
-Applied across the power bands in [5.1](#51-primary-delta-t-is-held-at-a-setpoint), this
-returns a flow that climbs with load rather than a constant:
+Applied across the power bands in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load), this returns a flow that climbs with load rather than a
+constant:
 
 | Chiller power | Primary ΔT | Assumed EER | Q, BTU/hr | Implied primary GPM |
 |---|---|---|---|---|
@@ -455,39 +487,38 @@ answers a smaller question for the same money, which is why the primary comes fi
 
 ## 5. Hydraulic analysis
 
-### 5.1 Primary delta-T is held at a setpoint
+### 5.1 Primary flow is fixed, so primary delta-T reads house load
 
-Water ΔT is output divided by flow:
+The primary loop runs tank → Taco 0015-MSF3-IFC → header with closely spaced tees → tank. No
+evaporator sits in it, so the Taco faces only the header and the tank connections, perhaps 9 ft at
+16 GPM. Against that it delivers about **13 GPM**, and the head barely changes with load, so
+primary flow is effectively constant.
+
+That makes `IN − OUT` a direct readout of what the house is extracting:
 
 ```
-ΔT = Q / (K × GPM)
+Q_house = K × GPM_primary × (IN − OUT) = 481 × 13 × ΔT
 ```
 
-Under fixed flow, ΔT must scale with output. Doubling the chiller's work should roughly double
-its ΔT. Binning 24 hours of data by chiller power shows it does not.
+| House load | Primary ΔT at 13 GPM |
+|---|---|
+| 51,600 BTU/hr, the CX75's full rating | 8.3 °F |
+| 40,000 | 6.4 °F |
+| 30,000, about 2.5 tons | 4.8 °F |
+| 20,000 | 3.2 °F |
 
-| Chiller power band | Mean power | Mean primary ΔT | 2-minute samples |
-|---|---|---|---|
-| Idle | 35 W | 3.22 °F | 223 |
-| 0.5 to 1.2 kW | 1,102 W | 5.00 °F | 144 |
-| 1.2 to 1.8 kW | 1,482 W | 5.04 °F | 237 |
-| 1.8 to 2.4 kW | 2,040 W | 5.13 °F | 62 |
-| 2.4 to 3.0 kW | 2,699 W | 5.18 °F | 46 |
-| Above 3.0 kW | 3,283 W | 5.87 °F | 8 |
+The measured 5.3 °F mean therefore corresponds to roughly **2.8 tons of extraction** on an 80 °F
+evening, against a plant rated at 4.3. **The 8 to 12 °F band arrives at design load and not
+before**, which is the whole answer to the question that opened this document. Nothing is wrong,
+and nothing on the water side needs adjusting to produce it.
 
-**Chiller power varies threefold across those bands while primary ΔT moves 17 %.** Fixed flow
-cannot produce that. Flow must rise with load, roughly in proportion, which is the signature of a
-variable-speed circulator regulating to a target ΔT of about 5 °F.
-
-The Chiltrix CX series drives its water circulator from an inverter and controls it to hold a set
-water ΔT, so the most likely mechanism is the chiller's own pump doing its job. That leaves the
-Taco's role on the primary open ([9](#9-open-questions)).
-
-Read the confidence carefully. Most of this window predates the two-decimal fix, so each
-individual ΔT reading is quantised to 1.8 °F. The band means average 46 to 237 samples each,
-which holds their standard error near 0.1 to 0.2 °F. Across the four well-populated bands,
-spanning 1,102 to 2,699 W, the mean moves 0.18 °F. The flatness is far larger than the noise.
-The top band rests on 8 samples and should be treated as indicative.
+> Binning ΔT against chiller power does not test that, and an earlier reading of this data
+> over-claimed. Primary ΔT reflects what the coils extract; chiller power reflects what the plant
+> puts into the tank. **The four-pipe buffer sits between them and breaks the instantaneous link**,
+> which is its purpose, so the two series are not expected to track at two-minute resolution. Back
+> -calculating an EER from them gives 17.5 at the mean and an impossible 28.4 in the lowest power
+> band, which is the tank discharging while the coils keep drawing. Treat chiller power as a
+> plant-side signal and `IN − OUT` as a load-side one, and compare them only over hours.
 
 ### 5.2 What that means for the 8 to 12 degree target
 
@@ -684,7 +715,7 @@ room outright.
 > about 8 GPM at part load ([4.3](#43-flow-without-a-flow-meter)). If that holds, the coils receive
 > water warmer than the tank whenever both loops call, and part of the flow gain is cancelled.
 > **Raising Loop A is worth doing and worth checking**, which moves the four loop sensors in
-> [4.2](#42-four-ds18b20s-on-the-secondary-loops) alongside the tap change rather than after it.
+> [4.2](#42-the-sensor-package) alongside the tap change rather than after it.
 
 > What is measured and what is assumed. Coil pressure drops and coil capacities are Unico's
 > published figures. The pump curve is read off the printed SuperBrute chart and interpolated with
@@ -695,57 +726,31 @@ room outright.
 
 ### 5.8 Can the primary supply both loops at maximum call?
 
-Maximum simultaneous secondary demand, at the settings
-[5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps) recommends:
+**No, in either season, and in cooling the shortfall is about 3 GPM.**
 
-| Season | Loop A | Loop B | Combined |
+The buffer tank is four-pipe, so the chiller circuit is fully decoupled from everything downstream
+and its flow has to match nothing. The Taco is not on that circuit. It draws from the tank, feeds
+the header, and returns to the tank, which makes it the **primary distribution pump**, and the
+closely spaced tees where the secondaries tap it impose the usual rule: primary flow must equal or
+exceed combined secondary flow.
+
+| Season | Combined secondary call | Primary delivers | Gap |
 |---|---|---|---|
-| Summer | 9.3 GPM on MEDIUM | 6.5 GPM on LOW | **15.8 GPM** |
-| Winter | 9.3 GPM on MEDIUM | 16.5 GPM on HIGH | **25.8 GPM** |
+| Cooling | 15.8 GPM: Loop A 9.3 on MEDIUM, Loop B 6.5 on LOW | ~13 GPM, Taco against a ~9 ft header | **~3 GPM short** |
+| Heating | 25.8 GPM: Loop A 9.3, Loop B 16.5 on HIGH | ~19 to 21 GPM, boiler UP26-99F on HIGH | **~5 GPM short** |
 
-Against that, each source pump has to push its own heat exchanger as well as the header. The
-chiller evaporator is the harder of the two: Chiltrix publishes 16 ft at 10 GPM for the
-neighbouring CX65, and a heat exchanger of that resistance dominates everything else in the
-circuit.
+Below that line the secondaries make up the difference by pulling return water backwards through
+the return tee. In cooling the coils then receive water warmer than the tank; in heating, cooler
+than the boiler produces. Both cost capacity at the coil, and both are invisible without a sensor
+on each loop's supply.
 
-| Primary, at its best speed | Evaporator or HX assumed | Delivered flow |
-|---|---|---|
-| Taco 0015-MSF3-IFC, cooling | 16 ft at 10 GPM, the CX65 figure | ~7.9 GPM |
-| Taco 0015-MSF3-IFC, cooling | 10 ft at 10 GPM | ~9.2 GPM |
-| Taco 0015-MSF3-IFC, cooling | 6 ft at 10 GPM | ~10.5 GPM |
-| Grundfos UP26-99F on HIGH, heating | Ti-200 at ~10 ft at 20 GPM | ~21.3 GPM |
-| Grundfos UP26-99F on HIGH, heating | 15 ft at 20 GPM | ~19.2 GPM |
+**This is the finding that most changes what to do.** Raising Loop A's tap increases secondary
+demand and widens the gap, so part of the flow gain is returned as a warmer entering temperature.
+The four loop sensors in [4.2](#42-the-sensor-package) measure it directly, and
+[7.5](#75-ideal-pump-sizing-ignoring-what-is-installed) shows the primary pump is the cheap fix.
 
-**The answer is no in both seasons, and the cooling gap cannot be closed by changing the
-circulator.** Pushing 16 GPM through a 16 ft evaporator needs 45 ft of head, and 31 ft even
-through a 10 ft one. Nothing in the 00-series or Super Brute range reaches either. In heating the
-gap is smaller: 26 GPM needs about 21 ft, which is near what the UP26-99F already delivers at
-lower flow, so the boiler primary comes closer to covering its loops than the chiller primary
-does.
-
-That arithmetic is also the strongest evidence yet that the **CX75 carries its own circulator**
-([4.3](#43-flow-without-a-flow-meter)), because the measured primary ΔT implies 8 to 15 GPM rising
-with load and the Taco alone cannot produce the upper half of that range.
-
-**Before treating any of this as a defect, settle where the buffer tank sits.** Two architectures
-fit the description, and they have opposite implications.
-
-| Architecture | Does primary flow have to exceed secondary? | Symptom if it does not |
-|---|---|---|
-| Tank in series in one primary loop, closely spaced tees decoupling the secondaries | Yes | Reverse mixing: coils get warmer water in cooling, cooler in heating |
-| Tank as a four-pipe buffer between the source circuit and the distribution circuit | No. The tank absorbs the mismatch by design | Tank temperature rises as it is drawn down, which is what a buffer is for |
-
-If the tank is the separator, the secondaries drawing more than the chiller circuit supplies is
-normal operation rather than a fault, and the deficit above is not one. The measured tank
-stratification of 0.03 °F leans toward the first reading, since a four-pipe buffer between
-mismatched circuits would normally show a thermocline, but that is inference rather than
-observation.
-
-One comparison settles it, and it needs two of the four sensors in
-[4.2](#42-four-ds18b20s-on-the-secondary-loops). With both loops calling, compare each loop's
-supply against `IN` and against the tank. Loop supply matching the tank means the tank is
-decoupling and there is no problem to solve. Loop supply drifting warmer than both, in cooling,
-means reverse mixing at the tees and a real capacity loss.
+That the CX75 carries its own circulator now follows by elimination rather than inference: the
+Taco is on the distribution loop, and something has to move water between the chiller and the tank.
 
 ### 5.9 What is still unresolved
 
@@ -759,7 +764,7 @@ possibilities remain for the loops themselves, and one measurement separates the
 | Reverse mixing at the tees | warmer in cooling | below | Real capacity loss, presenting as an undersized chiller |
 
 Loop supply temperature against `IN` is the discriminator, and it needs two of the four sensors in
-[4.2](#42-four-ds18b20s-on-the-secondary-loops).
+[4.2](#42-the-sensor-package).
 
 The evidence leans toward the first row. Implied primary flow reaches 15 GPM at high load
 ([4.3](#43-flow-without-a-flow-meter)), both secondaries run on LOW, and reverse mixing requires
@@ -786,7 +791,7 @@ Six criteria, in the order the objective ranks them.
 |---|---|---|---|
 | 1 | Zones hold setpoint | **Pass at 80 °F** | Zero droop on all five zones, 8 h |
 | 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
-| 3 | No loss at the tees | **Unknown** | Needs loop supply against `IN` ([4.2](#42-four-ds18b20s-on-the-secondary-loops)) |
+| 3 | No loss at the tees | **Unknown** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
 | 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-what-the-calculation-says-about-each-coil)) |
 | 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
@@ -798,12 +803,11 @@ Every zone holds setpoint with the plant idle more than half the time on a warm 
 the outcome the objective asks for. Nothing here needs fixing to restore comfort.
 
 The low ΔT has a cause outside the distribution and is better left alone. Primary ΔT holds near
-5 °F while chiller power varies threefold, so flow is being modulated to keep it there
-([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Reaching 8 to 12 °F means raising that control
-target, which lowers flow, and lower water flow costs both capacity and dehumidification
-([B.6](#b6-water-flow-and-dehumidification-move-together)). The 5 °F the system runs today is part
-of why the coils keep their surfaces below the air dewpoint. It costs pump energy, which the
-objective ranks last.
+5 °F while chiller power varies threefold, so flow is being modulated to keep it there ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
+Reaching 8 to 12 °F means raising that control target, which lowers flow, and lower water flow
+costs both capacity and dehumidification ([B.6](#b6-water-flow-and-dehumidification-move-together)). The 5 °F the system runs today is part of why
+the coils keep their surfaces below the air dewpoint. It costs pump energy, which the objective
+ranks last.
 
 **The measured shortfall is humidity, and it falls along the loop split.** The one chilled-water
 coil with a circulator to itself over a 15 ft run reads 45.9 % RH. The two sharing a circulator
@@ -832,7 +836,7 @@ MEDIUM rather than HIGH: HIGH buys 6 % more flow for another 18 W and pushes com
 flow further past the primary. **Then check it rather than assuming it worked.** More secondary
 flow than the primary supplies feeds the coils water warmer than the tank, which cancels part of
 the gain ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The four loop sensors in
-[4.2](#42-four-ds18b20s-on-the-secondary-loops) show it directly as Loop A's supply drifting above
+[4.2](#42-the-sensor-package) show it directly as Loop A's supply drifting above
 `IN`, which is why they belong alongside this change rather than after it.
 
 **Lower the commanded CFM on the kids-room air handler.** That zone carries the laundry room and
@@ -882,7 +886,7 @@ in spring. Set `fluid_k` to 476 on the day of the top-up and add a Grafana annot
 
 **Four DS18B20s on the secondary loops, about $20.** This is the highest-value purchase in the
 document. It resolves criteria 3 and 4, gives per-loop flow through the ratio method with no
-meter, and detects reverse mixing ([4.2](#42-four-ds18b20s-on-the-secondary-loops)).
+meter, and detects reverse mixing ([4.2](#42-the-sensor-package)).
 
 **Restore leak detection, about $20.** The booster-pump leak pan lost its GPIO input when BCM 25
 was renamed from `SCALA` to `CHIL` on 11 August 2026. A room holding the boiler, buffer tank, DHW
@@ -951,7 +955,48 @@ choice here, since holding a higher loop ΔT means less flow and less dehumidifi
 continuously, without adding a software failure mode to the heating and cooling paths. pivac's job
 is measuring whether it worked.
 
-### 7.5 Above $2,000, and the last resort
+### 7.5 Ideal pump sizing, ignoring what is installed
+
+Each circuit's duty point is its design flow at the head that circuit presents.
+
+| Circuit | Design flow | Head | What it pushes |
+|---|---|---|---|
+| Chiller to tank | ~10.7 GPM at 10 °F ΔT | ~19 ft | CX-series evaporator plus tank piping. The CX75's internal pump |
+| **Primary distribution, tank to header** | **must exceed 15.8 GPM in summer** | **~9 ft** | Header, tees and tank connections only. No heat exchanger |
+| Boiler circuit, heating | must exceed 25.8 GPM | ~21 ft | Ti-200 exchanger plus the header. No tank in this path |
+| Loop A secondary | 10.0 GPM | ~26 ft | 150 ft of 1¼" main, M2430 coil at 7.4 ft, zone valve |
+| Loop B secondary | 16.5 GPM, the winter case | ~23 ft | 120 ft of main across three coils |
+
+**The primary distribution duty is easy, and the Taco does not meet it.** Nine feet at 16 GPM is a
+low-head, moderate-flow duty. A Taco 0015-MSF3-IFC delivers about 13 GPM there, while a UP26-99
+class circulator reaches 16.6 GPM **on speed 1** and 21 GPM on speed 3.
+
+| Candidate on the primary | Delivered against ~9 ft | Verdict |
+|---|---|---|
+| Taco 0015-MSF3-IFC, speed 3 | 13.4 GPM | Short of the 15.8 GPM the secondaries draw |
+| Grundfos UP26-99 class, speed 1 | 16.6 GPM | Meets it, with the quietest and cheapest setting |
+| Grundfos UP26-99 class, speed 3 | 21.0 GPM | Comfortable margin, more pump energy than needed |
+| ECM in the 0014e or ALPHA2 25-70 class | 18.4 GPM | Meets it and self-adjusts. The tidiest answer |
+
+**Replacing the primary circulator is the cheapest hydraulic fix in the house**, roughly $200 to
+$350, and it is what makes the Loop A tap change deliver rather than partly cancel
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Confirm the shortfall with the loop
+sensors first, since the header head is estimated.
+
+The secondaries are a different story. Loop A wants 10 GPM at 26 ft, slightly beyond a UP26-99 on
+HIGH. Loop B wants 16.5 GPM at 23 ft in winter against 6 GPM at 12 ft in summer, a three-to-one
+turndown no fixed three-speed pump serves well.
+
+> **Loop B is the strongest case for an ECM in the house**, precisely because of that turndown. A
+> constant-pressure ECM covers both duties with no seasonal tap change. Loop A gains less, since
+> its duty barely moves between seasons. Neither is urgent while the primary is the binding
+> constraint, and raising a secondary before fixing the primary makes the mixing worse.
+
+> Upsizing pipe competes with upsizing pumps on the secondaries. Loop A's 26 ft is roughly half
+> main friction and half coil and valve, so a larger main would cut the duty point rather than
+> raise the pump to meet it. Worth pricing only if a run is already open.
+
+### 7.6 Above $2,000, and the last resort
 
 **Upsize the Loop A mains.** Only if the pipe proves to be 1" and balancing cannot deliver design
 flow to the master bedroom. Opening walls to reach a 105 ft run is the most expensive item here
@@ -966,7 +1011,7 @@ driver, and flow measurement to close the loop. This inserts a software failure 
 the heating and cooling paths for a gain bounded by coil capacity saturating above design flow.
 Everything above captures most of the benefit with no software and nothing to maintain.
 
-### 7.6 What not to do
+### 7.7 What not to do
 
 **Do not chase an 8 to 12 °F ΔT.** It would mean raising the chiller's target and cutting flow,
 and lower water flow costs capacity and dehumidification in a house whose measured shortfall is
@@ -975,7 +1020,7 @@ convention, and this system is better off without it.
 
 **Do not throttle a valve to move the ΔT either.** The ΔT is held by a control loop, so throttling
 makes the pump work harder against the restriction and arrive at the same target
-([5.1](#51-primary-delta-t-is-held-at-a-setpoint)).
+([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
 
 **Do not raise both secondary taps at once.** Combined secondary flow above primary flow causes
 reverse mixing, which loses more than it gains
@@ -1017,16 +1062,11 @@ maldistribution and sends the work to step 10.
 
 ## 9. Open questions
 
-- **Where does the buffer tank sit?** In series in one primary loop, or as a four-pipe buffer
-  between the source circuit and the distribution circuit? It decides whether the primary has to
-  out-flow the secondaries at all, and therefore whether the deficit in
-  [5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) is a fault or normal operation. The
-  most consequential unknown in the document.
 - What holds the primary ΔT at 5 °F, and where is its setpoint? The Chiltrix CX series drives its
-  circulator from an inverter against a target water ΔT, which fits the measurement
-  ([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Confirm from the unit's controller, and
-  find the adjustment. Needed to interpret every water-side figure here, and to know whether the
-  loops can be re-pumped without the chiller answering by changing its own flow.
+circulator from an inverter against a target water ΔT, which fits the measurement ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). Confirm
+from the unit's controller, and find the adjustment. Needed to interpret every water-side figure
+here, and to know whether the loops can be re-pumped without the chiller answering by changing
+its own flow.
 - Does the CX75 carry its own internal circulator, and if so what is the Taco 0015-MSF3-IFC doing?
   A 17 ft shutoff head cannot pass 15 GPM through an evaporator the CX65 rates at 16 ft of drop at
   10 GPM, so the two cannot both be the whole story ([4.3](#43-flow-without-a-flow-meter)).
@@ -1297,7 +1337,7 @@ from the plant and the pump.
 | Water ΔT above 15 °F with low capacity | Starved | More flow, or find the restriction |
 
 > Read that last table only against known plant output. At part load a low ΔT means nothing at
-> all ([5.1](#51-primary-delta-t-is-held-at-a-setpoint)).
+> all ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
 
 ## B.6 Water flow and dehumidification move together
 
@@ -1840,7 +1880,7 @@ water in it and the duct mass all need to reach steady state.
 | `environment.inside.hvac.ah.mbr.shr` | ratio | derived |
 | `environment.inside.hvac.ah.mbr.running` | 0/1 | derived |
 
-The four secondary-loop sensors in [4.2](#42-four-ds18b20s-on-the-secondary-loops) go on the Pi's
+The four secondary-loop sensors in [4.2](#42-the-sensor-package) go on the Pi's
 1-wire bus instead, under `environment.inside.hvac.{LOOPA_SUP,LOOPA_RET,LOOPB_SUP,LOOPB_RET}`.
 
 > A ΔT must never pass through `type: temperature`. That branch adds 273.15, which is correct for
@@ -2011,7 +2051,7 @@ fouling. UA drift is a slow signal, and a month of data cannot separate it from 
 
 Condition every water-side conclusion on plant output. A ΔT figure taken without knowing whether
 the chiller was at 30 % or 100 % is uninterpretable
-([5.1](#51-primary-delta-t-is-held-at-a-setpoint)).
+([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
 
 ---
 
@@ -2024,7 +2064,7 @@ plant is healthy, and several of those sensors cost less and return more than th
 
 | Sensor | Where | Why |
 |---|---|---|
-| 4× DS18B20, supply and return on each secondary loop | Loop A and Loop B, at the tees | Starvation, flow ratios, mixing, loop-idle detection. The highest-value addition in this document ([4.2](#42-four-ds18b20s-on-the-secondary-loops)) |
+| 4× DS18B20, supply and return on each secondary loop | Loop A and Loop B, at the tees | Starvation, flow ratios, mixing, loop-idle detection. The highest-value addition in this document ([4.2](#42-the-sensor-package)) |
 | 1× DS18B20, chiller leaving water | Chiller outlet | The reference that makes distribution loss absolute. The redundant `LBT` probe can be relocated here at no cost ([7.1](#71-costs-nothing)) |
 | 1× DS18B20, boiler return | Boiler return, before the primary tee | Condensing verification. Monitor-only |
 | 1× temperature and humidity sensor | Mechanical room, away from the boiler | Standby losses, and the Pi's thermal ceiling |
