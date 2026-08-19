@@ -369,8 +369,8 @@ or smaller than assumed.
 
 ### 4.2 The sensor package
 
-Four DS18B20s, three GPIO inputs and a Modbus feed answer every open question in this document. A
-flow meter is the optional tenth item.
+Four DS18B20s and a Modbus feed are all that need adding. Zone call state is already collected,
+and a flow meter is optional.
 
 | # | Sensor | Where | Answers |
 |---|---|---|---|
@@ -379,7 +379,7 @@ flow meter is the optional tenth item.
 | 4 | `LOOPA_RET` DS18B20 | Loop A return, on the copper just before its tee | Loop A ΔT and capacity |
 | 5 | `LOOPB_SUP` DS18B20 | Loop B supply, same | Same for Loop B |
 | 6 | `LOOPB_RET` DS18B20 | Loop B return, same | Same for Loop B |
-| 7–9 | 24 VAC relay, dry contact to GPIO | One per Chiltrix zone valve | Per-zone call state and runtime |
+| 7–9 | Already collected | `pivac.RedLink` `statenum`, charted on the Grafana stats panel | Per-zone call state and runtime. See below |
 | 10 | Flow meter, pulse output | Distribution header near `IN` | Absolute BTU/hr and system COP. Optional |
 
 #### The Modbus feed
@@ -463,24 +463,46 @@ gap. Skimping here is the main failure mode: an uninsulated probe reads somewher
 and the room, and the error differs between the supply and return pipes, which is the worst case
 for a ΔT.
 
-#### The three zone-valve inputs
+#### Zone call state is already collected
 
-Each Chiltrix zone valve is driven at 24 VAC by the HZ-432, and the Pi needs a dry contact rather
-than 24 VAC. Use the pattern already on this system: a small 24 VAC relay per zone with its
-contacts into a spare GPIO, exactly as the Phoenix Contact board carries `BLR`, `CHIL` and the
-rest. A relay also avoids the 60 Hz chatter a bare optocoupler produces on an AC coil.
+`pivac.RedLink` publishes `environment.inside.thermostat.<ZONE>.statenum` for every zone, and it is
+already charted on the Grafana stats panel. No GPIO inputs are needed.
 
-Tap the valve's **end switch** if it has one, since that reports the valve actually opened. Tap
-across the coil if it does not, which reports the call instead. Free inputs with existing wire runs
-are BCM 13 at physical pin 33, BCM 16 at 36, and BCM 24 at 18. Avoid BCM 26, a permanently dead
-pad. Add three entries to the `pivac.GPIO` block, then restart `pivac-gpio`; adding paths needs no
-Signal K restart, only removing them does.
+| `statenum` | Meaning |
+|---|---|
+| −1 | Call for cooling |
+| 0 | Off |
+| +0.5 | Circulating fan |
+| +1 | Call for heating |
 
-**This is the input that makes every other measurement interpretable.** A loop ΔT means nothing
-without knowing how many coils were drawing, since flow changes with zone count. It also gives
-per-zone runtime, which tests the kids-room capacity question directly, and it shows how often both
-loops call together, which is the only thing that decides whether the mixing question in
-[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) matters at all.
+**Filter for cooling on `statenum < −0.5`.** An earlier pass through this data tested `> 0.5` and
+found zero duty everywhere, which is what a sign error looks like rather than an idle system.
+
+Over 24 hours to 18 August 2026, at an 80 °F mean outdoor and 85 °F peak:
+
+| Zone | Loop | Cooling duty |
+|---|---|---|
+| Kids room | A | **51.4 %** |
+| Master bedroom | A | 45.5 % |
+| Great room | BOVA | 44.3 % |
+| Downstairs family room | B | 42.8 % |
+| Kitchen | BOVA | 41.3 % |
+
+**Two questions close on those numbers.**
+
+The kids-room air handler is not undersized. It runs the highest duty in the house and still holds
+74 °F with zero droop, so it has roughly half its running time in reserve at these conditions. A
+unit short of sensible capacity would run near-continuously and drift anyway. That leaves the
+latent load as the explanation for its humidity, which is what
+[3.3](#33-humidity-is-the-marginal-axis) concluded from the laundry and two baths. Extrapolating to
+a 95 °F design day puts it near 90 % duty, so it is adequate now and marginal at design.
+
+Loop concurrency is high enough to matter. Loop A calls 74.4 % of the time, Loop B 42.7 %, and
+**both loops together 33.9 %**. Loop A runs both its coils 22.4 % of the time, which bounds the
+full 15.8 GPM demand case at no more than that. So the mixing question in
+[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) applies during roughly a fifth of the
+cooling day, and the master bedroom's 74 % share applies over the same window rather than
+continuously.
 
 #### The flow meter is not critical
 
@@ -1106,8 +1128,8 @@ same while trimming itself. Neither is worth buying against a gap this uncertain
 
 And it only applies while both loops call together. Loop A alone draws 9.3 GPM and Loop B alone
 6.5, both well under the primary, so each is already decoupled and carries no penalty at any pump
-size. How often the two overlap is unmeasured, which the three zone-valve inputs in
-[4.2](#42-the-sensor-package) answer.
+size. How often the two overlap is unmeasured, which the zone call state already in InfluxDB
+([4.2](#42-the-sensor-package)) answer.
 
 The secondaries are a different story. Loop A wants 10 GPM at 26 ft, slightly beyond a UP26-99 on
 HIGH. Loop B wants 16.5 GPM at 23 ft in winter against 6 GPM at 12 ft in summer, a three-to-one
