@@ -382,8 +382,60 @@ flow meter is the optional tenth item.
 | 7–9 | 24 VAC relay, dry contact to GPIO | One per Chiltrix zone valve | Per-zone call state and runtime |
 | 10 | Flow meter, pulse output | Distribution header near `IN` | Absolute BTU/hr and system COP. Optional |
 
-While reading the CX75's register map, check whether it also reports water flow. Several CX models
-do, and that would supply the chiller circuit's flow with no plumbing at all.
+#### The Modbus feed
+
+The wired controller in the utility room displays everything and stores nothing, so a separate
+Modbus master is needed to get a time series into pivac.
+
+**Bus first, before anything else.** Modbus RTU allows one master on a segment. If the existing
+controller polls the chiller, adding a second master onto the same pair produces collisions and
+can disturb the controller. Two safe routes:
+
+- **Find the dedicated BMS port.** Chiltrix documents a Modbus connection for building-management
+  integration that is separate from the wired controller's terminals. That is the clean answer if
+  this unit has one.
+- **Listen only.** Wire the adapter's receive pair and never transmit, decoding the controller's
+  polls and the chiller's replies as they pass. No collisions, and it works on any bus, at the cost
+  of writing a decoder rather than issuing reads.
+
+**Adapter.** Either a USB RS-485 adapter directly on the Pi, which sits in the same room and needs
+no new network node, or an RS-485 to Ethernet gateway presenting Modbus TCP, which matches the
+pattern the Arduino nodes already use. RS-485 carries far further than this house needs, so cable
+length does not decide it. The USB route is fewer moving parts; the gateway route keeps the Pi's
+USB free and survives a Pi swap.
+
+**Registers worth having**, in rough order of value:
+
+| Value | Use |
+|---|---|
+| Leaving water temperature | Chiller output with the flow below, and the reference for every mixing check |
+| Entering water temperature | Chiller ΔT |
+| **Water flow** | See below. Several CX models report it, and it removes the need for a flow meter |
+| Pump speed | Confirms the internal circulator's modulation, and proxies flow if flow is absent |
+| Compressor frequency | Load state, and it separates a modulating unit from a cycling one |
+| Fault and status codes | Freshness and diagnostics |
+
+**If flow is in the register map, it substitutes for the flow meter.** At steady state, when the
+tank is neither charging nor discharging, chiller output equals house extraction:
+
+```
+GPM_distribution  =  GPM_chiller × ΔT_chiller / (IN − OUT)
+```
+
+Chiller flow and ΔT come from Modbus, `IN − OUT` is already in InfluxDB, and `UBT` holding flat
+identifies the steady windows. **That measures the Taco's flow with no meter and settles the 13 to
+16 GPM question in [5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) for the price of a
+register read.** Item 10 is then unnecessary rather than merely deferred.
+
+The same three quantities also close the tank's energy balance. Chiller output minus house
+extraction is the rate the buffer is charging, which is the signal that tells you on a design day
+whether the plant is keeping ahead of the load.
+
+**Module.** Follow the house pattern: `pivac.Chiltrix` implementing `status(config, output)`,
+`pymodbus` or `minimalmodbus` in the venv, the register map and scaling in `config.yml` rather than
+in code, a `pivac-chiltrix.service` unit, and a freshness alert in `sensor-freshness.yaml`. Emit
+temperatures in Kelvin at `rounding: 2`, since whole-Kelvin output is what made two years of
+1-wire and RedLink history unusable for ΔT work.
 
 #### Mounting the four loop probes
 
@@ -548,6 +600,11 @@ evening, against a plant rated at 4.3. **The 8 to 12 °F band arrives at design 
 before**, which is the whole answer to the question that opened this document. Nothing is wrong,
 and nothing on the water side needs adjusting to produce it.
 
+> **Two pumps, two circuits, one tank between them.** The CX75's internal circulator modulates,
+> confirmed at the controller, but it drives the chiller-to-tank circuit. The Taco drives the
+> distribution circuit at a fixed speed. The tank separates them, so a modulating pump on one side
+> does not make `IN − OUT` a regulated quantity on the other.
+>
 > Binning ΔT against chiller power does not test that, and an earlier reading of this data
 > over-claimed. Primary ΔT reflects what the coils extract; chiller power reflects what the plant
 > puts into the tank. **The four-pipe buffer sits between them and breaks the instantaneous link**,
