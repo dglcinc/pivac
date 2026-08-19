@@ -45,7 +45,7 @@ advancing it lives in the appendices.
   - [5.3 Elevation adds no pump head in a closed loop](#53-elevation-adds-no-pump-head-in-a-closed-loop)
   - [5.4 What elevation does affect](#54-what-elevation-does-affect)
   - [5.5 Friction head on the index circuits](#55-friction-head-on-the-index-circuits)
-  - [5.6 Loop A on LOW cannot reach full design flow](#56-loop-a-on-low-cannot-reach-full-design-flow)
+  - [5.6 Loop A on LOW is short for the master bedroom](#56-loop-a-on-low-is-short-for-the-master-bedroom)
   - [5.7 What is still unresolved](#57-what-is-still-unresolved)
 - [6. Verdict](#6-verdict)
   - [6.1 What optimal means here](#61-what-optimal-means-here)
@@ -81,15 +81,16 @@ The question is whether the hydronic cooling system is delivering what it can, a
 to change. The system holds every setpoint today, so this is an optimisation exercise rather
 than a fault hunt.
 
-Three observations started it. Secondary-loop water rarely shows the 8 to 12 °F ΔT that a
-hydronic coil is designed around. One circulator serves three air handlers on each secondary
-loop, which raises the question of whether any single coil gets its share. Two of the five zones
-sit a full storey above the mechanical room, with one coil in the attic, which raises the
-question of pump head.
+Three observations started it. Secondary-loop water rarely shows the 8 to 12 °F ΔT that a hydronic
+coil is designed around. One circulator serves several air handlers on each secondary loop, which
+raises the question of whether any single coil gets its share. Three of the five zones sit a storey
+above the mechanical room, with one coil in the attic, which raises the question of pump head.
 
-Section 5 answers all three. The low ΔT is a regulated setpoint held by a modulating pump, so no
-coil-side adjustment will move it. Elevation costs no pump head at all in a closed loop. The
-shared-circulator concern is real and confined to how Loop A splits flow between its three coils.
+Section 5 answers all three, and the middle one turns out to be the live problem. The low ΔT is a
+control setpoint held by a modulating pump, and raising it would cost capacity and
+dehumidification, so it should be left alone. Elevation costs no pump head at all in a closed loop.
+The shared-circulator concern is real: the two zones sharing Loop A's 105 ft index circuit read
+humid, and the one zone with a circulator to itself over 15 ft reads dry.
 
 Sections 1 to 3 are assessment, section 5 is analysis, sections 6 to 8 are decisions. The
 appendices carry the supporting physics, the build specifications, and the reference tables. A
@@ -112,22 +113,22 @@ per zone with no dampers.
 Five zones have thermostats. Three cool on chilled water and two cool on their own Bosch BOVA
 direct-expansion condensers.
 
-| Zone | Level | Cooling source | Loop in heating |
-|---|---|---|---|
-| Downstairs family room | Ground | Chiltrix | A |
-| Kids room | Ground | Chiltrix | A |
-| Master bedroom | Second | Chiltrix | A |
-| Utility room | Ground | Chiltrix | B |
-| Kitchen | Second | Bosch BOVA (`BOS1`) | B |
-| Great room | Second | Bosch BOVA (`BOS2`) | B |
+| Zone | Level | Loop | Order on the loop | Cooling source |
+|---|---|---|---|---|
+| Kids room | Ground | A | first | Chiltrix |
+| Master bedroom | Second, coil in attic | A | second | Chiltrix |
+| Downstairs family room and utility area | Ground | B | first | Chiltrix |
+| Kitchen | Second | B | second | Bosch BOVA (`BOS1`) |
+| Great room | Second | B | third | Bosch BOVA (`BOS2`) |
 
-In summer, Loop A carries the three Chiltrix zones and Loop B carries the utility room alone. In
-winter every zone runs on boiler hot water and both loops carry three zones.
+Chilled water therefore splits two coils onto Loop A and one onto Loop B in summer, because the
+kitchen and great room cool on their own condensers. In winter every zone runs on boiler hot
+water, so Loop A carries two coils and Loop B carries three.
 
-> The loop assignment of the downstairs family room deserves one check. It is recorded on Loop A
-> with the kids room and master bedroom, and it also sits at the physical start of a secondary
-> loop that continues to the kitchen and great room. Both cannot be true. Confirm which loop its
-> branch tees off before relying on the per-loop flow figures in section 5.
+| | Loop A | Loop B |
+|---|---|---|
+| Summer, chilled | kids room and master bedroom | downstairs family room only |
+| Winter, hot | kids room and master bedroom | family room, kitchen, great room |
 
 ### 2.2 Elevation and pipe runs
 
@@ -135,19 +136,19 @@ Two of the six air handlers sit a storey above the mechanical room and one of th
 attic. Pipe lengths are David's estimates, taken as one-way distance from the secondary tees to
 the coil.
 
-| Zone | Rise above mechanical room | Run to coil | Notes |
-|---|---|---|---|
-| Downstairs family room | 0 ft | ~15 ft | Includes the start of the secondary loop and a short branch |
-| Kids room | 0 ft | ~75 ft | Longest ground-level run |
-| Master bedroom | ~10 ft above the kids room | ~20 ft past the kids branch | Coil in the attic, the system high point |
-| Utility room | 0 ft | short | Adjacent to the plant |
-| Kitchen | ~10 ft | ~15 ft past the rise | |
-| Great room | ~10 ft | ~20 ft past the kitchen branch | |
+| Loop | Zone | Rise | Run | Notes |
+|---|---|---|---|---|
+| A | Kids room | 0 ft | ~75 ft | Longest ground-level run |
+| A | Master bedroom | ~10 ft above the kids branch | ~20 ft past the rise | Coil in the attic, the system high point |
+| B | Downstairs family room | 0 ft | ~15 ft | Includes the start of the secondary loop and a short branch |
+| B | Kitchen | ~10 ft | ~15 ft past the rise | |
+| B | Great room | ~10 ft | ~20 ft past the kitchen branch | |
 
-The master bedroom circuit is the index circuit for Loop A at roughly 105 ft one way, or 210 ft
-of pipe out and back. The great room is the index circuit for Loop B at roughly 45 ft one way.
-Loop A is therefore about four times the developed length of Loop B, and its coils share one
-circulator.
+The master bedroom is the index circuit for Loop A at roughly 105 ft one way, or 210 ft of pipe
+out and back. The great room is the index circuit for Loop B at roughly 60 ft one way, or 120 ft
+out and back. David's figures mix conventions, some quoted one way and some as "to and from", so
+treat every developed length here as ±30 %. The conclusion in [5.5](#55-friction-head-on-the-index-circuits) rests on pipe size, which the
+spread does not change.
 
 ### 2.3 Circulators and their settings
 
@@ -155,7 +156,7 @@ circulator.
 |---|---|---|---|
 | Boiler primary | Grundfos UP26-99F | HIGH | 1/6 HP |
 | Chiller primary | Taco 0015-MSF3-IFC | HIGH assumed, unverified | 1/20 HP, 18 GPM and 17 ft maximum |
-| Loop A secondary | Grundfos UP26-99F | LOW | 3 zones |
+| Loop A secondary | Grundfos UP26-99F | LOW | 2 zones year-round |
 | Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
 
 The chiller primary is materially the smallest pump in the system. A Taco 0015-MSF3-IFC is a
@@ -234,12 +235,33 @@ The master bedroom reached 60 % RH and the kids room 59 % over 24 hours, against
 target nearer 50 %. Both are Chiltrix zones. The kitchen, on a direct-expansion BOVA, averaged
 48.6 % over the same period.
 
-The gap follows from coil surface temperature. A direct-expansion evaporator runs near 40 °F,
-while a chilled-water coil fed at 47.8 °F runs a surface temperature closer to 52 °F. Warmer
-surfaces condense less moisture, so a chilled-water zone holding setpoint dead-on can still read
+Part of the gap follows from coil surface temperature. A direct-expansion evaporator runs near
+40 °F, while a chilled-water coil fed at 47.8 °F runs a surface temperature closer to 52 °F.
+Warmer surfaces condense less moisture, so a chilled-water zone holding setpoint dead-on can read
 humid while the direct-expansion zone beside it reads dry.
 
-This is the one measured shortfall against the stated objective, and section 7 addresses it.
+That explains the kitchen and leaves a sharper pattern unexplained. All three Chiltrix zones share
+one plant, one water temperature and one coil type, and they do not read alike.
+
+| Zone | Loop | Coils sharing the circulator | Run to coil | Mean RH |
+|---|---|---|---|---|
+| Downstairs family room | B | 1 in summer | ~15 ft | **45.9 %** |
+| Master bedroom | A | 2 | ~105 ft, coil in attic | 50.9 %, peak 60 % |
+| Kids room | A | 2 | ~75 ft | 53.7 %, peak 59 % |
+
+**The driest zone in the house is the one chilled-water coil with a circulator to itself over a
+15 ft run. The two humid ones share a circulator across a 105 ft loop.** Water flow raises
+dehumidification, because more flow holds the whole coil nearer entering water temperature and
+keeps more of its surface below the air dewpoint
+([B.6](#b6-water-flow-and-dehumidification-move-together)). A Loop A coil getting less flow than
+the Loop B coil would read exactly this way.
+
+Two other explanations fit the same data. Bedrooms carry higher latent load per unit of sensible
+load than a family room, so a coil sized on sensible satisfies temperature before it has removed
+enough moisture. And the master bedroom's coil sits in an attic, where duct leakage draws hot
+humid air into the return. Section 7 separates them, and the first test costs nothing.
+
+This is the one measured shortfall against the stated objective.
 
 ### 3.4 The buffer tank is fully mixed
 
@@ -310,12 +332,13 @@ Ordered by cost. Each entry states what it settles.
 
 Three unknowns need no purchase and change the analysis materially.
 
-**Secondary main pipe size.** Section 5.4 shows the head estimate for Loop A swinging from about
-18 ft to about 34 ft between 1¼" and 1" mains, which is the difference between a circulator that
-can serve three zones and one that cannot. Read the stamp on the pipe.
+**Secondary main pipe size.** [5.5](#55-friction-head-on-the-index-circuits) puts the Loop A index
+circuit anywhere from about 13 ft to about 30 ft depending on it, which is the difference between
+a circulator that covers the master bedroom on LOW and one that never did. Read the stamp on the
+pipe.
 
 **The Taco's speed switch.** Recorded as HIGH, unverified since the model was identified. The
-primary must out-flow both secondaries combined.
+primary must out-flow both secondaries combined, which sets the ceiling on raising Loop A.
 
 **Whether balancing valves exist on the branches.** This decides whether a starved zone can be
 fixed by redistribution or only by more total flow.
@@ -449,22 +472,25 @@ A regulated ΔT is a setpoint. Nothing on the coil side moves it, because the pu
 change in load by changing flow to keep the difference where it was told to keep it. Balancing
 valves, pump taps and coil cleaning all leave a controlled ΔT at its target.
 
-**The 8 to 12 °F band is therefore unreachable by tuning, and reaching it means changing the
-control target rather than the distribution.** That reframes the question from a hydraulic problem
-into a settings problem, and it moves the work from [7.3](#73-100-to-500) to
-[7.1](#71-costs-nothing).
+**The 8 to 12 °F band is therefore unreachable by tuning, and reaching it means raising the
+control target.** That converts the question from a hydraulic problem into a settings problem.
 
-Raising the target ΔT has three effects, and all three point the same way for this system. Flow
-falls, so pump energy falls with roughly the cube of the reduction. Coil surface temperature falls,
-because water spends longer in the coil and leaves colder, which removes more moisture and
-addresses the humidity finding in [3.3](#33-humidity-is-the-marginal-axis). And the loop reads the
-design ΔT that hydronic design assumes.
+**Do not raise it.** Raising the target ΔT lowers flow, and lower flow costs both capacity and
+dehumidification. Water leaving the coil warmer means the average coil surface sits warmer, so
+more of the coil rises toward the entering-air dewpoint and stops condensing
+([B.6](#b6-water-flow-and-dehumidification-move-together)). The objective ranks comfort first, and
+humidity is already the marginal axis in the two Loop A bedrooms
+([3.3](#33-humidity-is-the-marginal-axis)). Trading latent capacity for a tidier number is the
+wrong direction for this house.
 
-The limit is coil capacity. Flow below coil design starves the coil, and sensible capacity falls
-steeply below about 50 % of design flow
-([B.5](#b5-coil-capacity-against-water-flow-saturates)). Raise the target in one step, watch zone
-temperature and humidity for a few comparable days, and stop at the first sign of a zone losing
-setpoint on a hot afternoon.
+The present 5 °F ΔT is therefore working in the system's favour. High flow holds the coils close to
+entering water temperature, which is what keeps their surfaces below the air dewpoint. What it
+costs is pump energy, which the objective ranks last.
+
+That leaves one legitimate use for the setting. If a design-day test ever shows the plant
+saturating while the loops still run a 5 °F ΔT, the chiller is making all the capacity it can and
+the loops are moving more water than they need. Raising the target then recovers pump energy with
+no comfort cost. Until that test happens, leave it alone.
 
 ### 5.3 Elevation adds no pump head in a closed loop
 
@@ -501,45 +527,66 @@ from the expansion tank connection.
 
 ### 5.5 Friction head on the index circuits
 
-The master bedroom circuit is the longest on Loop A at roughly 105 ft one way. Head depends on
-pipe size, and the difference between plausible sizes is larger than every other term.
+Head depends on pipe size, and the difference between plausible sizes is larger than every other
+term in the calculation.
 
 Assumptions: type L copper, 25 % propylene glycol at 45 °F carrying a 1.25 friction multiplier
 over water, ¾" branches, 5 GPM per coil, and 40 % added to pipe length for fittings. Flow tapers
-as coils tee off, so each leg is computed at the flow it carries.
+as coils tee off, so each leg is computed at the flow it carries. The branch, coil and zone-valve
+allowance is 9.9 ft in every row and does not vary with main size.
 
-| Main size | Tees to family branch, 15 GPM | To kids branch, 10 GPM | To master coil, 5 GPM | Branch, coil and zone valve | Total |
+**Loop A, index circuit the master bedroom, both coils calling at 10 GPM total:**
+
+| Main size | Tees to kids branch, 10 GPM | To master coil, 5 GPM | Branch, coil, valve | Total | Velocity at 10 GPM |
 |---|---|---|---|---|---|
-| 1" | 5.4 ft | 10.3 ft | 1.4 ft | 9.9 ft | **~34 ft** |
-| 1¼" | 1.8 ft | 3.5 ft | 0.5 ft | 9.9 ft | **~18 ft** |
-| 1½" | 0.8 ft | 1.6 ft | 0.2 ft | 9.9 ft | **~14 ft** |
+| 1" | 12.9 ft | 1.4 ft | 9.9 ft | **~30 ft** | 3.9 ft/s |
+| 1¼" | 4.1 ft | 0.5 ft | 9.9 ft | **~16 ft** | 2.6 ft/s |
+| 1½" | 1.7 ft | 0.2 ft | 9.9 ft | **~13 ft** | 1.8 ft/s |
 
-Loop B's index circuit is the great room at roughly 45 ft one way, under half the developed
-length. Its head lands near 6 to 12 ft across the same range of pipe sizes.
+**Loop B, index circuit the great room, all three coils calling at 15 GPM total, the winter case:**
 
-Velocity gives an independent read on pipe size. Fifteen GPM in 1" copper runs 5.8 ft/s, above the
-4 ft/s limit that governs erosion and noise. **If the Loop A mains are 1", the loop was never
-designed to carry three coils at 5 GPM each**, and that alone answers the sizing question without
-any head calculation.
+| Main size | To family branch, 15 GPM | To kitchen branch, 10 GPM | To great room, 5 GPM | Branch, coil, valve | Total |
+|---|---|---|---|---|---|
+| 1" | 5.3 ft | 4.3 ft | 1.0 ft | 9.9 ft | **~25 ft** |
+| 1¼" | 1.7 ft | 1.4 ft | 0.3 ft | 9.9 ft | **~15 ft** |
+| 1½" | 0.7 ft | 0.6 ft | 0.1 ft | 9.9 ft | **~12 ft** |
 
-### 5.6 Loop A on LOW cannot reach full design flow
+Loop B in summer drives one coil over a 15 ft run, which needs under 12 ft at any pipe size and
+is the easiest duty in the system.
 
-A UP26-99F on LOW delivers roughly 9 to 11 ft of head at zero flow and less as flow rises. Against
-the section 5.4 estimates, LOW cannot supply 15 GPM to three simultaneously calling coils at any
-plausible pipe size, and at 1" mains no tap on that pump can.
+Velocity gives an independent read on pipe size. Ten GPM in 1" copper runs 3.9 ft/s, at the 4 ft/s
+limit that governs erosion and noise, and 15 GPM in the same pipe runs 5.8 ft/s, well past it. **If
+the Loop B mains are 1", that loop was never sized to carry three coils at 5 GPM each in winter.**
+Loop A at 1" is borderline rather than clearly wrong.
 
-That matters less than it appears, because the plant is the smaller constraint. Primary flow rises
-with load to about 15 GPM ([4.3](#43-flow-without-a-flow-meter)) against a chiller making 4.3 tons,
-and it falls to about 8 GPM at low load. Secondary flow exceeding primary flow at any moment pulls
-return water backwards through the tees and feeds the coils warmer water, which loses more capacity
-than the extra flow gains ([Appendix C](#appendix-c--primarysecondary-hydraulics)). The margin is
-therefore widest when the chiller works hardest and narrowest at part load.
+### 5.6 Loop A on LOW is short for the master bedroom
 
-The real constraint on Loop A is distribution between its three coils rather than total flow.
-Three coils on one fixed-speed circulator with no balancing share whatever the pump delivers, and
-they share it by relative resistance. The master bedroom sits at the far end of a 105 ft run
-behind the two nearer branches, so it is the coil most likely to be short when all three call
-together. That is exactly the design-day case, and it is unmeasured.
+A UP26-99F on LOW delivers roughly 10 to 12 ft of head at zero flow and less as flow rises.
+Against the [5.5](#55-friction-head-on-the-index-circuits) estimates, LOW covers the master
+bedroom circuit only if the mains are 1½", falls short at 1¼", and falls a long way short at 1".
+Loop B on LOW covers its summer single-coil duty comfortably at any size.
+
+**That asymmetry matches the humidity measurement.** The Loop B family-room coil has a whole
+circulator to itself over 15 ft and reads 45.9 % RH. The two Loop A coils share one circulator
+across a 105 ft index circuit and read 50.9 % and 53.7 %, peaking at 60 % and 59 %. More water
+flow removes more moisture
+([B.6](#b6-water-flow-and-dehumidification-move-together)), so an under-pumped Loop A produces
+exactly the pattern in [3.3](#33-humidity-is-the-marginal-axis).
+
+The remedy is free and reversible. Loop A's circulator has two speeds above where it sits, and
+raising it is the first item in [7.1](#71-costs-nothing).
+
+One ceiling bounds it. Secondary flow must stay under primary flow or the tees mix backwards
+([Appendix C](#appendix-c--primarysecondary-hydraulics)). Primary flow rises with load to about
+15 GPM and falls to about 8 GPM at part load ([4.3](#43-flow-without-a-flow-meter)), so the margin
+is widest when the chiller works hardest and narrowest when it idles. Loop A on MEDIUM plus Loop B
+on LOW should stay inside it, and the four loop sensors in
+[4.2](#42-four-ds18b20s-on-the-secondary-loops) confirm it directly.
+
+Distribution within Loop A is the second question. Two coils on one fixed-speed circulator with no
+balancing share what the pump delivers by relative resistance, and the master bedroom sits at the
+far end of the run behind the kids branch. It is the coil most likely to be short when both call
+together, which is the design-day case, and it is unmeasured.
 
 ### 5.7 What is still unresolved
 
@@ -549,7 +596,7 @@ possibilities remain for the loops themselves, and one measurement separates the
 | Condition | Loop supply against `IN` | Loop ΔT against primary ΔT | Consequence |
 |---|---|---|---|
 | Decoupled and healthy | equal | at or above | None. The coils see tank temperature |
-| Secondary overpumped | equal | below | Pump energy wasted, warmer coil surface, less moisture removed |
+| Secondary overpumped | equal | below | Pump energy wasted. Coil capacity and dehumidification are unharmed |
 | Reverse mixing at the tees | warmer in cooling | below | Real capacity loss, presenting as an undersized chiller |
 
 Loop supply temperature against `IN` is the discriminator, and it needs two of the four sensors in
@@ -579,33 +626,36 @@ Six criteria, in the order the objective ranks them.
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | 1 | Zones hold setpoint | **Pass at 80 °F** | Zero droop on all five zones, 8 h |
-| 2 | Humidity near 50 % | **Marginal** | 60 % peak master bedroom, 59 % kids room, against 48.6 % in the DX kitchen |
+| 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
 | 3 | No loss at the tees | **Unknown** | Needs loop supply against `IN` ([4.2](#42-four-ds18b20s-on-the-secondary-loops)) |
-| 4 | Fair share between zones | **Unknown, and suspect** | Loop A index circuit is 105 ft with no balancing ([5.6](#56-loop-a-on-low-cannot-reach-full-design-flow)) |
+| 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)) |
 | 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
 
 ### 6.3 Conclusion
 
 **The system is operating well against its stated objective and is not operating at its limit.**
-Every zone holds setpoint with the plant idle more than half the time on a warm evening, which
-is the outcome the objective asks for. Nothing here needs fixing to restore comfort.
+Every zone holds setpoint with the plant idle more than half the time on a warm evening, which is
+the outcome the objective asks for. Nothing here needs fixing to restore comfort.
 
-The low ΔT has a cause outside the distribution. Primary ΔT holds near 5 °F while chiller power
-varies threefold, which means flow is being modulated to keep it there
-([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). It is a control setpoint, and balancing
-valves, pump taps and coil work all leave a controlled setpoint where it was set. Reaching 8 to
-12 °F means raising that target in the chiller's controller, which costs nothing and is the first
-item in section 7.
+The low ΔT has a cause outside the distribution and is better left alone. Primary ΔT holds near
+5 °F while chiller power varies threefold, so flow is being modulated to keep it there
+([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Reaching 8 to 12 °F means raising that control
+target, which lowers flow, and lower water flow costs both capacity and dehumidification
+([B.6](#b6-water-flow-and-dehumidification-move-together)). The 5 °F the system runs today is part
+of why the coils keep their surfaces below the air dewpoint. It costs pump energy, which the
+objective ranks last.
 
-Raising it also serves the one measured shortfall. Less flow gives a colder coil surface and
-removes more moisture, and humidity in the two chilled-water bedroom zones runs to 60 % against a
-48.6 % reading in the direct-expansion kitchen. The setting that produces the ΔT number is the same
-setting that addresses the comfort complaint.
+**The measured shortfall is humidity, and it falls along the loop split.** The one chilled-water
+coil with a circulator to itself over a 15 ft run reads 45.9 % RH. The two sharing a circulator
+across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. More water flow
+removes more moisture, and Loop A on LOW covers the master bedroom circuit only if the mains are
+1½" ([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)). Raising Loop A one speed tests
+that for free, and it is the first thing to do.
 
-Two things remain unverified. Distribution between the three Loop A coils is unbalanced by
-construction and unmeasured, which matters on the design day nobody has yet observed. And whether
-the tees mix backwards is unknown, which section 7 resolves for about $20.
+Two things remain unverified. Distribution between the two Loop A coils is unbalanced by
+construction and unmeasured, which matters most on the design day nobody has yet observed. And
+whether the tees mix backwards is unknown, which section 7 resolves for about $20.
 
 ---
 
@@ -613,31 +663,32 @@ the tees mix backwards is unknown, which section 7 resolves for about $20.
 
 ### 7.1 Costs nothing
 
-**Raise the chiller's target water ΔT.** This is the direct answer to the question that opened
-the document, and it is a controller setting
-([5.2](#52-what-that-means-for-the-8-to-12-degree-target)). Raising the target lowers flow, which
-lowers pump energy and gives a colder coil surface, and a colder surface removes more moisture.
-Move it in one step, watch zone temperature and humidity across a few comparable days, and stop at
-the first sign of a zone losing setpoint on a hot afternoon. Find the setting before touching
-anything mechanical.
+**Raise Loop A's secondary circulator from LOW to MEDIUM.** The first thing to try, and the only
+free action aimed straight at the measured shortfall. Loop A's two coils read 50.9 % and 53.7 % RH
+against 45.9 % for the single Loop B coil, more water flow removes more moisture, and LOW covers
+the 105 ft master-bedroom circuit only at 1½" mains
+([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)). Watch both zones' humidity and
+temperature across a few comparable hot days. Revert if the tees start mixing, which the loop
+sensors in [4.2](#42-four-ds18b20s-on-the-secondary-loops) would show as loop supply drifting above
+`IN`.
+
+**Lower the chiller's leaving-water setpoint by 2 to 3 °F.** The second route to a colder coil
+surface, independent of flow, and the one that works if Loop A proves adequately pumped. It costs
+efficiency, which the objective ranks second. Both zones' RH is already logged, so the result is
+readable within a few comparable days. Keep the setpoint above the point where the coil frosts and
+above the chiller's own minimum. Change one of these two at a time.
 
 **Read the Taco's speed switch and set it to 3.** The primary must out-flow both secondaries
-combined, and this is the smallest pump in the system at 1/20 HP.
+combined, and this is the smallest pump in the system at 1/20 HP. Do this before raising Loop A.
 
-**Read the secondary main pipe size.** It swings the Loop A head estimate by a factor of two
-([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a bigger pump
-is the right answer if criterion 4 fails.
+**Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
+about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
+bigger pump is the answer if raising the tap falls short.
 
-**Move the redundant lower buffer-tank probe to the chiller's leaving-water line.** `UBT` and
-`LBT` differ by 0.03 °F, so the second reading carries no information where it is. On the chiller
-outlet it gives the reference that makes every mixing and distribution-loss figure absolute.
-This is a sensor relocation with no purchase.
-
-**Lower the chiller's leaving-water setpoint by 2 to 3 °F if raising the target ΔT proves
-insufficient.** Colder water gives a colder coil surface by a second route. It costs more
-efficiency than the ΔT change does, which the objective ranks second. Both zones' RH is already
-logged, so the result is readable within a few comparable days. Keep the setpoint above the point
-where the coil frosts and above the chiller's own minimum.
+**Move the redundant lower buffer-tank probe to the chiller's leaving-water line.** `UBT` and `LBT`
+differ by 0.03 °F, so the second reading carries no information where it is. On the chiller outlet
+it gives the reference that makes every mixing and distribution-loss figure absolute. This is a
+sensor relocation with no purchase.
 
 **Add a design-day saturation alert.** Chiller power pinned near 3,537 W for an extended period
 with droop above zero on more than one zone is the signature of the plant running out, and it is
@@ -646,8 +697,10 @@ the condition none of the sampled days contained. Grafana already has the two se
 **Confirm the attic coil's automatic air vent and the expansion-tank position** relative to both
 secondary circulators ([5.4](#54-what-elevation-does-affect)). Visual checks.
 
-**Raise Loop B's tap before heating season**, with the 25 % to 30 % glycol top-up. Set `fluid_k`
-to 476 on the day of the top-up and add a Grafana annotation.
+**Raise Loop B's tap before heating season**, with the 25 % to 30 % glycol top-up. Loop B carries
+one coil in summer and three in winter, and [5.5](#55-friction-head-on-the-index-circuits) puts
+its winter index circuit at 15 to 25 ft. Set `fluid_k` to 476 on the day of the top-up and add a
+Grafana annotation.
 
 ### 7.2 Under $100
 
@@ -719,14 +772,19 @@ Everything above captures most of the benefit with no software and nothing to ma
 
 ### 7.6 What not to do
 
-**Do not throttle a valve to manufacture an 8 to 12 °F ΔT.** The ΔT is held by a control loop, so
-throttling makes the pump work harder against the restriction to hold the same target
-([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Change the target, and leave the valves
-alone.
+**Do not chase an 8 to 12 °F ΔT.** It would mean raising the chiller's target and cutting flow,
+and lower water flow costs capacity and dehumidification in a house whose measured shortfall is
+humidity ([5.2](#52-what-that-means-for-the-8-to-12-degree-target)). The number is a design
+convention, and this system is better off without it.
 
-**Do not raise a secondary tap to fix a starved zone before checking the tees.** More secondary
-flow than the primary supplies causes reverse mixing, which loses more than it gains
-([Appendix C](#appendix-c--primarysecondary-hydraulics)).
+**Do not throttle a valve to move the ΔT either.** The ΔT is held by a control loop, so throttling
+makes the pump work harder against the restriction and arrive at the same target
+([5.1](#51-primary-delta-t-is-held-at-a-setpoint)).
+
+**Do not raise both secondary taps at once.** Combined secondary flow above primary flow causes
+reverse mixing, which loses more than it gains
+([Appendix C](#appendix-c--primarysecondary-hydraulics)). Loop A is the one that needs it; Loop B
+in summer drives a single coil over 15 ft and is already generous.
 
 **Do not reset `rounding` to 0 in the 1-wire config.** Every ΔT analysis here depends on the
 two-decimal Kelvin fix. If a WilhelmSK gauge shows noisy decimals, set the precision in the app.
@@ -741,21 +799,23 @@ settles which, and it costs nothing.
 
 | Step | Action | Cost | Resolves |
 |---|---|---|---|
-| 1 | Find and raise the chiller's target water ΔT; watch zone temperature and RH for a few comparable days | — | The opening question, and criterion 2 |
-| 2 | Read the Taco speed switch, the pipe size, and whether branch balancing exists | — | [4.1](#41-free-read-the-pipe-and-the-pump) |
-| 3 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
+| 1 | Read the Taco speed switch and set it to 3; read the secondary main pipe size; check for branch balancing valves | — | [4.1](#41-free-read-the-pipe-and-the-pump) |
+| 2 | Raise Loop A from LOW to MEDIUM; watch master bedroom and kids room RH for a few comparable hot days | — | Criterion 2, and it tests criterion 4 |
+| 3 | If step 2 does not move humidity, lower the chiller leaving-water setpoint 2 to 3 °F | — | Criterion 2 by the other route |
 | 4 | Relocate the redundant `LBT` probe to the chiller leaving-water line | — | Criterion 3 |
-| 5 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4 |
-| 6 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
-| 7 | Two 10K NTCs in the zone the RH comparison identifies | on hand | Sensible against latent |
-| 8 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
-| 9 | Branch balancing on Loop A, if step 5 shows maldistribution | $200–400 | Criterion 4 |
-| 10 | The air-handler node | ~$300 | Per-coil attribution |
+| 5 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
+| 6 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and it confirms step 2 |
+| 7 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
+| 8 | Two 10K NTCs in the zone the RH comparison identifies | on hand | Sensible against latent |
+| 9 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
+| 10 | Branch balancing on Loop A, if step 6 shows maldistribution | $200–400 | Criterion 4 |
+| 11 | The air-handler node | ~$300 | Per-coil attribution |
 
-Steps 1 to 4 cost nothing and should run before any purchase. Step 1 is expected to answer the
-question that opened the document on its own. Step 5 is the decision point for the rest: it either
-confirms the healthy-decoupling reading in [5.7](#57-what-is-still-unresolved) and closes the
-question, or it finds mixing or maldistribution and sends the work to step 9.
+Steps 1 to 5 cost nothing and should run before any purchase. Step 2 is the one most likely to move
+the measured shortfall, and steps 2 and 3 change one variable each so their effects stay separable.
+Step 6 is the decision point for the rest: it either confirms the healthy-decoupling reading in
+[5.7](#57-what-is-still-unresolved) and shows whether step 2 delivered more flow, or it finds
+mixing or maldistribution and sends the work to step 10.
 
 ---
 
@@ -764,15 +824,14 @@ question, or it finds mixing or maldistribution and sends the work to step 9.
 - What holds the primary ΔT at 5 °F, and where is its setpoint? The Chiltrix CX series drives its
   circulator from an inverter against a target water ΔT, which fits the measurement
   ([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Confirm from the unit's controller, and
-  find the adjustment. Everything in [7.1](#71-costs-nothing) turns on this.
+  find the adjustment. Needed to interpret every water-side figure here, and to know whether the
+  loops can be re-pumped without the chiller answering by changing its own flow.
 - Does the CX75 carry its own internal circulator, and if so what is the Taco 0015-MSF3-IFC doing?
   A 17 ft shutoff head cannot pass 15 GPM through an evaporator the CX65 rates at 16 ft of drop at
   10 GPM, so the two cannot both be the whole story ([4.3](#43-flow-without-a-flow-meter)).
-- Which secondary loop does the downstairs family room branch from? Records place it on Loop A;
-  the physical description places it at the head of the loop that continues to the kitchen and
-  great room ([2.1](#21-plant-distribution-and-zones)).
-- What size are the two secondary mains? It moves the Loop A head estimate from about 18 ft to
-  about 34 ft ([5.5](#55-friction-head-on-the-index-circuits)).
+- What size are the two secondary mains? It moves the Loop A index-circuit head from about 13 ft
+  to about 30 ft, which decides whether LOW was ever adequate
+  ([5.5](#55-friction-head-on-the-index-circuits)).
 - Which speed is the Taco 0015-MSF3-IFC set to?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
@@ -783,9 +842,9 @@ question, or it finds mixing or maldistribution and sends the work to step 9.
   `electrical.emporia.house.chiltrix`?
 - Does the CX75 expose Modbus RTU? It would supply entering and leaving water temperature and
   compressor state with no plumbing work, replacing several sensors in section 4.
-- How many hydronic zone valves are there in total? Four water zones fit an HZ-432 exactly, yet
-  in winter the kitchen and great room take hot water as well, implying more valves than one
-  HZ-432 provides.
+- How many hydronic zone valves are there, and does one HZ-432 drive all five? Five zones take hot
+  water in winter, which is more than a single four-zone panel provides. The kitchen and great
+  room may be switched separately, since their cooling comes from their own condensers.
 - In heating, does hot water come from the boiler alone, or does the Chiltrix also run as a heat
   pump? It decides whether a heating efficiency figure is a COP against the Chiltrix CT or a
   combustion efficiency against gas input.
@@ -802,9 +861,11 @@ question, or it finds mixing or maldistribution and sends the work to step 9.
 
 ```
   boiler ──[Grundfos UP26-99F, HIGH]──┐                  ┌── Loop A [UP26-99F, LOW]
-                                      ├─ PRIMARY HEADER ─┤    └─ lower fam. room · kids · master BR
+                                      ├─ PRIMARY HEADER ─┤    └─ kids (75 ft) → master BR (attic)
  chiller ──[Taco 0015-MSF3-IFC]───────┘  (closely spaced └── Loop B [UP26-99F, LOW]
-            18 GPM / 17 ft max               tees)            └─ utility room · kitchen · great room
+            18 GPM / 17 ft max               tees)            └─ lower fam. room (15 ft)
+                                                                 → kitchen (+10 ft rise)
+                                                                 → great room (+20 ft)
 ```
 
 Each source carries its own primary pump; no separate always-on primary circulator exists.
@@ -820,20 +881,25 @@ runs unbuffered (see [C.4](#c4-cooling-is-buffered-heating-runs-direct)).
 
 | | Loop A | Loop B |
 |---|---|---|
-| Summer, chilled | all 3 zones on chilled water | utility room only; kitchen and great room cool on their BOVAs |
-| Winter, hot | all 3 zones | all 3 zones |
+| Summer, chilled | kids room and master bedroom | lower family room only; kitchen and great room cool on their BOVAs |
+| Winter, hot | kids room and master bedroom | family room, kitchen, great room |
+
+Loop A carries two coils year-round, and its index circuit is the master bedroom at roughly 105 ft
+one way with the coil in the attic. It is the harder duty of the two in summer and the loop the
+humidity measurement points at ([3.3](#33-humidity-is-the-marginal-axis)).
 
 Loop B in cooling is a single-zone loop, hydraulically isolated. One zone valve open and one pump
-running leaves nothing to share flow with, so its cooling-season flow is constant. That makes it
-the cheapest coil to instrument and the easiest to interpret.
+running leaves nothing to share flow with, so its cooling-season flow is constant. The family-room
+coil is therefore the cheapest to instrument and the easiest to interpret, and it doubles as the
+high-flow reference against which the two Loop A coils are compared.
 
 Loop B's speed tap is consequently a seasonal setting. It is sized for three zones in winter and
 drives one in summer, so no single tap suits the whole year.
 
 | Season | Zones on Loop B | Right tap |
 |---|---|---|
-| Summer, chilled | 1, utility room only | LOW. Anything more overpumps a single coil |
-| Winter, hot | 3: utility, kitchen, great room | Higher. LOW across three zones risks starving them |
+| Summer, chilled | 1, the lower family room | LOW. Anything more only adds pump energy |
+| Winter, hot | 3: family room, kitchen, great room | Higher. Its winter index circuit needs 15 to 25 ft ([5.5](#55-friction-head-on-the-index-circuits)) |
 
 ## A.3 The plant
 
@@ -994,12 +1060,28 @@ from the plant and the pump.
 > Read that last table only against known plant output. At part load a low ΔT means nothing at
 > all ([5.1](#51-primary-delta-t-is-held-at-a-setpoint)).
 
-## B.6 Flow modulation trades capacity against dehumidification
+## B.6 Water flow and dehumidification move together
 
-In cooling, water flow sets coil surface temperature, which sets the sensible and latent split.
-Higher flow gives a warmer coil, more sensible capacity and less dehumidification. Lower flow
-gives a colder coil, less total capacity and more moisture removed. A zone that holds setpoint yet
-feels clammy can therefore improve with reduced flow while its BTU output falls.
+In cooling, water flow sets the average coil surface temperature, which sets the sensible and
+latent split. Water leaves the coil at `T_in + Q / (K × GPM)`, so the average water temperature is
+`T_in + Q / (2 × K × GPM)`. Lower flow raises that average, which raises the surface temperature
+along the leaving-water end of the coil.
+
+Dehumidification depends on how much of the coil surface sits below the entering-air dewpoint. At
+76 °F and 55 % RH the dewpoint is about 58.6 °F. Water entering at 47.8 °F gives a surface near
+51 °F at high flow, condensing across the whole coil. Drop the flow until the water leaves 8 °F
+warmer and the last part of the coil reaches 57 to 58 °F, at the dewpoint, where it stops
+condensing.
+
+**More water flow therefore removes more moisture, and less flow removes less.** A zone that holds
+setpoint yet feels clammy wants more water flow, a lower entering water temperature, or less
+airflow.
+
+> This runs opposite to the air side, which is the common source of confusion. Lower *airflow*
+> gives a colder coil and more dehumidification, and that is the direction
+> [Appendix D](#appendix-d--the-bova-direct-expansion-zones) uses for the direct-expansion zones.
+> Lower *water* flow gives a warmer coil and less dehumidification. The two adjustments move
+> latent capacity in opposite directions.
 
 Heating carries no latent load and offers nothing to modulate. Take flow up to saturation and
 stop.
@@ -1061,13 +1143,14 @@ fails before. `IN` and `OUT` need the same matched-pair treatment as
 
 ## C.3 An idle loop identifies itself
 
-In summer Loop B serves only the utility room, so whenever that zone is not calling, `IN − OUT`
-reflects Loop A alone, which is the single-secondary case the algebra above assumes.
+In summer Loop B serves only the lower family room, so whenever that zone is not calling,
+`IN − OUT` reflects Loop A alone, which is the two-coil case the algebra above assumes.
 
-The utility zone has no RedLink thermostat, so its call state is not in pivac. It need not be. A
-loop with its pump off and its zone valve shut shows supply and return converging, both drifting
-toward ambient. A loop ΔT under about 1 °F is therefore a reliable idle flag with no GPIO input.
-Free inputs with existing wire runs are BCM 13/33, 16/36 and 24/18 if a hard signal is ever
+The family room has a RedLink thermostat, `DSTRS_FAM_ROOM`, so its call state is already in pivac
+and the isolation windows can be selected from data on hand. The loop sensors confirm it
+independently: a loop with its pump off and its zone valve shut shows supply and return
+converging, both drifting toward ambient, so a loop ΔT under about 1 °F is a reliable idle flag.
+Free GPIO inputs with existing wire runs are BCM 13/33, 16/36 and 24/18 if a hard signal is ever
 wanted.
 
 ## C.4 Cooling is buffered; heating runs direct
@@ -1386,17 +1469,17 @@ water meters.
 
 | If the instrumented coil is… | Cooling season | Winter | Verdict |
 |---|---|---|---|
-| Utility room, Loop B | Single-zone loop, flow constant | Shares Loop B with kitchen and great room | Start without a meter. Measure GPM once, run all cooling season on a constant, add the meter before winter if the data warrants |
-| Family room, kids or master, Loop A | Shares with two other zones, which all call together on hot days | Same | Buy the meter. Per-zone flow varies exactly when it matters |
+| Lower family room, Loop B | Single-zone loop, flow constant | Shares Loop B with kitchen and great room | Start without a meter. Measure GPM once, run all cooling season on a constant, add the meter before winter if the data warrants |
+| Kids room or master bedroom, Loop A | Shares with the other, and both call together on hot days | Same | Buy the meter. Per-zone flow varies exactly when it matters |
 
-Sharing matters on Loop A because three zone valves on one fixed-speed circulator are
-hydraulically coupled. Opening a second valve lowers loop head, so flow through any one coil
-drops. Per-zone GPM becomes a function of how many other zones are calling, and it reaches its
-minimum on design days when all three run together.
+Sharing matters on Loop A because two zone valves on one fixed-speed circulator are hydraulically
+coupled. Opening the second valve lowers loop head, so flow through the first coil drops. Per-zone
+GPM becomes a function of whether the other zone is calling, and it reaches its minimum on design
+days when both run together.
 
-One cheap test settles it either way. At a steady outdoor condition, log a coil's ΔT_water with
-one zone calling, then with two or three. A material rise in ΔT at the same entering water
-temperature means the zones share flow. An afternoon decides a $200 to $400 purchase.
+One cheap test settles it either way. At a steady outdoor condition, log a coil's ΔT_water with one
+zone calling, then with both. A material rise in ΔT at the same entering water temperature means
+the zones share flow. An afternoon decides a $200 to $400 purchase.
 
 The three-speed tap acts per loop rather than per zone. It changes total loop flow, raising or
 lowering every zone together, and cannot redistribute between them.
