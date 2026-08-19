@@ -47,7 +47,8 @@ advancing it lives in the appendices.
   - [5.5 Friction head on the index circuits](#55-friction-head-on-the-index-circuits)
   - [5.6 What the calculation says about each coil](#56-what-the-calculation-says-about-each-coil)
   - [5.7 Choosing the pump speed, and whether balancing helps](#57-choosing-the-pump-speed-and-whether-balancing-helps)
-  - [5.8 What is still unresolved](#58-what-is-still-unresolved)
+  - [5.8 Can the primary supply both loops at maximum call?](#58-can-the-primary-supply-both-loops-at-maximum-call)
+  - [5.9 What is still unresolved](#59-what-is-still-unresolved)
 - [6. Verdict](#6-verdict)
   - [6.1 What optimal means here](#61-what-optimal-means-here)
   - [6.2 Scorecard](#62-scorecard)
@@ -267,10 +268,19 @@ and it is markedly the driest zone. More water flow removes more moisture
 hydraulic. Within Loop A the kids room carries more flow than the master bedroom and still reads
 2.8 points wetter, so something other than flow dominates there.
 
-Latent load is the likely difference. A kids' bedroom carries more moisture per unit of sensible
-load than a family room, and the M1218 is sized on sensible capacity. The master bedroom's coil
-also sits in an attic, where duct leakage draws hot humid air into the return. Section 7 separates
-them, and the first test costs nothing.
+**Latent load is the difference, and the kids zone has an unusual amount of it.** That zone is a
+small space carrying the laundry room and two full baths, and the showers are frequent. Laundry and
+showers are close to pure latent gain, so the zone presents a large moisture load on a small
+sensible one.
+
+That combination produces exactly what is measured. The M1218 satisfies 74 °F quickly against a
+small sensible load and cycles off, and a coil that cycles dehumidifies poorly: its surface warms
+between calls, and blower run-on re-evaporates condensate off the fins back into the airstream.
+The room holds its setpoint to the degree and stays wet.
+
+It also means **more sensible capacity would make that zone worse**, so a larger air handler is the
+wrong direction ([7.1](#71-costs-nothing)). The master bedroom's coil sits in an attic, where duct
+leakage draws hot humid air into the return, which is a separate mechanism for a separate zone.
 
 This is the one measured shortfall against the stated objective.
 
@@ -683,7 +693,61 @@ room outright.
 > chilled-water coil as a stand-in. Confirm against the loop sensors rather than against the
 > arithmetic.
 
-### 5.8 What is still unresolved
+### 5.8 Can the primary supply both loops at maximum call?
+
+Maximum simultaneous secondary demand, at the settings
+[5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps) recommends:
+
+| Season | Loop A | Loop B | Combined |
+|---|---|---|---|
+| Summer | 9.3 GPM on MEDIUM | 6.5 GPM on LOW | **15.8 GPM** |
+| Winter | 9.3 GPM on MEDIUM | 16.5 GPM on HIGH | **25.8 GPM** |
+
+Against that, each source pump has to push its own heat exchanger as well as the header. The
+chiller evaporator is the harder of the two: Chiltrix publishes 16 ft at 10 GPM for the
+neighbouring CX65, and a heat exchanger of that resistance dominates everything else in the
+circuit.
+
+| Primary, at its best speed | Evaporator or HX assumed | Delivered flow |
+|---|---|---|
+| Taco 0015-MSF3-IFC, cooling | 16 ft at 10 GPM, the CX65 figure | ~7.9 GPM |
+| Taco 0015-MSF3-IFC, cooling | 10 ft at 10 GPM | ~9.2 GPM |
+| Taco 0015-MSF3-IFC, cooling | 6 ft at 10 GPM | ~10.5 GPM |
+| Grundfos UP26-99F on HIGH, heating | Ti-200 at ~10 ft at 20 GPM | ~21.3 GPM |
+| Grundfos UP26-99F on HIGH, heating | 15 ft at 20 GPM | ~19.2 GPM |
+
+**The answer is no in both seasons, and the cooling gap cannot be closed by changing the
+circulator.** Pushing 16 GPM through a 16 ft evaporator needs 45 ft of head, and 31 ft even
+through a 10 ft one. Nothing in the 00-series or Super Brute range reaches either. In heating the
+gap is smaller: 26 GPM needs about 21 ft, which is near what the UP26-99F already delivers at
+lower flow, so the boiler primary comes closer to covering its loops than the chiller primary
+does.
+
+That arithmetic is also the strongest evidence yet that the **CX75 carries its own circulator**
+([4.3](#43-flow-without-a-flow-meter)), because the measured primary ΔT implies 8 to 15 GPM rising
+with load and the Taco alone cannot produce the upper half of that range.
+
+**Before treating any of this as a defect, settle where the buffer tank sits.** Two architectures
+fit the description, and they have opposite implications.
+
+| Architecture | Does primary flow have to exceed secondary? | Symptom if it does not |
+|---|---|---|
+| Tank in series in one primary loop, closely spaced tees decoupling the secondaries | Yes | Reverse mixing: coils get warmer water in cooling, cooler in heating |
+| Tank as a four-pipe buffer between the source circuit and the distribution circuit | No. The tank absorbs the mismatch by design | Tank temperature rises as it is drawn down, which is what a buffer is for |
+
+If the tank is the separator, the secondaries drawing more than the chiller circuit supplies is
+normal operation rather than a fault, and the deficit above is not one. The measured tank
+stratification of 0.03 °F leans toward the first reading, since a four-pipe buffer between
+mismatched circuits would normally show a thermocline, but that is inference rather than
+observation.
+
+One comparison settles it, and it needs two of the four sensors in
+[4.2](#42-four-ds18b20s-on-the-secondary-loops). With both loops calling, compare each loop's
+supply against `IN` and against the tank. Loop supply matching the tank means the tank is
+decoupling and there is no problem to solve. Loop supply drifting warmer than both, in cooling,
+means reverse mixing at the tees and a real capacity loss.
+
+### 5.9 What is still unresolved
 
 Regulated primary flow explains the primary ΔT and says nothing about either secondary loop. Three
 possibilities remain for the loops themselves, and one measurement separates them.
@@ -771,6 +835,19 @@ the gain ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The f
 [4.2](#42-four-ds18b20s-on-the-secondary-loops) show it directly as Loop A's supply drifting above
 `IN`, which is why they belong alongside this change rather than after it.
 
+**Lower the commanded CFM on the kids-room air handler.** That zone carries the laundry room and
+two full baths in a small space, so it runs a large latent load on a small sensible one
+([3.3](#33-humidity-is-the-marginal-axis)). Less airflow gives a colder coil and a lower sensible
+heat ratio, trading capacity this zone has to spare for the moisture removal it needs. The Unico
+Smart Controller sets it in software, so the change is free and reversible, and it is the opposite
+of the direction the great room was tuned
+([Appendix D](#appendix-d--the-bova-direct-expansion-zones)).
+
+**Check the bath and laundry exhaust in that zone.** Fans that run long enough and duct to outside
+remove moisture at its source, before it reaches a coil at all. A dryer venting into the space,
+or a ventless one, would put the whole load on the air handler. This sits outside the hydronic
+system and is likely the highest-value fix available for that room.
+
 **Lower the chiller's leaving-water setpoint by 2 to 3 °F.** The second route to a colder coil
 surface, independent of flow, and the one that works if Loop A proves adequately pumped. It costs
 efficiency, which the objective ranks second. Both zones' RH is already logged, so the result is
@@ -827,13 +904,22 @@ capacity-limited one ([4.4](#44-air-side-sensors-on-one-air-handler)).
 absolute BTU/hr and yields system COP against the existing Chiltrix CT
 ([4.5](#45-a-flow-meter-on-the-primary)). Buy this before any per-coil meter.
 
-**A static balancing valve on the kids-room branch, roughly $60 to $120 installed.** The direct
-answer to criterion 4. As installed the kids room takes 122 % of its design flow on MEDIUM while
-the master bedroom takes 74 %, and throttling the near branch brings both to about 85 %
-([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The exchange rate is about half a
-gallon per minute gained for every one removed, so this buys fair share rather than capacity, and
-it will not help humidity. Mechanical, no controls. Do it after the loop sensors confirm the
-split.
+**A static balancing valve on the kids-room branch, roughly $60 to $120 installed. Defer this
+one.** It is the direct answer to criterion 4: as installed the kids room takes 122 % of design
+flow on MEDIUM while the master bedroom takes 74 %, and throttling the near branch brings both to
+about 85 % ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). Three things argue
+against doing it now. The exchange rate is about half a gallon per minute gained for every one
+removed. The master bedroom holds setpoint today, so this is design-day insurance rather than a
+fix. And the kids zone carries the house's largest latent load
+([3.3](#33-humidity-is-the-marginal-axis)), so cutting its flow works against the one measured
+shortfall. Revisit it if the loop sensors confirm the split and the master bedroom starts drooping
+on hot afternoons.
+
+**Pressure-independent control valves, $150 to $300 per branch, are the better version of the same
+idea.** They combine the zone valve and the balancing function in one body and hold branch flow at
+a set rate regardless of what other zones do, which is what "ideal share" means in hardware. They
+cost more than static balancing and they are correct under every combination of calls rather than
+at one design point. The same deferral applies.
 
 **The air-handler node, roughly $300 with a flow meter.** Full specification in
 [Appendix E](#appendix-e--air-handler-node-build-specification). It is the only route to per-coil attribution within a loop and to the sensible and latent
@@ -852,10 +938,18 @@ branch flow at a set GPM regardless of how many other zones are open, which is t
 mode section 5.5 predicts. More expensive than static balancing and correct under every
 combination of calls rather than at one design point.
 
-**ΔT-controlled or ΔP-controlled ECM secondary circulators, $500 to $900 each.** A ΔT-controlled
-circulator modulates speed to hold a target loop ΔT, which is the mechanical answer to the
-question that opened this document. A ΔP-controlled unit holds per-branch flow steady as zone
-valves open and close. Either removes the three-speed tap and its seasonal adjustment.
+**ΔP-controlled ECM secondary circulators, $500 to $900 each.** A constant-pressure ECM holds
+per-branch flow steady as zone valves open and close, which is the clean version of stepping a pump
+up when more zones call, and it removes Loop B's seasonal tap ritual entirely. **Buy them when a
+circulator fails rather than before.** They redistribute and economise; they add no capacity, and
+they cannot exceed the primary-flow ceiling in
+[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call). A ΔT-controlled model is the wrong
+choice here, since holding a higher loop ΔT means less flow and less dehumidification
+([B.6](#b6-water-flow-and-dehumidification-move-together)).
+
+**Do not build the speed control in pivac.** An ECM circulator does this autonomously and
+continuously, without adding a software failure mode to the heating and cooling paths. pivac's job
+is measuring whether it worked.
 
 ### 7.5 Above $2,000, and the last resort
 
@@ -916,13 +1010,18 @@ settles which, and it costs nothing.
 Steps 1 to 5 cost nothing and should run before any purchase. Step 2 is the one most likely to
 move the measured shortfall, and steps 2 and 3 change one variable each so their effects stay
 separable. Step 6 is the decision point for the rest. It either confirms the healthy-decoupling
-reading in [5.8](#58-what-is-still-unresolved) and shows whether step 2 delivered more flow, or it finds mixing or
+reading in [5.9](#59-what-is-still-unresolved) and shows whether step 2 delivered more flow, or it finds mixing or
 maldistribution and sends the work to step 10.
 
 ---
 
 ## 9. Open questions
 
+- **Where does the buffer tank sit?** In series in one primary loop, or as a four-pipe buffer
+  between the source circuit and the distribution circuit? It decides whether the primary has to
+  out-flow the secondaries at all, and therefore whether the deficit in
+  [5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) is a fault or normal operation. The
+  most consequential unknown in the document.
 - What holds the primary ΔT at 5 °F, and where is its setpoint? The Chiltrix CX series drives its
   circulator from an inverter against a target water ΔT, which fits the measurement
   ([5.1](#51-primary-delta-t-is-held-at-a-setpoint)). Confirm from the unit's controller, and
