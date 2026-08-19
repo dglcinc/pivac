@@ -726,42 +726,57 @@ room outright.
 
 ### 5.8 Can the primary supply both loops at maximum call?
 
-**Close enough that it cannot be called from the arithmetic.** The primary circuit is short and
-fat: a 6 ft header in 1½" copper, with the tank and boiler beside it and at most 10 ft of pipe
-either side. Velocity at 16 GPM is 2.9 ft/s and friction across the whole circuit is under a foot,
-so the head is set by fittings, tank nozzles and the pump's integral flow check rather than by
-pipe.
+The mechanical room is compact, which decides this. The header is 6 ft of 1½" copper, the tank and
+boiler sit beside it with at most 10 ft of pipe each, the boiler run is 7 ft total, and the chiller
+run is 6 ft each way. Friction across any of these circuits is under a foot at working flow, so
+head comes from fittings, tank nozzles, check valves and heat exchangers rather than from pipe.
 
-| Circuit head assumed at 16 GPM | Taco 0015-MSF3-IFC delivers |
-|---|---|
-| 2.6 ft, 26 ft of pipe with a 2× fitting allowance | 16.2 GPM |
-| 4.4 ft, 3× fittings and 2 ft for the check valve and nozzles | 15.2 GPM |
-| 6.8 ft, deliberately pessimistic | 14.2 GPM |
+**Cooling.** The primary is roughly 20 ft of 1½" copper with no heat exchanger in it, so its head
+lands between 2 and 6 ft at 16 GPM. Against that the Taco's speed switch is worth about 3 GPM:
 
-Against a combined secondary call of 15.8 GPM, the primary lands **at or just under demand**. The
-measured data leans the same way from the other side: a primary ΔT of 5.34 °F at 1,903 W implies
-an EER of 17.5 at 13 GPM and 19.6 at 14.5 GPM, and since 19.6 is the CX75's published IPLV rather
-than a mean operating figure, the thermal evidence points to **13 to 14.5 GPM**.
+| Circuit head at 16 GPM | Speed 1 | Speed 2 | Speed 3 |
+|---|---|---|---|
+| 2.2 ft, 2× fitting allowance | 13.3 GPM | 15.1 GPM | 16.4 GPM |
+| 3.9 ft, 3× fittings | 12.6 GPM | 14.3 GPM | 15.5 GPM |
+| 5.9 ft, deliberately pessimistic | 11.8 GPM | 13.4 GPM | 14.5 GPM |
 
-Hydraulics says 14 to 16 GPM and thermodynamics says 13 to 14.5. **Take the overlap, 14 to 15 GPM,
-against a 15.8 GPM demand.** Reverse mixing is possible at the margin and it is not predicted.
+Combined secondary call is 15.8 GPM. **On speed 3 the primary covers it in the two likelier cases;
+on speed 1 it does not.** The setting is recorded as HIGH and has never been verified, which makes
+reading that switch the highest-value free action in the document
+([7.1](#71-costs-nothing)).
 
-Heating sits in the same place. The boiler circuit must exceed 25.8 GPM at full winter call, and
-the UP26-99F on HIGH delivers 22 to 26 GPM depending on the Ti-200's exchanger drop.
+The thermal evidence brackets the same range from the other side. A primary ΔT of 5.34 °F at
+1,903 W implies an EER of 17.5 at 13 GPM, 19.6 at 14.5 and 21.3 at 15.8. The CX75's published 19.6
+is an IPLV figure, and instantaneous part-load EER at a 47.8 °F leaving-water temperature and 80 °F
+ambient can exceed it, so none of these is excluded. **Primary flow is 13 to 16 GPM, and where it
+sits inside that band is set by the speed switch.**
+
+**Heating.** The boiler circuit is 13 ft of pipe including the header, so the Ti-200's exchanger is
+the whole question:
+
+| Ti-200 exchanger drop | Circuit head at 26 GPM | UP26-99F on HIGH delivers |
+|---|---|---|
+| 3 ft at 20 GPM | 7.5 ft | 27.0 GPM |
+| 5 ft at 20 GPM | 10.8 ft | 25.2 GPM |
+| 8 ft at 20 GPM | 15.6 ft | 23.1 GPM |
+| 12 ft at 20 GPM | 22.1 ft | 21.0 GPM |
+
+Against a 25.8 GPM winter call, the answer swings from comfortable to 5 GPM short across a range
+of exchanger drops that a datasheet would settle in a minute
+([9](#9-open-questions)).
+
+**The chiller-to-tank circuit is not in question.** Twelve feet of pipe contributes about half a
+foot at 11 GPM, negligible beside an evaporator near 19 ft, so the CX75's internal pump sees
+essentially only the load it was sized for.
 
 > **The 4 ft of rise from the tank costs nothing.** A closed loop cancels static lift
-> ([5.3](#53-elevation-adds-no-pump-head-in-a-closed-loop)), and this is the same point that
-> disposed of the attic coil.
+> ([5.3](#53-elevation-adds-no-pump-head-in-a-closed-loop)), the same point that disposed of the
+> attic coil.
 
-That a 1/20 HP circulator is well matched here is the correct reading, not an accident. A 3 to 5 ft
-circuit needs flow rather than head, and the Taco runs far right on its curve where it makes little
-head and plenty of flow. An earlier reading in this document put the chiller evaporator in this
-loop and concluded the pump was undersized by half; the evaporator belongs to the chiller's own
-circuit, which the tank decouples entirely.
-
-**The practical consequence is that no pump needs buying.** Two of the six probes in
-[4.2](#42-the-sensor-package) measure whether loop supply matches tank temperature, which settles
-in a week what three pages of estimates cannot.
+**No pump needs buying.** A 1/20 HP circulator on a 2 to 6 ft circuit is a sensible pairing rather
+than an undersized one; an earlier reading in this document put the chiller evaporator in this loop
+and concluded otherwise, when the tank decouples that circuit entirely. What the primary needs is a
+switch checked and two probes fitted.
 
 ### 5.9 What is still unresolved
 
@@ -869,8 +884,11 @@ efficiency, which the objective ranks second. Both zones' RH is already logged, 
 readable within a few comparable days. Keep the setpoint above the point where the coil frosts and
 above the chiller's own minimum. Change one of these two at a time.
 
-**Read the Taco's speed switch and set it to 3.** The primary must out-flow both secondaries
-combined, and this is the smallest pump in the system at 1/20 HP. Do this before raising Loop A.
+**Read the Taco's speed switch and set it to 3. Do this first.** It is worth about 3 GPM on the
+primary, which is the difference between covering the 15.8 GPM the secondaries draw and falling
+short of it ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). The setting is recorded
+as HIGH and has never been verified. Free, and it decides whether the Loop A tap change delivers in
+full.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1093,6 +1111,9 @@ its own flow.
   calculation uses 1.25 and 1.10, which are standard values rather than Unico's
   ([5.5](#55-friction-head-on-the-index-circuits)).
 - What is the zone-valve Cv? Assumed at 3 ft of drop at 6 GPM.
+- What is the Ti-200's water-side pressure drop at design flow? It swings the boiler circuit from
+  27 GPM to 21 against a 25.8 GPM winter call, which is the difference between adequate and short
+  ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
 - Which speed is the Taco 0015-MSF3-IFC set to?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
