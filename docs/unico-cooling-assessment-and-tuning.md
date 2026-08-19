@@ -45,8 +45,8 @@ advancing it lives in the appendices.
   - [5.3 Elevation adds no pump head in a closed loop](#53-elevation-adds-no-pump-head-in-a-closed-loop)
   - [5.4 What elevation does affect](#54-what-elevation-does-affect)
   - [5.5 Friction head on the index circuits](#55-friction-head-on-the-index-circuits)
-  - [5.6 Loop A on LOW is short for the master bedroom](#56-loop-a-on-low-is-short-for-the-master-bedroom)
-  - [5.7 Choosing the pump speed by calculation](#57-choosing-the-pump-speed-by-calculation)
+  - [5.6 What the calculation says about each coil](#56-what-the-calculation-says-about-each-coil)
+  - [5.7 Choosing the pump speed, and whether balancing helps](#57-choosing-the-pump-speed-and-whether-balancing-helps)
   - [5.8 What is still unresolved](#58-what-is-still-unresolved)
 - [6. Verdict](#6-verdict)
   - [6.1 What optimal means here](#61-what-optimal-means-here)
@@ -164,10 +164,11 @@ spread does not change.
 | Loop A secondary | Grundfos UP26-99F | LOW | 2 zones year-round |
 | Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
 
-Both secondary mains are **1¼" insulated PEX**, with 1¼" copper near the air handlers. PEX
-matters to the arithmetic. Its inside diameter is near 1.07" against 1.265" for 1¼" type L
-copper, so it carries roughly the friction of 1" copper rather than of its own nominal size
-([5.5](#55-friction-head-on-the-index-circuits)).
+Both secondary loops are **insulated PEX, part 1¼" and part 1"**, with the long main runs believed
+to be 1¼" and the smaller size appearing nearer the air handlers. The split is not measured. PEX
+matters to the arithmetic: 1¼" PEX has an inside diameter near 1.07" against 1.265" for 1¼" type L
+copper, so it carries roughly the friction of 1" copper rather than of its own nominal size, and
+1" PEX is near 0.87". [5.5](#55-friction-head-on-the-index-circuits) brackets the uncertainty.
 
 The chiller primary is materially the smallest pump in the system. A Taco 0015-MSF3-IFC is a
 1/20 HP circulator against the UP26-99F's 1/6 HP, and its 17 ft maximum head is roughly half the
@@ -253,22 +254,23 @@ humid while the direct-expansion zone beside it reads dry.
 That explains the kitchen and leaves a sharper pattern unexplained. All three Chiltrix zones share
 one plant, one water temperature and one coil type, and they do not read alike.
 
-| Zone | Loop | Coils sharing the circulator | Run to coil | Mean RH |
+| Zone | Loop | Coils sharing the circulator | Calculated flow | Mean RH |
 |---|---|---|---|---|
-| Downstairs family room | B | 1 in summer | ~15 ft | **45.9 %** |
-| Master bedroom | A | 2 | ~105 ft, coil in attic | 50.9 %, peak 60 % |
-| Kids room | A | 2 | ~75 ft | 53.7 %, peak 59 % |
+| Downstairs family room | B | 1 in summer | 6.5 GPM | **45.9 %** |
+| Kids room | A | 2 | 4.3 GPM | 53.7 % |
+| Master bedroom | A | 2 | 3.9 GPM | 50.9 % |
 
-**The driest zone in the house is the one chilled-water coil with a circulator to itself over a
-15 ft run. The two humid ones share a circulator across a 105 ft loop.** Water flow raises
-dehumidification. More flow holds the whole coil nearer entering water temperature, keeping more
-of its surface below the air dewpoint ([B.6](#b6-water-flow-and-dehumidification-move-together)). A Loop A coil getting less flow than the Loop B
-coil would read exactly this way.
+**The split between loops matches. The split within Loop A does not.** The family-room coil has a
+circulator to itself over a 15 ft run and receives roughly half again what either Loop A coil does,
+and it is markedly the driest zone. More water flow removes more moisture
+([B.6](#b6-water-flow-and-dehumidification-move-together)), so the loop-level difference reads as
+hydraulic. Within Loop A the kids room carries more flow than the master bedroom and still reads
+2.8 points wetter, so something other than flow dominates there.
 
-Two other explanations fit the same data. Bedrooms carry higher latent load per unit of sensible
-load than a family room, so a coil sized on sensible satisfies temperature before it has removed
-enough moisture. And the master bedroom's coil sits in an attic, where duct leakage draws hot
-humid air into the return. Section 7 separates them, and the first test costs nothing.
+Latent load is the likely difference. A kids' bedroom carries more moisture per unit of sensible
+load than a family room, and the M1218 is sized on sensible capacity. The master bedroom's coil
+also sits in an attic, where duct leakage draws hot humid air into the return. Section 7 separates
+them, and the first test costs nothing.
 
 This is the one measured shortfall against the stated objective.
 
@@ -343,12 +345,12 @@ Three unknowns need no purchase and change the analysis materially.
 
 **The Taco's speed switch.** Recorded as HIGH, unverified since the model was identified. The
 primary must out-flow both secondaries combined, which sets the ceiling on raising Loop A
-([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)).
+([5.6](#56-what-the-calculation-says-about-each-coil)).
 
 **Whether balancing valves exist on the branches.** The calculation in
-[5.7](#57-choosing-the-pump-speed-by-calculation) puts the master bedroom at 68 to 82 % of design
-flow at every pump speed while the kids room passes 100 %, so redistribution is worth more than
-another speed. Whether the hardware to do it already exists decides the cost.
+[5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps) puts the master bedroom at 68 to 82 % of design flow at every pump speed while the kids room
+passes 100 %, so redistribution is worth more than another speed. Whether the hardware to do it
+already exists decides the cost.
 
 **Confirm the copper sections near the air handlers.** The mains are 1¼" PEX, which governs the
 friction, and the copper runs are the easier pipe. Their length matters only if they are shorter
@@ -538,57 +540,50 @@ from the expansion tank connection.
 
 ### 5.5 Friction head on the index circuits
 
-Both secondary mains are 1¼" insulated PEX with 1¼" copper near the air handlers. PEX sets the
-friction, because its inside diameter of about 1.07" is closer to 1" copper than to the 1.265" of
-its own nominal size in copper. The copper sections near the handlers are the easier pipe and do
-not govern.
+Design flow comes from the Unico coil tables. At 45 °F entering water the M2430 delivers 26.9 MBH
+at 6 GPM and 600 CFM, and the M1218 delivers 17.5 MBH at 6 GPM and 400 CFM, so 6 GPM and 4 GPM are
+the working design points.
 
-Design flow comes from the air handlers. At a 10 °F design ΔT on 25 % propylene glycol, `K` is 481
-and `GPM = Q / (K × ΔT)`:
+Coil pressure drop is published rather than assumed. From Unico bulletin 20-020.3.020 at 45 °F
+entering water, pure water, in feet of water gauge:
 
-| Air handler | Nominal | Water duty | Design GPM at 10 °F ΔT |
-|---|---|---|---|
-| Unico M1218, kids room | 1.5 ton | chilled and hot | 3.7 |
-| Unico M2430, master bedroom | 2.5 ton | chilled and hot | 6.2 |
-| Unico M2430, family room | 2.5 ton | chilled and hot | 6.2 |
-| Unico M3036, kitchen | 3 ton | hot only | 6.2 at 20 °F heating ΔT |
-| Unico M3036, great room | 3 ton | hot only | 6.2 at 20 °F heating ΔT |
+| Coil | 2 GPM | 4 GPM | 6 GPM | 8 GPM |
+|---|---|---|---|---|
+| M1218CL1-C | 0.9 | 3.4 | 7.4 | — |
+| M2430CL1-C | 0.9 | 3.4 | 7.4 | 12.6 |
+| M3036CL1-C | 0.6 | 1.8 | 4.2 | 7.2 |
 
-Loop A therefore wants **10 GPM** year-round, Loop B wants **6.2 GPM** in summer and about
-**16.5 GPM** in winter when both M3036 hydronic modules join.
+Two things follow. **The M1218 and M2430 coils have identical pressure drops**, so the smaller
+handler is no easier to feed at a given flow. And a coil at design flow is a large fraction of the
+whole circuit, since 7.4 ft is more than a quarter of Loop A's index-circuit head.
 
-Head is built from friction alone, since a closed loop cancels static lift
-([5.3](#53-elevation-adds-no-pump-head-in-a-closed-loop)). Each main leg is computed at the flow it
-carries, with a 1.25 multiplier for 25 % glycol at 45 °F and 40 % added for fittings.
+> Water temperature and glycol both move these numbers. Across 40 to 55 °F entering water the
+> published drop moves about 4 %, from 7.5 to 7.2 ft on the M2430 at 6 GPM, so temperature is a
+> minor term. **Glycol is the larger correction**, and Unico publishes a multiplier table for it in
+> the same bulletin. The figures here use 1.25 for 25 % propylene glycol at 45 °F and 1.10 at
+> heating temperatures, which are standard engineering values. Substitute Unico's own multiplier
+> when you read the bulletin, and note that the planned 25 % to 30 % top-up moves it again.
 
-**Loop A index circuit, the master bedroom, at 10 GPM total:**
+Head is friction alone, since a closed loop cancels static lift
+([5.3](#53-elevation-adds-no-pump-head-in-a-closed-loop)). Each element is computed at the flow it
+carries, with 40 % added to pipe for fittings. Pipe size is the remaining uncertainty, so results
+are bracketed between all 1¼" and all 1".
 
-| Component | Flow | Value |
+| Loop and season | Design flow | Index circuit |
 |---|---|---|
-| 150 ft of 1¼" PEX main, tees to kids branch | 10 GPM | 9.4 ft |
-| 60 ft of 1¼" PEX, kids branch to master coil | 6.2 GPM | 1.6 ft |
-| Fittings, 40 % of the pipe above | | 4.4 ft |
-| ¾" branch run to the coil, ~20 ft equivalent | 6.2 GPM | 2.7 ft |
-| M2430 chilled-water coil | 6.2 GPM | ~5 ft |
-| Zone valve | 6.2 GPM | ~3 ft |
-| Strainer and air separator | | ~1.5 ft |
-| **Total** | | **~28 ft** |
-
-**Loop B, summer, the family room alone at 6.2 GPM: ~13 ft.** Thirty feet of main at 6.2 GPM costs
-under 1 ft, so the coil, valve and branch dominate.
-
-**Loop B, winter, the great room index circuit at 16.5 GPM: ~25 ft.** The mains carry three coils
-over 120 ft of pipe, and the glycol multiplier falls to about 1.10 at heating temperatures.
+| Loop A, both coils calling | 10.0 GPM: kids 4.0, master 6.0 | master bedroom, ~105 ft one way |
+| Loop B, summer | 6.0 GPM: family room alone | family room, ~15 ft one way |
+| Loop B, winter | 16.5 GPM: family 4.1, kitchen 6.2, great room 6.2 | great room, ~60 ft one way |
 
 > Velocity flags Loop B rather than Loop A. In 1¼" PEX, 10 GPM runs 3.6 ft/s and 16.5 GPM runs
 > 5.9 ft/s, against the 4 ft/s limit that governs erosion and noise. **Loop B in winter is above
-> that limit at design flow**, which is worth knowing before deciding how hard to drive it.
+> that limit at design flow**, and it would be far above it in 1" pipe.
 
-The coil, valve and strainer figures are estimates. Substitute the Unico coil rating table and the
-zone-valve Cv when you have them, since together they are about a third of Loop A's head and all
-of Loop B's summer head.
+The kitchen and great room carry hot-water hydronic modules rather than CL chilled-water coils,
+and their pressure drops are not in this bulletin. The winter figures below use the M3036
+chilled-water coil as a stand-in, which is the largest single assumption left in the calculation.
 
-### 5.6 Loop A on LOW is short for the master bedroom
+### 5.6 What the calculation says about each coil
 
 The Grundfos UPS26-99FC, the three-speed pump these loops use, carries these curve endpoints on
 the SuperBrute data sheet:
@@ -602,84 +597,91 @@ the SuperBrute data sheet:
 The three curves sit closer together than a three-speed circulator usually does, which the 150 to
 197 W spread confirms. Low is not a weak setting on this pump.
 
-Against a Loop A index circuit needing 28 ft at 10 GPM, no speed reaches design flow, and the
-shortfall on LOW is real without being severe ([5.7](#57-choosing-the-pump-speed-by-calculation)
-does the arithmetic). What separates the loops is flow per coil. Loop A splits its output between
-two coils; Loop B drives one.
+Intersecting each curve with the system curve gives total loop flow, and splitting at equal branch
+head gives each coil. With 1¼" mains and 1" branch runs:
 
-**That is what the humidity measurement shows.** Per-coil flow and measured RH order the same way
-across all three chilled-water zones:
+**Loop A, cooling.** Design 10.0 GPM.
 
-| Zone | Coils on the circulator | Calculated flow on LOW | Mean RH |
+| Speed | Loop total | Kids room, design 4.0 | Master bedroom, design 6.0 |
 |---|---|---|---|
-| Downstairs family room | 1 in summer | 7.4 GPM | **45.9 %** |
-| Master bedroom | 2 | 4.2 GPM | 50.9 % |
-| Kids room | 2 | 3.6 GPM | 53.7 % |
+| 1, low | 8.2 GPM, 82 % | 4.3 GPM, 108 % | 3.9 GPM, 66 % |
+| 2, medium | 9.3 GPM, 93 % | 4.9 GPM, 122 % | 4.5 GPM, 74 % |
+| 3, high | 9.9 GPM, 99 % | 5.2 GPM, 130 % | 4.7 GPM, 79 % |
 
-More water flow removes more moisture
-([B.6](#b6-water-flow-and-dehumidification-move-together)), and the family-room coil receives
-roughly twice what either Loop A coil does. Three points do not prove a mechanism, and the zones
-differ in latent load and duct location as well. The ordering is what a hydraulic calculation and
-a humidity measurement agreeing looks like.
+**Loop B, summer, the family room alone.** Design 6.0 GPM. LOW gives 6.5 GPM, 109 %; MEDIUM
+7.4 GPM, 123 %; HIGH 7.8 GPM, 130 %.
 
-One ceiling bounds any increase. Secondary flow must stay under primary flow or the tees mix
-backwards ([Appendix C](#appendix-c--primarysecondary-hydraulics)). Primary flow rises with load to about 15 GPM and falls to about 8 GPM at part
-load ([4.3](#43-flow-without-a-flow-meter)). Loop A on MEDIUM plus Loop B on LOW comes to about 16 GPM when both call. **That is
-over the ceiling at part load**, which makes the four loop sensors in [4.2](#42-four-ds18b20s-on-the-secondary-loops) the check that matters
-most after the tap change.
+**Loop B, winter, all three coils.** Design 16.5 GPM.
 
-### 5.7 Choosing the pump speed by calculation
+| Speed | Loop total | Family room, design 4.1 | Kitchen, design 6.2 | Great room, design 6.2 |
+|---|---|---|---|---|
+| 1, low | 13.4 GPM, 81 % | 4.8 GPM, 117 % | 4.4 GPM, 71 % | 4.1 GPM, 67 % |
+| 2, medium | 15.3 GPM, 93 % | 5.5 GPM, 134 % | 5.1 GPM, 82 % | 4.8 GPM, 77 % |
+| 3, high | 16.5 GPM, 100 % | 5.9 GPM, 145 % | 5.5 GPM, 88 % | 5.1 GPM, 83 % |
 
-The right speed follows from the coils, the pipe and the pump curve, in five steps and with no new
-hardware.
+**Both loops lose their far coil, and the pattern is the same.** The first coil on each loop takes
+110 to 145 % of its design flow while the last takes 66 to 83 %. On Loop A that is the master
+bedroom in the attic; on Loop B in winter it is the great room, the largest coil in the house,
+sitting behind two main segments and a 10 ft rise.
 
-1. Take design flow per coil from the air-handler capacity and the design ΔT.
+Pipe size changes the magnitude and not the shape. If a substantial length of main is 1" rather
+than 1¼", Loop A falls to 61 to 72 % of design flow overall with the master bedroom at 46 to 55 %,
+and Loop B in winter falls to 66 to 80 % with the great room at 47 to 57 %. **The main runs being
+1¼" is what keeps this system in workable territory**, so confirming that matters more than any
+other measurement in this section.
+
+### 5.7 Choosing the pump speed, and whether balancing helps
+
+The method needs five steps and no new hardware.
+
+1. Take design flow per coil from the Unico coil table at your entering water temperature.
 2. Sum along the index circuit, the longest path from the tees to a coil and back.
 3. Build the head at design flow: main friction leg by leg, fittings, branch run, coil, zone valve.
 4. Draw the system curve through that point. Friction scales as `H = H_design × (Q/Q_design)^1.85`.
 5. Intersect it with each pump-speed curve. Choose the lowest speed that meets design flow.
 
-Applied to these two loops, with the [5.5](#55-friction-head-on-the-index-circuits) heads and the
-[5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom) curves:
-
-| Loop and season | Design | Speed 1 | Speed 2 | Speed 3 |
-|---|---|---|---|---|
-| Loop A, both coils | 10.0 GPM | 7.9 GPM, 79 % | 8.9 GPM, 89 % | 9.4 GPM, 94 % |
-| Loop B, summer, one coil | 6.2 GPM | 7.4 GPM, 119 % | 8.3 GPM, 134 % | 8.8 GPM, 142 % |
-| Loop B, winter, three coils | 16.5 GPM | 12.2 GPM, 74 % | 13.9 GPM, 84 % | 15.0 GPM, 91 % |
-
 **The settings that fall out are MEDIUM for Loop A, LOW for Loop B in summer, and HIGH for Loop B
-in winter.**
+in winter.** Loop A on MEDIUM reaches 93 % of design for 29 W more than LOW, and HIGH buys 6 % more
+for another 18 W while pushing combined secondary flow further past the primary. Loop B already
+over-pumps its single summer coil on LOW. Loop B in winter wants HIGH rather than merely "higher",
+since LOW leaves the great room at 67 % of design.
 
-Loop A on MEDIUM recovers most of the gap for 29 W more than LOW. HIGH adds 0.5 GPM for another
-18 W and pushes combined secondary flow further past the primary ceiling, so it is the wrong trade
-until a flow measurement shows the primary can cover it. Loop B on LOW already over-pumps its
-single summer coil by 19 %, which costs pump energy and nothing else. Loop B in winter wants HIGH
-rather than merely "higher", since LOW would deliver 74 % of design across three coils including
-both M3036 units.
+Balancing answers a different question. Throttling the near branch redistributes, at a cost, with
+Loop A on MEDIUM:
 
-Speed alone does not fix the split within Loop A. Its two branches sit in parallel, so they share
-whatever the pump delivers at equal head, and the resistance of each branch circuit decides the
-proportions:
-
-| Speed | Loop A total | Kids room, design 3.7 | Master bedroom, design 6.2 |
+| Kids branch | Loop total | Kids room | Master bedroom |
 |---|---|---|---|
-| 1 | 7.9 GPM | 3.6 GPM, 98 % | 4.2 GPM, 68 % |
-| 2 | 8.9 GPM | 4.1 GPM, 111 % | 4.8 GPM, 77 % |
-| 3 | 9.4 GPM | 4.4 GPM, 117 % | 5.1 GPM, 82 % |
+| As installed | 9.3 GPM | 4.9 GPM, 122 % | 4.5 GPM, 74 % |
+| Throttled to design flow | 8.9 GPM | 4.1 GPM, 102 % | 4.8 GPM, 80 % |
+| Throttled to equal share | 8.5 GPM | 3.4 GPM, 84 % | 5.1 GPM, 85 % |
+| Shut | 6.4 GPM | 0 | 6.4 GPM, 106 % |
 
-The kids room reaches its design flow at every speed and passes it above LOW, while the master
-bedroom never does. **Throttling the kids branch moves more water to the master bedroom than
-another pump speed does**, which puts a balancing valve on that branch ahead of any pump change in
-[7.3](#73-100-to-500).
+**The exchange rate is about half.** Every gallon per minute taken off the kids room delivers about
+0.46 GPM to the master bedroom, because throttling steepens the system curve and the pump falls
+back to a lower total flow. Balancing to equal share brings both coils to about 85 % of design
+against 122 % and 74 % as installed, and that is the best a valve can do without starving the kids
+room outright.
 
-> Read the confidence before acting on the third decimal. The pump curve is taken from the printed
-> SuperBrute chart and interpolated with a fitted curve shape, the pipe lengths are rough, and the
-> coil and valve pressure drops are assumed. Errors of ±20 % on head move the intersections by
-> roughly ±10 % on flow, which does not change the ordering of the speeds or the conclusion that
-> Loop A's master bedroom is the short coil. Substitute the Grundfos curve sheet and the Unico
-> coil tables to tighten it, and confirm the result against the loop sensors rather than against
-> the arithmetic.
+> Balancing serves fair share, and it will not help humidity. It moves flow between two zones
+> rather than adding any, and the kids room is the more humid of the two at 53.7 % against the
+> master's 50.9 %. More total flow helps both, which is what the tap change does, and colder water
+> helps both ([7.1](#71-costs-nothing)).
+
+> ⚠️ One ceiling bounds any increase, and it may already be exceeded. Secondary flow must stay
+> under primary flow or the tees mix backwards
+> ([Appendix C](#appendix-c--primarysecondary-hydraulics)). Loop A on MEDIUM plus Loop B on LOW
+> comes to about **16 GPM**, against a primary that rises with load to about 15 GPM and falls to
+> about 8 GPM at part load ([4.3](#43-flow-without-a-flow-meter)). If that holds, the coils receive
+> water warmer than the tank whenever both loops call, and part of the flow gain is cancelled.
+> **Raising Loop A is worth doing and worth checking**, which moves the four loop sensors in
+> [4.2](#42-four-ds18b20s-on-the-secondary-loops) alongside the tap change rather than after it.
+
+> What is measured and what is assumed. Coil pressure drops and coil capacities are Unico's
+> published figures. The pump curve is read off the printed SuperBrute chart and interpolated with
+> a fitted curve shape. Pipe lengths are rough, the pipe-size split is unknown and bracketed, the
+> zone-valve drop is assumed at 3 ft, and the hot-water hydronic modules use the M3036
+> chilled-water coil as a stand-in. Confirm against the loop sensors rather than against the
+> arithmetic.
 
 ### 5.8 What is still unresolved
 
@@ -721,7 +723,7 @@ Six criteria, in the order the objective ranks them.
 | 1 | Zones hold setpoint | **Pass at 80 °F** | Zero droop on all five zones, 8 h |
 | 2 | Humidity near 50 % | **Marginal, and it tracks the loops** | 60 % peak master bedroom and 59 % kids room, both on Loop A, against 45.9 % in the family room alone on Loop B ([3.3](#33-humidity-is-the-marginal-axis)) |
 | 3 | No loss at the tees | **Unknown** | Needs loop supply against `IN` ([4.2](#42-four-ds18b20s-on-the-secondary-loops)) |
-| 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)) |
+| 4 | Fair share between zones | **Suspect on Loop A** | 105 ft index circuit, no balancing, and LOW covers it only at 1½" mains ([5.6](#56-what-the-calculation-says-about-each-coil)) |
 | 5 | Reserve at design | **Untested** | 54 % idle at 80 °F, but 6 tons of coil on a 4.3-ton chiller |
 | 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
 
@@ -743,7 +745,7 @@ objective ranks last.
 coil with a circulator to itself over a 15 ft run reads 45.9 % RH. The two sharing a circulator
 across a 105 ft index circuit read 50.9 % and 53.7 %, peaking at 60 % and 59 %. More water flow
 removes more moisture, and Loop A on LOW covers the master bedroom circuit only if the mains are
-1½" ([5.6](#56-loop-a-on-low-is-short-for-the-master-bedroom)). Raising Loop A one speed tests
+1½" ([5.6](#56-what-the-calculation-says-about-each-coil)). Raising Loop A one speed tests
 that for free, and it is the first thing to do.
 
 Two things remain unverified. Distribution between the two Loop A coils is unbalanced by
@@ -756,17 +758,18 @@ whether the tees mix backwards is unknown, which section 7 resolves for about $2
 
 ### 7.1 Costs nothing
 
-**Raise Loop A's secondary circulator from LOW to MEDIUM.** The first thing to try, and the only
-free action aimed straight at the measured shortfall. The calculation puts Loop A at 79 % of design
-flow on LOW and 89 % on MEDIUM, against Loop B's single summer coil already running 119 % of its
-own design ([5.7](#57-choosing-the-pump-speed-by-calculation)). More water flow removes more
-moisture, and per-coil flow orders the same way the measured humidity does. Watch both zones'
-humidity and temperature across a few comparable hot days.
+**Raise Loop A's secondary circulator from LOW to MEDIUM.** The calculation puts Loop A at 82 % of
+design flow on LOW and 93 % on MEDIUM, with the master bedroom moving from 66 % to 74 % of its own
+design, against Loop B's single summer coil already running 109 % of its
+([5.6](#56-what-the-calculation-says-about-each-coil)). Watch both zones' humidity and temperature
+across a few comparable hot days.
 
-MEDIUM rather than HIGH, for two reasons. HIGH buys 0.5 GPM for another 18 W, and it pushes
-combined secondary flow further past the primary ceiling, which the loop sensors in
-[4.2](#42-four-ds18b20s-on-the-secondary-loops) would show as Loop A's supply drifting above `IN`.
-Revert if that appears.
+MEDIUM rather than HIGH: HIGH buys 6 % more flow for another 18 W and pushes combined secondary
+flow further past the primary. **Then check it rather than assuming it worked.** More secondary
+flow than the primary supplies feeds the coils water warmer than the tank, which cancels part of
+the gain ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The four loop sensors in
+[4.2](#42-four-ds18b20s-on-the-secondary-loops) show it directly as Loop A's supply drifting above
+`IN`, which is why they belong alongside this change rather than after it.
 
 **Lower the chiller's leaving-water setpoint by 2 to 3 °F.** The second route to a colder coil
 surface, independent of flow, and the one that works if Loop A proves adequately pumped. It costs
@@ -794,10 +797,9 @@ the condition none of the sampled days contained. Grafana already has the two se
 secondary circulators ([5.4](#54-what-elevation-does-affect)). Visual checks.
 
 **Set Loop B to HIGH before heating season**, with the 25 % to 30 % glycol top-up. Loop B drives
-one coil in summer and three in winter, including both M3036 hydronic modules, and the calculation
-puts LOW at 74 % of design across them against 91 % on HIGH
-([5.7](#57-choosing-the-pump-speed-by-calculation)). Return it to LOW in spring. Set `fluid_k` to
-476 on the day of the top-up and add a Grafana annotation.
+one coil in summer and three in winter, including both M3036 hydronic modules, and the
+calculation puts LOW at 74 % of design across them against 91 % on HIGH ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). Return it to LOW
+in spring. Set `fluid_k` to 476 on the day of the top-up and add a Grafana annotation.
 
 ### 7.2 Under $100
 
@@ -826,11 +828,12 @@ absolute BTU/hr and yields system COP against the existing Chiltrix CT
 ([4.5](#45-a-flow-meter-on-the-primary)). Buy this before any per-coil meter.
 
 **A static balancing valve on the kids-room branch, roughly $60 to $120 installed.** The direct
-answer to criterion 4, and the calculation says it returns more than a pump change. The kids
-room reaches 98 % of design flow on LOW and 117 % on HIGH, while the master bedroom never passes
-82 %. Throttling the near branch moves water to the far one ([5.7](#57-choosing-the-pump-speed-by-calculation)). Mechanical, no controls. Do
-it after the loop sensors confirm the split, since the calculation rests on assumed coil
-pressure drops.
+answer to criterion 4. As installed the kids room takes 122 % of its design flow on MEDIUM while
+the master bedroom takes 74 %, and throttling the near branch brings both to about 85 %
+([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The exchange rate is about half a
+gallon per minute gained for every one removed, so this buys fair share rather than capacity, and
+it will not help humidity. Mechanical, no controls. Do it after the loop sensors confirm the
+split.
 
 **The air-handler node, roughly $300 with a flow meter.** Full specification in
 [Appendix E](#appendix-e--air-handler-node-build-specification). It is the only route to per-coil attribution within a loop and to the sensible and latent
@@ -903,7 +906,7 @@ settles which, and it costs nothing.
 | 3 | If step 2 does not move humidity, lower the chiller leaving-water setpoint 2 to 3 °F | — | Criterion 2 by the other route |
 | 4 | Relocate the redundant `LBT` probe to the chiller leaving-water line | — | Criterion 3 |
 | 5 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5 |
-| 6 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and it confirms step 2 |
+| 6 | Four DS18B20s on the secondary loops, alongside step 2 rather than after it | ~$20 | Criteria 3 and 4, and it shows whether step 2 delivered |
 | 7 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
 | 8 | Two 10K NTCs in the zone the RH comparison identifies | on hand | Sensible against latent |
 | 9 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
@@ -928,11 +931,15 @@ maldistribution and sends the work to step 10.
 - Does the CX75 carry its own internal circulator, and if so what is the Taco 0015-MSF3-IFC doing?
   A 17 ft shutoff head cannot pass 15 GPM through an evaporator the CX65 rates at 16 ft of drop at
   10 GPM, so the two cannot both be the whole story ([4.3](#43-flow-without-a-flow-meter)).
-- What are the Unico coil pressure drops at design flow, and the zone-valve Cv? Together they are
-  about a third of Loop A's head and all of Loop B's summer head, and they are the largest assumed
-  numbers in [5.5](#55-friction-head-on-the-index-circuits).
-- How long are the copper sections near the air handlers? The 1¼" PEX mains govern the friction,
-  so this changes the result only if the copper is shorter or smaller than assumed.
+- How much of each loop is 1¼" PEX and how much is 1"? It is the largest remaining uncertainty in
+  the hydraulic calculation. At 1¼" mains Loop A reaches 82 to 99 % of design flow; at 1" it falls
+  to 61 to 72 % ([5.6](#56-what-the-calculation-says-about-each-coil)).
+- What is the pressure drop of the hot-water hydronic modules in the two M3036 units? The winter
+  figures use the M3036 chilled-water coil as a stand-in.
+- What is Unico's own glycol multiplier for pressure drop at 25 % and at 30 % propylene glycol? The
+  calculation uses 1.25 and 1.10, which are standard values rather than Unico's
+  ([5.5](#55-friction-head-on-the-index-circuits)).
+- What is the zone-valve Cv? Assumed at 3 ft of drop at 6 GPM.
 - Which speed is the Taco 0015-MSF3-IFC set to?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
@@ -1000,7 +1007,7 @@ drives one in summer, so no single tap suits the whole year.
 | Season | Zones on Loop B | Right tap |
 |---|---|---|
 | Summer, chilled | 1, the lower family room | LOW, and it still over-pumps that coil by about 19 % |
-| Winter, hot | 3: family room, kitchen, great room | HIGH. LOW delivers 74 % of design across the three ([5.7](#57-choosing-the-pump-speed-by-calculation)) |
+| Winter, hot | 3: family room, kitchen, great room | HIGH. LOW delivers 74 % of design across the three ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)) |
 
 ## A.3 The plant
 
@@ -1034,9 +1041,22 @@ side never sees them in summer. In winter their hydronic modules make Loop B the
 two loops, and its 1¼" PEX mains run 5.9 ft/s at design flow
 ([5.5](#55-friction-head-on-the-index-circuits)).
 
-Chilled-water coil connections are ¾" at the handlers, on 1¼" copper stubs off 1¼" PEX mains.
-Coil pressure drops used in [5.5](#55-friction-head-on-the-index-circuits) are estimates; replace
-them from the Unico rating tables when available.
+Published coil pressure drop, Unico bulletin 20-020.3.020, at 45 °F entering water and pure water,
+in feet of water gauge:
+
+| Coil | 2 GPM | 4 GPM | 6 GPM | 8 GPM |
+|---|---|---|---|---|
+| M1218CL1-C | 0.9 | 3.4 | 7.4 | — |
+| M2430CL1-C | 0.9 | 3.4 | 7.4 | 12.6 |
+| M3036CL1-C | 0.6 | 1.8 | 4.2 | 7.2 |
+
+The M1218 and M2430 coils are hydraulically identical. Across 40 to 55 °F entering water the drop
+moves about 4 %, so temperature is a minor correction; glycol is the larger one and Unico publishes
+a multiplier table for it in the same bulletin.
+
+The kitchen and great room carry hot-water hydronic modules rather than CL chilled-water coils, and
+their pressure drops are in a different bulletin. Branch runs to the handlers are 1" PEX stepping
+to ¾" sweat connections at the cabinet.
 
 ## A.5 Existing instrumentation
 
@@ -2003,6 +2023,7 @@ them does.
 - [Chiltrix by Unico CX75 sell sheet](https://unicosystem.com/wp-content/uploads/2026/03/Chiltrix-by-Unico_CX75_Sell-Sheet.pdf)
 - [Chiltrix CX50-1 installation and operation manual](https://www.chiltrix.com/documents/CX50-IOM-1.pdf)
 - [Chiltrix CX65-1 installation and operation manual](https://www.chiltrix.com/documents/CX65-1-IOM.pdf)
+- [Unico M Series chilled water cooling module, bulletin 20-020.3.020](https://unicosystem.com/wp-content/uploads/literatures/bulletin-20-020.3.020---2019_01.pdf)
 - [Taco 00 Series 3-speed cartridge circulators](https://www.tacocomfort.com/product/00-series-3-speed-cartridge-circulators/)
 - [Grundfos UPS 26-99 FC/BFC technical data](https://www.lockewell.com/pdf/grundfos/ups_26-99_fc_bfc.pdf)
 - [BOVA-36HDN1-M18M installation instructions, Bosch 06.2016](https://blobanarus.blob.core.windows.net/boschthermotechnology-boschproducts/BOVA-36HDN1-M18M_Installation_instructions.pdf)
