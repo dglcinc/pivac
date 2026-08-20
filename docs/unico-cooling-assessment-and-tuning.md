@@ -437,10 +437,13 @@ plant's warm end.
 > reading, which is why the target steps in [7.1](#71-costs-nothing) are scored on the change in
 > `IN` rather than on its absolute value.
 
-**A 42 °F target should therefore put `IN` near 39 to 41 °F**, reproducing the old plant's measured
-41.3 to 41.8 °F. The setpoint route is already exhausted at 50 °F, because that is the floor the
-controller allows until one parameter changes
-([Appendix K](#appendix-k--the-previous-plant-and-the-chiltrix-controls)).
+**A 42 °F target would put `IN` near 42 °F**, close to the old plant's measured 41.3 to 41.8. The two
+settings are not comparable, though, and the difference is the reason to step carefully rather than
+jump. **The UniChillers sensed leaving water and the Chiltrix senses return**, so the same loop
+temperature sits on opposite sides of each machine's own evaporator ΔT. Matching the old loop asks
+the Chiltrix for leaving water near 33 °F, colder than the UniChillers ever made, whose floor was
+38 °F. That is inside what Chiltrix permits and it is not free
+([7.1](#71-costs-nothing), [Appendix K](#appendix-k--the-previous-plant-and-the-chiltrix-controls)).
 
 > **Quantisation cuts the right way here.** `pivac.OneWireTherm` rounded to whole Kelvin before 18
 > August, so individual `IN` readings move in 1.8 °F steps across both eras
@@ -1296,9 +1299,10 @@ reaches for a fan stage it used to leave alone
 runs 6 to 8 °F warmer than it did, which costs about 17 % of sensible capacity at every coil and
 lifts much of the coil surface to the room's dew point
 ([5.11](#511-water-temperature-is-the-larger-term-and-distribution-is-the-smaller-one)). That is
-several times every distribution effect in this document put together. The target sits at 50 °F
-because 50 °F is the floor the controller allows until P109 changes, and the glycol top-up is that
-change's prerequisite ([7.1](#71-costs-nothing)).
+several times every distribution effect in this document put together. The target sits at 50 °F,
+P109 is now set to `1` so it can go as low as 41, and the glycol top-up is the prerequisite for using
+that range. How far down to go is bounded by capacity rather than by the controller
+([7.1](#71-costs-nothing)).
 
 The low ΔT is what a fixed-flow primary reads at part load, and it is better left alone. At roughly
 14.5 GPM the measured 5.3 °F is about 3.1 tons of extraction against a plant rated at 4.3, so the
@@ -1367,13 +1371,30 @@ remove moisture at its source, before it reaches a coil at all. A dryer venting 
 or a ventless one, would put the whole load on the air handler. This sits outside the hydronic
 system and is likely the highest-value fix available for that room.
 
-**Set P109 to 1, then walk the Chiltrix return-water target down.** This is the largest single
-remedy in the document, and the measured gap to the plant it replaced is 6 to 8 °F
-([3.8](#38-the-previous-plant-is-a-controlled-comparison)). The target is at **50 °F** today, which is
-the floor the controller allows while **P109** sits at its factory `0`; setting P109 to `1` opens the
-range down to 41 °F. Then step rather than jump: 46 °F, then 44, then 42, holding each for a few
-comparable days and scoring on Y2 fraction and master-bedroom RH. Because the tank settles at the
-target, `IN` should follow each step within a degree, which is the check that the change took.
+**Walk the Chiltrix return-water target down.** This is the largest single remedy in the document,
+and the measured gap to the plant it replaced is 6 to 8 °F
+([3.8](#38-the-previous-plant-is-a-controlled-comparison)). **P109 is set to `1`**, so the range now
+opens to 41 °F against the 50 °F the target sits at today.
+
+**Read `C04` and `C05` before moving it.** The target governs return water and the unit makes water
+about 9 °F colder than that, so every degree off the target is a degree off the leaving temperature
+too: at today's 50 °F the leaving water is near 41 °F, and a 42 °F target would put it near 33 °F.
+**Check that figure rather than assume it.** Chiltrix's 9 °F is the design ΔT from its own sizing
+formula, `BTU = WF × ΔT × GPM`, at design flow and full load, and this plant runs at part load most
+of the time, where the real ΔT is smaller. `C04` and `C05` on the controller give the actual inlet
+and outlet and cost nothing to read. Read `IN` and `OUT` on the Pi at the same moment while you are
+there, and the same reading also calibrates the two sensor sets against each other.
+
+**Step to 46 °F first, and stop when the coil clears the dew point rather than aiming at a number.**
+The threshold that matters is a coil surface below the room's dew point along its whole length, not
+the coldest water the machine will make
+([5.11](#511-water-temperature-is-the-larger-term-and-distribution-is-the-smaller-one)). At 46 °F
+loop water the coil runs roughly 48 to 53 °F against a room dew point near 56 °F, so it condenses
+everywhere; today's 48 °F leaves the outlet end sitting at the dew point, which is why it does not.
+**Most of the gain therefore arrives in the first two to four degrees**, and the last few toward 41
+buy the least latent capacity for the most lost sensible capacity. Hold each step a few comparable
+days and score it on Y2 fraction and master-bedroom RH. Because the tank settles at the target, `IN`
+should follow each step within a degree, which is the check that the change took.
 
 **One prerequisite gates it: the glycol.** The manual attaches a condition to P109 = 1, glycol not
 frozen at −10 °C. **25 % propylene glycol freezes at about −10 °C and 30 % at about −13 °C**, so the
@@ -1381,12 +1402,19 @@ loop currently sits on the limit rather than inside it. The 25 % to 30 % top-up 
 heating season therefore moves onto the critical path for this change instead of waiting for autumn.
 Set `fluid_k` to 476 on the day and annotate Grafana.
 
-**Two costs come with it, and they are not the same cost.** Efficiency falls as the target falls,
-which the objective ranks second and which the Emporia CT already measures. Capacity falls too, which
-the objective does not rank second: the CX75 is 4.3 tons nominal against the single 5-ton UniChiller
-it replaced, and a lower target derates it further. Watch for `IN` rising above its target on hot
-afternoons, which is the plant running out, and stop stepping down at the point that appears. The new
-era has not yet seen a design day, peaking at 90.1 °F, so that limit is untested.
+**Two costs come with it, and one of them binds.** Efficiency falls as the target falls, which the
+objective ranks second and which the Emporia CT already measures. **Capacity falls too, and that is
+the constraint that decides how far this can go**: roughly 2 to 3 % per °F of leaving-water
+reduction, so a 42 °F target costs on the order of 20 % against today. The CX75 is 4.3 tons nominal
+against the single 5-ton UniChiller it replaced, and the measured house peak was about 3.1 tons on an
+80 °F evening, against a design day nobody has yet observed. Watch for `IN` rising above its target on
+hot afternoons, which is the plant running out, and stop stepping down when that appears.
+
+> **Freezing is not the failure mode here; a nuisance trip is.** Chiltrix's own floor of a 41 °F
+> return target implies about 32 °F of leaving water, and they permit it with glycol unfrozen at
+> −10 °C, roughly 18 °F of margin below it. The unit also carries antifreeze protection, faults E14
+> and E17, so an over-aggressive target announces itself as a shutdown rather than as a split plate.
+> With the glycol right, what is at risk is capacity rather than the machine.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1592,7 +1620,7 @@ settles which, and it costs nothing.
 | 3 | Set the master bedroom's fan from circulate to auto; watch its RH for a few comparable hot days | — | Criterion 2 |
 | 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
 | 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for step 6 |
-| 6 | **Set P109 to 1; walk the return-water target 50 → 46 → 44 → 42 °F, holding each a few comparable days** | — | **The largest single remedy.** Criteria 1 and 2 |
+| 6 | **Read `C04`/`C05`, then step the return target to 46 °F and hold; go lower only on the evidence** | — | **The largest single remedy.** Criteria 1 and 2 |
 | 7 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 6 can go |
 | 8 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
 | 9 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
@@ -1640,7 +1668,9 @@ change delivered, or it finds mixing or maldistribution and sends the work to st
 - What is the loop's glycol percentage, measured with a refractometer rather than assumed? P109 = 1
   is conditioned on the fluid not freezing at −10 °C, and 25 % propylene glycol sits on that line
   rather than inside it ([7.1](#71-costs-nothing)).
-- Is P109 currently at its factory `0`? A 50 °F target that will not go lower says yes, but read it.
+- What is the CX75's actual evaporator ΔT at part load? Chiltrix's 9 °F is the design figure from its
+  sizing formula, and it sets how much leaving-water headroom each target step costs. `C04` and `C05`
+  on the controller answer it in one reading ([7.1](#71-costs-nothing)).
 - Where does the CX75's capacity land at a 42 °F return target, and does Chiltrix publish the derate?
   It decides how far step 6 of the sequence can go before the plant becomes the limit.
 - Which indoor sensor does Dynamic Humidity Control take, and what does it cost
@@ -2875,7 +2905,7 @@ verifiable against the panel.
 
 | Code | Function | Range | Factory | Note |
 |---|---|---|---|---|
-| **P109** | Cooling inlet target range | `0`: 10–25 °C, 50–77 °F. `1`: 5–25 °C, **41**–77 °F | `0` | `1` is conditioned on "glycol no frozen at −10C" |
+| **P109** | Cooling inlet target range | `0`: 10–25 °C, 50–77 °F. `1`: 5–25 °C, **41**–77 °F | `0` | **Set to `1` here.** Conditioned on "glycol no frozen at −10C" |
 | P114 | DHC room humidity above which the unit lowers water temperature | 0–100 % | 50 % | |
 | P115 | DHC room temperature above which the unit lowers water temperature | 10–32 °C | 27 °C | |
 | P116 | DHC resting target when not actively controlling | 10–21 °C | 12 °C, 53.6 °F | |
@@ -2888,8 +2918,32 @@ verifiable against the panel.
 | C67 | Cooling target temperature | 5–60 °C | | Status. Log it once the target moves |
 | C68, C69, C70 | Room temperature, humidity, dew point | | | Status, readable only with P119 on |
 
-**P109 is the gate.** At its factory value the controller will not accept a target below 50 °F, which
-is where this system already sits, so nothing at the panel moves the water colder until P109 changes.
+**P109 was the gate and is now open.** At its factory `0` the controller will not accept a target
+below 50 °F, which is where this system sits. It is now set to `1`, so the range runs to 41 °F.
+
+**What the target costs on the leaving side.** The target governs return water and the unit makes
+water colder than that by its evaporator ΔT, so the two move together:
+
+| Return target | Leaving water at the 9 °F design ΔT | Note |
+|---|---|---|
+| 53 °F | 44 °F | Chiltrix's stated normal setting |
+| **50 °F** | **41 °F** | Set here today. The IOM asks for ≥15 % glycol at this point |
+| 46 °F | 37 °F | |
+| 42 °F | 33 °F | |
+| 41 °F | 32 °F | The P109 = 1 floor, permitted with glycol unfrozen at −10 °C |
+
+**The 9 °F is a design figure, not a constant.** It is the ΔT in Chiltrix's own sizing formula,
+`BTU = WF × ΔT × GPM`, at design flow and full load; at part load the real ΔT is smaller and the
+leaving water correspondingly warmer. Read `C04` and `C05` to find the actual figure before assuming
+the column above. The tank's 0.03 °F stratification is weakly suggestive of a smaller ΔT, since a
+9 °F-colder stream entering a 37-gallon tank would have to mix very thoroughly to leave no trace, but
+that is an inference and the controller settles it directly.
+
+**This is where the two plants stop being comparable.** The UniChillers sensed **leaving** water and
+the Chiltrix senses **return**, so a given loop temperature sits on opposite sides of each machine's
+evaporator ΔT. Reproducing the old loop temperature of about 41 °F asks the Chiltrix for leaving
+water near 33 °F, which is colder than the UniChillers ever produced, their floor being 38 °F.
+Chiltrix permits it, and it costs capacity that this smaller plant may want on a design day.
 
 Glycol decides whether P109 may change. **25 % propylene glycol freezes at about −10 °C and 30 % at
 about −13 °C**, so the loop as it stands sits on the stated limit rather than inside it, and the
