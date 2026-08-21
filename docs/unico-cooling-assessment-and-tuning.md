@@ -1386,6 +1386,8 @@ and outlet and cost nothing to read. Read `IN` and `OUT` on the Pi at the same m
 there, and the same reading also calibrates the two sensor sets against each other.
 
 **Step to 46 °F first, and stop when the coil clears the dew point rather than aiming at a number.**
+This is gated on P59 and the glycol, per the warning below; 46 °F with P59 at its default locks the
+unit out.
 The threshold that matters is a coil surface below the room's dew point along its whole length, not
 the coldest water the machine will make
 ([5.11](#511-water-temperature-is-the-larger-term-and-distribution-is-the-smaller-one)). At 46 °F
@@ -1410,11 +1412,33 @@ against the single 5-ton UniChiller it replaced, and the measured house peak was
 80 °F evening, against a design day nobody has yet observed. Watch for `IN` rising above its target on
 hot afternoons, which is the plant running out, and stop stepping down when that appears.
 
-> **Freezing is not the failure mode here; a nuisance trip is.** Chiltrix's own floor of a 41 °F
-> return target implies about 32 °F of leaving water, and they permit it with glycol unfrozen at
-> −10 °C, roughly 18 °F of margin below it. The unit also carries antifreeze protection, faults E14
-> and E17, so an over-aggressive target announces itself as a shutdown rather than as a split plate.
-> With the glycol right, what is at risk is capacity rather than the machine.
+> **⚠️ The antifreeze protection binds long before capacity does. Proven on 21 August 2026.** A 46 °F
+> target set the night before produced **E14, "System anti freeze level one twice"**, at 19:01 on a
+> mild evening, and the chiller locked out. Freezing is not the failure mode and capacity was never
+> reached; **P59 is**.
+>
+> **P59, "AC anti-freezing temperature", defaults to 3 °C, which is 37.4 °F**, and it watches leaving
+> water. Range is −15 to 5 °C. Against a 9 °F evaporator ΔT that default puts the lowest safe return
+> target at about 49 °F, which is why 50 °F ran all season without complaint and 46 °F failed in one
+> night.
+>
+> **The controller stores the target in whole °C, so a Fahrenheit entry lands lower than typed.**
+> This is the rounding David observed, and it is worth 1.8 °F a step:
+>
+> | Typed | Stored | Actual target | Leaving at 9 °F ΔT | Against P59 = 37.4 °F |
+> |---|---|---|---|---|
+> | 50 °F | 10 °C | 50.0 °F | 41.0 °F | 3.6 °F of margin |
+> | 48 °F | 8 °C | 46.4 °F | 37.4 °F | **exactly on the trip** |
+> | 46 °F | 7 °C | 44.6 °F | 35.6 °F | **1.8 °F below the trip** |
+> | 44 °F | 6 °C | 42.8 °F | 33.8 °F | 3.6 °F below |
+>
+> 50 °F is exactly 10 °C, which is why it alone loses nothing to rounding. **Think in whole °C**, and
+> read the stored value back after entering one.
+>
+> **So the order of operations matters, and it is not the one this document first gave.** P109 opens
+> the setpoint range; P59 decides when the machine protects itself; the glycol decides how far P59
+> may safely move. Top up the glycol first, then lower P59 with margin above the fluid's freeze
+> point, then lower the target. Lowering the target alone buys a lockout.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1619,28 +1643,31 @@ settles which, and it costs nothing.
 | 2 | Ring out the spare pair from the master bedroom's air handler | — | Decides step 4 |
 | 3 | Set the master bedroom's fan from circulate to auto; watch its RH for a few comparable hot days | — | Criterion 2 |
 | 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
-| 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for step 6 |
-| 6 | **Read `C04`/`C05`, then step the return target to 46 °F and hold; go lower only on the evidence** | — | **The largest single remedy.** Criteria 1 and 2 |
-| 7 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 6 can go |
-| 8 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
-| 9 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
-| 10 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
-| 11 | Dynamic Humidity Control sensor, sited in the master bedroom | sensor + wiring | Makes step 6 automatic and seasonal rather than fixed |
-| 12 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
-| 13 | Branch balancing on Loop A, if step 8 shows maldistribution | $200–400 | Criterion 4 |
-| 14 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
+| 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for steps 6 and 7 |
+| 6 | Lower **P59** from 3 °C with margin above the glycol's freeze point; consider raising **P53** | — | Without this, step 7 locks the chiller out on E14 |
+| 7 | **Read `C04`/`C05`, then step the return target down one whole °C and hold; go lower only on evidence** | — | **The largest single remedy.** Criteria 1 and 2 |
+| 8 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 7 can go |
+| 9 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
+| 10 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
+| 11 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
+| 12 | Dynamic Humidity Control sensor, sited in the master bedroom | sensor + wiring | Makes step 7 automatic and seasonal rather than fixed |
+| 13 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
+| 14 | Branch balancing on Loop A, if step 9 shows maldistribution | $200–400 | Criterion 4 |
+| 15 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
 
 Steps 1 to 4 are instrumentation and about $15 between them. Step 1 leads because a finish-on-high
 staging rule would make step 4 a record of the thermostat rather than of the coil
 ([5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)), and step 4 leads the rest because Y2
 fraction is what scores every change after it.
 
-**Step 6 is the one that matters**, and steps 5 and 7 bracket it. The glycol makes it safe and the
-saturation alert says when to stop stepping down, since capacity falls with the target and this plant
-is smaller than the one it replaced ([7.1](#71-costs-nothing)). Change one step at a time so effects
-stay separable. Step 8 then settles the distribution questions: it either confirms the
-healthy-decoupling reading in [5.9](#59-what-is-still-unresolved) and shows whether the Loop A tap
-change delivered, or it finds mixing or maldistribution and sends the work to step 13.
+**Step 7 is the one that matters, and steps 5 and 6 are not optional preparation for it.** Lowering
+the target without lowering P59 locks the chiller out on E14, which is not a hypothetical: it
+happened on 21 August 2026 at a 46 °F target ([7.1](#71-costs-nothing)). Step 8 then says when to
+stop stepping down, since capacity falls with the target and this plant is smaller than the one it
+replaced. Change one step at a time so effects stay separable. Step 9 settles the distribution
+questions: it either confirms the healthy-decoupling reading in
+[5.9](#59-what-is-still-unresolved) and shows whether the Loop A tap
+change delivered, or it finds mixing or maldistribution and sends the work to step 14.
 
 ---
 
@@ -2912,6 +2939,11 @@ verifiable against the panel.
 | P117 | DHC maximum allowed target | 10–24 °C | 20 °C | |
 | P118 | DHC minimum allowed target | 4–12 °C | 10 °C, 50 °F | |
 | **P119** | DHC enable | On/Off | **Off** | |
+| **P59** | **AC anti-freezing temperature** | −15 to 5 °C | **3 °C = 37.4 °F** | **Watches leaving water and latches E14.** The real limit on how cold the target may go |
+| P52 | Water pump working mode | 0 not stop / 1 stop at target / 2 restart 1 min after each 15 min stop | 0 | Mode 0 keeps water moving and damps the tank swing |
+| P53 | EC water pump C4 minimum speed | 20–80 % | 40 % | Raising it narrows the evaporator ΔT at low load, which lifts leaving water for the same target |
+| P64 | AC water flow switch type | 0 switch / 1 flow meter / 2 DN50 / 3 SEN-HZG1WA | 1 | |
+| P65 | AC minimum water flow | 3–80 L/min | **cx65/cx75: 20** | Below this the unit raises P5 |
 | P71 | Cooling maximum set temperature | 15–35 °C | 25 °C | A ceiling, not the floor |
 | C04, C05 | Inlet and outlet water temperature | | | Status |
 | C13 | Usage-side water flow | 0–100 L/min | | Status, and the flow term in [4.3](#43-flow-without-a-flow-meter) |
