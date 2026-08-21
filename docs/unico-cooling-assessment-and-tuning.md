@@ -1439,6 +1439,13 @@ hot afternoons, which is the plant running out, and stop stepping down when that
 > the setpoint range; P59 decides when the machine protects itself; the glycol decides how far P59
 > may safely move. Top up the glycol first, then lower P59 with margin above the fluid's freeze
 > point, then lower the target. Lowering the target alone buys a lockout.
+>
+> **Recovery: the controller's "Error reset" button did not clear this one.** A latched
+> level-one-twice antifreeze fault needed a power cycle at the breaker. Leave it off about a minute,
+> restore the target to a whole °C with margin, and expect a few minutes' delay before the compressor
+> starts on its own minimum-off timer. Use "Clear" only to wipe the error log, which is worth
+> keeping. **If E14 returns at a 50 °F target, the setpoint is no longer the explanation** — look at
+> water flow, at the charge, and at the leaving-water sensor itself.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1645,7 +1652,7 @@ settles which, and it costs nothing.
 | 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
 | 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for steps 6 and 7 |
 | 6 | Lower **P59** from 3 °C with margin above the glycol's freeze point; consider raising **P53** | — | Without this, step 7 locks the chiller out on E14 |
-| 7 | **Read `C04`/`C05`, then step the return target down one whole °C and hold; go lower only on evidence** | — | **The largest single remedy.** Criteria 1 and 2 |
+| 7 | **Build the Modbus feed, then step the return target down one whole °C and hold** | — | **The largest single remedy.** Criteria 1 and 2 |
 | 8 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 7 can go |
 | 9 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
 | 10 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
@@ -1662,7 +1669,11 @@ fraction is what scores every change after it.
 
 **Step 7 is the one that matters, and steps 5 and 6 are not optional preparation for it.** Lowering
 the target without lowering P59 locks the chiller out on E14, which is not a hypothetical: it
-happened on 21 August 2026 at a 46 °F target ([7.1](#71-costs-nothing)). Step 8 then says when to
+happened on 21 August 2026 at a 46 °F target ([7.1](#71-costs-nothing)). **The target now stays at
+50 °F until the Modbus feed can watch the leaving water while it moves** — registers 202 and 203 give
+the actual part-load evaporator ΔT, which is the number that decides whether a colder target needs
+P59 touched at all, and 257 and 260 show whether the pump is falling to its P53 minimum at low
+demand, which is the mechanism behind the lockout ([4.2](#42-the-sensor-package)). Step 8 then says when to
 stop stepping down, since capacity falls with the target and this plant is smaller than the one it
 replaced. Change one step at a time so effects stay separable. Step 9 settles the distribution
 questions: it either confirms the healthy-decoupling reading in
