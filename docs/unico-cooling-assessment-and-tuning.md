@@ -36,6 +36,7 @@ advancing it lives in the appendices.
   - [3.6 What the existing sensors cannot settle](#36-what-the-existing-sensors-cannot-settle)
   - [3.7 Two limits on the data itself](#37-two-limits-on-the-data-itself)
   - [3.8 The previous plant is a controlled comparison](#38-the-previous-plant-is-a-controlled-comparison)
+  - [3.9 One day at a colder target, cut short](#39-one-day-at-a-colder-target-cut-short)
 - [4. Measurements that would close the gaps](#4-measurements-that-would-close-the-gaps)
   - [4.1 Free: read the pipe and the pump](#41-free-read-the-pipe-and-the-pump)
   - [4.2 The sensor package](#42-the-sensor-package)
@@ -452,6 +453,42 @@ the Chiltrix for leaving water near 33 °F, colder than the UniChillers ever mad
 > truncated rather than rounded, which biases droop low in both eras alike, so era-to-era droop
 > comparisons hold while absolute droop is understated. The old chillers' call relays are not used
 > here: the comparison rests on water temperature and on the zone's own `statenum`.
+
+### 3.9 One day at a colder target, cut short
+
+The target went to 46 °F at about 21:30 on 20 August and the chiller locked out on E14 at 19:01 the
+next evening ([7.1](#71-costs-nothing)). That leaves one usable afternoon, and it is the only direct
+test of this document's central claim.
+
+Afternoons only, 12:00 to 19:00 local, hourly means:
+
+| Afternoon | `IN` | Outdoor | Outdoor dew point | Master RH | Master temp | **Master dew point** |
+|---|---|---|---|---|---|---|
+| 19 Aug | 47.8 °F | 82.4 °F | 72.4 °F | 50.7 % | 76.0 °F | 56.4 °F |
+| 20 Aug | 50.2 | 73.0 | 73.0 | 50.9 | 76.0 | 56.5 |
+| **21 Aug, colder target** | **46.6** | 76.7 | **73.3** | **47.7** | 76.0 | **54.7** |
+
+**Indoor dew point fell 1.7 °F while outdoor dew point rose**, which is the result that matters. The
+weather was working against the trial rather than for it: 21 August carried the wettest outdoor air
+of the three days. Room temperature held at exactly 76.0 °F throughout, so RH and dew point tell the
+same story and neither is confounded by the other.
+
+**The trial delivered only part of the change that was asked for.** A 46 °F entry stores as 7 °C,
+44.6 °F, yet `IN` averaged 46.6 °F through the afternoon, because the antifreeze protection was
+clipping the bottom off every cycle ([7.1](#71-costs-nothing)). So **1.2 to 3.6 °F of actual water
+temperature bought 1.7 °F of indoor dew point**, and the full change is worth more than that.
+
+**Zone duty improved and cycle length did not.** The kids room ran **48.8 % of the 20th at 73.0 °F
+outdoor and 40.5 % of the 21st at 76.7 °F** — less running on a warmer day, which is the capacity
+gain arriving. Its cycles also became shorter and more numerous, 16 starts at 13 minutes against 21
+starts at 8 minutes. Those two move together arithmetically at lower duty and the second is not an
+improvement, so read the duty figure and not the cycle count. The 19 August column cannot be compared
+at all: at 85.7 % duty that zone was close to running continuously, which produces few long cycles
+because it never got to stop.
+
+> **One afternoon, seven hourly means per day.** The direction is consistent across every metric and
+> the outdoor dew point rules out the obvious confounder, but this is a single day and it is not a
+> substitute for the staged trial in [8](#8-sequence) once the protection has been moved.
 
 ---
 
