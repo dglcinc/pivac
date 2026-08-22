@@ -583,38 +583,85 @@ controller's C-parameter list, and those are the same values the bus carries:
 section is available rather than hypothetical. Pump *speed* has no obvious C parameter, so if the
 controller displays it, it sits elsewhere in the map.
 
-**A community register map exists and saves the discovery work.**
+**Two community register maps exist, and they contradict each other.**
 [jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus)
-publishes a Home Assistant configuration covering CX34, CX35 and CX50-2, over Modbus TCP through a
-Waveshare RS-485 gateway on port 502, slave 1, holding registers. The registers that matter here:
+publishes a Home Assistant configuration for the CX50-2, over Modbus TCP through a Waveshare
+RS-485 gateway on port 502, slave 1, holding registers.
+[gonzojive/heatpump](https://github.com/gonzojive/heatpump) publishes a Go implementation for the
+CX34. **The two assign different meanings to nearly every address**, so at most one of them
+describes the CX75 and neither may be assumed to:
+
+| Register | jasipsw, CX50-2 | gonzojive, CX34 |
+|---|---|---|
+| 202 | Water inlet temperature | Ambient temperature |
+| 203 | Water outlet temperature | Suction temperature |
+| 204 | Ambient temperature | Plate heat exchanger temperature |
+| 205 | Coil temperature | AC outlet water temperature |
+| 213 | DHW setpoint | **Water flow rate** |
+| 257 | **Flow rate** | Compressor phase current |
+| 258 | Compressor speed | Bus line voltage |
+| 261 | System pressure | Compressor total running time |
+| 281 | Compressor starts | Water inlet sensor 1 |
+
+Only the unit itself can settle which applies, which is why the scan comes before the module.
+
+**The CX50-2 map**, the closer match on model generation:
 
 | Register | Value | Type | Scale | Use |
 |---|---|---|---|---|
 | 203 | Water outlet temperature | int16 | 0.1 °C | **Chiller leaving water** |
 | 202 | Water inlet temperature | int16 | 0.1 °C | **Chiller entering water** |
 | 257 | Flow rate | uint16 | 0.1 L/min | **The flow term.** 1 L/min = 0.264 GPM |
-| 260 | Pump speed | uint16 | | Confirms the internal circulator's modulation |
-| 258 | Compressor speed | uint16 | | Load state |
+| 260 | Pump speed | uint16 | % | Confirms the internal circulator's modulation |
+| 258, 259 | Compressor and fan speed | uint16 | % | Load state |
 | 256 | Current power | uint16 | 1 W | **Cross-check against `electrical.emporia.house.chiltrix`** |
-| 281 | Compressor starts | uint16 | | Cycling rate, which is what the buffer tank exists to limit |
-| 264 | Total run hours | uint16 | | Duty accounting |
+| 281 | Compressor starts | uint32, word swap | | Cycling rate, which is what the buffer tank exists to limit |
+| 264 | Total run hours | uint32, word swap | | Duty accounting |
 | 243, 244 | Operating state, error code | uint16 | | Status and freshness |
+| 209 | Setpoint temperature | int16 | 0.1 °C | **Reads the target back** |
+| 214 | Antifreeze temperature | int16 | 0.1 °C | **`P59` at runtime** |
+| 261 | System pressure | uint16 | 0.1 bar | Refrigerant side |
 | 204 | Ambient temperature | int16 | 0.1 °C | Load normalisation |
+| 205, 206, 207 | Coil, discharge, suction temperature | int16 | 0.1 °C | Refrigerant-side diagnostics |
+| 213 | DHW setpoint | int16 | 0.1 °C | |
+| 285 | Defrost count | uint16 | | Heating season |
 
-Two of those are worth more than they look. **Register 256 reports the unit's own power**, which
-validates the Emporia CT and the CT validates it, so a disagreement points at one or the other
-rather than leaving both suspect. And **register 281 counts compressor starts**, which measures
-short cycling directly against the 37-gallon tank's 2 to 9 minute ride-through
-([3.4](#34-the-buffer-tank-is-fully-mixed)).
+Four of those carry more than they look. **Register 256 reports the unit's own power**, which
+validates the Emporia CT and is validated by it, so a disagreement points at one or the other
+rather than leaving both suspect. **Register 281 counts compressor starts**, measuring short
+cycling directly against the 37-gallon tank's 2 to 9 minute ride-through
+([3.4](#34-the-buffer-tank-is-fully-mixed)). **Register 209 reads the target back**, which shows
+whether a Fahrenheit entry landed on the whole-°C value intended
+([K.3](#k3-the-parameters-that-matter)). And **register 214 exposes `P59`**, the limit that latched
+E14, without walking the parameter menu.
 
-> The repository warns that addresses vary by firmware and advises verifying with a scanner first,
-> and it is tested on CX34, CX35 and CX50-2 rather than the CX75. **The CX75's P and C codes match
-> its own controller display for every value of interest here**, so the panel is the reference:
-> confirm each register against it before trusting the map. Use function code 3 only until it is
-> confirmed.
+**Parameter numbers may be register addresses.** In the CX34 map, register 53 is the EC water pump
+minimum speed, which is `P53` exactly. If that holds on the CX75 then `P59`, `P65` and `P109` sit
+at registers 59, 65 and 109. **One read settles it: fetch register 53 and see whether it returns
+40**, the value `P53` holds on this unit. A known-exact answer makes it a better first probe than
+any temperature. That map also carries register 225, the inner water flow switch behind a P5 alarm,
+and register 284, the live fault code.
 
-The same repository carries the CX50-2 IOM, a BACnet gateway guide, and COP calculation templates,
-which is the same arithmetic [4.3](#43-flow-without-a-flow-meter) describes.
+**Chiltrix documents the connection parameters.** The ProtoAir gateway guide, shipped alongside the
+CX50-2 IOM in the same repository, specifies what any device on the chiller's RS-485 port must use:
+
+| Setting | Value |
+|---|---|
+| Protocol | Modbus RTU |
+| Baud, parity, data, stop | 9600, none, 8, 1 |
+| Node-ID | 1 for a single chiller, 1 to 255 where there are more |
+| Terminals | `A` = "+", `B` = "−", plus RS-485 GND |
+
+Bias resistors are 510 Ω and belong at one point on the bus only. Both PDFs, and COP calculation
+templates covering the same arithmetic as [4.3](#43-flow-without-a-flow-meter), are in that
+repository; the PDFs are also filed in `~/OneDrive - DGLC/Claude/HVAC Manuals/`.
+
+> **Verify every address against the panel.** The two maps disagree, neither covers the CX75, and
+> firmware moves addresses within a family. **The CX75's P and C codes match its own controller
+> display for every value of interest here**, so the display is the reference: `C04`, `C05`, `C13`
+> and `C27` against 202, 203, 257 and 258, and `P53` against 53. Where a value reads as nonsense,
+> try the address ±1 for the 0-based and 1-based ambiguity. Use function code 3 only until the map
+> is confirmed.
 
 **If a register disagrees, the controller settles it.** Poll the block, watch which value tracks
 `C05` on the display as the chiller runs, and correct the map against the parameter list above.
