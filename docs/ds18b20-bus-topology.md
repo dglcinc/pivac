@@ -117,6 +117,44 @@ loading, which sends the diagnosis to the pull-up and §5.3 instead.
 Establishing which of the two it is costs nothing and settles where the work goes. Nothing inside
 the enclosure needs opening for it.
 
+**One exception: the outdoor ambient run is a second branch.** It leaves the enclosure separately,
+so the node at the header is a Y rather than a single trunk, and the outdoor cable is almost
+certainly the longest on the bus. Length is capacitance, so that one branch probably dominates the
+RC budget in §5.1 on its own. Measure with it connected, or the number will flatter the bus.
+
+### 4.4 Restoring the outdoor sensor without re-breaking the bus
+
+There are spare bench-calibrated probes for this: PA3 went to the tank and PA1/PA2 to the loops,
+leaving the **PA4 and PA5 pairs** unused, with ice-point offsets already recorded in
+`docs/ds18b20-PA1-5-calibration.md`.
+
+**Sequence it last.** Reconnecting the longest branch on the bus is the same class of change as
+adding the four loop probes, and doing it before the pull-up and topology are settled risks
+reproducing the collapse with one more variable in play. Order: bisect, fix the pull-up, add the
+loop probes, then outdoor.
+
+**Better, give it its own bus.** A second DS2482-100 at address `0x19` — the AD0/AD1 pins select
+`0x18`–`0x1B` — presents a completely independent 1-wire master. Put the outdoor run on one and
+the mechanical room on the other, and neither can take the other down: a fault on a cable that
+runs outside through weather and a wall stops being able to blank the buffer-tank probes. The
+DS2482-800 does the same thing in one package across eight channels, though only the `-100` and
+`ds2484` are named in the kernel module's alias table, so confirm channel handling before buying
+one.
+
+This costs nothing in software. Sensors from every master appear flat under
+`/sys/bus/w1/devices/`, `OneWireTherm` iterates that directory, and the `28-*` names are
+properties of the chips, so a split bus needs no config change and orphans no history.
+
+**Alerting, when it returns.** `environment.outside.temperature` gets a freshness rule under a
+**new UID** rather than reviving `outside-onewire-stale`. That UID is named in the `deleteRules:`
+block in `sensor-freshness.yaml`, which CLAUDE.md says to leave in place permanently, and a UID
+cannot sit in both `rules:` and `deleteRules:`. A new UID sidesteps the conflict and leaves the
+delete block doing its job.
+
+`sentry-outdoor-divergence` needs no change. It was repointed to
+`environment.outside.thermostat.temperature` when the probe was repurposed and works as written; a
+restored DS18B20 becomes a third outdoor source rather than a required one.
+
 Should the star be there and re-cabling be unattractive, that breakout is the hub §6 describes, so
 its per-branch 100 Ω resistors belong at that block rather than back on the extension board. Fitted
 at the header they would sit on the trunk, in series with every probe at once, which damps nothing
