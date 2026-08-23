@@ -101,29 +101,26 @@ is exactly the right size. Three blocks per location, one each for DQ, VDD and G
 The blocks also give a per-probe series resistor somewhere sensible to live, in that probe's DQ
 port, if a lead cannot be trimmed short. A chain with short stubs does not need §6 at all.
 
-### 4.3 The extension board is the hub
+### 4.3 The enclosure side is already right; the hub is outside it
 
-The 1-wire bus lands on 3-position headers on the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995)
-in the adjacent housing. That board is the common node, which makes it the thing §2 is describing.
+The 1-wire bus leaves the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) on a **single**
+3-position header, as 18 AWG solid to the first breakout. That is the trunk exit this document
+asks for, so the enclosure side needs no change and the pull-up, plus the DS2482 if it is fitted,
+simply stay on that board beside the header.
 
-**One header per probe is the star.** Eight probes each landing on their own header means eight
-full-length leads meeting at one point, which is the topology that collapsed the bus, built in
-hardware. Count the populated 1-wire headers: more than one carrying a probe is the diagnosis, not
-a coincidence.
+**The branching therefore happens at the first breakout, and that is the node to inspect.** If
+eight probe leads fan out from it, the star in §2 is there, one connection outside the housing,
+and everything in §4–§6 applies to that point rather than to anything on the Pi. If instead it
+feeds block-to-block as in §4.1, the topology is already a chain and the fault is electrical
+loading, which sends the diagnosis to the pull-up and §5.3 instead.
 
-Two ways out, and the board suits both.
+Establishing which of the two it is costs nothing and settles where the work goes. Nothing inside
+the enclosure needs opening for it.
 
-**Use a single header as the trunk exit** and move the branching to the distributed blocks in §4.1.
-Three conductors leave the housing once, the remaining headers become spares, and every stub is a
-trimmed probe lead at its own block. This is the §4 chain and it is the better end state.
-
-**Or keep a header per probe and damp them where they meet.** The extension board is then exactly
-the hub §6 describes, so each header's DQ pin gets its own 100 Ω in series on that board, right at
-the junction. It needs no cable pulled and it is the cheapest thing that can be tried in an
-afternoon.
-
-Either way the single pull-up, and the DS2482 if it is fitted, belong on this board beside the
-1-wire terminals rather than across the housing.
+Should the star be there and re-cabling be unattractive, that breakout is the hub §6 describes, so
+its per-branch 100 Ω resistors belong at that block rather than back on the extension board. Fitted
+at the header they would sit on the trunk, in series with every probe at once, which damps nothing
+and merely adds to the pull-up's load.
 
 ### 4.2 Which conductors have to follow the chain
 
