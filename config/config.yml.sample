@@ -81,20 +81,42 @@ pivac.OneWireTherm:
 
     # this is list of known sensors by ID, and the name mapping. If no mapping here, result will be named with the sensor ID
     # sk_path, rounding, and scale be specified at sensor level. If not specified, top level value used.
+    #
+    # `offset` is a per-sensor calibration correction added to the reading, in KELVIN
+    # (identical to degrees Celsius as a difference). The bench ice-point values below come
+    # from docs/ds18b20-PA1-5-calibration.md. Apply them: the secondary-loop measurement is a
+    # difference of a few degrees, and the probe-to-probe spread is larger than that.
+    #
+    # There is no physical outdoor DS18B20 — outdoor air comes solely from pivac.RedLink
+    # (environment.outside.thermostat.temperature).
     inputs:
+        # Primary loop, bracketing the closely spaced tees. IN - OUT is whole-system capacity.
         0516a36332ff:
             outname: IN
         0516a365d8ff:
             outname: OUT
-        # Buffer tank sensors (repurposed 2026-08-06 for the single-chiller conversion):
-        # this probe was CRW, and 0516a36816ff below was the outdoor AMB sensor. Both were
-        # physically moved onto the buffer tank. There is no longer a physical outdoor
-        # DS18B20 — outdoor air now comes solely from pivac.RedLink
-        # (environment.outside.thermostat.temperature).
-        0316a00f04ff:
+        # Buffer tank, upper and lower. Probes PA3A / PA3B, installed 2026-08-22.
+        000000c9e879:
             outname: UBT
-        0516a36816ff:
+            offset: 0.348
+        000000c915c1:
             outname: LBT
+            offset: 0.466
+        # Secondary loop A — kids room, then master bedroom (attic coil). Probes PA2A / PA2B.
+        0000001ac0a9:
+            outname: LOOPA_SUP
+            offset: -0.184
+        0000001a9154:
+            outname: LOOPA_RET
+            offset: 0.083
+        # Secondary loop B — lower family room, kitchen, great room. Probes PA1A / PA1B.
+        # Note the probe pair number and the loop letter differ: pair 1 serves loop B.
+        000000cc0c90:
+            outname: LOOPB_SUP
+            offset: 0.588
+        000000c99b56:
+            outname: LOOPB_RET
+            offset: 0.423
         0316a015e7ff:
             outname: Unassigned
 
