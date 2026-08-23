@@ -60,6 +60,7 @@ advancing it lives in the appendices.
   - [6.1 What optimal means here](#61-what-optimal-means-here)
   - [6.2 Scorecard](#62-scorecard)
   - [6.3 Conclusion](#63-conclusion)
+  - [6.4 A clogged strainer sat underneath the comparison](#64-a-clogged-strainer-sat-underneath-the-comparison)
 - [7. Remedy ladder, cheapest first](#7-remedy-ladder-cheapest-first)
   - [7.1 Costs nothing](#71-costs-nothing)
   - [7.2 Under $100](#72-under-100)
@@ -1364,7 +1365,7 @@ Six criteria, in the order the objective ranks them.
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | 1 | Zones hold setpoint, on stage 1 | **Pass on temperature, unmeasured on stage** | Zero droop on all five zones over 8 h; the master bedroom's high fan stage is unlogged ([4.6](#46-reading-the-master-bedrooms-fan-stage)) |
-| 2 | Humidity near 50 % | **Fails against the plant it replaced** | 5 to 10 points wetter than the UniChillers at every matched outdoor band ([3.8](#38-the-previous-plant-is-a-controlled-comparison)); 60 % peak in the master bedroom |
+| 2 | Humidity near 50 % | **Fails against the plant it replaced, partly from restricted flow** | 5 to 10 points wetter than the UniChillers at every matched outdoor band ([3.8](#38-the-previous-plant-is-a-controlled-comparison)); 60 % peak in the master bedroom. A clogged strainer held the chiller above its own target through that period ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)) |
 | 3 | No loss at the tees | **Likely fine** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
 | 4 | Fair share between zones | **Suspect on Loop A** | The far coil takes 74 % of design flow against the near coil's 122 %, and it is the zone calling its high fan stage ([5.6](#56-what-the-calculation-says-about-each-coil), [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)) |
 | 5 | Reserve at design | **Untested, on a smaller plant than before** | 4.3 tons nominal against the 5-ton UniChiller it replaced, and the Chiltrix era has not exceeded 90.1 °F outdoor |
@@ -1420,6 +1421,57 @@ thermostat's own staging settings produce the high fan stage is a menu read away
 
 ---
 
+### 6.4 A clogged strainer sat underneath the comparison
+
+**The Y-strainer in the shared four-pipe loop was found heavily clogged on 22 August 2026**, with
+calcium-looking scale migrating from the boiler side, after repeated **`P5` "indoor unit water flow
+error"** alarms. `P65` sets that low-flow trip at 20 L/min on a CX65/CX75 and `C13` is the live
+readout; after cleaning, `C13` reads over 54 L/min. The restriction developed over weeks, which
+places it underneath the data this document compares.
+
+**The failure is visible to the hour.** Between 10:00 and 14:00 EDT on 22 August the chiller ran
+5, 10, 0 and 6 minutes in those four hours while `IN` climbed 58.6 → 65.3 → 73.3 → 76.0 °F and the
+tank tracked it. Recovery begins at 14:00 and by 15:00 the unit is drawing 2650 W for the full hour
+with `IN` back to 48.1 °F.
+
+**Before cleaning, the chiller ran above its own return-water target every afternoon.** Over matched
+09:00–17:45 windows on 12–20 August, all at the 50 °F target, return water held 52.4–54.4 °F, mean
+53.3. A chiller meeting its load sits at target. Sitting 2.4 to 4.4 °F above it through every
+afternoon is what restricted evaporator flow produces.
+
+**After cleaning it holds closer, on less power.** On 23 August, at a 75.4 °F outdoor average and an
+81.0 °F peak, return water averaged 51.9 °F and running power 1423 W. That is the lowest running
+power and the lowest return water of any day in the window, on an above-median outdoor day, against
+a pre-clean running-power mean of 1593 W. Runtime does not explain it: 19 August ran the longest of
+any day at 513 minutes and still returned warmer water, 53.9 °F, than 23 August did at 446 minutes.
+
+**So part of the 6 to 8 °F gap in [3.8](#38-the-previous-plant-is-a-controlled-comparison) is the
+chiller failing to hold the setpoint it already had.** That is a different finding from the setpoint
+being too warm, and it points at a different remedy. Restricted flow costs capacity and
+dehumidification at every coil, through the tank, and it would present exactly as this document
+recorded: a loop running warmer than the plant it replaced, at every outdoor band.
+
+**The E14 lockout reads differently too.** Low flow widens the evaporator ΔT, which drives leaving
+water down onto the `P59` trip, so the restriction likely contributed to the 21 August lockout at a
+46 °F target rather than the target alone accounting for it. A retry at a colder target against
+clean flow is a different experiment from the one that failed.
+
+**Zone comfort shows no change yet.** All three chiller-served zones sat on setpoint on 23 August,
+droop −0.01 °F, as they also did on 19 and 20 August before the cleaning; there was no droop to
+remove. On humidity, with the DX kitchen and great room as a control group the chiller has no part
+in, the chiller zones ran 0.5 points above the DX zones on 23 August, inside the −1.5 to +2.4 spread
+of the pre-clean days. Absolute humidity was low that day and the DX zones were low with it, so that
+reads as drier outdoor air.
+
+**Three limits on all of the above.** One post-clean day is thin. The tank probes were physically
+replaced on 22 August, so `UBT` and `LBT` cannot be compared across that date. And zone temperatures
+before 18 August are truncated to whole Kelvin and read up to 1.8 °F cold, so any zone comparison
+spanning that date is invalid, which is why only days from the 18th on appear here.
+
+**Add the strainer to the maintenance list.** The scale arrives from the boiler side of a shared
+loop, so it will foul again. Reading `C13` during the one to two minute pump-only window at the
+start of a call costs nothing and catches the next restriction long before `P5` does.
+
 ## 7. Remedy ladder, cheapest first
 
 ### 7.1 Costs nothing
@@ -1454,6 +1506,13 @@ of the direction the great room was tuned
 remove moisture at its source, before it reaches a coil at all. A dryer venting into the space,
 or a ventless one, would put the whole load on the air handler. This sits outside the hydronic
 system and is likely the highest-value fix available for that room.
+
+> **⚠️ Gated on a clean-flow baseline.** The strainer was clogged through the period this remedy was
+> sized against ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)), and clean flow has
+> already recovered part of the gap on its own. **Collect two weeks at the 50 °F target with the
+> strainer clean before moving it**, and re-measure the gap against
+> [3.8](#38-the-previous-plant-is-a-controlled-comparison) on that baseline. The target may need
+> less movement than the 6 to 8 °F figure implies, or none.
 
 **Walk the Chiltrix return-water target down.** This is the largest single remedy in the document,
 and the measured gap to the plant it replaced is 6 to 8 °F
