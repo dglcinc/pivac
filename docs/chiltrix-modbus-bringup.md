@@ -164,9 +164,14 @@ eliminated as the cause (§2). Nothing further at `P6` will change it. Go to §5
 
 In order of value:
 
-1. **Does `P6` respond on a stock CX75 with no Remote Gateway fitted?** This is the whole
-   investigation. If the answer is no, every null result is explained and the RS-485 path at `P6`
-   is closed.
+1. **What is the supported way to attach a monitoring device that logs everything the wired
+   controller sees?** Ask it this way round. It is the actual goal, it does not presuppose that
+   `P6` is the route, and it leaves the rep free to answer "you need the Remote Gateway", "share
+   the `P4` bus", or "`P6` needs something enabled" — any of which ends the investigation. In
+   Modbus terms the device being attached is a **master**; the chiller is the slave and the wired
+   controller is what polls it today. Follow up with the specific: **does `P6` respond on a stock
+   CX75 with no Remote Gateway fitted?** If the answer is no, every null result here is explained
+   and the `P6` path is closed.
 2. **Will Chiltrix supply the CX75 point map on its own?** The only maps in circulation are
    community reverse-engineering — jasipsw (CX50-2) and gonzojive (CX34) — they contradict each
    other on nearly every address and neither covers a CX75. A vendor map removes the guesswork
