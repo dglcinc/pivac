@@ -73,6 +73,50 @@ reversible modification.
 Keep the trunk linear. No branch at the master, no spur that doubles back, and nothing left
 hanging as a stub beyond the probe leads themselves.
 
+### 4.1 Distribution blocks, and when they count as a chain
+
+A commoned 1-to-4 block whose fourth port feeds the next block is a daisy chain **if the blocks
+are distributed along the run**, and a star if they are all clustered at the Pi. The blocks are
+not what decides it. Stub length is.
+
+All ports of such a block are one electrical node with no impedance between them, so a signal
+arriving sees every port diverge at once. Put four of them side by side at the Pi and each probe's
+full-length lead is still a stub off a common junction, which is the star in §2 with extra
+hardware. Mount one **at each sensor location**, run the trunk block to block, and cut each probe
+lead short enough to reach only its local block, and the chained blocks *are* the trunk. That is
+a proper chain, and a more serviceable one than splicing.
+
+The sensors here fall into four natural pairs, which maps onto four blocks:
+
+| Block | Probes | Location |
+|---|---|---|
+| 1 | `IN`, `OUT` | the closely spaced tees |
+| 2 | `UBT`, `LBT` | buffer tank, upper and lower |
+| 3 | `LOOPA_SUP`, `LOOPA_RET` | loop A, kids and master bedroom |
+| 4 | `LOOPB_SUP`, `LOOPB_RET` | loop B, lower family room, kitchen, great room |
+
+Each block carries trunk-in, trunk-out and two probes, so a 4-conductor lever block per conductor
+is exactly the right size. Three blocks per location, one each for DQ, VDD and GND.
+
+The blocks also give a per-probe series resistor somewhere sensible to live, in that probe's DQ
+port, if a lead cannot be trimmed short. A chain with short stubs does not need §6 at all.
+
+### 4.2 Which conductors have to follow the chain
+
+The topology requirement is on **DQ**, and **GND has to follow it** because GND is DQ's return
+path. The loop enclosed by the two is what sets inductance and pickup, so they belong in the same
+cable end to end, ideally the same twisted pair. Giving DQ the long chained route while picking
+GND up from a convenient local earth is the failure this rule exists to prevent.
+
+**VDD is DC power and its topology is electrically irrelevant.** Eight DS18B20s draw roughly
+12 mA between them, which over 30 m of 24 AWG drops about 30 mV. Chain it anyway, in the same
+cable, because there is nothing to gain from a second run.
+
+Fit a **100 nF ceramic across VDD and GND at each block**. It supplies the conversion-current
+transient locally instead of pulling it down the trunk, and it costs pennies.
+
+The single pull-up stays at the master end regardless. One for the whole bus, never one per block.
+
 ## 5. Cable and pairing
 
 Use CAT5/CAT6 or shielded 3-conductor. With CAT5 the rule people get wrong is that **DQ and GND
