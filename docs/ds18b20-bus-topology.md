@@ -101,6 +101,30 @@ is exactly the right size. Three blocks per location, one each for DQ, VDD and G
 The blocks also give a per-probe series resistor somewhere sensible to live, in that probe's DQ
 port, if a lead cannot be trimmed short. A chain with short stubs does not need §6 at all.
 
+### 4.3 The extension board is the hub
+
+The 1-wire bus lands on 3-position headers on the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995)
+in the adjacent housing. That board is the common node, which makes it the thing §2 is describing.
+
+**One header per probe is the star.** Eight probes each landing on their own header means eight
+full-length leads meeting at one point, which is the topology that collapsed the bus, built in
+hardware. Count the populated 1-wire headers: more than one carrying a probe is the diagnosis, not
+a coincidence.
+
+Two ways out, and the board suits both.
+
+**Use a single header as the trunk exit** and move the branching to the distributed blocks in §4.1.
+Three conductors leave the housing once, the remaining headers become spares, and every stub is a
+trimmed probe lead at its own block. This is the §4 chain and it is the better end state.
+
+**Or keep a header per probe and damp them where they meet.** The extension board is then exactly
+the hub §6 describes, so each header's DQ pin gets its own 100 Ω in series on that board, right at
+the junction. It needs no cable pulled and it is the cheapest thing that can be tried in an
+afternoon.
+
+Either way the single pull-up, and the DS2482 if it is fitted, belong on this board beside the
+1-wire terminals rather than across the housing.
+
 ### 4.2 Which conductors have to follow the chain
 
 The topology requirement is on **DQ**, and **GND has to follow it** because GND is DQ's return
