@@ -100,6 +100,37 @@ branch's DQ line at the hub**. It damps the reflection returning off that branch
 standard mitigation from Maxim AN148, "Guidelines for Reliable Long Line 1-Wire Networks", and
 it costs a handful of resistors rather than a cable pull.
 
+### 6.1 Where the resistors go
+
+One resistor per branch, in series with **DQ only**, at the hub end. It has to sit between the
+common node and that branch's outgoing wire so it damps the reflection returning off that stub.
+Fitted at the sensor end it does nothing. VDD and GND bus straight through, unbroken.
+
+The value is chosen for mechanics rather than dissipation. Only the talking sensor's own branch
+carries pull-down current, roughly 1.5 mA against a 2.2 kΩ pull-up, so 100 Ω adds about 0.15 V to
+the low level the master sees against a `0.3 × VDD` input-low threshold. Power in the resistor is
+about 0.2 mW. Anything from 22 Ω to 120 Ω works; 1/4 W metal film is far more than enough.
+
+These apply to a star. A daisy chain does not want them, so settle topology first.
+
+### 6.2 A build that survives a utility room
+
+Put the resistors on a small FR4 board in a DIN enclosure on the same rail as the Pi's
+Phoenix Contact carrier. The rules that matter are mechanical, not electrical.
+
+- **Pluggable terminal blocks, one 3-pole per branch** (DQ / VDD / GND). Pluggable means a probe
+  can be lifted during a bisect without disturbing the other seven.
+- **No mid-air solder joints and no wire nuts.** Every conductor lands in a screw or spring
+  terminal, and the board is mechanically fixed rather than hanging on its own wiring.
+- **Ferrules on every stranded conductor** entering a screw terminal.
+- **Strain relief at the enclosure entry.** A tugged cable is the most common failure in a
+  mechanical room, well ahead of any component.
+- **Label each branch with its probe name** — IN, OUT, UBT, LBT, LOOPA_SUP and so on — matching
+  the convention in `docs/PhoenixContact-BC-RPI-label.docx`.
+
+The commercial version of this board is a 1-Wire hub with a port per probe, which implements the
+same per-branch damping and gives plug-in RJ45 ports. It costs more and needs no building.
+
 ## 7. Moving to a DS2482 hardware bridge
 
 The Pi's `w1-gpio` overlay bit-bangs the protocol in software. It has no active pull-up, no
@@ -157,6 +188,28 @@ if the breakout carries its own I²C pull-ups as well, one extra board in parall
 
 GPIO 2 and 3 are free on this Pi. `pivac.GPIO` watches BCM 17, 27, 22, 5, 6, 12 and 25, and
 `raspi-gpio get 2,3` reports both as unclaimed inputs, so enabling I²C displaces nothing.
+
+**Match the DQ rail to the sensors' VDD.** The DS18B20's absolute-maximum DQ rating is VDD + 0.3 V,
+so a master driving DQ to 5 V into probes powered from 3.3 V damages them. Check which rail a
+breakout powers the DS2482 from before wiring it in, since some Pi 1-Wire boards also carry a
+separate 5 V pin that is auxiliary network power rather than the data line.
+
+Worth knowing: the bridge is what makes 5 V reachable at all. GPIO 4 is not 5 V tolerant, so
+`w1-gpio` pins the bus at 3.3 V. With the DS2482 the Pi only ever sees I²C, so the 1-Wire side can
+run at 5 V, which is the native 1-Wire voltage and buys noise margin on a long run. Moving there
+means lifting the probes' VDD to 5 V at the same time. Do not mix the two rails.
+
+### 7.3 Sourcing
+
+| Option | Notes |
+|---|---|
+| `DS2482S-100+` from Digi-Key | SOIC-8, a few dollars, US stock. Mount on a SOIC-8 adapter alongside the §6.2 resistor board so one enclosure carries both. Needs hand-soldering. |
+| AB Electronics **1 Wire Pi Plus** | DS2482-100 Pi HAT, ESD protection on the 1-Wire port, four I²C addresses, RJ-12 out, 5 V aux input. UK, ships worldwide. Check clearance inside the DIN carrier before committing to a HAT. |
+| Sheepwalk Electronics **RPI3** | DS2482-100 Pi adapter with screw terminals and RJ45, address-jumper selectable. Purpose-built for this. UK, small vendor. |
+| 7Semi / Artekit breakouts | Plain DS2482-100 breakouts, no Pi form factor. |
+
+Fit ESD protection on the 1-Wire port if the board does not carry it. A long run into a mechanical
+room is an antenna, and the DS2482 is the only thing between it and the Pi.
 
 ### 7.3 Enable I²C and retire the bit-banged master
 
