@@ -119,18 +119,82 @@ The single pull-up stays at the master end regardless. One for the whole bus, ne
 
 ## 5. Cable and pairing
 
-Use CAT5/CAT6 or shielded 3-conductor. With CAT5 the rule people get wrong is that **DQ and GND
-must share one twisted pair**, so the data line has its return conductor adjacent. Pairing DQ
-with VDD couples them and loads the data line with the pair's mutual capacitance.
+The rule people get wrong is that **DQ and GND must share one twisted pair**, so the data line has
+its return conductor adjacent. Pairing DQ with VDD instead couples them and puts the pair's mutual
+capacitance directly on the data line.
 
-| CAT5 conductor | Signal | Pi header (while on `w1-gpio`) |
+| T568B conductor | Signal | Pi header (while on `w1-gpio`) |
 |---|---|---|
-| Pair 1, solid | DQ | GPIO 4, physical pin 7 |
-| Pair 1, stripe | GND | physical pin 9 |
-| Pair 2, solid | VDD | **3.3 V**, physical pin 1 |
-| Pair 2, stripe | GND | same GND |
+| white/orange | DQ | GPIO 4, physical pin 7 |
+| orange | GND | physical pin 9 |
+| blue | VDD | **3.3 V**, physical pin 1 |
+| white/blue | GND | same GND |
 
-Leave the remaining pairs open. On shielded cable, ground the shield at the Pi end only.
+Leave the green and brown pairs open at both ends. Do not put anything spare on DQ.
+
+### 5.1 Cable category barely matters; capacitance does
+
+**CAT6 over CAT5e buys close to nothing here.** CAT6's advantages — tighter twist, a spline,
+23 AWG instead of 24, controlled NEXT — are all specified in the 100–250 MHz domain. Standard-speed
+1-Wire runs at roughly 15 kbps. Mutual capacitance is the parameter that matters and the two
+categories sit within a few percent of each other, near 50 pF/m. Use whichever is already on the
+shelf, solid core rather than stranded.
+
+Capacitance matters because it sets the rising edge, and the rising edge is what the failure
+actually is. In a read slot the master releases the line and samples about 15 µs in, so after its
+own low pulse there is roughly 9 µs for the line to climb past the DS18B20's `0.7 × VDD`
+threshold, about 1.2 time constants. Take a 30 m trunk at ~50 pF/m, so about 1.5 nF, plus a couple
+of hundred pF of sensor pin capacitance:
+
+| Pull-up | τ = RC | 1.2τ | Verdict |
+|---|---|---|---|
+| 4.7 kΩ | ~8 µs | ~9.6 µs | misses the sample point |
+| 2.2 kΩ | ~3.7 µs | ~4.5 µs | passes with margin |
+| DS2482 active | driven, sub-µs | — | not a limitation |
+
+That is the whole story of a bus that worked at four probes on short leads and died when cable was
+added. Scale the numbers to the real run length; the shape does not change.
+
+**Shielded cable is a genuine tradeoff, not an upgrade.** It rejects pickup, which matters with an
+inverter-driven Chiltrix compressor and contactors in the same room, but conductor-to-shield
+capacitance adds to the DQ load and pushes the table above in the wrong direction. Start with plain
+UTP. Reach for shielded only if the symptom is intermittent CRC errors rather than a dead bus, and
+stiffen the pull-up if you do. Ground the shield at the master end only.
+
+### 5.2 The wiring, end to end
+
+```
+MASTER END                                    ONE CABLE, CHAINED BLOCK TO BLOCK
+──────────                                    ────────────────────────────────
+
+  3.3 V ──────┬──────────────────────────────────────────────►  VDD  (blue)
+              │
+          [ 2.2 kΩ ]   one pull-up, master end only
+              │
+  GPIO 4 ─────┴──────────────────────────────────────────────►  DQ   (white/orange)
+  or DS2482 IO
+                                                                GND  (orange)
+  GND ─────────────────────────────────────────────────────────►     + white/blue
+
+
+                    ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
+   master ═════════►│ BLOCK 1 │═►│ BLOCK 2 │═►│ BLOCK 3 │═►│ BLOCK 4 │  trunk ends
+                    │  tees   │  │  tank   │  │ loop A  │  │ loop B  │  here, no
+                    └─┬─────┬─┘  └─┬─────┬─┘  └─┬─────┬─┘  └─┬─────┬─┘  loop back
+                      │     │      │     │      │     │      │     │
+                     IN    OUT    UBT   LBT   A_SUP A_RET  B_SUP B_RET
+                      └── short trimmed stubs, one probe each ──┘
+
+
+   INSIDE ONE BLOCK   three 4-way lever connectors, one per conductor
+
+     DQ   [ trunk in | trunk out | probe 1 | probe 2 ]
+     VDD  [ trunk in | trunk out | probe 1 | probe 2 ]──┐
+     GND  [ trunk in | trunk out | probe 1 | probe 2 ]──┴─ 100 nF across VDD-GND
+```
+
+Nothing branches at the master, the trunk terminates at block 4, and every probe lead is trimmed
+to reach only its own block.
 
 ## 6. Pull-up, and the mitigation that needs no new cable
 
