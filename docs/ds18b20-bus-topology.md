@@ -319,13 +319,36 @@ Damping requires the resistor to sit *between* the junction and each stub, where
 reflection crosses it twice. Upstream of the junction it is on the wrong side of the problem, and
 it costs about 0.14 V of low-level margin for nothing, since every pull-down now works through it.
 
-**The idea does work at the other end.** A single 22–100 Ω in series at the *master's* DQ pin is
-source-series termination: it absorbs reflections when they arrive back at the driver and softens
-the driven falling edge. That is a legitimate one-resistor experiment, it takes two minutes on the
-extension board, and it is free to try before committing to anything. It is weaker than per-branch
-damping because it does nothing about energy bouncing between branches at the far junction, but on
-a bus with only two branches — the mechanical-room trunk and the outdoor run — there is little
-bouncing to do, and it may be enough on its own.
+**The idea does work at the other end.** A single 22–100 Ω in series at the *driver* is
+source-series termination: it absorbs reflections as they arrive back at the source and softens the
+driven falling edge. Weaker than per-branch damping, since it does nothing about energy bouncing
+between branches at the far junction — but this bus has only two branches, the mechanical-room
+trunk and the outdoor run, so there is little bouncing to do and it may be enough alone.
+
+"At the driver" means **on the extension board, between GPIO 4 and the cable** — not at the first
+hub, which is the far end and the wrong place for it. **Put the pull-up on the cable side of it**,
+not the GPIO side:
+
+```
+                              ┌───── 1-wire header DQ ──── trunk out
+                              │
+  GPIO 4 ──────[ 100 Ω ]──────┤
+  (or DS2482 IO)              │
+                          [ 2.2 kΩ ]
+                              │
+                            3.3 V
+```
+
+That ordering matters. With the pull-up on the cable side the rise is driven straight onto the
+line, so the resistor costs nothing on the slow edge, and the master's input is high-impedance so
+it reads the true line voltage with no divider error. The resistor then acts only where it is
+wanted: on the master's own driven falling edge, and on reflections coming home. Wire it the other
+way round — pull-up on the GPIO side — and every pull-down reads through a divider and the rise
+time gets worse.
+
+**Remove it if the DS2482 goes in.** That part's whole contribution is a hard-driven edge from an
+active pull-up, and a series resistor in front of it works against exactly that. Start without one
+and add it back only if the bus is still marginal.
 
 ### 6.2 A build that survives a utility room
 
