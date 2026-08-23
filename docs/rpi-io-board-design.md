@@ -168,3 +168,24 @@ wire before the board.
 a leftover from when the GPIO and 1-wire modules shared setup. It is harmless — without the
 device-tree overlay the module instantiates no master — but it is misleading once the DS2482 owns
 the bus, and it should go when that migration lands.
+
+## 7. The extension board, and why relay wiring stays off it
+
+The **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) in the adjacent housing carries the 1-wire
+bus on 3-position headers, and it can host GPIO channels beyond the twelve here. Do that only if
+twelve is genuinely exhausted.
+
+**Keep switched 24 V field wiring away from the 1-wire bus.** DQ is a slow open-drain line with a
+passive pull-up and no differential rejection, and it is the bus that has already collapsed once.
+Relay field wiring switches inductive loads, so bundling the two out of the same housing invites
+exactly the pickup the twisted-pair guidance in `docs/ds18b20-bus-topology.md` §5 exists to
+prevent. Optoisolation protects the *Pi*; it does nothing about two cables sharing a tray.
+
+If the extension board does take relay channels, put them at the opposite end from the 1-wire
+headers and bring their field wiring out of a separate entry. The DS2482, its pull-up and its
+decoupling want that board space anyway, and they belong beside the 1-wire terminals rather than
+across the housing from them.
+
+Twelve channels against seven in service, with the leak-pan input and a `Y2` sense as the known
+additions, means this should not come up. Recorded so the option is a decision rather than a
+discovery.
