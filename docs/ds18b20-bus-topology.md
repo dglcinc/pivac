@@ -312,6 +312,21 @@ about 0.2 mW. Anything from 22 Ω to 120 Ω works; 1/4 W metal film is far more 
 
 These apply to a star. A daisy chain does not want them, so settle topology first.
 
+**One resistor on the trunk instead of four on the branches does not work.** Put it between the
+incoming trunk and a commoned block and the four branches still meet at a node with nothing
+between them, so a reflection arriving up one branch re-radiates into the other three unimpeded.
+Damping requires the resistor to sit *between* the junction and each stub, where that stub's
+reflection crosses it twice. Upstream of the junction it is on the wrong side of the problem, and
+it costs about 0.14 V of low-level margin for nothing, since every pull-down now works through it.
+
+**The idea does work at the other end.** A single 22–100 Ω in series at the *master's* DQ pin is
+source-series termination: it absorbs reflections when they arrive back at the driver and softens
+the driven falling edge. That is a legitimate one-resistor experiment, it takes two minutes on the
+extension board, and it is free to try before committing to anything. It is weaker than per-branch
+damping because it does nothing about energy bouncing between branches at the far junction, but on
+a bus with only two branches — the mechanical-room trunk and the outdoor run — there is little
+bouncing to do, and it may be enough on its own.
+
 ### 6.2 A build that survives a utility room
 
 Put the resistors on a small FR4 board in a DIN enclosure on the same rail as the Pi's
