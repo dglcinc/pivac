@@ -52,11 +52,12 @@ between batches, and a probe with DQ and VDD swapped takes the whole bus down. P
 the UNO R4 rig used for the PA1–PA5 calibration and confirm it enumerates before it goes near
 the Pi.
 
-**Check VDD is on 3.3 V.** The DS18B20's input-high threshold is 0.7 × VDD. A probe powered from
-the Pi's 5 V rail needs 3.5 V to register a logic high, while a bus pulled up to 3.3 V never
-gets there. It often works and degrades as loading and cable length grow, which matches a bus
-that was clean at four devices and collapsed at eight. Note `docs/ds18b20-provisioning.md`
-specifies 5 V because that rig is an Arduino; copying it to the Pi is out of spec.
+**Supply voltage is already ruled out.** The Pi's bus runs at 3.3 V throughout, so the
+DS18B20's `0.7 × VDD` input-high threshold sits at 2.31 V and the bus reaches it with margin.
+The mode is recorded here so it is not re-investigated: a probe powered from 5 V needs 3.5 V to
+register a logic high, which a 3.3 V bus never delivers, and it degrades with loading rather
+than failing outright. `docs/ds18b20-provisioning.md` specifies 5 V for the Arduino bench rig,
+where that is correct. Carrying it across to the Pi is what would introduce the fault.
 
 ## 4. Building the chain
 
@@ -106,6 +107,19 @@ slew-rate control, and its timing jitters whenever the kernel services an interr
 generates 1-Wire timing in hardware and drives an active pull-up, which is what a long
 eight-probe run in a mechanical room wants.
 
+Fitting it first, ahead of §4–§6, is defensible and is probably the right call for an eight-probe
+run. It is the case the part exists for, it buys one round of downtime instead of three, and once
+it is in the master stops being a variable in any future diagnosis. Two things it does not fix.
+**An active pull-up shortens the rising edge on a capacitively loaded line; it does not cancel the
+reflections a star topology sends back off eight open stubs.** And no master survives a probe with
+DQ and VDD swapped. The §3 bisect is therefore not optional whichever master is fitted, and since
+it needs no parts it can run while the bridge ships.
+
+The DS2482-100 is the safe choice. The DS2484 adds adjustable 1-Wire timing and weak-pull-up
+resistance in hardware, which would help on a marginal line, but the stock Linux driver exposes
+only the configuration register — `active_pullup`, and `extra_config` for the APU/PPM/SPU/1WS
+bits — so that tuning is out of reach without driver work.
+
 ### 7.1 What is already true on this Pi
 
 | Fact | Value |
@@ -140,6 +154,9 @@ run. The long cable belongs on the 1-Wire side, which is the whole reason for fi
 Remove the discrete 4.7 kΩ pull-up. The DS2482 supplies its own weak pull-up plus the active
 pull-up, and an external resistor fights it. The Pi already has 1.8 kΩ pull-ups on GPIO 2 and 3;
 if the breakout carries its own I²C pull-ups as well, one extra board in parallel is tolerable.
+
+GPIO 2 and 3 are free on this Pi. `pivac.GPIO` watches BCM 17, 27, 22, 5, 6, 12 and 25, and
+`raspi-gpio get 2,3` reports both as unclaimed inputs, so enabling I²C displaces nothing.
 
 ### 7.3 Enable I²C and retire the bit-banged master
 
@@ -212,9 +229,8 @@ reboot. `dtparam=i2c_arm=on` and the module-load file are harmless if left in pl
 ## 8. Order of operations
 
 1. Bisect the bus one probe at a time, starting with PA1A, and bench-check each probe's pinout.
-2. Confirm VDD is on 3.3 V.
-3. Drop the pull-up to 2.2 kΩ.
-4. Re-cable as a daisy chain, or fit 100 Ω series resistors per branch if the star has to stay.
-5. Fit the DS2482 if the bus is still marginal at eight probes.
+2. Drop the pull-up to 2.2 kΩ.
+3. Re-cable as a daisy chain, or fit 100 Ω series resistors per branch if the star has to stay.
+4. Fit the DS2482 if the bus is still marginal at eight probes.
 
 Each step is cheaper than the one after it, and each is independently reversible.
