@@ -161,6 +161,38 @@ capacitance adds to the DQ load and pushes the table above in the wrong directio
 UTP. Reach for shielded only if the symptom is intermittent CRC errors rather than a dead bus, and
 stiffen the pull-up if you do. Ground the shield at the master end only.
 
+**Conductor gauge is not a variable here; twist is.** The run from the Pi to the first block is
+18 AWG solid, which is fine and marginally better than 24 AWG on resistance, a quantity that was
+already irrelevant at 12 mA. Heavier copper does not load DQ. What untwisted cable costs is the
+controlled loop area between DQ and its return, which is what cancels magnetic pickup from
+contactors, pumps and the inverter compressor. Parallel-conductor cable such as 18/3 or 18/5
+thermostat wire often measures *lower* mutual capacitance than CAT5e, because the conductors are
+not held tightly together, so it trades noise immunity for RC headroom rather than being worse
+outright.
+
+Keep it. Mixing 18 AWG for the first leg with twisted pair further out is fine: at these edge rates
+a change of cable type is a weak partial reflection, while an open stub is a total one. The stubs
+are what matter. If the cable carries spare conductors, leave them open — never parallel them onto
+DQ.
+
+### 5.3 Measure the bus instead of estimating it
+
+The RC table above assumes a run length. The real number takes a minute with a multimeter in
+capacitance mode: disconnect the far end of the trunk, lift DQ at the master, and measure DQ to
+GND across the installed cable with the probes still attached. That reading is the C in `τ = RC`,
+so it says directly whether the fitted pull-up clears the roughly 9 µs the master allows before it
+samples.
+
+| Measured DQ-GND | 4.7 kΩ, 1.2τ | 2.2 kΩ, 1.2τ |
+|---|---|---|
+| 500 pF | 2.8 µs | 1.3 µs |
+| 1 nF | 5.6 µs | 2.6 µs |
+| 1.5 nF | 8.5 µs | 4.0 µs |
+| 3 nF | 17 µs | 7.9 µs |
+
+Anything approaching 9 µs is the diagnosis, and the row it lands on says whether a resistor swap
+is sufficient or the DS2482's driven edge is required.
+
 ### 5.2 The wiring, end to end
 
 ```
