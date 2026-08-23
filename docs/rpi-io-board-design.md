@@ -13,17 +13,17 @@ The 1-wire bus that shares this enclosure is a separate document,
 
 ## 1. What sets the channel count
 
-The terminals bind before the GPIO does. Four 4-position PTSM connectors give sixteen positions,
-and reserving one per connector for the field common leaves **12 monitored channels**. Seven are
-in service today, so the build has five spare.
+Four 4-position PTSM connectors give sixteen positions. One carries the field common, leaving
+**15 monitored channels** — seven in service and eight spare.
 
-Reserving one whole connector for commons instead also yields twelve. Per-connector is better:
-each connector becomes a self-contained group whose field wiring can be unplugged as a unit, and a
-broken common costs three channels rather than all twelve.
+A single common is electrically comfortable. All fifteen LEDs conducting at once draw
+15 × 4.85 mA = **73 mA** through one PTSM contact rated 4 A, and the return wire is equally
+untroubled at any gauge the terminal accepts. What it costs is blast radius: that one contact is a
+single point of failure for every channel rather than for one connector's three. That is the price
+of the extra channels, and it is paid in the field wiring rather than on the board.
 
-The Pi itself could carry 21 inputs. That headroom is not reachable through these terminals, so it
-does not drive the design. It does mean a later expansion is a connector problem, never a pin
-problem.
+The Pi could carry 21 inputs, so the terminals still bind first. A later expansion is a connector
+problem, never a pin problem.
 
 ## 2. Why optoisolation rather than a resistor network
 
@@ -120,24 +120,30 @@ changes.
 Reserved and unavailable: **GPIO 2 and 3** for the DS2482's I²C, **GPIO 0 and 1** (pins 27/28) for
 the HAT ID EEPROM, **GPIO 26 dead permanently**, and **GPIO 14/15 kept as a serial console** —
 the recovery path on a headless DIN-mounted Pi when the network drops, which has happened here.
-**GPIO 4** frees up when the DS2482 takes over the 1-wire bus.
+**GPIO 4 is deliberately left unassigned.** It frees up only if the DS2482 takes over the 1-wire
+bus, so spending it on a relay channel would make this board depend on that migration succeeding.
+Leaving it out keeps the board correct in both states and preserves `w1-gpio` as a rollback.
 
 `dtparam=spi=off` and the commented-out I²S line leave BCM 7–11 and 18–21 as plain GPIO. Leave
 both settings alone.
 
 The seven existing channels keep their pins, so no field wiring moves and no measurement history
-is orphaned.
+is orphaned. Channels are grouped by what they watch rather than by pin order, so a connector can
+be unplugged without splitting a system.
 
 | Connector | Pin 1 | Pin 2 | Pin 3 | Pin 4 |
 |---|---|---|---|---|
-| **J1** | `ZV` — BCM 17 | `DHW` — BCM 27 | `BLR` — BCM 22 | 24 V COM |
-| **J2** | `BOS2` — BCM 5 | `BOS1` — BCM 6 | `DEHUM` — BCM 12 | 24 V COM |
-| **J3** | `CHIL` — BCM 25 | spare — BCM 23 | spare — BCM 24 | 24 V COM |
-| **J4** | spare — BCM 13 | spare — BCM 16 | spare — BCM 19 | 24 V COM |
+| **J1** — boiler / DHW | `ZV` — BCM 17 | `DHW` — BCM 27 | `BLR` — BCM 22 | spare — BCM 23 |
+| **J2** — cooling | `CHIL` — BCM 25 | `BOS1` — BCM 6 | `BOS2` — BCM 5 | spare — BCM 24 |
+| **J3** — mixed / expansion | `DEHUM` — BCM 12 | spare — BCM 18 | spare — BCM 13 | spare — BCM 19 |
+| **J4** — expansion | spare — BCM 16 | spare — BCM 20 | spare — BCM 21 | **24 V COM** |
 
-The five spares sit next to existing channels on the 40-pin header, which keeps the perfboard
-routing short. BCM 19 was the cancelled YOFF rewire and is free; its `config.yml` entry stays
-commented out.
+J2 puts the three cooling sources together, matching the zone-to-source map in
+`docs/cdp-chiller-rework-plan.md` §3, so a cooling question is answered from one connector.
+
+**BCM 7–11 are left entirely unspent.** That is the SPI block, and keeping it contiguous means SPI
+can be enabled later for an ADC or a display without disturbing a relay channel. BCM 19 was the
+cancelled YOFF rewire and is free; its `config.yml` entry stays commented out.
 
 ## 6. Build notes
 
