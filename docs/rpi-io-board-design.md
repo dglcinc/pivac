@@ -13,14 +13,22 @@ The 1-wire bus that shares this enclosure is a separate document,
 
 ## 1. What sets the channel count
 
-Four 4-position PTSM connectors give sixteen positions. One carries the field common, leaving
-**15 monitored channels** — seven in service and eight spare.
+Four 4-position PTSM connectors give sixteen positions. One per connector carries that group's
+field common, leaving **12 monitored channels** — seven in service and five spare.
 
-A single common is electrically comfortable. All fifteen LEDs conducting at once draw
-15 × 4.85 mA = **73 mA** through one PTSM contact rated 4 A, and the return wire is equally
-untroubled at any gauge the terminal accepts. What it costs is blast radius: that one contact is a
-single point of failure for every channel rather than for one connector's three. That is the price
-of the extra channels, and it is paid in the field wiring rather than on the board.
+**A single shared common would give fifteen channels and is the wrong trade.** These are pluggable
+connectors, so putting the only common on one of them means unplugging that connector disables
+every channel on the board, including the eleven wired elsewhere. Servicing one group would take
+the whole thing down. A shared return also converges every channel's current on one contact, so a
+degrading connection there presents as all fifteen channels misbehaving at once, which is a far
+harder fault to chase than three going dead together.
+
+Five spare against seven in service already covers the known expansion — restoring the leak-pan
+input displaced by `CHIL`, and a stage-2 `Y2` sense for the master bedroom. Three more channels
+bought at the cost of unpluggability is not worth it.
+
+Electrically either choice is fine; a group's three LEDs draw about 15 mA through a contact rated
+4 A. The argument is entirely about service and diagnosis.
 
 The Pi could carry 21 inputs, so the terminals still bind first. A later expansion is a connector
 problem, never a pin problem.
@@ -133,10 +141,10 @@ be unplugged without splitting a system.
 
 | Connector | Pin 1 | Pin 2 | Pin 3 | Pin 4 |
 |---|---|---|---|---|
-| **J1** — boiler / DHW | `ZV` — BCM 17 | `DHW` — BCM 27 | `BLR` — BCM 22 | spare — BCM 23 |
-| **J2** — cooling | `CHIL` — BCM 25 | `BOS1` — BCM 6 | `BOS2` — BCM 5 | spare — BCM 24 |
-| **J3** — mixed / expansion | `DEHUM` — BCM 12 | spare — BCM 18 | spare — BCM 13 | spare — BCM 19 |
-| **J4** — expansion | spare — BCM 16 | spare — BCM 20 | spare — BCM 21 | **24 V COM** |
+| **J1** — boiler / DHW | `ZV` — BCM 17 | `DHW` — BCM 27 | `BLR` — BCM 22 | **24 V COM** |
+| **J2** — cooling | `CHIL` — BCM 25 | `BOS1` — BCM 6 | `BOS2` — BCM 5 | **24 V COM** |
+| **J3** — mixed | `DEHUM` — BCM 12 | spare — BCM 23 | spare — BCM 24 | **24 V COM** |
+| **J4** — expansion | spare — BCM 18 | spare — BCM 13 | spare — BCM 19 | **24 V COM** |
 
 J2 puts the three cooling sources together, matching the zone-to-source map in
 `docs/cdp-chiller-rework-plan.md` §3, so a cooling question is answered from one connector.
