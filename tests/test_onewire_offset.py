@@ -41,6 +41,7 @@ from pivac.OneWireTherm import _apply_offset  # noqa: E402
 PA1A, PA1B = 0.588, 0.423
 PA2A, PA2B = -0.184, 0.083
 PA3A, PA3B = 0.348, 0.466
+PA4A, PA4B = 0.468, 0.143
 
 CASES = [
     # (label, temp, offset_k, read_fahrenheit, expected)
@@ -60,6 +61,10 @@ PAIRS = [
     ("PA1 (loop B)", PA1A, PA1B, 0.166),
     ("PA2 (loop A)", PA2A, PA2B, -0.267),
     ("PA3 (buffer tank)", PA3A, PA3B, -0.118),
+    # The record's pair column reads +0.324: that is 0.583 F / 1.8 rounded on its own.
+    # The two per-probe K offsets as configured differ by 0.325, which is what the
+    # module computes. Do not "correct" the config to close the 0.001 K gap.
+    ("PA4 (primary loop, IN/OUT)", PA4A, PA4B, 0.325),
 ]
 
 TOL = 1e-3
