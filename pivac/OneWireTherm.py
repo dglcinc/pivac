@@ -52,6 +52,22 @@ logger.debug("Available sensors: " + str(sensors))
 def available_sensors():
     return sensors
 
+# Per-sensor calibration offset, added to the raw reading.
+#
+# The offset is expressed in KELVIN, which as a *difference* is identical to degrees
+# Celsius, so one config value stays correct whatever `scale` says: Signal K output is
+# always read in Kelvin, and a Fahrenheit read scales the same offset by 1.8. Bench
+# ice-point values for the PA1-PA5 loop probes are in docs/ds18b20-PA1-5-calibration.md.
+#
+# This exists because the secondary-loop measurement is a *difference* of a few degrees.
+# A DS18B20's absolute spec is +/-0.5 C, and the ten bench-calibrated probes spread 1.4 F
+# — larger than the loop delta-T being measured, so an uncalibrated pair reports the
+# sensor spread rather than the loop.
+def _apply_offset(temp, offset_k, read_fahrenheit=False):
+    if not offset_k:
+        return temp
+    return temp + (offset_k * 1.8 if read_fahrenheit else offset_k)
+
 # send -1 for no rounding
 def status(config = {}, output="default"):
     logger.debug("generating status")
@@ -103,6 +119,12 @@ def status(config = {}, output="default"):
             else:
                 thermtemp = sensor.get_temperature(Unit.DEGREES_F)
             logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
+
+            offset_k = dnames[sensor.id].get("offset", 0)
+            if offset_k:
+                read_fahrenheit = (output != "signalk" and temp_type == DEG_FAHRENHEIT)
+                thermtemp = _apply_offset(thermtemp, offset_k, read_fahrenheit)
+                logger.debug("Offset %+.3f K applied to %s" % (offset_k, sensor.id))
 
             if sensor.id in dnames and "outname" in dnames[sensor.id]:
                 sname = dnames[sensor.id]["outname"]

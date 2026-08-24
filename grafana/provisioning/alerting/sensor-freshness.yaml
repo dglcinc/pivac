@@ -2,12 +2,10 @@ apiVersion: 1
 
 # Freshness alerts for the 1-wire hydronic + buffer-tank temperatures.
 #
-# NOTE (2026-08-06): there is no longer a physical outdoor DS18B20. The former CRW and AMB
-# probes were moved onto the buffer tank as UBT/LBT for the single-chiller conversion, so
-# outdoor air now comes solely from pivac.RedLink (environment.outside.thermostat.temperature,
-# covered by redlink-stale.yaml). The old outside-onewire-stale and outside-temp-divergence
-# rules were removed with that change — the latter cross-checked two outdoor sources and only
-# one remains.
+# The bus carries eight probes: IN and OUT bracketing the closely spaced tees, UBT and LBT on
+# the buffer tank, and a supply/return pair on each secondary loop. There is no physical outdoor
+# DS18B20 — outdoor air comes solely from pivac.RedLink (environment.outside.thermostat.temperature,
+# covered by redlink-stale.yaml), which is why no outside-* rule is defined here.
 # Reuses the same graph-bridge contact point as redlink-stale.yaml (Grafana webhook ->
 # scripts/grafana_graph_bridge.py -> Microsoft Graph sendMail -> david@dglc.com).
 #
@@ -199,7 +197,7 @@ groups:
         for: 1m
         annotations:
           summary: "Buffer tank UBT (upper) temperature has been stale for >30m (environment.inside.hvac.UBT.temperature)"
-          runbook: "Same triage as hydronic-in-stale — see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This probe was formerly CRW; it was moved onto the upper buffer tank 2026-08-06."
+          runbook: "Same triage as hydronic-in-stale — see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA3A, installed on the upper buffer tank 2026-08-22."
         labels:
           severity: warning
           source: onewire
@@ -288,7 +286,7 @@ groups:
         for: 1m
         annotations:
           summary: "Buffer tank LBT (lower) temperature has been stale for >30m (environment.inside.hvac.LBT.temperature)"
-          runbook: "Same triage as hydronic-in-stale — see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This probe was formerly the outdoor AMB sensor; it was moved onto the lower buffer tank 2026-08-06."
+          runbook: "Same triage as hydronic-in-stale — see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA3B, installed on the lower buffer tank 2026-08-22."
         labels:
           severity: warning
           source: onewire
@@ -378,10 +376,11 @@ groups:
         annotations:
           summary: "Hydronic OUT water temperature has been stale for >30m (environment.inside.hvac.OUT.temperature)"
           runbook: |
-            Same triage as hydronic-in-stale. NOTE: the OUT sensor (0516a365d8ff) has a
-            history of intermittently dropping off the w1 bus and re-enumerating after a
-            reboot. If only OUT is stale (IN/UBT/LBT fresh), suspect that physical sensor at the
-            hydronic loop before suspecting the module.
+            Same triage as hydronic-in-stale. OUT is probe PA4B (0000001aa0a8) since
+            2026-08-23. The sensor it replaced (0516a365d8ff) had a history of intermittently
+            dropping off the w1 bus, so a repeat of that pattern on the new probe points at
+            the cable or the bus rather than at the chip. If only OUT is stale (IN/UBT/LBT
+            fresh), suspect that physical sensor at the hydronic loop before the module.
         labels:
           severity: warning
           source: onewire
@@ -389,7 +388,374 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
-      # ---- DHW recirc-loop temp (DS18B20 on the Arduino at 10.0.0.219) freshness ----
+      # ---- Secondary loop supply/return pairs (installed 2026-08-22) ----
+      # These four carry the loop delta-T, which is the measurement the
+      # bench calibration in docs/ds18b20-PA1-5-calibration.md exists for.
+      # Probe pair numbering does not match the loop letters: pair PA1 is on
+      # loop B and pair PA2 is on loop A.
+      #
+      # These four ship PAUSED because their probes are not yet on the w1 bus, and an
+      # unpaused rule on a metric that has never existed emails on every evaluation
+      # (noDataState: Alerting). Unpause them once the probes enumerate and publish:
+      # set isPaused: false here, copy the file to /etc/grafana/provisioning/alerting/,
+      # restart grafana-server, then verify against the alert_rule table.
+      - uid: loop-a-supply-stale
+        title: Loop A supply water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.LOOPA_SUP.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Loop A supply (kids / master bedroom) temperature has been stale for >30m (environment.inside.hvac.LOOPA_SUP.temperature)"
+          runbook: "Same triage as hydronic-in-stale - see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA2A, installed on the loop A supply, kids and master bedroom 2026-08-22. Supply and return are a matched pair: if only one end is stale the loop delta-T is unavailable, so treat it as urgently as both."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: loop-a-return-stale
+        title: Loop A return water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.LOOPA_RET.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Loop A return (kids / master bedroom) temperature has been stale for >30m (environment.inside.hvac.LOOPA_RET.temperature)"
+          runbook: "Same triage as hydronic-in-stale - see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA2B, installed on the loop A return, kids and master bedroom 2026-08-22. Supply and return are a matched pair: if only one end is stale the loop delta-T is unavailable, so treat it as urgently as both."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: loop-b-supply-stale
+        title: Loop B supply water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.LOOPB_SUP.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Loop B supply (lower family / kitchen / great room) temperature has been stale for >30m (environment.inside.hvac.LOOPB_SUP.temperature)"
+          runbook: "Same triage as hydronic-in-stale - see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA1A, installed on the loop B supply, lower family room, kitchen and great room 2026-08-22. Supply and return are a matched pair: if only one end is stale the loop delta-T is unavailable, so treat it as urgently as both."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      - uid: loop-b-return-stale
+        title: Loop B return water temp stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.LOOPB_RET.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Loop B return (lower family / kitchen / great room) temperature has been stale for >30m (environment.inside.hvac.LOOPB_RET.temperature)"
+          runbook: "Same triage as hydronic-in-stale - see that rule's runbook and CLAUDE.md 'OneWireTherm per-sensor isolation'. This is probe PA1B, installed on the loop B return, lower family room, kitchen and great room 2026-08-22. Supply and return are a matched pair: if only one end is stale the loop delta-T is unavailable, so treat it as urgently as both."
+        labels:
+          severity: warning
+          source: onewire
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- DHW recirc-loop temp (DS18B20 on the DHW Arduino at 10.0.0.114) freshness ----
       # Freshness only. The recirc pump runs on demand / by aquastat, so the loop is
       # intentionally cold much of the time — a static "loop cold" / pump-health alert
       # would false-alarm and is deliberately NOT defined here (see
