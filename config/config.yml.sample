@@ -91,10 +91,13 @@ pivac.OneWireTherm:
     # (environment.outside.thermostat.temperature).
     inputs:
         # Primary loop, bracketing the closely spaced tees. IN - OUT is whole-system capacity.
-        0516a36332ff:
+        # Probes PA4A / PA4B, installed 2026-08-23.
+        000000c98b14:
             outname: IN
-        0516a365d8ff:
+            offset: 0.468
+        0000001aa0a8:
             outname: OUT
+            offset: 0.143
         # Buffer tank, upper and lower. Probes PA3A / PA3B, installed 2026-08-22.
         000000c9e879:
             outname: UBT

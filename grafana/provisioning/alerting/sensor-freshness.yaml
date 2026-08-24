@@ -376,10 +376,11 @@ groups:
         annotations:
           summary: "Hydronic OUT water temperature has been stale for >30m (environment.inside.hvac.OUT.temperature)"
           runbook: |
-            Same triage as hydronic-in-stale. NOTE: the OUT sensor (0516a365d8ff) has a
-            history of intermittently dropping off the w1 bus and re-enumerating after a
-            reboot. If only OUT is stale (IN/UBT/LBT fresh), suspect that physical sensor at the
-            hydronic loop before suspecting the module.
+            Same triage as hydronic-in-stale. OUT is probe PA4B (0000001aa0a8) since
+            2026-08-23. The sensor it replaced (0516a365d8ff) had a history of intermittently
+            dropping off the w1 bus, so a repeat of that pattern on the new probe points at
+            the cable or the bus rather than at the chip. If only OUT is stale (IN/UBT/LBT
+            fresh), suspect that physical sensor at the hydronic loop before the module.
         labels:
           severity: warning
           source: onewire
