@@ -428,6 +428,44 @@ reporting `ext_power=1` at 12-bit resolution.** Forty clean ROM searches out of 
 evidence that the 6.2 µs figure is real margin rather than luck; on 320 clean reads the error rate
 sits under roughly 1% at 95% confidence.
 
+### 5.5 Planned end state
+
+Three changes take this bus from 1.75 nF to roughly 670 pF. Two of them cost nothing but time.
+
+| Change | Now | After | Saves |
+|---|---|---|---|
+| Trim probe leads, 2 ft → 6 in | 546 pF | 137 pF | **409 pF** |
+| Take ~7.5 ft of slack out of the trunk and tank runs | — | — | **~240 pF** |
+| Trunk and tank to CAT5e/CAT6, ~22 ft at 50 pF/m | 1007 pF | 335 pF | **~430 pF** |
+| Eight DS18B20 pins | 200 pF | 200 pF | 0 |
+| **Total** | **1753 pF** | **~670 pF** | **~62%** |
+
+At 2.2 kΩ that is **1.85 µs against the 9 µs guaranteed budget, about 5× margin**, up from 6.2 µs
+today. Redo the outdoor run the same way and it falls from 1.95 nF to roughly 870 pF, so the whole
+bus with outdoor restored lands near 1.57 nF and stays inside the guaranteed window with room for
+several more probes. That is the version of this bus that stops needing attention.
+
+**Order by payoff against effort.** Trimming and de-slacking together take 1753 pF to about
+1100 pF, a 37 % cut with no cable bought. The re-pull adds the remaining 25 %.
+
+**Why CAT cable wins here has nothing to do with its category.** CAT5e and CAT6 are both specified
+to 100 Ω with a velocity factor near 0.67, and `C = 1/(Z₀·v)` forces both to ~50 pF/m; choosing
+between them is not worth a moment's thought. The gain is entirely that §5's pairing gives DQ
+**one** grounded neighbour where 3-conductor thermostat cable gives it two. That is the same
+mechanism §5.1 measures as 112 pF/m against 50.
+
+**Two things to get right on the re-pull.** DQ and GND share one twisted pair and VDD sits on a
+different pair, per §5; pairing DQ with VDD couples the data line to the supply and discards the
+benefit. And leave the spare pairs open at both ends, never grounded and never paralleled onto DQ,
+since a grounded conductor beside DQ is precisely what makes the present cable expensive.
+
+**Terminal budget, which the second GND conductor threatens.** Both GND conductors are one net and
+merge at the terminals, so the run still lands as three connections. But a pass-through header
+would otherwise spend all four of its GND quattro terminals on trunk-in and trunk-out, leaving none
+for probes. Land both GND conductors of a run in a **single** terminal — two 24 AWG is 0.41 mm²
+against the ST 1,5's 1.5 mm² rating — and the one-block-per-conductor layout in §4.3 keeps working
+unchanged.
+
 ### 5.2 The wiring, end to end
 
 ```
