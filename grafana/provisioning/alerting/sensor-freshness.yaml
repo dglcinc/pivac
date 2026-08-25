@@ -388,17 +388,11 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
-      # ---- Secondary loop supply/return pairs (installed 2026-08-22) ----
+      # ---- Secondary loop supply/return pairs (live since 2026-08-24) ----
       # These four carry the loop delta-T, which is the measurement the
       # bench calibration in docs/ds18b20-PA1-5-calibration.md exists for.
       # Probe pair numbering does not match the loop letters: pair PA1 is on
       # loop B and pair PA2 is on loop A.
-      #
-      # These four ship PAUSED because their probes are not yet on the w1 bus, and an
-      # unpaused rule on a metric that has never existed emails on every evaluation
-      # (noDataState: Alerting). Unpause them once the probes enumerate and publish:
-      # set isPaused: false here, copy the file to /etc/grafana/provisioning/alerting/,
-      # restart grafana-server, then verify against the alert_rule table.
       - uid: loop-a-supply-stale
         title: Loop A supply water temp stale (>30m)
         condition: C
@@ -484,7 +478,7 @@ groups:
         labels:
           severity: warning
           source: onewire
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -573,7 +567,7 @@ groups:
         labels:
           severity: warning
           source: onewire
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -662,7 +656,7 @@ groups:
         labels:
           severity: warning
           source: onewire
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -751,7 +745,7 @@ groups:
         labels:
           severity: warning
           source: onewire
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
