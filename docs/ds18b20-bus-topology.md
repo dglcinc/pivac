@@ -462,9 +462,16 @@ since a grounded conductor beside DQ is precisely what makes the present cable e
 **Terminal budget, which the second GND conductor threatens.** Both GND conductors are one net and
 merge at the terminals, so the run still lands as three connections. But a pass-through header
 would otherwise spend all four of its GND quattro terminals on trunk-in and trunk-out, leaving none
-for probes. Land both GND conductors of a run in a **single** terminal — two 24 AWG is 0.41 mm²
-against the ST 1,5's 1.5 mm² rating — and the one-block-per-conductor layout in §4.3 keeps working
-unchanged.
+for probes. Land both GND conductors of a run in a **single** terminal and the
+one-block-per-conductor layout in §4.3 keeps working unchanged. Two 23 AWG is 0.52 mm² against the
+ST 1,5's 1.5 mm² rating, so the cross-section is never the constraint.
+
+How they land depends on which cable is pulled. **Stranded takes a twin ferrule**, 2 × 0.25 mm² for
+24 AWG or 2 × 0.34–0.5 mm² for 23 AWG, which crimps both conductors into one pin at a consistent
+clamping force. **Solid does not** — it will not compress predictably in a crimp, and the standard
+termination is bare into the clamp, which two solid conductors of this size handle without help.
+Check the ferrule's insulating collar clears the terminal throat before ordering; the collar is
+bulkier than the conductors and is the dimension that actually limits.
 
 ### 5.2 The wiring, end to end
 
