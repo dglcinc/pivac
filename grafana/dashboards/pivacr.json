@@ -424,7 +424,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Supply and return on each secondary loop, from the bench-calibrated DS18B20 pairs installed 2026-08-22. The number to read here is the supply/return spread, not the absolute temperature. Loop A is probe pair PA2 and loop B is pair PA1 \u2014 the pair number and the loop letter deliberately differ.",
+      "description": "Temperature rise across each load, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary loop's return minus supply. At fixed flow the spread is proportional to load, which is the number to read here; absolute temperatures are on the Hydronic Temps panel above. The sign carries information, so the axis is deliberately not clamped at zero: heating season inverts every pair because supply becomes the warm side, idle sits near zero on sensor noise, and a probe pair wired backwards reads negative without ever going stale. Loop A is probe pair PA2 and loop B is pair PA1 — the pair number and the loop letter deliberately differ. The axis is centred on zero and left to autoscale rather than clamped, so small deltas still resolve and a winter inversion or a backwards pair stays on-chart.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -432,7 +432,7 @@
           },
           "custom": {
             "axisBorderShow": false,
-            "axisCenteredZero": false,
+            "axisCenteredZero": true,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
@@ -477,13 +477,30 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "fahrenheit",
+          "decimals": 2
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop A supply \u2014 kids / master bedroom"
+              "options": "Primary ΔT — whole house"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8E5FBF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Loop A ΔT — kids / master bedroom"
             },
             "properties": [
               {
@@ -498,43 +515,13 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop A return \u2014 kids / master bedroom"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#A8D3F5",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Loop B supply \u2014 family / kitchen / great room"
+              "options": "Loop B ΔT — family / kitchen / great room"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
                   "fixedColor": "#1B6B36",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Loop B return \u2014 family / kitchen / great room"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#7ECB8B",
                   "mode": "fixed"
                 }
               }
@@ -608,7 +595,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A supply \u2014 kids / master bedroom"
+          "alias": "Loop A supply"
         },
         {
           "datasource": {
@@ -656,7 +643,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A return \u2014 kids / master bedroom"
+          "alias": "Loop A return"
         },
         {
           "datasource": {
@@ -704,7 +691,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop B supply \u2014 family / kitchen / great room"
+          "alias": "Loop B supply"
         },
         {
           "datasource": {
@@ -752,11 +739,174 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop B return \u2014 family / kitchen / great room"
+          "alias": "Loop B return"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "environment.inside.hvac.IN.temperature",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " *9/5-459.67"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "Primary IN"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "environment.inside.hvac.OUT.temperature",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "F",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " *9/5-459.67"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false,
+          "alias": "Primary OUT"
         }
       ],
-      "title": "Secondary Loop Supply / Return",
-      "type": "timeseries"
+      "title": "Loop ΔT — Primary and Secondary Pairs",
+      "type": "timeseries",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Primary OUT",
+              "operator": "-",
+              "right": "Primary IN"
+            },
+            "alias": "Primary ΔT — whole house",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Loop A return",
+              "operator": "-",
+              "right": "Loop A supply"
+            },
+            "alias": "Loop A ΔT — kids / master bedroom",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": {
+              "left": "Loop B return",
+              "operator": "-",
+              "right": "Loop B supply"
+            },
+            "alias": "Loop B ΔT — family / kitchen / great room",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Loop A supply": true,
+              "Loop A return": true,
+              "Loop B supply": true,
+              "Loop B return": true,
+              "Primary IN": true,
+              "Primary OUT": true
+            },
+            "indexByName": {
+              "Primary ΔT — whole house": 0,
+              "Loop A ΔT — kids / master bedroom": 1,
+              "Loop B ΔT — family / kitchen / great room": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "datasource": {
@@ -2155,7 +2305,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Boiler status \u2014 coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
+      "description": "Boiler status — coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2658,7 +2808,7 @@
           "tags": []
         }
       ],
-      "title": "Potable DHW Loop \u2014 Pressure & Recirc Temp",
+      "title": "Potable DHW Loop — Pressure & Recirc Temp",
       "type": "timeseries"
     },
     {
@@ -3929,7 +4079,7 @@
     {
       "type": "row",
       "collapsed": false,
-      "title": "Water \u2014 Domestic & Irrigation",
+      "title": "Water — Domestic & Irrigation",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4041,7 +4191,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 selected range",
+      "title": "Used — selected range",
       "type": "stat",
       "transformations": [
         {
@@ -4181,7 +4331,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 last 24h",
+      "title": "Used — last 24h",
       "type": "stat",
       "timeFrom": "24h",
       "transformations": [
@@ -4322,7 +4472,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 last 7d",
+      "title": "Used — last 7d",
       "type": "stat",
       "timeFrom": "7d",
       "transformations": [
@@ -4522,7 +4672,7 @@
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/min) \u2014 Domestic vs Irrigation",
+      "title": "Flow rate (gal/min) — Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -4530,7 +4680,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Consumption rate normalized to gal/hour \u2014 smoother; good for sustained use / leaks.",
+      "description": "Consumption rate normalized to gal/hour — smoother; good for sustained use / leaks.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4692,7 +4842,7 @@
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/hr) \u2014 Domestic vs Irrigation",
+      "title": "Flow rate (gal/hr) — Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -4866,7 +5016,7 @@
         }
       ],
       "timeFrom": "7d",
-      "title": "Water consumption by hour \u2014 last 7 days",
+      "title": "Water consumption by hour — last 7 days",
       "type": "timeseries"
     }
   ],
