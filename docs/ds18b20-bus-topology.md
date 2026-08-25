@@ -112,10 +112,22 @@ That fork is what makes §6.1's per-branch damping cheap here. The junction is a
 with one plug per branch, so a 100 Ω can sit between the common node and each outgoing cable
 without opening anything downstream.
 
-**The second node to inspect is the first breakout on the mechanical-room side.** If eight probe
-leads fan out from it, the star in §2 is there and §4–§6 apply to that point. If instead it feeds
-block-to-block as in §4.1, that side is already a chain and the diagnosis goes to the pull-up and
-§5.3. Establishing which costs nothing and settles where the work goes.
+**The mechanical-room side is already a chain, so §4's re-cabling does not apply to it.** Three
+headers sit along the run, each built from Phoenix Contact **ST 1,5/S QUATTRO** feed-through
+blocks, one commoned 4-terminal block per conductor. The trunk enters a header, the local probes
+land on the spare terminals, and the trunk leaves for the next one. That is exactly §4.1's
+distributed-block pattern, which is why the 2026-08-24 diagnosis went to the pull-up rather than
+to topology. The first header carries two of the loop probes and the last carries the other two;
+the middle one carries the original four and uses two blocks per conductor to find the terminals.
+
+The one departure is a **10 ft stub** from the middle header out to the two tank probes, rather
+than the trunk routing through them. It costs the capacitance of its length, about 340 pF. Since
+§5.3 establishes that RC rather than reflection is what binds this bus, that capacitance counts
+the same wherever it sits, so the stub is a length problem and not a topology one.
+
+Terminal budget follows from the block size. A quattro gives four terminals: the first header
+spends them on trunk-in, trunk-out and two probes, and the last on trunk-in and three probes.
+Both are full, so adding a probe at either point needs a second block and a bridge.
 
 **The outdoor run is almost certainly the longest cable on the bus.** Length is capacitance, so
 that one branch probably dominates the RC budget in §5.1 on its own. §5.3 measures the two plugs
@@ -225,14 +237,22 @@ capacitance adds to the DQ load and pushes the table above in the wrong directio
 UTP. Reach for shielded only if the symptom is intermittent CRC errors rather than a dead bus, and
 stiffen the pull-up if you do. Ground the shield at the master end only.
 
-**Conductor gauge is not a variable here; twist is.** The run from the Pi to the first block is
-18 AWG solid, which is fine and marginally better than 24 AWG on resistance, a quantity that was
-already irrelevant at 12 mA. Heavier copper does not load DQ. What untwisted cable costs is the
-controlled loop area between DQ and its return, which is what cancels magnetic pickup from
-contactors, pumps and the inverter compressor. Parallel-conductor cable such as 18/3 or 18/5
-thermostat wire often measures *lower* mutual capacitance than CAT5e, because the conductors are
-not held tightly together, so it trades noise immunity for RC headroom rather than being worse
-outright.
+**Conductor gauge is not the variable; the conductor count is.** The run from the Pi to the first
+block is 18 AWG solid, which is fine — resistance was already irrelevant at 12 mA, and heavier
+copper barely moves DQ's capacitance. What matters is how many grounded conductors sit beside the
+data line. A twisted pair gives DQ one return. Jacketed 3-conductor thermostat cable puts it
+between VDD and GND, **both of which are AC ground**, so it sees roughly twice as much; a
+5-conductor run can be worse again.
+
+**Measured here rather than estimated, this chain runs 112 pF/m** on 20 AWG 3-conductor and
+18 AWG 5-conductor, against ~50 pF/m for CAT5e. So parallel-conductor thermostat wire is not the
+RC bargain its loose spacing suggests: wider spacing does lower the capacitance between any given
+pair, and sandwiching the data line between two grounded conductors more than takes it back. What
+untwisted cable does still cost is the controlled loop area between DQ and its return, which is
+what cancels magnetic pickup from contactors, pumps and the inverter compressor.
+
+The corollary is to leave spare conductors **floating at both ends**. A grounded spare next to DQ
+adds capacitance and returns nothing.
 
 Keep it. Mixing 18 AWG for the first leg with twisted pair further out is fine: at these edge rates
 a change of cable type is a weak partial reflection, while an open stub is a total one. The stubs
@@ -331,8 +351,82 @@ clear the 9 µs guaranteed window, so a fully populated bus still relies on real
 That is the argument for §4.4's separate DS2482 bus, which is now a robustness choice rather than
 an arithmetic requirement.
 
-A probe adds about 25 pF, so fitting one changes none of this. Cable length is the whole story: at
-~50 pF/m these readings imply roughly 35 m and 39 m of conductor.
+A probe adds about 25 pF, so fitting one changes none of this. Cable length is the whole story, and
+the inventory closes against the measurement exactly:
+
+| Segment | Length |
+|---|---|
+| Pi → header 1, 18 AWG 5-conductor | 15 ft |
+| header 1 → header 2 | 1.5 ft |
+| header 2 → header 3 | 3 ft |
+| header 2 → tank probes, stub | 10 ft |
+| eight probe leads, untrimmed | 16 ft |
+| **total conductor** | **45.5 ft / 13.9 m** |
+
+13.9 m at 112 pF/m is 1.55 nF; eight DS18B20 pins at 25 pF each add 200 pF; the sum is 1.75 nF,
+which is what the meter read. **Note what dominates: the probe leads are 16 ft of the 45.5.**
+
+**Confirmed live 2026-08-24: eight probes on 2.2 kΩ enumerate and hold.** All eight appear in
+`w1_master_slave_count`, publish through `pivac.OneWireTherm`, and both loop pairs read the right
+sign. The predicted 6.2 µs sits inside even the 9 µs guaranteed window, against the 24.3 µs that
+took the bus down at 4.7 kΩ.
+
+**Trimming the probe leads is the cheapest headroom left.** At 16 ft they are 35% of the conductor.
+Cut to roughly 6 in each, the bus sheds 12 ft — about 410 pF at 112 pF/m — and drops to 1.34 nF.
+The outdoor branch's 1.95 nF then fits alongside it at 3.29 nF, inside the 3.4 nF that 2.2 kΩ
+guarantees. That is what buys the outdoor sensor back onto this bus without a second master.
+
+**Practical length on cable like this**, designing to the guaranteed 9 µs window at 112 pF/m:
+
+| Pull-up | C ceiling | Total conductor |
+|---|---|---|
+| 4.7 kΩ | 1.6 nF | ~14 m / 47 ft |
+| 2.2 kΩ | 3.4 nF | ~30 m / 100 ft |
+| 1.5 kΩ | 5.0 nF | ~45 m / 146 ft |
+| DS2482 | not binding | 200–300 m |
+
+At 45.5 ft this bus sits at 45% of the 2.2 kΩ budget, which is the 6.2 µs against 9 µs above. It
+was over the 4.7 kΩ row before a single loop probe was added.
+
+1.5 kΩ is the floor for a passive pull-up on 3.3 V: 2.2 mA stays inside the DS18B20's 4 mA sink,
+and going lower eats low-level margin. Past that the DS2482's driven edge is the only way up.
+"Total conductor" counts every branch and every probe lead, which is why a 60 ft chain can already
+sit at the limit.
+
+### 5.4 Bus health is measurable, not just "it enumerates"
+
+Three signals, all free, all in sysfs:
+
+**CRC failures.** Every `w1_slave` read ends `crc=XX YES` or `NO`. Read each sensor repeatedly and
+count the `NO`s. `w1_therm` retries internally, so one reaching sysfs means several consecutive
+failures — a `NO` rate above zero is a bus with no margin.
+
+**Search stability.** `w1_master_slave_count` polled over time must never dip below the expected
+count. This is the sharpest indicator available, because the ROM search is the most timing-critical
+operation on the bus and the one that failed on 22 August. A bus that reads fine but searches
+unreliably is a bus about to collapse.
+
+**`ext_power`.** Each probe reports `1` for externally powered, `0` for parasitic. A `0` on a bus
+wired for external power means VDD is not reaching that probe.
+
+```bash
+ok=0; bad=0; miss=0
+for i in $(seq 1 40); do
+  [ "$(cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count)" -ne 8 ] && miss=$((miss+1))
+  for d in /sys/bus/w1/devices/28-*; do
+    case "$(head -1 $d/w1_slave)" in *YES*) ok=$((ok+1));; *) bad=$((bad+1));; esac
+  done
+  sleep 4
+done
+echo "crc_ok=$ok crc_fail=$bad sweeps_not_8=$miss"
+grep . /sys/bus/w1/devices/28-*/ext_power
+```
+
+**Measured 2026-08-24, immediately after the pull-up change.** Forty sweeps over about seven
+minutes: **320 reads, 0 CRC failures, 0 sweeps returning other than eight devices, all eight
+reporting `ext_power=1` at 12-bit resolution.** Forty clean ROM searches out of forty is the
+evidence that the 6.2 µs figure is real margin rather than luck; on 320 clean reads the error rate
+sits under roughly 1% at 95% confidence.
 
 ### 5.2 The wiring, end to end
 
