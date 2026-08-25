@@ -381,6 +381,10 @@ branch's DQ line at the hub**. It damps the reflection returning off that branch
 standard mitigation from Maxim AN148, "Guidelines for Reliable Long Line 1-Wire Networks", and
 it costs a handful of resistors rather than a cable pull.
 
+**Treat this as secondary on this bus.** §5.3's measurement puts the failure squarely on rise
+time, and the pull-up alone restores 2× margin. Fit the resistors only if the bus is still
+unreliable at eight probes after the pull-up change.
+
 ### 6.1 Where the resistors go
 
 One resistor per branch, in series with **DQ only**, at the hub end. It has to sit between the
