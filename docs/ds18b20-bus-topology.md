@@ -101,31 +101,35 @@ is exactly the right size. Three blocks per location, one each for DQ, VDD and G
 The blocks also give a per-probe series resistor somewhere sensible to live, in that probe's DQ
 port, if a lead cannot be trimmed short. A chain with short stubs does not need §6 at all.
 
-### 4.3 The enclosure side is already right; the hub is outside it
+### 4.3 The first branch point is on the accessory board
 
-The 1-wire bus leaves the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) on a **single**
-3-position header, as 18 AWG solid to the first breakout. That is the trunk exit this document
-asks for, so the enclosure side needs no change and the pull-up, plus the DS2482 if it is fitted,
-simply stay on that board beside the header.
+The 1-wire bus leaves the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) on **two** 3-position
+plugs, both 18 AWG solid: the mechanical-room trunk on one, the outdoor ambient run on the other.
+The bus therefore forks inside the enclosure, at the board, before either cable reaches a breakout.
+The pull-up, plus the DS2482 if it is fitted, stay on that board upstream of both plugs.
 
-**The branching therefore happens at the first breakout, and that is the node to inspect.** If
-eight probe leads fan out from it, the star in §2 is there, one connection outside the housing,
-and everything in §4–§6 applies to that point rather than to anything on the Pi. If instead it
-feeds block-to-block as in §4.1, the topology is already a chain and the fault is electrical
-loading, which sends the diagnosis to the pull-up and §5.3 instead.
+That fork is what makes §6.1's per-branch damping cheap here. The junction is already accessible
+with one plug per branch, so a 100 Ω can sit between the common node and each outgoing cable
+without opening anything downstream.
 
-Establishing which of the two it is costs nothing and settles where the work goes. Nothing inside
-the enclosure needs opening for it.
+**The second node to inspect is the first breakout on the mechanical-room side.** If eight probe
+leads fan out from it, the star in §2 is there and §4–§6 apply to that point. If instead it feeds
+block-to-block as in §4.1, that side is already a chain and the diagnosis goes to the pull-up and
+§5.3. Establishing which costs nothing and settles where the work goes.
 
-**One exception: the outdoor ambient run is a second branch.** It leaves the enclosure separately,
-so the node at the header is a Y rather than a single trunk, and the outdoor cable is almost
-certainly the longest on the bus. Length is capacitance, so that one branch probably dominates the
-RC budget in §5.1 on its own. Measure with it connected, or the number will flatter the bus.
+**The outdoor run is almost certainly the longest cable on the bus.** Length is capacitance, so
+that one branch probably dominates the RC budget in §5.1 on its own. §5.3 measures the two plugs
+separately, which is what shows whether it does.
+
+**An outdoor cable with no probe on the end is pure cost.** The AMB probe was repurposed as LBT,
+so until §4.4 restores a sensor there, that branch contributes its full capacitance and an
+open-ended reflection while returning no data. Unplugging it at the board is free RC headroom and
+removes one of the two branches outright.
 
 ### 4.4 Restoring the outdoor sensor without re-breaking the bus
 
-There are spare bench-calibrated probes for this: PA3 went to the tank and PA1/PA2 to the loops,
-leaving the **PA4 and PA5 pairs** unused, with ice-point offsets already recorded in
+There is one spare bench-calibrated pair for this: PA3 went to the tank, PA1 and PA2 to the loops,
+and PA4 to IN and OUT, leaving **PA5** with its ice-point offsets already recorded in
 `docs/ds18b20-PA1-5-calibration.md`.
 
 **Sequence it last.** Reconnecting the longest branch on the bus is the same class of change as
@@ -156,9 +160,10 @@ delete block doing its job.
 restored DS18B20 becomes a third outdoor source rather than a required one.
 
 Should the star be there and re-cabling be unattractive, that breakout is the hub §6 describes, so
-its per-branch 100 Ω resistors belong at that block rather than back on the extension board. Fitted
-at the header they would sit on the trunk, in series with every probe at once, which damps nothing
-and merely adds to the pull-up's load.
+its per-branch 100 Ω resistors belong at that block. The pair at the accessory board damps the
+board-level fork between the two plugs, which is a different junction. Those sit upstream of the
+breakout's own eight branches and do nothing for them, so the two sets of resistors address
+separate problems and neither substitutes for the other.
 
 ### 4.2 Which conductors have to follow the chain
 
@@ -236,11 +241,53 @@ DQ.
 
 ### 5.3 Measure the bus instead of estimating it
 
-The RC table above assumes a run length. The real number takes a minute with a multimeter in
-capacitance mode: disconnect the far end of the trunk, lift DQ at the master, and measure DQ to
-GND across the installed cable with the probes still attached. That reading is the C in `τ = RC`,
-so it says directly whether the fitted pull-up clears the roughly 9 µs the master allows before it
-samples.
+The RC table above assumes a run length. The real number takes a few minutes with a multimeter in
+capacitance mode.
+
+**Only the master end comes apart.** Unplug both 3-position connectors at the accessory board and
+leave everything downstream exactly as installed: every probe attached, every branch connected,
+nothing touched at any far end. Disconnecting a far end would remove the capacitance being
+measured.
+
+**Measure the two plugs separately and add the readings.** The branches are in parallel from the
+master's point of view and parallel capacitances sum, so the total is the same either way, and
+measuring them apart also says how much of the budget the outdoor run accounts for on its own.
+Combining them physically is awkward with two connectors and buys nothing.
+
+On each free cable in turn, tie **VDD to GND** and measure from **DQ** to that pair. The supply
+holds VDD at AC ground in normal operation, so the DQ-to-VDD coupling is part of what the pull-up
+charges; leave VDD floating and the reading comes in low. Null the test leads with the meter's REL
+or ZERO function first, since lead capacitance runs 30–100 pF against a reading expected in the
+hundreds of pF to low nF.
+
+```
+STEP 1 — unplug both connectors at the accessory board
+
+  EXT-PCB HBUS SET                      INSTALLED CABLES — untouched
+  ────────────────                      ────────────────────────────
+
+    3.3 V ──[ pull-up ]──┐                VDD ○ ┐
+                         ├── GPIO 4       DQ  ○ ├─ mechanical-room trunk:
+    GND ─────────────────┘                GND ○ ┘  breakout, all probes
+
+    pull-up and GPIO stay on               VDD ○ ┐
+    this side, out of the reading          DQ  ○ ├─ outdoor run
+                                           GND ○ ┘
+
+STEP 2 — on each cable in turn, tie VDD to GND, meter from DQ to that pair
+
+                    DQ  ○──────────────────┐
+                                        ┌──┴──────────────┐
+                    VDD ○──┬──────────  │  DMM            │
+                           │            │  capacitance    │
+                    GND ○──┴──────────  │  (leads REL'd)  │
+                                        └─────────────────┘
+
+STEP 3 — add the two readings
+```
+
+The sum is the C in `τ = RC`, and the master allows roughly 9 µs for the line to rise before it
+samples:
 
 | Measured DQ-GND | 4.7 kΩ, 1.2τ | 2.2 kΩ, 1.2τ |
 |---|---|---|
@@ -319,20 +366,32 @@ Damping requires the resistor to sit *between* the junction and each stub, where
 reflection crosses it twice. Upstream of the junction it is on the wrong side of the problem, and
 it costs about 0.14 V of low-level margin for nothing, since every pull-down now works through it.
 
-**The idea does work at the other end.** A single 22–100 Ω in series at the *driver* is
-source-series termination: it absorbs reflections as they arrive back at the source and softens the
-driven falling edge. Weaker than per-branch damping, since it does nothing about energy bouncing
-between branches at the far junction — but this bus has only two branches, the mechanical-room
-trunk and the outdoor run, so there is little bouncing to do and it may be enough alone.
-
-"At the driver" means **on the extension board, between GPIO 4 and the cable** — not at the first
-hub, which is the far end and the wrong place for it. **Put the pull-up on the cable side of it**,
-not the GPIO side:
+**The two plugs on the accessory board put a junction within reach, so per-branch damping belongs
+there.** One 100 Ω in each plug's DQ line, between the common node and that plug, is the
+arrangement above with two branches instead of four. The pull-up sits at the common node with
+GPIO 4. The cost is the 0.14 V of low-level margin already priced, plus about 4.5 % on the rise
+constant, since charging current now flows through 2.2 kΩ and 100 Ω in series. Both are noise.
 
 ```
-                              ┌───── 1-wire header DQ ──── trunk out
+                              ┌──[ 100 Ω ]──── plug 1 DQ ── mechanical room
                               │
-  GPIO 4 ──────[ 100 Ω ]──────┤
+  GPIO 4 ─────────────────────┤──[ 100 Ω ]──── plug 2 DQ ── outdoor run
+  (or DS2482 IO)              │
+                          [ 2.2 kΩ ]
+                              │
+                            3.3 V
+```
+
+**The single-resistor alternative is source-series termination at the driver.** One 22–100 Ω
+between GPIO 4 and the common node absorbs reflections as they arrive back at the source and
+softens the driven falling edge. It is weaker than per-branch damping, doing nothing about energy
+bouncing between the two branches at their junction, but it leaves the rise path at the bare
+pull-up value. **Put the pull-up on the cable side of it**, not the GPIO side:
+
+```
+                              ┌──── plug 1 DQ ── mechanical room
+                              │
+  GPIO 4 ──────[ 100 Ω ]──────┤──── plug 2 DQ ── outdoor run
   (or DS2482 IO)              │
                           [ 2.2 kΩ ]
                               │
@@ -343,8 +402,11 @@ That ordering matters. With the pull-up on the cable side the rise is driven str
 line, so the resistor costs nothing on the slow edge, and the master's input is high-impedance so
 it reads the true line voltage with no divider error. The resistor then acts only where it is
 wanted: on the master's own driven falling edge, and on reflections coming home. Wire it the other
-way round — pull-up on the GPIO side — and every pull-down reads through a divider and the rise
+way round, pull-up on the GPIO side, and every pull-down reads through a divider while the rise
 time gets worse.
+
+Fit the per-branch pair first. It is one extra resistor and it damps the junction that actually
+exists.
 
 **Remove it if the DS2482 goes in.** That part's whole contribution is a hard-driven edge from an
 active pull-up, and a series resistor in front of it works against exactly that. Start without one
@@ -519,8 +581,11 @@ reboot. `dtparam=i2c_arm=on` and the module-load file are harmless if left in pl
 ## 8. Order of operations
 
 1. Bisect the bus one probe at a time, starting with PA1A, and bench-check each probe's pinout.
-2. Drop the pull-up to 2.2 kΩ.
-3. Re-cable as a daisy chain, or fit 100 Ω series resistors per branch if the star has to stay.
-4. Fit the DS2482 if the bus is still marginal at eight probes.
+2. Unplug the outdoor cable at the board for as long as no probe sits on its far end. It costs
+   capacitance and an open-ended reflection and returns nothing.
+3. Measure DQ-to-GND capacitance per §5.3 and read the verdict off the table there.
+4. Drop the pull-up to 2.2 kΩ.
+5. Re-cable as a daisy chain, or fit 100 Ω series resistors per branch if the star has to stay.
+6. Fit the DS2482 if the bus is still marginal at eight probes.
 
 Each step is cheaper than the one after it, and each is independently reversible.
