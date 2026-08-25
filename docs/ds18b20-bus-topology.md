@@ -299,6 +299,41 @@ samples:
 Anything approaching 9 µs is the diagnosis, and the row it lands on says whether a resistor swap
 is sufficient or the DS2482's driven edge is required.
 
+**Two budgets, and the difference decides everything here.** The 9 µs above is the *guaranteed*
+worst case: the master holds low about 6 µs in a write slot, and the DS18B20 is specified to
+sample anywhere from 15 to 60 µs after the falling edge, so only the 15 µs end is promised. Real
+parts sample near 30 µs, which puts the working budget closer to **24 µs**. Design to 9 µs; expect
+failure near 24.
+
+**Measured on this bus, 2026-08-24.** Main loop with its four probes, **1.75 nF**. Outdoor run,
+bare cable with no probe fitted, **1.95 nF**. Time to reach `0.7 × VDD`, which is 1.2τ:
+
+| Bus | C | 4.7 kΩ | 2.2 kΩ |
+|---|---|---|---|
+| Main loop, 4 probes | 1.75 nF | 9.9 µs | 4.6 µs |
+| Main loop, 8 probes | ~2.35 nF | 13.3 µs | 6.2 µs |
+| Main 4 + outdoor — the bus that ran until 6 Aug | 3.70 nF | **20.9 µs** | 9.8 µs |
+| Main 8 + outdoor — the bus that collapsed 22 Aug | ~4.30 nF | **24.3 µs** | 11.4 µs |
+
+**The collapse lands exactly where the real sampling point predicts.** The configuration that
+worked for months sat at 20.9 µs and the one that died sat at 24.3 µs, on either side of ~24. That
+also explains why the failure was total rather than gradual: crossing the threshold corrupts every
+bit of the ROM search at once, which is the §1 phantom-device signature.
+
+This supersedes §2's reflection argument as the explanation for *this* bus. At 1-wire edge rates a
+round trip down even 40 m settles in a few hundred nanoseconds, far inside the sample point, while
+the RC arithmetic predicts the observed failure to within a few percent. Star topology still costs
+capacitance through captive-lead length, so §4 stands on that ground rather than on echoes.
+
+**2.2 kΩ carries the whole bus, outdoor included**, at 11.4 µs against the ~24 µs where it
+actually broke — roughly 2× margin, where 4.7 kΩ gave it 1.15×. Only the main-loop-only cases
+clear the 9 µs guaranteed window, so a fully populated bus still relies on real-part behaviour.
+That is the argument for §4.4's separate DS2482 bus, which is now a robustness choice rather than
+an arithmetic requirement.
+
+A probe adds about 25 pF, so fitting one changes none of this. Cable length is the whole story: at
+~50 pF/m these readings imply roughly 35 m and 39 m of conductor.
+
 ### 5.2 The wiring, end to end
 
 ```
