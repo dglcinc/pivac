@@ -392,8 +392,8 @@ journalctl -u signalk -n 50 --no-pager
 > | 144 | Hot water target | whole °C | R/W |
 > | 145 / 146 | AC heating / hot water AU mode | 0 disable, 1 enable | R/W |
 > | 202 | Ambient air temp | ÷10 → °C | read |
-> | 205 | Outlet water temp | ÷10 → °C | read |
-> | 281 | Inlet water temp | ÷10 → °C | read |
+> | 205 | Outlet water temp — **water returning FROM the chiller** to the house | ÷10 → °C | read |
+> | 281 | Inlet water temp — **water going TO the chiller**, the return from the house | ÷10 → °C | read |
 > | 213 | Water flow | **÷10 → L/min** | read |
 > | 227 | Compressor frequency | Hz, 0–80 (raw) | read |
 > | 256 | Input AC current | **÷10 → A** | read |
@@ -402,6 +402,10 @@ journalctl -u signalk -n 50 --no-pager
 >
 > **How the map was confirmed, and the trap in confirming it.** 142 read 10, matching the 50 °F panel target; 202 read 23.9 °C against RedLink's outdoor sensor at 23.89 °C, which also refutes jasipsw's claim that 202 is inlet water; 281 and 205 tracked the controller's own inlet and outlet displays to within 0.4 °F; and 227 and 256 both fell to 0 together when the compressor stopped while inlet and outlet converged with the pump still running. **⚠️ Compare temperatures at idle, never during a transient** — the outlet moved 4.7 → 9.8 °C in the three minutes after a stop, which made one comparison look like a 3 °F calibration error when it was drift. **Inlet is the return from the house and runs warmer than outlet in cooling**, so `281 − 205` is positive; negative means the addresses are swapped or the unit is heating.
 >
+> **Use the controller's own words: `inlet` is the water going TO the chiller and `outlet` is the water returning FROM it.** That is what the panel displays, and it matches the register names. Do not relabel these as "return" and "supply" — those are correct from the *house's* point of view and invert the sense, which is how a plotted pair ends up backwards.
+>
+> **⚠️ The chiller modulates BOTH the pump and the compressor off inlet water temperature (register 281).** So water flow is a *controlled output*, not an independent measurement, and any fouling rule built on flow is measuring a control loop unless something pins the pump. This is the mechanism behind the pump trimming already noted above, and it is why `flow ÷ Hz` failed: both terms are outputs of the same controller responding to the same input.
+
 > **The chiller restarts on its own hysteresis, about 2 °C above target** — 12 °C against the 10 °C setpoint — not on a zone call. Inlet climbing past the setpoint without a start means the band has not been reached yet.
 >
 > **⚠️ Neither raw flow NOR flow ÷ Hz is a usable fouling signal (measured 2026-08-27).** A fixed threshold near 35 L/min false-fires at part load on a clean strainer. The ratio does not rescue it: **at a constant 55 Hz the flow ranged 42.5–52.9 L/min, a 20% spread, giving flow ÷ Hz of 0.773–0.962.** The compressor speed was pinned and the flow moved anyway, so the quantity is not load-independent. Over those 53 samples flow correlates **+0.96 with outlet water temperature and −0.96 with ΔT**: from 20:43:34 to 20:44:00 on 26 Aug, Hz held at 55 while outlet fell 6.7 → 6.1 °C, flow fell 45.9 → 42.5 and ΔT widened 4.6 → 4.9 °C. **The controller trims pump speed to hold an evaporator ΔT** (`P53` sets the floor at 40%), with glycol viscosity rising as the water cools pushing the same way. **The narrow 0.96–1.03 band was an artefact of reading only the ramp-down segment**, where Hz and flow happened to fall together; read the ramp-*up* and the ratio reaches **3.78**, because at 14–35 Hz the pump is already at full 52.9 L/min while the compressor spools.

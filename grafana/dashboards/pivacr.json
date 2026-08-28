@@ -173,7 +173,7 @@
               },
               {
                 "id": "displayName",
-                "value": "Chiller return water"
+                "value": "Chiller inlet"
               }
             ]
           },
@@ -192,7 +192,7 @@
               },
               {
                 "id": "displayName",
-                "value": "Chiller supply water"
+                "value": "Chiller outlet"
               }
             ]
           }
