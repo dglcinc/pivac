@@ -105,6 +105,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | ~~pivac-watermeter~~ (STOPPED + DISABLED 2026-06-27) | pivac.WaterMeter | Sensus iPerl LCD (Tapo RTSP) — camera-CV retired, ESP32-CAM TBD | 10.0.0.85 |
 | pivac-sprinkler         | pivac.Sprinkler         | OpenSprinkler irrigation flow (local API)  | 10.0.0.17:5000 |
 | pivac-domestic-water    | pivac.DomesticWater     | **Domestic** water meter (DAE MJ-75a, 0.1 gal/pulse) on UNO R4 WiFi | 10.0.0.188 |
+| pivac-chiltrix          | pivac.ChiltrixModbus    | **Chiltrix CX75** heat pump, all 45 Modbus registers | RS-485 → UNO R4 on USB |
 
 > **⚠️ The two Arduino module/delta names are inverted vs their physical roles — legacy, do NOT rename** (InfluxDB already holds history under these measurement names; renaming would orphan it). Verified 2026-06-01 against the WilhelmSK gauge wiring and the boards' WiFi MACs:
 >
@@ -284,8 +285,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -n 50 --no-pager
 ```
 
 If systemd service or timer files were changed:
@@ -296,7 +297,7 @@ sudo systemctl daemon-reload
 
 **Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water signalk influxdb nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix signalk influxdb nginx
 ```
 Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
@@ -348,7 +349,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now arduino-watchdog.tim
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -411,7 +412,7 @@ journalctl -u signalk -n 50 --no-pager
 >
 > **Sketches live in `~/github/Arduino`** (`ChiltrixModbus`, `ChiltrixScan`, `RS485Blast`), on branch `feat/chiltrix-modbus`, PR dglcinc/Arduino#10. All are **read-only — function 03, never 6 or 16** — even though 140–146 are writable and include the cooling target and the on/off switch. Modbus RTU needs **≥3.5 character times of silence between frames** (~4 ms at 9600); `readOne()` owns that gap, and without it roughly 40% of back-to-back transactions time out.
 >
-> **The Arduino runs on the Pi's USB**, `/dev/ttyACM0`, serial `E8F60AA93AA8`, vendor 2341. `vcgencmd get_throttled` stays `0x0` with it attached, so the Pi's USB budget carries an UNO R4 plus RS-485 shield comfortably. **⚠️ A charge-only USB cable is the failure to check first** — the board powers up and its LEDs light, but `cdc_acm` never loads and nothing appears on the bus. **`chiltrix-logger.service`** (enabled, `Restart=always`) appends timestamped rows to `~/chiltrix/chiltrix_log.tsv`; `python3 ~/chiltrix/tally_log.py [since]` prints link quality split by compressor state plus running flow, current and frequency. It is temporary and is replaced by the eventual `pivac.ChiltrixModbus` module.
+> **The Arduino runs on the Pi's USB**, `/dev/ttyACM0`, serial `E8F60AA93AA8`, vendor 2341. `vcgencmd get_throttled` stays `0x0` with it attached, so the Pi's USB budget carries an UNO R4 plus RS-485 shield comfortably. **⚠️ A charge-only USB cable is the failure to check first** — the board powers up and its LEDs light, but `cdc_acm` never loads and nothing appears on the bus. **`chiltrix-logger.service` is RETIRED — stopped and disabled 2026-08-28, superseded by `pivac.ChiltrixModbus`.** Its TSV at `~/chiltrix/chiltrix_log.tsv` stays on disk as history (26–28 Aug, 6 columns) and `python3 ~/chiltrix/tally_log.py [since]` still reads it. **The serial port is exclusive**, so the two cannot both run — `pivac-chiltrix.service` declares `Conflicts=chiltrix-logger.service`. Everything the logger captured now lands in InfluxDB under `hvac.chiller.chiltrix.*` at full width. **All 45 registers that answer are published, including the static `P`-parameters, deliberately**: `53`=`P53` pump min speed 40%, `59`=`P59` antifreeze 3 °C, `65`=`P65`, `109`=`P109` all read back at address = parameter number, so **the whole `P00`–`P119` table is reachable over Modbus**. A setting changed on the panel is exactly what later explains a behaviour change, and nothing else in this system records one. **⚠️ `65` reads 14, not the 20 L/min this file records for the `P65` low-flow trip** — confirm against the panel before treating any flow number as near or far from the `P5` trip.
 >
 > **⚠️ Opening the port does NOT reset an UNO R4, and that breaks the naive logger sequence.** The board's uptime counter survives repeated host connects (measured across 19.7 h), so a previous session can leave the sketch still in `watch`. A running watch consumes **exactly one character** to stop, so a client that opens and immediately writes `w 281 205 …` has its leading `w` eaten as the stop character and the remainder discarded as junk — the board then sits silent at its prompt. `chiltrix-logger` did this and **ran `active` for 18 hours having written zero rows**, with nothing in its journal, because its read loop had no timeout. `logger.py` now **quiesces the board to its prompt first** (nudge with a newline, wait for the stream to go quiet, drain, then send the command) and **raises if no row arrives in 60 s** so the outer loop reopens. Backup at `~/chiltrix/logger.py.bak-20260827`. Any future serial client to this sketch needs the same two properties.
 >
@@ -476,6 +477,7 @@ journalctl -u signalk -n 50 --no-pager
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>`. **Channels sharing a circuit name are summed** — the house panel's 240 V circuits use one CT per leg (ch 1+2 utility_sub_panel, 3+4 hall_subpanel, 5+6 wall_oven, 7+8 bosch_bova), so per-channel emission would halve them (see Known Operational Behaviours). |
 | `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — reads display via 7-segment CV, emits boiler state to `hvac.boiler.sentry.*` |
 | `WaterMeter` | Sensus iPerl water-meter **LCD** via Tapo RTSP camera (`10.0.0.85`) — reads the cumulative gallons totalizer via perspective-warp + **whole-glyph template matching** (NOT segment thresholding — a reflective LCD's "off" segments aren't black). Emits `environment.water.domestic.consumption` (gal) + `.flowing`. See `docs/water-meter-camera-monitoring-plan.md`. |
+| `ChiltrixModbus` | Chiltrix CX75 over RS-485 Modbus RTU (A3/B3, 9600 8N1, slave 1, function 03), bridged by an UNO R4 on USB running the `ChiltrixScan` sketch. **Read only — function 03, never 6 or 16**, though 140–146 are writable. Drives the sketch's `s <from> <to>` range-read rather than its `watch`, which caps at 6 registers. Publishes **all 45 registers that answer**: 13 confirmed ones under named paths (`hvac.chiller.chiltrix.*`, temperatures in **Kelvin**), the rest under `.raw.r<addr>`. Also emits `.evaporatorDelta`, `.runDuration` and `.startupFlow`. ~6.8 s per cycle at `daemon_sleep: 30`. |
 | `Sprinkler` | OpenSprinkler irrigation flow via the local HTTP API (`10.0.0.17:5000`) — polls `/jc`, computes `(flcrt/flwrt)*fpr*60*flow_scale`, emits `environment.water.irrigation.flowRate` (gal/min) + `.active`. Auth = **md5(device password)** in config `password_md5` (Pi-only secret). Overlaid on the domestic flow panels (Grafana). |
 
 ## pivac.Sentry Module
