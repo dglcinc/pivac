@@ -1,0 +1,572 @@
+apiVersion: 1
+
+# Chiltrix CX75 water-side fouling and health alerts. Source = the RS-485 Modbus link
+# on A3/B3 (9600 8N1, slave 1, function 03) read by the planned pivac.ChiltrixModbus
+# module -> Signal K -> InfluxDB (hvac.chiller.chiltrix.*). Routes to the same
+# graph-bridge contact point as every other pivac rule.
+#
+# ⚠️ SHIPPED PAUSED. None of these metrics exist yet — pivac.ChiltrixModbus is not
+# written. A rule on a metric that has never existed emails on EVERY evaluation under
+# noDataState: Alerting, so every rule below carries isPaused: true. Unpause after the
+# module publishes and the paths are visible in InfluxDB, then redeploy, restart
+# grafana-server, and verify against the alert_rule table (see CLAUDE.md).
+#
+# ---------------------------------------------------------------------------
+# WHY THESE SIGNALS AND NOT THE OBVIOUS ONES
+#
+# Two plausible fouling signals were tested against 23.5 h of logged registers
+# (2026-08-27 15:45 -> 2026-08-28 17:48, covering a clean period and a live
+# restriction event) and BOTH were rejected:
+#
+#   Raw flow, or flow / Hz.  At a pinned 55 Hz the flow spans 42.5-52.9 L/min and
+#   correlates +0.96 with outlet water temperature: the controller trims pump speed
+#   to hold an evaporator dT (P53 floor 40%). The ratio is not load-independent —
+#   it reaches 3.78 on the ramp-up, where the pump is already at full flow while the
+#   compressor spools.
+#
+#   Inlet water (281) against the cooling target (142), meaned over hours.  The 6 h
+#   rolling mean of inlet sat at 48.6-49.9 F across BOTH the clean and the degraded
+#   period — a 1.3 F spread with no separation at all. The mean is dominated by the
+#   idle rise between cycles, which the restart hysteresis bounds regardless of
+#   restriction. End-of-cycle inlet fails for a related reason: during the event the
+#   unit still reached its 44.6 F stop point, it just took 354 minutes to get there.
+#
+# What DID separate cleanly, measured across the same event:
+#
+#   pumpOnlyFlow    52.9 -> 24.1 L/min   (fixed pump speed, compressor off)
+#   flow at 25-27Hz 45-50 -> 17-19 L/min (matched compressor speed)
+#   run duration    9-22 min -> 354 min  (single continuous run)
+#
+# The pump-only window is the key measurement: with the compressor off before a start
+# the pump runs at a fixed speed and cannot be modulated, so that flow reads hydraulic
+# resistance directly. It is the Modbus equivalent of reading C13 on the panel in the
+# pump-only window, which CLAUDE.md already documents as the manual check.
+#
+# ---------------------------------------------------------------------------
+# REQUIRED DERIVED PATHS (pivac.ChiltrixModbus must compute these Pi-side)
+#
+#   hvac.chiller.chiltrix.pumpOnlyFlow   L/min. Register 213 sampled only while
+#       register 227 (Hz) == 0 AND flow is above an idle floor (~15 L/min) — i.e. the
+#       pre-start / post-stop window. HELD at its last reading between windows, so a
+#       long continuous run leaves the last good value standing rather than going
+#       stale. Deep idle (~3-7 L/min, pump nearly stopped per P52) must be excluded
+#       or it will read as a total restriction.
+#   hvac.chiller.chiltrix.runDuration    Seconds of the current compressor run
+#       (227 > 0). Holds the last run's duration while stopped.
+#
+# Both follow the pivac.DomesticWater .runVolume / .runDuration precedent: snapshot
+# on a state edge, compute in the daemon, hold while idle.
+#
+# Raw paths the rules also use: .waterFlow (213, L/min), .compressorHz (227),
+# .inletTemp (281, KELVIN — so the staleness sentinel is "< 100", as for 1-wire).
+#
+# ---------------------------------------------------------------------------
+# THRESHOLDS ARE PROVISIONAL. They rest on ~19 h of clean baseline and one
+# degradation event. Re-tune once a few weeks of clean cooling season accumulate,
+# especially the 40 L/min pump-only floor.
+#
+# To retire a rule from this file later, add a top-level deleteRules: block naming
+# its uid — provisioning is ADDITIVE and deleting a rule from the group does NOT
+# remove it from Grafana (see CLAUDE.md).
+groups:
+  - orgId: 1
+    name: chiltrix
+    folder: pivac
+    interval: 1m
+    rules:
+      # ---- Pump-only flow low: the primary fouling signal ----
+      # Clean 52.9 L/min, degraded 24.1. Fires at 40, which is 24% below clean and
+      # twice the P65 = 20 L/min P5 trip, so it warns hours-to-days ahead of a trip.
+      # 'last' rather than 'mean' because the value is held between pump-only windows.
+      - uid: chiltrix-pump-only-flow-low
+        title: Chiltrix pump-only flow low (water-side restriction)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.pumpOnlyFlow
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 40
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 30m
+        annotations:
+          summary: "Chiltrix pump-only flow has fallen below 40 L/min — water-side restriction, check the Y-strainer"
+          runbook: |
+            hvac.chiller.chiltrix.pumpOnlyFlow is register 213 read while the compressor
+            is off and the pump is at its fixed pre-start speed, so it measures hydraulic
+            resistance with no pump modulation to confound it. Clean baseline is
+            52.9 L/min. It fell to 24.1 during the 2026-08-28 event, six days after the
+            strainer was last cleaned.
+
+            The Y-strainer is the first suspect: it fouls with calcium-looking scale that
+            migrates from the boiler side of the shared four-pipe loop, and it did exactly
+            this on 2026-08-22 (P5 alarms, C13 over 54 L/min after cleaning). A partly
+            closed isolation valve or an air lock reads the same way.
+
+            1. Confirm on the panel: C13 is the live flow readout. Read it in the 1-2
+               minute pump-only window at the start of a run — C13 reads 0 at idle and
+               that is normal.
+            2. Pull and clean the Y-strainer screen. Expect pumpOnlyFlow to return to
+               ~52 L/min; if it does not, the restriction is elsewhere.
+            3. Do NOT open the autofill to recover pressure. This is a glycol loop —
+               plain water carries in the calcium and oxygen that caused the fouling,
+               dilutes the glycol silently, and hides leaks. Top up manually with
+               premixed glycol to the 21-23 psi the loop normally holds, then vent.
+            4. Permanent fix is a hydronic dirt separator with a blowdown valve. A finer
+               in-line filter clogs faster than the Y does.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Compressor run duration excessive ----
+      # Clean runs are 9-22 min. The restriction event produced one 354-minute run.
+      # 90 min is 4x the clean maximum, so a hot-day long run will not trip it.
+      - uid: chiltrix-run-duration-excessive
+        title: Chiltrix compressor running over 90 minutes without stopping
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.runDuration
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: max
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 7200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5400
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: "Chiltrix has run over 90 minutes without stopping — it is not reaching its return-water target"
+          runbook: |
+            Clean cycles are 9-22 minutes, ending when inlet water reaches ~44.6 F. A run
+            this long means the chiller cannot pull the loop down. This is the signal that
+            actually caught the 2026-08-28 restriction: the unit still reached its stop
+            point, it just took 354 minutes instead of 11.
+
+            Restriction and genuine overload look different in the registers:
+              restriction — compressor part-loaded (227 around 25-30 Hz) while flow (213)
+                            is low and the evaporator dT is wide (9-10 F against a clean
+                            5 F). Check chiltrix-pump-only-flow-low, then the strainer.
+              overload    — compressor near maximum (227 at 55-60 Hz) with normal flow and
+                            a normal dT. That is a hot day plus a large zone call, not a
+                            fault.
+            Also check that the loop is not simply making up a large heat gain: compare
+            against environment.outside.thermostat.temperature and the zone calls on
+            electrical.ac.switch.utility.CHIL.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Approaching the P5 low-flow trip, while running ----
+      # A = flow, B = mean over 20m; D = compressor Hz, E = mean over 20m.
+      # The Hz gate is essential: at idle the pump nearly stops (~3-7 L/min per P52),
+      # so an ungated flow threshold would fire continuously whenever the unit is off.
+      # Uses raw registers only — no derived paths — so it works from day one.
+      - uid: chiltrix-flow-approaching-trip
+        title: Chiltrix water flow approaching the P5 low-flow trip
+        condition: G
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.waterFlow
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.compressorHz
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: D
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: D
+              reducer: mean
+              settings:
+                mode: replaceNN
+                replaceWithValue: 0
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B < 24) && ($E > 5)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 1200
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: F
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - G
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 15m
+        annotations:
+          summary: "Chiltrix water flow has averaged under 24 L/min while the compressor is running — close to the 20 L/min P5 trip"
+          runbook: |
+            Register 213 has averaged below 24 L/min over 20 minutes with the compressor
+            running (227 > 5 Hz). P65 sets the P5 "indoor unit water flow error" trip at
+            20 L/min on a CX65/CX75, so this is the last warning before the unit starts
+            alarming and resetting. "Indoor unit" is a misnomer inherited from split-system
+            firmware — on a monobloc it is the water side of the plate exchanger.
+
+            Removing ~30,000 BTU/hr at the design 9 F dT needs ~25 L/min, so the margin
+            here is thin by design: losing a fifth of the flow crosses the trip at full
+            output while part load keeps running. An isolated early P5 followed later by a
+            cluster is a fouling curve.
+
+            Act on chiltrix-pump-only-flow-low's runbook — clean the strainer. If the
+            screen is clean, check for a closed isolation valve, an air lock, and the loop
+            pressure (normal 21-23 psi; it has touched 27.1, and the relief is 30).
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Freshness: the Modbus link or the module stopped ----
+      # inletTemp is Kelvin, so "< 100" is never true while data flows — detection is
+      # purely noDataState: Alerting, the same sentinel the 1-wire rules use.
+      - uid: chiltrix-modbus-stale
+        title: Chiltrix Modbus stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.inletTemp
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Chiltrix Modbus has not published for >30m (hvac.chiller.chiltrix.inletTemp)"
+          runbook: |
+            The RS-485 link or pivac.ChiltrixModbus has stopped. The chiller keeps running
+            — this is monitoring loss, not a plant fault.
+            1. `journalctl -u pivac-chiltrix -n 50 --no-pager`.
+            2. `ls -l /dev/ttyACM0` — an UNO R4 that has dropped off USB takes the link
+               with it. A charge-only USB cable is the failure to check first: the board
+               powers up and its LEDs light, but cdc_acm never loads.
+            3. Link quality baseline is 0.026% failed reads (all TMO, zero CRC) measured
+               over 192,525 reads. If losses return, check the cable shield drain is still
+               grounded at the Arduino end ONLY — floating it at both ends cost 65% of
+               frames while the compressor ran, and 0% at idle. Measure under load; link
+               quality measured at idle is meaningless.
+            4. Diagnose with the failure code, not the symptom: TMO means nothing arrived,
+               CRC/E0/E1 means bytes arrived corrupted. They point at opposite causes.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: true
+        notification_settings:
+          receiver: graph-bridge

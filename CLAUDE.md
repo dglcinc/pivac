@@ -232,6 +232,13 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - `sentry-cycle-stale` (warning) — 30m staleness on `hvac.boiler.sentry.gasInputValue`, which is emitted **every** cycle (idle-fills to 0), so it stops only if the service/camera/RTSP died. Pairs with the rule above: **both firing = reader dead; only waterTemp firing = the CV can no longer read the digits.** That distinction is readable straight from the email, without logging in.
   - `sentry-outdoor-divergence` (info) — `hvac.boiler.sentry.outdoorTemp` (°F) vs `environment.outside.temperature` (K, converted in a math node) differing >10 °F for 2h. The **only** rule that can catch a CV emitting *fresh but wrong* values — the mode that hid the 2026-07-28 drift for 12 days. Threshold/duration are deliberately loose (the two sensors sit apart and see different sun; baseline divergence ≈1–4 °F). `noDataState: OK`.
 
+- `grafana/provisioning/alerting/chiltrix.yaml` — Chiltrix CX75 water-side fouling alerts, group `chiltrix`, all routing to `graph-bridge` (added 2026-08-28). **Shipped `isPaused: true`** — `pivac.ChiltrixModbus` is not written, and a rule on a never-existing metric emails on every evaluation. Temperatures are **Kelvin**, so the staleness sentinel is `< 100`. **Two obvious signals were tested against 23.5 h of logged registers and rejected**, which is why the rules look indirect: raw flow (and `flow ÷ Hz`) tracks compressor speed and the controller's pump trimming; and **inlet water against the cooling target, meaned over hours, does not separate at all** — the 6 h mean sat at 48.6–49.9 °F across both a clean period and a live restriction, because the idle rise between cycles dominates it and the restart hysteresis bounds that regardless of restriction. End-of-cycle inlet fails for a related reason: during the 2026-08-28 event the unit still reached its 44.6 °F stop point, it just took **354 minutes instead of 11**.
+  - `chiltrix-pump-only-flow-low` (warning) — the primary signal. `pumpOnlyFlow` below **40 L/min** for 30m. With the compressor off before a start the pump runs at a fixed speed and cannot be modulated, so that flow reads hydraulic resistance directly — the Modbus equivalent of reading `C13` in the pump-only window. Measured **52.9 L/min clean → 24.1 degraded**.
+  - `chiltrix-run-duration-excessive` (warning) — `runDuration` over **90 min** (clean runs are 9–22). The runbook separates restriction (part-loaded at 25–30 Hz with low flow and a 9–10 °F ΔT against a clean 5 °F) from genuine overload (55–60 Hz, normal flow, normal ΔT).
+  - `chiltrix-flow-approaching-trip` (warning) — raw registers only, so it works before the derived paths exist: `waterFlow` under **24 L/min** averaged over 20m **while `compressorHz > 5`**. The Hz gate is essential — the pump nearly stops at idle (~3–7 L/min per `P52`), so an ungated threshold fires whenever the unit is off. `P65` puts the `P5` trip at 20 L/min.
+  - `chiltrix-modbus-stale` (warning) — 30m freshness on `hvac.chiller.chiltrix.inletTemp`.
+  - **Two derived paths `pivac.ChiltrixModbus` must publish**, following the `pivac.DomesticWater` `.runVolume` precedent (snapshot on a state edge, compute in the daemon, hold while idle): **`hvac.chiller.chiltrix.pumpOnlyFlow`** (register 213 sampled only while `227 == 0` and flow is above a ~15 L/min idle floor, held between windows) and **`hvac.chiller.chiltrix.runDuration`** (seconds of the current run, holding the last run's duration while stopped). Excluding deep idle from `pumpOnlyFlow` is not optional — the pump nearly stops, and those samples would read as a total restriction.
+
 **Test the bridge end-to-end:**
 ```bash
 curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json' \
@@ -257,8 +264,8 @@ sudo cp ~/github/pivac/scripts/systemd/grafana-graph-bridge.service /etc/systemd
 sudo systemctl daemon-reload && sudo systemctl restart grafana-graph-bridge
 # provisioning YAMLs (Grafana copies, not symlinks — must restart to pick up changes):
 sudo cp ~/github/pivac/grafana/provisioning/alerting/*.yaml /etc/grafana/provisioning/alerting/
-sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler}.yaml
-sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler}.yaml
+sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler,chiltrix}.yaml
+sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler,chiltrix}.yaml
 sudo systemctl restart grafana-server
 ```
 
