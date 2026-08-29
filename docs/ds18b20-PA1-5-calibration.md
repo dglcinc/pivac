@@ -55,6 +55,14 @@ offset by −0.10 and changes no slope, no pair correction and no ΔT.
 0.9941/0.9939, PA2 at 1.0016/1.0009 — so the PA1 pair correction moves 0.013 °F between 45 and
 140 °F and PA2's moves 0.101 °F, against loop deltas of 2–20 °F.
 
+**Take each probe's offset from the column matching its operating temperature.** That is the whole
+point of measuring a slope, and the columns above differ by more than the correction itself. In
+service today: UBT/LBT keep ice-point values because the buffer tank is chilled-only; LOOPA/LOOPB
+use the 45 °F column; **the DHW recirc probe uses 120 °F, where its offset is +0.274 K** — not the
++0.348 in the 45 °F column, since that loop runs 75 degrees warmer than the chilled one. That value
+is already set on the `0316a015e7ff` entry in the Pi's `config.yml`, inert until the probe joins the
+1-wire bus. A spare has no operating point until it is sited, so pick its column then.
+
 **IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22, worth under 0.04 K at
 45 °F. **UBT and LBT need nothing further: the buffer tank runs chilled only**, so an ice-point
 calibration sits 13 degrees from its one operating point and is the right calibration rather than a
