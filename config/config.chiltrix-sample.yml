@@ -12,9 +12,9 @@
 #   ls -l /dev/serial/by-id/
 # The board's serial is E8F60AA93AA8, vendor 2341.
 #
-# daemon_sleep 30 gives a comfortable margin: 11 range commands cost roughly
-# 8 s of bus and serial time per cycle.
+# daemon_sleep 60 gives a comfortable margin: 8 range commands over 181 addresses
+# cost roughly 14 s of bus and serial time per cycle.
 pivac.ChiltrixModbus:
   port: /dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_E8F60AA93AA8-if01
   baud: 115200
-  daemon_sleep: 30
+  daemon_sleep: 60
