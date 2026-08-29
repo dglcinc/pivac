@@ -564,7 +564,6 @@
           },
           "custom": {
             "axisBorderShow": false,
-            "axisCenteredZero": true,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
@@ -594,7 +593,9 @@
             "thresholdsStyle": {
               "mode": "off"
             },
-            "axisWidth": 50
+            "axisWidth": 50,
+            "axisSoftMin": -2,
+            "axisSoftMax": 8
           },
           "mappings": [],
           "thresholds": {
