@@ -4,48 +4,56 @@ Fourteen DS18B20 stainless probes, addressed, labelled, and ice-point calibrated
 (David's Mac, UNO R4 WiFi over USB, `arduino-cli`). Ten are the PA1–PA5 loop probes; four are
 older probes recovered from earlier service.
 
-## Two-point calibration (2026-08-29)
+## Multi-point calibration (2026-08-29)
 
-PA1, PA2 and the four recovered probes were measured at **two** bath points: an ice slush
-referenced at 32.10 °F, and a **sous vide circulator at 100.0 °F**, both read with the Thermapen
-held among the probe tips. Bath stability was 0.025 °F range over 14 minutes for the ice and
-0.011 °F over 9 minutes for the circulator, so neither run is limited by drift.
+PA1, PA2 and the four recovered probes were measured at **three** bath points: an ice slush
+referenced at 32.10 °F, and a sous vide circulator at **100.0** and **144.5 °F**, each read with the
+Thermapen held among the probe tips. Bath stability was 0.025 °F range over 14 minutes for the ice,
+0.011 °F over 9 minutes at 100, and 0.03 °F over 4 minutes at 144.5.
 
-`OneWireTherm` applies an offset but has no gain term, so the useful product of two points is not a
-fit to install — it is the ability to state the offset **at the temperature where the probe works**.
-The chilled loop runs near 45 °F, and that is the column deployed.
+`OneWireTherm` applies an offset but has no gain term, so the product of several points is not a fit
+to install — it is the ability to state the offset **at the temperature where the probe works**. The
+chilled loop runs near 45 °F, and that is the column deployed.
 
-| Label | slope | offset °F @32 | @45 | @100 | @140 | **offset K @45 (deployed)** |
+| Label | slope | @32 | @100 | @144.5 | **offset K @45 (deployed)** | offset K @140 |
 |---|---|---|---|---|---|---|
-| PA1A | 0.9954 | +1.223 | +1.163 | +0.908 | +0.728 | **+0.646** |
-| PA1B | 0.9955 | +0.904 | +0.845 | +0.594 | +0.423 | **+0.469** |
-| PA2A | 1.0049 | −0.196 | −0.133 | +0.137 | +0.334 | **−0.074** |
-| PA2B | 1.0039 | +0.238 | +0.287 | +0.499 | +0.653 | **+0.160** |
-| PA6A | 1.0015 | +0.291 | +0.310 | +0.390 | +0.448 | **+0.172** |
-| PA6B | 0.9977 | +0.660 | +0.630 | +0.502 | +0.410 | **+0.350** |
-| PA7A | 1.0009 | +0.100 | +0.111 | +0.160 | +0.195 | **+0.062** |
-| PA7B | 0.9943 | +0.891 | +0.816 | +0.500 | +0.270 | **+0.454** |
+| PA1A | 0.9941 | 30.872 | 99.086 | 143.949 | **+0.653** | +0.346 |
+| PA1B | 0.9939 | 31.200 | 99.402 | 144.309 | **+0.474** | +0.152 |
+| PA2A | 1.0016 | 32.293 | 99.867 | 144.540 | **−0.062** | +0.029 |
+| PA2B | 1.0009 | 31.859 | 99.501 | 144.193 | **+0.171** | +0.220 |
+| PA6A | 1.0004 | 31.782 | 99.610 | 144.140 | **+0.186** | +0.210 |
+| PA6B | 0.9982 | 31.440 | 99.500 | 144.035 | **+0.348** | +0.254 |
+| PA7A | 1.0020 | 32.000 | 99.840 | 144.159 | **+0.058** | +0.165 |
+| PA7B | 0.9950 | 31.209 | 99.500 | 144.170 | **+0.451** | +0.188 |
 
-**Every slope is within 0.5% of unity**, so the error is nearly constant and the single-point ice
-offsets were never far wrong — moving to the 45 °F value shifts each probe by at most 0.043 K.
+**Every slope is within 0.2% of unity**, so the error is nearly constant with temperature and the
+original single-point ice offsets were never far wrong — moving to the 45 °F value shifts each probe
+by at most 0.043 K.
 
-**⚠️ Do not calibrate a 45 °F probe at 100 °F.** Distance from the operating point dominates, not
-bath quality. Applying the `@100` offset at 45 °F costs up to **0.316 °F** (PA7B); applying the ice
-offset costs at most **0.043 °F**. The better-controlled bath gives the worse calibration here,
-because 45 °F is 13 degrees from the ice point and 55 from the circulator.
+**⚠️ Calibrate near the operating point; bath quality does not compensate for distance.** Applying
+the `@100` offset at 45 °F costs up to **0.316 °F** (PA7B) while the ice offset costs at most
+**0.043 °F**, because 45 °F is 13 degrees from the ice point and 55 from the circulator. The
+better-controlled bath gives the worse calibration.
 
-**⚠️ Heating season is a different operating point.** The loops run near **140 °F** in heating,
-where the correct offsets differ from the deployed 45 °F values by up to 0.3 K (0.55 °F on PA7B).
-Absolute readings carry that error; **pair ΔT does not**, because the two probes of a pair have
-nearly identical slopes — PA1 at 0.9954/0.9955 and PA2 at 1.0049/1.0039 — so the PA1 pair
-correction moves only 0.013 °F between 45 and 140 °F and PA2's moves 0.101 °F. The `@140` column
-is **extrapolated 40 degrees past the hot anchor** and should be treated as indicative; a third
-bath point would be needed to deploy it.
+**The third point earned its place in winter, not summer.** Against the two-point fit it moved every
+45 °F offset by ≤0.014 K, below the noise — but it moved the **140 °F** offsets by up to **0.157 K
+(0.28 °F on PA2A)**, because two points can only extrapolate 40 degrees past the last anchor. The
+`@140` column above is interpolated between real measurements and is the one to deploy in heating
+season.
 
-**A constant thermometer bias cancels from the slope.** Reading 32.00/99.90 instead of
-32.10/100.00 shifts every offset by −0.10 °F and changes no slope, no pair correction and no ΔT.
-The mean slope across the eight probes is 0.9993, which says the two references agree with each
-other on the 68 °F span to about 0.05 °F.
+**Linearity holds to 0.15 °F, and the departure is per-part rather than a bath error.** Residuals
+about the three-point line run 0.028–0.154 °F. A wrong anchor displaces one point identically for
+every probe and shows up as a common component; the mean residual across the eight is only −0.017,
++0.042, −0.025 °F, five times smaller than the per-probe values, and **the sign differs between
+probes** — PA1, PA2 and PA6A bow one way, PA6B, PA7A and PA7B the other. That is part-specific
+curvature, at 0.08 °C well inside the ±0.5 °C spec.
+
+**A constant thermometer bias cancels from the slope.** Reading every bath 0.10 °F low shifts every
+offset by −0.10 and changes no slope, no pair correction and no ΔT.
+
+**Pair ΔT is insensitive to all of this.** Paired probes have near-identical slopes — PA1 at
+0.9941/0.9939, PA2 at 1.0016/1.0009 — so the PA1 pair correction moves 0.013 °F between 45 and
+140 °F and PA2's moves 0.101 °F, against loop deltas of 2–20 °F.
 
 **IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22. At 45 °F that is worth
 under 0.04 K, so redoing them is optional.
@@ -61,6 +69,10 @@ under 0.04 K, so redoing them is optional.
 - Calibration bath: circulating ice-water slush, packed with ice, stirred. Reference = Fluke
   Thermapen ONE held co-located with the bundled probes during the logging window.
 - Offsets are the mean of a stable window: per-probe SD 0.009–0.060 °F, bath flat within ±0.02 °F.
+- **⚠️ A log can span a setpoint change.** `soak-hot.csv` kept recording while the circulator was
+  raised from 100 to 144.5 °F, so its tail is a ramp, not a plateau. Select the last window whose
+  halves agree rather than simply the last window; taking the tail put a +1.6 °F drift into the
+  100 °F mean.
 - **⚠️ Filter the sentinel values before taking any mean.** DallasTemperature returns −127 °C
   (−196.6 °F) for a device that vanished mid-read, and a DS18B20 returns 85.0 °C (185 °F) when a
   conversion never completed. **One −196.6 row, logged as a probe was unplugged while its ROM was
@@ -72,7 +84,7 @@ sensor-to-sensor variation.
 
 ## Ice-point offsets
 
-Reference 32.10 °F for the 2026-08-29 window, 32.05 °F for 2026-08-22.
+Reference 32.10 °F for the 2026-08-29 ice window, 32.05 °F for 2026-08-22.
 
 | Label | ROM (printed) | w1 name | mean °F | offset °F (add) | offset K (add) | measured |
 |---|---|---|---|---|---|---|
