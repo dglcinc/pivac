@@ -22,24 +22,24 @@ sensor-to-sensor variation.
 
 ## Ice-point offsets
 
-Reference 32.00 °F for the 2026-08-29 window, 32.05 °F for 2026-08-22.
+Reference 32.10 °F for the 2026-08-29 window, 32.05 °F for 2026-08-22.
 
 | Label | ROM (printed) | w1 name | mean °F | offset °F (add) | offset K (add) | measured |
 |---|---|---|---|---|---|---|
-| PA1A | `28900CCC000000A5` | `28-000000cc0c90` | 30.878 | +1.122 | +0.623 | 2026-08-29 |
-| PA1B | `28569BC9000000EF` | `28-000000c99b56` | 31.195 | +0.805 | +0.447 | 2026-08-29 |
-| PA2A | `28A9C01A000000D5` | `28-0000001ac0a9` | 32.278 | −0.278 | −0.154 | 2026-08-29 |
-| PA2B | `2854911A000000B5` | `28-0000001a9154` | 31.862 | +0.138 | +0.077 | 2026-08-29 |
+| PA1A | `28900CCC000000A5` | `28-000000cc0c90` | 30.879 | +1.221 | +0.678 | 2026-08-29 |
+| PA1B | `28569BC9000000EF` | `28-000000c99b56` | 31.197 | +0.903 | +0.502 | 2026-08-29 |
+| PA2A | `28A9C01A000000D5` | `28-0000001ac0a9` | 32.286 | −0.186 | −0.103 | 2026-08-29 |
+| PA2B | `2854911A000000B5` | `28-0000001a9154` | 31.866 | +0.234 | +0.130 | 2026-08-29 |
 | PA3A | `2879E8C90000005E` | `28-000000c9e879` | 31.424 | +0.626 | +0.348 | 2026-08-22 |
 | PA3B | `28C115C9000000B2` | `28-000000c915c1` | 31.212 | +0.838 | +0.466 | 2026-08-22 |
 | PA4A | `28148BC900000088` | `28-000000c98b14` | 31.208 | +0.842 | +0.468 | 2026-08-22 |
 | PA4B | `28A8A01A000000F3` | `28-0000001aa0a8` | 31.792 | +0.258 | +0.143 | 2026-08-22 |
 | PA5A | `28286ECB00000017` | `28-000000cb6e28` | 31.474 | +0.576 | +0.320 | 2026-08-22 |
 | PA5B | `28DA8C1A000000DC` | `28-0000001a8cda` | 31.889 | +0.161 | +0.089 | 2026-08-22 |
-| CRW | `28FF040FA016039F` | `28-0316a00f04ff` | 31.818 | +0.182 | +0.101 | 2026-08-29 |
-| AMB | `28FF1668A316054F` | `28-0516a36816ff` | 31.207 | +0.793 | +0.441 | 2026-08-29 |
-| OUT | `28FFD865A3160552` | `28-0516a365d8ff` | 32.000 | +0.000 | +0.000 | 2026-08-29 |
-| DHW recirc | `28FFE715A0160328` | `28-0316a015e7ff` | 31.440 | +0.560 | +0.311 | 2026-08-29 |
+| CRW | `28FF040FA016039F` | `28-0316a00f04ff` | 31.825 | +0.275 | +0.153 | 2026-08-29 |
+| AMB | `28FF1668A316054F` | `28-0516a36816ff` | 31.208 | +0.892 | +0.496 | 2026-08-29 |
+| OUT | `28FFD865A3160552` | `28-0516a365d8ff` | 32.000 | +0.100 | +0.056 | 2026-08-29 |
+| DHW recirc | `28FFE715A0160328` | `28-0316a015e7ff` | 31.440 | +0.660 | +0.367 | 2026-08-29 |
 
 The last four are the probes that served as CRW, the outdoor ambient, and OUT before the PA batch
 replaced them, plus the DHW recirc probe on the Arduino at 10.0.0.114. They carry `FF` in their
@@ -54,24 +54,29 @@ For a pair reading ΔT = T_A − T_B, the corrected ΔT adds `(offset_A − offs
 
 | Pair | offset_A − offset_B (°F) | (K) | measured |
 |---|---|---|---|
-| PA1 | +0.318 | +0.177 | 2026-08-29 |
-| PA2 | −0.415 | −0.231 | 2026-08-29 |
+| PA1 | +0.319 | +0.177 | 2026-08-29 |
+| PA2 | −0.423 | −0.235 | 2026-08-29 |
 | PA3 | −0.212 | −0.118 | 2026-08-22 |
 | PA4 | +0.583 | +0.324 | 2026-08-22 |
 | PA5 | +0.415 | +0.231 | 2026-08-22 |
 
 ## Reproducibility
 
-PA1 and PA2 were measured twice, a week apart, in independently made baths. Absolute offsets agree
-to −0.011…+0.063 °F (mean +0.038); the PA1 pair difference agrees to 0.020 °F.
+PA1 and PA2 were measured twice, a week apart, in independently made baths. **The two runs'
+absolute offsets differ by +0.087…+0.162 °F, mean +0.134** — a nearly uniform shift across all four
+probes, which is the signature of the two baths' reference readings disagreeing rather than of four
+sensors drifting together. The anchors were 32.05 and 32.10 °F, and a Thermapen ONE is specified to
+±0.5 °F, so a disagreement of this size is well inside the reference's own accuracy. **Absolute
+offsets inherit that accuracy and should be read as ±0.5 °F figures.**
 
-**The PA2 pair difference agrees only to 0.066 °F**, outside the ±0.05 °F the other pairs hold, and
+The pair differences, which cancel any shared bath or reference error, are what reproduce: PA1
+agrees to 0.021 °F.
+
+**The PA2 pair difference agrees only to 0.058 °F**, outside the ±0.05 °F the other pairs hold, and
 PA2A is also the noisiest probe in the set at SD 0.060. PA2A is one of the two probes that came off
 the wall thermally decoupled, so it has been handled since its first calibration. Take a second
 window on that pair before relying on its ΔT correction.
 
-A shared bath error moves every probe together and cancels out of a pair difference, which is why
-the pair numbers are the trustworthy ones and the absolute offsets inherit the reference's accuracy.
 
 ## Caveats and next steps
 
