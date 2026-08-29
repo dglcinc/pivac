@@ -103,19 +103,27 @@ The panel's 24 V is **AC**, from the same transformer that energises the relay c
 decides the supply question. The LTV-847's LED reverse-breaks down near 5–6 V, so 24 VAC puts
 about 34 V peak across it on every negative half-cycle and a bare quad optocoupler fails quickly.
 
-**A small DIN-rail 24 VDC supply for the sense loop is the better answer.** It gives DC natively,
-keeps the 4.7 kΩ at 1/4 W and 4.85 mA, and it decouples monitoring from control power. That last
-point is the real argument: if the control transformer fails, the relays drop out *and* the board
-loses the ability to report that they have, so every channel reads inactive — indistinguishable
-from a genuinely idle system. On a separate supply the Pi still tells the truth when control power
-is gone.
+**Rectify the existing 24 VAC at the board.** One bridge rectifier and one smoothing capacitor at
+the 24 V input serve all twelve channels — two passive components on the same perfboard as the
+optocouplers, claiming no DIN slot and adding no device that can fail. Rectified 24 VAC smooths to
+roughly 32.5 V, so keep 4.7 kΩ but specify it **1/2 W**: it then passes 6.7 mA and dissipates
+0.21 W, and the extra current is useful wetting current.
 
-**Without a new supply, one bridge rectifier and a smoothing capacitor at the board's 24 V input**
-serve all twelve channels. Rectified 24 VAC smooths to roughly 32.5 V, so keep 4.7 kΩ but specify
-it **1/2 W**: it then passes 6.7 mA and dissipates 0.21 W, and the extra current is useful wetting
-current. Do not fit per-channel AC-input optocouplers instead. They chop at line frequency and
-`pivac.GPIO` samples instantaneously, so without an RC filter on every channel the reads are
-random.
+The capacitor is not optional. Unsmoothed, the LEDs go dark near each zero crossing and
+`pivac.GPIO` samples instantaneously, so channels would read inactive at random. Size it for all
+twelve channels closed — 80 mA held through a ~2 ms trough within 5 V of ripple wants about 32 µF,
+so **100 µF at 50 V** is comfortable.
+
+Do not fit per-channel AC-input optocouplers instead. They chop at line frequency, which puts the
+same sampling problem back on every channel and needs an RC filter on each to fix.
+
+**A separate DIN-rail 24 VDC supply is the alternative**, and it buys one thing: it decouples
+monitoring from control power. Sharing the coil transformer means a control-power failure also
+removes the ability to report it — every channel reads inactive, indistinguishable from an idle
+system. That ambiguity is narrow in practice, because the boiler and chiller stop running, loop
+temperatures drift, and `CHIL` never asserts on a hot day, all of which are already alerted on. The
+load is 58 mA, about 1.4 W, so any supply is oversized; on a regulated 24.0 V the resistor goes
+back to 4.7 kΩ at 1/4 W and 4.85 mA.
 
 **Feed 24 V once, at the board.** The resistor and the LED are board-mounted, so no supply
 conductor goes out to the relays. Field wiring keeps the topology it already has: one conductor per
@@ -142,13 +150,16 @@ chassis or to Pi ground now does nothing at all, which is the entire point of th
 | Optocoupler | **LTV-847** (or PC847), quad, DIP-16 | 3 packages cover 12 channels. Through-hole, suits perfboard. `LTV-817`/`PC817` DIP-4 if singles are preferred. |
 | LED resistor | 4.7 kΩ, 1/4 W, 1% metal film | one per channel |
 | Optional filter | 100 nF ceramic, GPIO to Pi GND | noise and contact bounce |
+| Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | one, at the 24 V input — see §3.1 |
+| Smoothing capacitor | **100 µF, 50 V** radial electrolytic, 105 °C | one, across the rectified feed |
 
 Channel-to-channel isolation inside the quad package is absent, which is fine here because every
 channel already shares the same 24 V common. Only the field-to-Pi barrier matters.
 
 Sizing, at 24 VDC with an LED forward drop near 1.2 V:
 
-- 4.7 kΩ → **4.85 mA**, dissipating 0.11 W, comfortable in a 1/4 W part.
+- On rectified 24 VAC (~32.5 V), 4.7 kΩ → **6.7 mA**, dissipating 0.21 W, so a **1/2 W** part.
+- On a regulated 24 VDC supply, 4.7 kΩ → **4.85 mA**, dissipating 0.11 W, comfortable in 1/4 W.
 - At a worst-case current transfer ratio of 50 %, collector current is about 2.4 mA against the
   66 µA the pull-up needs — roughly 36× margin, so saturation is not in question.
 - Running the LED near 5 mA rather than 20 mA also slows the LED ageing that erodes transfer ratio
