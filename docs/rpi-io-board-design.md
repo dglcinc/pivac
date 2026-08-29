@@ -147,7 +147,7 @@ for the two diode drops:
 | Transformer | Rectified | LED current | Resistor dissipation |
 |---|---|---|---|
 | 24 VAC | 32.5 V | 6.7 mA | 0.21 W |
-| 26 VAC | 35.4 V | 7.3 mA | 0.25 W |
+| **25.9 VAC** (measured, this panel) | **35.2 V** | **7.24 mA** | **0.246 W** |
 | 28 VAC | 38.2 V | 7.9 mA | 0.29 W |
 | 30 VAC | 41.0 V | 8.5 mA | 0.34 W |
 
@@ -155,9 +155,9 @@ Every row is inside the 3–10 mA the stage wants and inside a 1/2 W part. A 2.7
 wall wart alone would have drawn 13.7 mA at 0.51 W on a 28 VAC transformer and needed a 1 W
 resistor.
 
-**Check the capacitor's voltage rating against the measured transformer.** 100 µF at 50 V covers
-up to about 26 VAC. At 28 VAC or above the rectified 41 V sits at 82 % of a 50 V part, which runs
-an electrolytic hot and shortens its life — specify 63 V instead.
+**Check the capacitor's voltage rating against the measured transformer.** At this panel's
+25.9 VAC the rectified 35.2 V is 70 % of a 100 µF **50 V** part, inside the 80 % an electrolytic
+wants. Above about 28 VAC the rectified 41 V reaches 82 % and the part should be 63 V instead.
 
 What that path gives back is the failure-mode distinction. Sharing the coil transformer means a
 control-power failure also removes the ability to report it, since every channel reads inactive and
