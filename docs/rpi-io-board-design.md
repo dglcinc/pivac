@@ -89,10 +89,14 @@ Relay closed → LED lit → phototransistor conducts → GPIO reads LOW.
 `pullmode: "pullup"` a LOW pin reports as active. No `config.yml` change, and no InfluxDB
 measurement is orphaned.
 
-**The Pi-side pull-up can stay internal.** The phototransistor sinks milliamps against the roughly
-66 µA the internal pull-up sources, and the GPIO node is now a short trace rather than a long field
-wire, so the weak pull-up's noise susceptibility no longer applies. An external 10 kΩ and a 100 nF
-to ground are optional belt-and-braces.
+**The Pi side needs no components at all.** The phototransistor sinks milliamps against the
+roughly 66 µA the internal pull-up sources, so the internal pull-up suffices. And the GPIO node is
+now a short trace from the phototransistor to the pin, never leaving the board, so there is nothing
+for an external pull-up or a filter capacitor to protect against — those belong to a
+resistor-conditioned input, where the field wire runs to the pin itself. Contact bounce does not
+change this: it modulates the LED on the field side, but `pivac.GPIO` polls every few seconds, so
+at worst one sample lands mid-bounce in the cycle where a relay changes state and the next poll
+corrects it.
 
 **Connector pin 4 is the 24 V common, not Pi ground.** Bonding it to Pi ground destroys the
 isolation this stage exists for. Label it `24V COM`, never `GND`.
@@ -191,7 +195,7 @@ chassis or to Pi ground now does nothing at all, which is the entire point of th
 |---|---|---|
 | Optocoupler | **LTV-847** (or PC847), quad, DIP-16 | 3 packages cover 12 channels. Through-hole, suits perfboard. `LTV-817`/`PC817` DIP-4 if singles are preferred. |
 | LED resistor | **4.7 kΩ**, 1/4 W, 1% metal film | one per channel — twelve. 1/2 W if the 24 VAC upgrade is fitted |
-| Optional filter | 100 nF ceramic, GPIO to Pi GND | noise and contact bounce |
+| ~~GPIO filter~~ | not needed | see below |
 | DC supply | 12 V wall wart (load is 58 mA) | feeds the sense loop — see §3.1 for sizing |
 | Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | later, if moving to the panel's 24 VAC |
 | Smoothing capacitor | **100 µF, 50 V** radial electrolytic, 105 °C | only with the bridge, across the rectified feed |
