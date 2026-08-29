@@ -140,6 +140,25 @@ capacitor-input rectifier. The capacitor is not optional on that path, because u
 go dark near each zero crossing and `pivac.GPIO` samples instantaneously, so channels read inactive
 at random.
 
+**The transformer's exact voltage does not matter, which is why 4.7 kΩ was the right forced
+choice.** Control transformers read high at light load, and rectified output is `VAC × 1.414 − 1.4`
+for the two diode drops:
+
+| Transformer | Rectified | LED current | Resistor dissipation |
+|---|---|---|---|
+| 24 VAC | 32.5 V | 6.7 mA | 0.21 W |
+| 26 VAC | 35.4 V | 7.3 mA | 0.25 W |
+| 28 VAC | 38.2 V | 7.9 mA | 0.29 W |
+| 30 VAC | 41.0 V | 8.5 mA | 0.34 W |
+
+Every row is inside the 3–10 mA the stage wants and inside a 1/2 W part. A 2.7 kΩ sized for the
+wall wart alone would have drawn 13.7 mA at 0.51 W on a 28 VAC transformer and needed a 1 W
+resistor.
+
+**Check the capacitor's voltage rating against the measured transformer.** 100 µF at 50 V covers
+up to about 26 VAC. At 28 VAC or above the rectified 41 V sits at 82 % of a 50 V part, which runs
+an electrolytic hot and shortens its life — specify 63 V instead.
+
 What that path gives back is the failure-mode distinction. Sharing the coil transformer means a
 control-power failure also removes the ability to report it, since every channel reads inactive and
 that is indistinguishable from an idle system. It is narrow in practice — the boiler and chiller
