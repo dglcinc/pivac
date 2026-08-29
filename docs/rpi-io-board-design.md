@@ -14,7 +14,7 @@ bridge in §8. The 1-wire bus itself, including the DS2482 procedure, is a separ
 
 ## 1. What sets the channel count
 
-Four 4-position PTSM connectors give sixteen positions. One per connector carries that group's
+Four 4-position PTSM connectors give sixteen positions. They ship with the INT-PCB SET, so they are not a separate order. One per connector carries that group's
 field common, leaving **12 monitored channels** — seven in service and five spare.
 
 **A single shared common would give fifteen channels and is the wrong trade.** These are pluggable
