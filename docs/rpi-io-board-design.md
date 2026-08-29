@@ -111,15 +111,20 @@ changes with the choice.
 |---|---|---|---|
 | 5 V | 820 Ω | 4.6 mA | 17 mW |
 | 12 V | 2.2 kΩ | 4.9 mA | 53 mW |
-| **14.7 V** (this build) | **2.7 kΩ** | **5.0 mA** | 68 mW |
+| **14.7 V** (this build) | **4.7 kΩ** | **2.87 mA** | 39 mW |
 | 24 V | 4.7 kΩ | 4.85 mA | 110 mW |
-| rectified 24 VAC (~32.5 V) | 4.7 kΩ, **1/2 W** | 6.7 mA | 0.21 W |
+| rectified 24 VAC (~32.5 V) | **same 4.7 kΩ, in 1/2 W** | 6.7 mA | 0.21 W |
 
-**A 12 V DC wall wart measuring 14.7 V is the build value, so the resistor is 2.7 kΩ.** Measure
+**A 12 V DC wall wart measuring 14.7 V is the build value, and 4.7 kΩ is the resistor.** Measure
 rather than trusting the label — the load is 58 mA against a wart rated for several hundred, so an
-unregulated unit sits near its peak, and this one reads 2.7 V above its marking. The design is
-insensitive to the sag that follows under load: anywhere from 14.0 to 15.0 V gives 4.7–5.1 mA
-through 2.7 kΩ, and the stage tolerates 3–10 mA without complaint.
+unregulated unit sits near its peak, and this one reads 2.7 V above its marking.
+
+**4.7 kΩ is chosen because it spans both supplies**, giving 2.87 mA now and 6.7 mA on rectified
+24 VAC later, so the upgrade swaps only the wattage rating and never the value or the arithmetic.
+2.87 mA is well inside what the stage needs: the optocoupler must sink 66 µA to hold the pin low
+and delivers about 1 mA at that drive even at a worst-case transfer ratio, a 15× margin, while
+running the LED gently slows the ageing that erodes transfer ratio over a decade. On the contact
+side it is 43× the 66 µA that has been adequate in service for a year.
 
 Lower voltage costs margin on the field wiring, not function. Wetting depends on voltage as well as
 current, so a higher-voltage loop punches through contact oxide that a low one can sit on top of,
@@ -166,7 +171,7 @@ chassis or to Pi ground now does nothing at all, which is the entire point of th
 | Item | Part | Notes |
 |---|---|---|
 | Optocoupler | **LTV-847** (or PC847), quad, DIP-16 | 3 packages cover 12 channels. Through-hole, suits perfboard. `LTV-817`/`PC817` DIP-4 if singles are preferred. |
-| LED resistor | **2.7 kΩ** at the measured 14.7 V, 1/4 W, 1% metal film | one per channel; see the §3.1 table for other supplies |
+| LED resistor | **4.7 kΩ**, 1/4 W, 1% metal film | one per channel — twelve. 1/2 W if the 24 VAC upgrade is fitted |
 | Optional filter | 100 nF ceramic, GPIO to Pi GND | noise and contact bounce |
 | DC supply | 12 V wall wart (load is 58 mA) | feeds the sense loop — see §3.1 for sizing |
 | Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | later, if moving to the panel's 24 VAC |
