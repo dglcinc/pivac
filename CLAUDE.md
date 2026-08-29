@@ -105,6 +105,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | ~~pivac-watermeter~~ (STOPPED + DISABLED 2026-06-27) | pivac.WaterMeter | Sensus iPerl LCD (Tapo RTSP) — camera-CV retired, ESP32-CAM TBD | 10.0.0.85 |
 | pivac-sprinkler         | pivac.Sprinkler         | OpenSprinkler irrigation flow (local API)  | 10.0.0.17:5000 |
 | pivac-domestic-water    | pivac.DomesticWater     | **Domestic** water meter (DAE MJ-75a, 0.1 gal/pulse) on UNO R4 WiFi | 10.0.0.188 |
+| pivac-chiltrix          | pivac.ChiltrixModbus    | **Chiltrix CX75** heat pump, all 45 Modbus registers | RS-485 → UNO R4 on USB |
 
 > **⚠️ The two Arduino module/delta names are inverted vs their physical roles — legacy, do NOT rename** (InfluxDB already holds history under these measurement names; renaming would orphan it). Verified 2026-06-01 against the WilhelmSK gauge wiring and the boards' WiFi MACs:
 >
@@ -232,6 +233,13 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - `sentry-cycle-stale` (warning) — 30m staleness on `hvac.boiler.sentry.gasInputValue`, which is emitted **every** cycle (idle-fills to 0), so it stops only if the service/camera/RTSP died. Pairs with the rule above: **both firing = reader dead; only waterTemp firing = the CV can no longer read the digits.** That distinction is readable straight from the email, without logging in.
   - `sentry-outdoor-divergence` (info) — `hvac.boiler.sentry.outdoorTemp` (°F) vs `environment.outside.temperature` (K, converted in a math node) differing >10 °F for 2h. The **only** rule that can catch a CV emitting *fresh but wrong* values — the mode that hid the 2026-07-28 drift for 12 days. Threshold/duration are deliberately loose (the two sensors sit apart and see different sun; baseline divergence ≈1–4 °F). `noDataState: OK`.
 
+- `grafana/provisioning/alerting/chiltrix.yaml` — Chiltrix CX75 water-side fouling alerts, group `chiltrix`, all routing to `graph-bridge` (added 2026-08-28). **Shipped `isPaused: true`** — `pivac.ChiltrixModbus` is not written, and a rule on a never-existing metric emails on every evaluation. Temperatures are **Kelvin**, so the staleness sentinel is `< 100`. **Two obvious signals were tested against 23.5 h of logged registers and rejected**, which is why the rules look indirect: raw flow (and `flow ÷ Hz`) tracks compressor speed and the controller's pump trimming; and **inlet water against the cooling target, meaned over hours, does not separate at all** — the 6 h mean sat at 48.6–49.9 °F across both a clean period and a live restriction, because the idle rise between cycles dominates it and the restart hysteresis bounds that regardless of restriction. End-of-cycle inlet fails for a related reason: during the 2026-08-28 event the unit still reached its 44.6 °F stop point, it just took **354 minutes instead of 11**.
+  - `chiltrix-pump-only-flow-low` (warning) — the primary signal. `pumpOnlyFlow` below **40 L/min** for 30m. With the compressor off, compressor speed is removed as a confound — the Modbus equivalent of reading `C13` in the pump-only window. Measured **52.9 L/min clean → 24.1 degraded**. **⚠️ This does NOT establish fixed pump speed, and that is unresolved.** The CX's pump is variable-speed under controller command throughout, and the competing reading of the 2026-08-28 event is an adaptive re-trim: the clean period ran a 5–6 °F evaporator ΔT, *below* the 9 °F design value, so the 9.5 °F end state may be the controller converging on design rather than a restriction. Both attempts to break the tie failed on resolution — register 256 quantizes to 0.1 A (24 W) against a 22–200 W pump draw, and Emporia's 60 s poll cannot isolate a ~70 s window. **Read registers 248 and 260 (candidate pump speed) before trusting this rule**; until then it may be measuring the controller rather than the plumbing.
+  - `chiltrix-run-duration-excessive` (warning) — `runDuration` over **90 min** (clean runs are 9–22). The runbook separates restriction (part-loaded at 25–30 Hz with low flow and a 9–10 °F ΔT against a clean 5 °F) from genuine overload (55–60 Hz, normal flow, normal ΔT).
+  - `chiltrix-flow-approaching-trip` (warning) — raw registers only, so it works before the derived paths exist: `waterFlow` under **24 L/min** averaged over 20m **while `compressorHz > 5`**. The Hz gate is essential — the pump nearly stops at idle (~3–7 L/min per `P52`), so an ungated threshold fires whenever the unit is off. `P65` puts the `P5` trip at 20 L/min.
+  - `chiltrix-modbus-stale` (warning) — 30m freshness on `hvac.chiller.chiltrix.inletTemp`.
+  - **Two derived paths `pivac.ChiltrixModbus` must publish**, following the `pivac.DomesticWater` `.runVolume` precedent (snapshot on a state edge, compute in the daemon, hold while idle): **`hvac.chiller.chiltrix.pumpOnlyFlow`** (register 213 sampled only while `227 == 0` and flow is above a ~15 L/min idle floor, held between windows) and **`hvac.chiller.chiltrix.runDuration`** (seconds of the current run, holding the last run's duration while stopped). Excluding deep idle from `pumpOnlyFlow` is not optional — the pump nearly stops, and those samples would read as a total restriction.
+
 **Test the bridge end-to-end:**
 ```bash
 curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json' \
@@ -257,8 +265,8 @@ sudo cp ~/github/pivac/scripts/systemd/grafana-graph-bridge.service /etc/systemd
 sudo systemctl daemon-reload && sudo systemctl restart grafana-graph-bridge
 # provisioning YAMLs (Grafana copies, not symlinks — must restart to pick up changes):
 sudo cp ~/github/pivac/grafana/provisioning/alerting/*.yaml /etc/grafana/provisioning/alerting/
-sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler}.yaml
-sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler}.yaml
+sudo chown root:grafana /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler,chiltrix}.yaml
+sudo chmod 640         /etc/grafana/provisioning/alerting/{contact-points,redlink-stale,sensor-freshness,domestic-water,sentry-boiler,chiltrix}.yaml
 sudo systemctl restart grafana-server
 ```
 
@@ -277,8 +285,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -n 50 --no-pager
 ```
 
 If systemd service or timer files were changed:
@@ -289,7 +297,7 @@ sudo systemctl daemon-reload
 
 **Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water signalk influxdb nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix signalk influxdb nginx
 ```
 Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
@@ -341,7 +349,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now arduino-watchdog.tim
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -384,8 +392,8 @@ journalctl -u signalk -n 50 --no-pager
 > | 144 | Hot water target | whole °C | R/W |
 > | 145 / 146 | AC heating / hot water AU mode | 0 disable, 1 enable | R/W |
 > | 202 | Ambient air temp | ÷10 → °C | read |
-> | 205 | Outlet water temp | ÷10 → °C | read |
-> | 281 | Inlet water temp | ÷10 → °C | read |
+> | 205 | Outlet water temp — **water returning FROM the chiller** to the house | ÷10 → °C | read |
+> | 281 | Inlet water temp — **water going TO the chiller**, the return from the house | ÷10 → °C | read |
 > | 213 | Water flow | **÷10 → L/min** | read |
 > | 227 | Compressor frequency | Hz, 0–80 (raw) | read |
 > | 256 | Input AC current | **÷10 → A** | read |
@@ -394,6 +402,10 @@ journalctl -u signalk -n 50 --no-pager
 >
 > **How the map was confirmed, and the trap in confirming it.** 142 read 10, matching the 50 °F panel target; 202 read 23.9 °C against RedLink's outdoor sensor at 23.89 °C, which also refutes jasipsw's claim that 202 is inlet water; 281 and 205 tracked the controller's own inlet and outlet displays to within 0.4 °F; and 227 and 256 both fell to 0 together when the compressor stopped while inlet and outlet converged with the pump still running. **⚠️ Compare temperatures at idle, never during a transient** — the outlet moved 4.7 → 9.8 °C in the three minutes after a stop, which made one comparison look like a 3 °F calibration error when it was drift. **Inlet is the return from the house and runs warmer than outlet in cooling**, so `281 − 205` is positive; negative means the addresses are swapped or the unit is heating.
 >
+> **Use the controller's own words: `inlet` is the water going TO the chiller and `outlet` is the water returning FROM it.** That is what the panel displays, and it matches the register names. Do not relabel these as "return" and "supply" — those are correct from the *house's* point of view and invert the sense, which is how a plotted pair ends up backwards.
+>
+> **⚠️ The chiller modulates BOTH the pump and the compressor off inlet water temperature (register 281).** So water flow is a *controlled output*, not an independent measurement, and any fouling rule built on flow is measuring a control loop unless something pins the pump. This is the mechanism behind the pump trimming already noted above, and it is why `flow ÷ Hz` failed: both terms are outputs of the same controller responding to the same input.
+
 > **The chiller restarts on its own hysteresis, about 2 °C above target** — 12 °C against the 10 °C setpoint — not on a zone call. Inlet climbing past the setpoint without a start means the band has not been reached yet.
 >
 > **⚠️ Neither raw flow NOR flow ÷ Hz is a usable fouling signal (measured 2026-08-27).** A fixed threshold near 35 L/min false-fires at part load on a clean strainer. The ratio does not rescue it: **at a constant 55 Hz the flow ranged 42.5–52.9 L/min, a 20% spread, giving flow ÷ Hz of 0.773–0.962.** The compressor speed was pinned and the flow moved anyway, so the quantity is not load-independent. Over those 53 samples flow correlates **+0.96 with outlet water temperature and −0.96 with ΔT**: from 20:43:34 to 20:44:00 on 26 Aug, Hz held at 55 while outlet fell 6.7 → 6.1 °C, flow fell 45.9 → 42.5 and ΔT widened 4.6 → 4.9 °C. **The controller trims pump speed to hold an evaporator ΔT** (`P53` sets the floor at 40%), with glycol viscosity rising as the water cools pushing the same way. **The narrow 0.96–1.03 band was an artefact of reading only the ramp-down segment**, where Hz and flow happened to fall together; read the ramp-*up* and the ratio reaches **3.78**, because at 14–35 Hz the pump is already at full 52.9 L/min while the compressor spools.
@@ -404,7 +416,7 @@ journalctl -u signalk -n 50 --no-pager
 >
 > **Sketches live in `~/github/Arduino`** (`ChiltrixModbus`, `ChiltrixScan`, `RS485Blast`), on branch `feat/chiltrix-modbus`, PR dglcinc/Arduino#10. All are **read-only — function 03, never 6 or 16** — even though 140–146 are writable and include the cooling target and the on/off switch. Modbus RTU needs **≥3.5 character times of silence between frames** (~4 ms at 9600); `readOne()` owns that gap, and without it roughly 40% of back-to-back transactions time out.
 >
-> **The Arduino runs on the Pi's USB**, `/dev/ttyACM0`, serial `E8F60AA93AA8`, vendor 2341. `vcgencmd get_throttled` stays `0x0` with it attached, so the Pi's USB budget carries an UNO R4 plus RS-485 shield comfortably. **⚠️ A charge-only USB cable is the failure to check first** — the board powers up and its LEDs light, but `cdc_acm` never loads and nothing appears on the bus. **`chiltrix-logger.service`** (enabled, `Restart=always`) appends timestamped rows to `~/chiltrix/chiltrix_log.tsv`; `python3 ~/chiltrix/tally_log.py [since]` prints link quality split by compressor state plus running flow, current and frequency. It is temporary and is replaced by the eventual `pivac.ChiltrixModbus` module.
+> **The Arduino runs on the Pi's USB**, `/dev/ttyACM0`, serial `E8F60AA93AA8`, vendor 2341. `vcgencmd get_throttled` stays `0x0` with it attached, so the Pi's USB budget carries an UNO R4 plus RS-485 shield comfortably. **⚠️ A charge-only USB cable is the failure to check first** — the board powers up and its LEDs light, but `cdc_acm` never loads and nothing appears on the bus. **`chiltrix-logger.service` is RETIRED — stopped and disabled 2026-08-28, superseded by `pivac.ChiltrixModbus`.** Its TSV at `~/chiltrix/chiltrix_log.tsv` stays on disk as history (26–28 Aug, 6 columns) and `python3 ~/chiltrix/tally_log.py [since]` still reads it. **The serial port is exclusive**, so the two cannot both run — `pivac-chiltrix.service` declares `Conflicts=chiltrix-logger.service`. Everything the logger captured now lands in InfluxDB under `hvac.chiller.chiltrix.*` at full width. **All 45 registers that answer are published, including the static `P`-parameters, deliberately**: `53`=`P53` pump min speed 40%, `59`=`P59` antifreeze 3 °C, `65`=`P65`, `109`=`P109` all read back at address = parameter number, so **the whole `P00`–`P119` table is reachable over Modbus**. A setting changed on the panel is exactly what later explains a behaviour change, and nothing else in this system records one. **⚠️ `65` reads 14, not the 20 L/min this file records for the `P65` low-flow trip** — confirm against the panel before treating any flow number as near or far from the `P5` trip.
 >
 > **⚠️ Opening the port does NOT reset an UNO R4, and that breaks the naive logger sequence.** The board's uptime counter survives repeated host connects (measured across 19.7 h), so a previous session can leave the sketch still in `watch`. A running watch consumes **exactly one character** to stop, so a client that opens and immediately writes `w 281 205 …` has its leading `w` eaten as the stop character and the remainder discarded as junk — the board then sits silent at its prompt. `chiltrix-logger` did this and **ran `active` for 18 hours having written zero rows**, with nothing in its journal, because its read loop had no timeout. `logger.py` now **quiesces the board to its prompt first** (nudge with a newline, wait for the stream to go quiet, drain, then send the command) and **raises if no row arrives in 60 s** so the outer loop reopens. Backup at `~/chiltrix/logger.py.bak-20260827`. Any future serial client to this sketch needs the same two properties.
 >
@@ -469,6 +481,7 @@ journalctl -u signalk -n 50 --no-pager
 | `Emporia` | Emporia Vue Gen 2 power monitors — polls two panels (house 200A, apartment 100A) via PyEmVue, emits per-circuit Watts to `electrical.emporia.<panel>.<circuit>`. **Channels sharing a circuit name are summed** — the house panel's 240 V circuits use one CT per leg (ch 1+2 utility_sub_panel, 3+4 hall_subpanel, 5+6 wall_oven, 7+8 bosch_bova), so per-channel emission would halve them (see Known Operational Behaviours). |
 | `Sentry` | NTI Trinity Ti-200 boiler controller via Tapo C120 RTSP camera — reads display via 7-segment CV, emits boiler state to `hvac.boiler.sentry.*` |
 | `WaterMeter` | Sensus iPerl water-meter **LCD** via Tapo RTSP camera (`10.0.0.85`) — reads the cumulative gallons totalizer via perspective-warp + **whole-glyph template matching** (NOT segment thresholding — a reflective LCD's "off" segments aren't black). Emits `environment.water.domestic.consumption` (gal) + `.flowing`. See `docs/water-meter-camera-monitoring-plan.md`. |
+| `ChiltrixModbus` | Chiltrix CX75 over RS-485 Modbus RTU (A3/B3, 9600 8N1, slave 1, function 03), bridged by an UNO R4 on USB running the `ChiltrixScan` sketch. **Read only — function 03, never 6 or 16**, though 140–146 are writable. Drives the sketch's `s <from> <to>` range-read rather than its `watch`, which caps at 6 registers. Publishes **all 45 registers that answer**: 13 confirmed ones under named paths (`hvac.chiller.chiltrix.*`, temperatures in **Kelvin**), the rest under `.raw.r<addr>`. Also emits `.evaporatorDelta`, `.runDuration` and `.startupFlow`. ~6.8 s per cycle at `daemon_sleep: 30`. |
 | `Sprinkler` | OpenSprinkler irrigation flow via the local HTTP API (`10.0.0.17:5000`) — polls `/jc`, computes `(flcrt/flwrt)*fpr*60*flow_scale`, emits `environment.water.irrigation.flowRate` (gal/min) + `.active`. Auth = **md5(device password)** in config `password_md5` (Pi-only secret). Overlaid on the domestic flow panels (Grafana). |
 
 ## pivac.Sentry Module

@@ -1,0 +1,18 @@
+[Unit]
+Description=Pivac Chiltrix CX75 Modbus reader (RS-485 via UNO R4 on USB)
+After=network.target signalk.service
+Requires=signalk.service
+# The serial port is exclusive: this unit and chiltrix-logger.service cannot
+# both run. The logger is the temporary TSV predecessor and is superseded here.
+Conflicts=chiltrix-logger.service
+
+[Service]
+Type=simple
+User=pi
+Environment=PIVAC_CFG=/etc/pivac/config.yml
+ExecStart=/home/pi/pivac-venv/bin/python3 /home/pi/github/pivac/scripts/pivac-provider.py pivac.ChiltrixModbus --loglevel WARNING --daemon
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
