@@ -126,12 +126,11 @@ channel from the board to that relay's N/O pole, and one common daisy-chained al
 Only the common changes character — it is now the transformer common returning to connector pin 4,
 where today it is Pi board ground.
 
-The four group commons do not need four runs back to the transformer. They need to be four
-separate conductors *from board to field*, so unplugging J2 cannot disturb J1; at the panel end
-they all land on one bus. **A Phoenix Contact ST 1,5 QUATTRO is four internally bridged
-positions**, so one block carries the transformer feed plus three group commons, and a second
-bridged to it takes the fourth with three positions spare. That is one additional feed-through,
-not four.
+**The board is the common point, so no panel-side terminal block is involved.** Each group's common
+daisy-chains along its relays and returns to pin 4 of that group's connector; the four pin-4
+positions tie together on the board, and the supply's V− lands there once. The property that
+justified four commons in §1 still holds, because the split lives at the connectors: pulling J2
+disconnects its common without touching J1's. No additional feed-throughs are needed.
 
 Two failure modes follow from the change. A channel conductor shorted to the 24 V common lights
 that LED and reads permanently **active** — a false "on" rather than a false "off", which is the
