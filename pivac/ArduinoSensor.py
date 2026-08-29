@@ -6,6 +6,11 @@ import pytemperature
 
 logger = logging.getLogger(__name__)
 
+# Decimal places kept on a Kelvin temperature when the config says nothing.
+# 2 dp is 0.018 degF, finer than any sensor feeding this module. Whole Kelvin
+# is 1.8 degF, which is coarser than the hardware and destroys small deltas.
+DEFAULT_ROUNDING = 2
+
 
 def _to_kelvin(value, scale):
     """Convert a raw temperature reading to Kelvin. Default scale is fahrenheit
@@ -15,6 +20,17 @@ def _to_kelvin(value, scale):
     if scale == "celsius":
         return pytemperature.c2k(float(value))
     return pytemperature.f2k(float(value))
+
+
+def _round_temp(kelvin, digits):
+    """Apply the OneWireTherm rounding convention to a Kelvin reading: 0 rounds
+    to whole Kelvin, a positive value keeps that many decimals, and a negative
+    value leaves the reading alone."""
+    if digits == 0:
+        return int(round(kelvin, 0))
+    if digits > 0:
+        return round(kelvin, digits)
+    return kelvin
 
 def status(config = {}, output = "default"):
     result = {}
@@ -52,6 +68,11 @@ def status(config = {}, output = "default"):
         # other field passes through unchanged at {sk_path}.{outname}. This keeps the two
         # existing pressure services byte-for-byte identical — their `psi` input has no
         # `type`, so it takes the pass-through branch exactly as before.
+        #
+        # `rounding` follows OneWireTherm's semantics and is read per-input first, then
+        # from the module block, then DEFAULT_ROUNDING. Checking the module block directly
+        # means it works whether or not the operator remembered to list it in `propagate`.
+        # It applies only to the temperature branch; pass-through values are never rounded.
         for field, scfg in sensors.items():
             if field not in parsed:
                 logger.warning("Arduino at %s: field '%s' missing from response %s"
@@ -62,7 +83,8 @@ def status(config = {}, output = "default"):
             sk_path = scfg["sk_path"]
 
             if scfg.get("type") == "temperature":
-                kelvin = int(round(_to_kelvin(raw, scfg.get("scale", "fahrenheit"))))
+                digits = scfg.get("rounding", config.get("rounding", DEFAULT_ROUNDING))
+                kelvin = _round_temp(_to_kelvin(raw, scfg.get("scale", "fahrenheit")), digits)
                 if output == "signalk":
                     sk_add_value(sk_source, "%s.%s.temperature" % (sk_path, outname), kelvin)
                 else:

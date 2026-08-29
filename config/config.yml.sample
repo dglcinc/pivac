@@ -198,6 +198,14 @@ pivac.ArduinoPSI:
     module: pivac.ArduinoSensor
     enabled: true
     ipaddr: 10.0.0.114
+    # Decimal places kept on temperature inputs, following the OneWireTherm
+    # convention: 0 rounds to whole Kelvin, a positive value keeps that many
+    # decimals, a negative value leaves the reading alone. Defaults to 2.
+    # Settable per-input as well; readable here without listing it in
+    # `propagate`. Temperatures are stored in KELVIN, so whole Kelvin is
+    # 1.8 degF -- coarser than the sensor and fatal to any delta built from
+    # two readings. Leave this at 2 unless you have a reason not to.
+    rounding: 2
     inputs:
         # Each input key is the field name in the Arduino's JSON response.
         psi:
