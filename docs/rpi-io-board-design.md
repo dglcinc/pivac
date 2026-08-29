@@ -283,11 +283,11 @@ The durability rules are the same as the 1-wire enclosure work in
 housing entry, no mid-air solder joints, and every channel labelled with the name it publishes
 under so the board matches `docs/PhoenixContact-BC-RPI-label.docx`.
 
-**Wire gauge is already compatible.** PTSM 0,5 accepts **24–20 AWG**, 0.5 mm² nominal, and the
-field wiring here is **22 AWG** with 20 and 24 also on hand — all inside range, so no run needs a
-gauge transition. Ferrules apply only to stranded conductors; 22 AWG control wire is usually solid,
-which lands directly. 18 AWG would not fit at all (0.82 mm²), which matters only if a future run
-uses it.
+**Use 22 AWG for new runs, and no run needs a gauge transition.** PTSM 0,5 is rated **24–20 AWG**,
+0.5 mm² nominal. The **18 AWG** already in service is 0.82 mm², above that rating, and it lands and
+works — but it stuffs the terminal, and the finer gauge is the better choice wherever a run is
+being made or remade. 22 AWG is on hand along with 20 and 24, all inside the rated range. Ferrules
+apply only to stranded conductors; solid lands directly.
 
 **Vestigial line to remove with this build.** `pivac/GPIO.py:17` runs
 `os.system('modprobe w1-gpio')` at import, a leftover from when the GPIO and 1-wire modules shared
