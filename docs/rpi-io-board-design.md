@@ -292,6 +292,102 @@ wire before the board.
 setup. It is harmless — without the device-tree overlay the module instantiates no master — but it
 is actively misleading once the DS2482 owns the bus, so it goes when §8 lands.
 
+### 6.1 Assembly sequence
+
+Written for someone comfortable with a soldering iron who has not built many boards. The ordering
+matters more than the technique: each step verifies the one before it, so a mistake is found while
+it is still cheap to fix.
+
+**Consider adding three DIP-16 sockets to the order.** They let the board be powered and measured
+before any optocoupler is committed, they remove soldering heat from the ICs entirely, and a dead
+channel later becomes a swap rather than a desolder. They are the one addition worth making to an
+order that is otherwise closed.
+
+#### Step 0 — identify the pinout with a meter, before anything is soldered
+
+**Do this even though the expected arrangement is written below.** Getting it wrong destroys all
+four channels in a package at once, and the arrangement here could not be verified against
+Lite-On's datasheet — both their PDF host and SnapEDA refuse automated retrieval.
+
+Put the meter in **diode-test** mode and probe one chip:
+
+- Across an **LED pair** (red on anode, black on cathode) it reads roughly **1.1 V**, and **open**
+  with the leads reversed. That identifies both the LED half of the package and which pin is the
+  anode.
+- Across a **phototransistor pair** it reads **open both ways** — there is no diode junction to
+  find.
+
+The expected arrangement, with pin 1 at the notch and numbering counter-clockwise:
+
+| Channel | LED anode | LED cathode | Emitter | Collector |
+|---|---|---|---|---|
+| 1 | 1 | 2 | 15 | 16 |
+| 2 | 3 | 4 | 13 | 14 |
+| 3 | 5 | 6 | 11 | 12 |
+| 4 | 7 | 8 | 9 | 10 |
+
+So LEDs occupy pins 1–8 and phototransistors 9–16. **Write down what the meter actually says** and
+work from that, not from this table.
+
+#### Step 1 — dry-fit the layout
+
+Place every part without soldering and check it fits: three DIP packages, twelve resistors, and the
+wiring to the four PTSM connectors. Confirm the board clears the DIN housing with the cover on
+before committing to a layout — the RPI-BC carrier is not generous.
+
+Orient all three packages **the same way**, notch in the same direction. Mixed orientation is the
+single most common way this build goes wrong, and it is invisible once the ICs are in.
+
+#### Step 2 — solder in height order
+
+Lowest first, so the board rests flat on the bench each time it is flipped:
+
+1. **Twelve resistors**, lying flat.
+2. **The `+V` rail and COM rail** — the wiring that ties J4 position 1 to all twelve resistors, and
+   the four connector pin-4 positions together.
+3. **IC sockets**, if used.
+4. **Connector and terminal wiring** last, being tallest.
+
+#### Step 3 — power on with no optocouplers fitted
+
+This is the step that makes the rest safe. With no ICs in the sockets there is no current path, so
+every LED anode pad should read **the full supply voltage relative to COM** — about 14.0 V after
+the 1N4007's drop.
+
+One sweep of twelve pads confirms supply polarity, the J4 wiring, the reverse-protection diode, and
+all twelve resistor joints. **Anything reading 0 V is an open resistor or a missed joint; anything
+reading negative means the supply is backwards** and the diode has done its job.
+
+Power down before proceeding.
+
+#### Step 4 — fit the optocouplers, then test each channel on the bench
+
+With the board powered and connected to the Pi, short a channel's field pins together at the
+connector — that simulates a closed relay contact. Two things should happen:
+
+- **The LED lights.** It is infrared and invisible to the eye, but a **phone camera sees it** as a
+  faint white or purple glow. That is a free confirmation that the field side is working.
+- **The GPIO goes low.** Check it directly with `raspi-gpio get <bcm>`, which reports `level=0`.
+
+Walk all twelve channels this way before any field wiring is connected. A channel that lights its
+LED but does not pull the pin low is an orientation or socket-seating problem; one that does
+neither is on the field side.
+
+#### Step 5 — check for solder bridges
+
+DIP pins sit 0.1 in apart and a bridge between two of them is easy to make and hard to see. Check
+continuity between **every adjacent pin pair** on each package, and between neighbouring resistor
+joints. On the LED side a bridge shorts one channel's cathode to the next channel's anode, which
+makes two channels move together — a confusing fault to chase later, and a two-minute check now.
+
+#### Step 6 — field wiring
+
+Only now connect the panel. §6's rules apply: ferrules on stranded conductors, strain relief at the
+housing entry, no mid-air joints, and every channel labelled with the name it publishes under.
+Land `+14V` on J4 position 1 **last**, and confirm the label is on both the board and the plug
+before the connector is ever inserted.
+
+
 ## 7. The extension board, and why relay wiring stays off it
 
 The **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) in the adjacent housing carries the 1-wire
