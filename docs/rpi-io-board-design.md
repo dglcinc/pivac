@@ -6,7 +6,8 @@ Covers the relay-monitoring input stage on the Phoenix Contact **RPI-BC INT-PCB 
 (Mouser 651-2202994) inside the RPI-BC DIN housing: how many channels the terminals allow, why
 the inputs are optoisolated rather than resistor-conditioned, the circuit, and the GPIO map.
 
-The 1-wire bus that shares this enclosure is a separate document,
+Covers the 24 V supply for the input stage in §3.1 and the board side of the DS2482 1-wire
+bridge in §8. The 1-wire bus itself, including the DS2482 procedure, is a separate document,
 `docs/ds18b20-bus-topology.md`.
 
 ---
@@ -96,6 +97,44 @@ to ground are optional belt-and-braces.
 **Connector pin 4 is the 24 V common, not Pi ground.** Bonding it to Pi ground destroys the
 isolation this stage exists for. Label it `24V COM`, never `GND`.
 
+### 3.1 Powering the input stage
+
+The panel's 24 V is **AC**, from the same transformer that energises the relay coils, and that
+decides the supply question. The LTV-847's LED reverse-breaks down near 5–6 V, so 24 VAC puts
+about 34 V peak across it on every negative half-cycle and a bare quad optocoupler fails quickly.
+
+**A small DIN-rail 24 VDC supply for the sense loop is the better answer.** It gives DC natively,
+keeps the 4.7 kΩ at 1/4 W and 4.85 mA, and it decouples monitoring from control power. That last
+point is the real argument: if the control transformer fails, the relays drop out *and* the board
+loses the ability to report that they have, so every channel reads inactive — indistinguishable
+from a genuinely idle system. On a separate supply the Pi still tells the truth when control power
+is gone.
+
+**Without a new supply, one bridge rectifier and a smoothing capacitor at the board's 24 V input**
+serve all twelve channels. Rectified 24 VAC smooths to roughly 32.5 V, so keep 4.7 kΩ but specify
+it **1/2 W**: it then passes 6.7 mA and dissipates 0.21 W, and the extra current is useful wetting
+current. Do not fit per-channel AC-input optocouplers instead. They chop at line frequency and
+`pivac.GPIO` samples instantaneously, so without an RC filter on every channel the reads are
+random.
+
+**Feed 24 V once, at the board.** The resistor and the LED are board-mounted, so no supply
+conductor goes out to the relays. Field wiring keeps the topology it already has: one conductor per
+channel from the board to that relay's N/O pole, and one common daisy-chained along the string.
+Only the common changes character — it is now the transformer common returning to connector pin 4,
+where today it is Pi board ground.
+
+The four group commons do not need four runs back to the transformer. They need to be four
+separate conductors *from board to field*, so unplugging J2 cannot disturb J1; at the panel end
+they all land on one bus. **A Phoenix Contact ST 1,5 QUATTRO is four internally bridged
+positions**, so one block carries the transformer feed plus three group commons, and a second
+bridged to it takes the fourth with three positions spare. That is one additional feed-through,
+not four.
+
+Two failure modes follow from the change. A channel conductor shorted to the 24 V common lights
+that LED and reads permanently **active** — a false "on" rather than a false "off", which is the
+safer direction for a monitoring input but worth labelling for. And a channel conductor shorted to
+chassis or to Pi ground now does nothing at all, which is the entire point of the stage.
+
 ## 4. Parts
 
 | Item | Part | Notes |
@@ -125,12 +164,13 @@ changes.
 
 ## 5. GPIO map
 
-Reserved and unavailable: **GPIO 2 and 3** for the DS2482's I²C, **GPIO 0 and 1** (pins 27/28) for
+Reserved and unavailable: **GPIO 2 and 3**, spent on the DS2482's I²C (§8), **GPIO 0 and 1** (pins 27/28) for
 the HAT ID EEPROM, **GPIO 26 dead permanently**, and **GPIO 14/15 kept as a serial console** —
 the recovery path on a headless DIN-mounted Pi when the network drops, which has happened here.
-**GPIO 4 is deliberately left unassigned.** It frees up only if the DS2482 takes over the 1-wire
-bus, so spending it on a relay channel would make this board depend on that migration succeeding.
-Leaving it out keeps the board correct in both states and preserves `w1-gpio` as a rollback.
+**GPIO 4 is deliberately left unassigned**, even though the DS2482 frees it. Rollback to
+`w1-gpio` needs the pin, so a relay channel there would make this board depend on the migration
+succeeding. Leaving it out keeps the board correct in both states; promote it to a spare only
+once the bridge has run through a heating season.
 
 `dtparam=spi=off` and the commented-out I²S line leave BCM 7–11 and 18–21 as plain GPIO. Leave
 both settings alone.
@@ -164,10 +204,10 @@ under so the board matches `docs/PhoenixContact-BC-RPI-label.docx`.
 18 AWG is 0.82 mm² and will not land in them, so any 18 AWG field run has to transition to smaller
 wire before the board.
 
-**Vestigial line to clean up.** `pivac/GPIO.py:17` runs `os.system('modprobe w1-gpio')` at import,
-a leftover from when the GPIO and 1-wire modules shared setup. It is harmless — without the
-device-tree overlay the module instantiates no master — but it is misleading once the DS2482 owns
-the bus, and it should go when that migration lands.
+**Vestigial line to remove with this build.** `pivac/GPIO.py:17` runs
+`os.system('modprobe w1-gpio')` at import, a leftover from when the GPIO and 1-wire modules shared
+setup. It is harmless — without the device-tree overlay the module instantiates no master — but it
+is actively misleading once the DS2482 owns the bus, so it goes when §8 lands.
 
 ## 7. The extension board, and why relay wiring stays off it
 
@@ -189,3 +229,44 @@ across the housing from them.
 Twelve channels against seven in service, with the leak-pan input and a `Y2` sense as the known
 additions, means this should not come up. Recorded so the option is a decision rather than a
 discovery.
+
+## 8. The DS2482 1-wire bridge belongs in this rebuild
+
+The parts are on hand, and fitting the bridge during the board rebuild buys one round of downtime
+instead of two. The full procedure — enabling I²C, instantiating over sysfs, pinning it with a
+systemd unit, and rollback — is `docs/ds18b20-bus-topology.md` §7. What follows is only what the
+board build has to get right.
+
+**Mount it at the Pi, inside this housing.** I²C is a short-range bus and must never carry the
+mechanical-room run; the long cable stays on the 1-Wire side, which is the whole reason for the
+part. Tie AD0 and AD1 to GND for address `0x18`.
+
+| DS2482 pin | Goes to |
+|---|---|
+| VDD | 3.3 V, physical pin 1 |
+| GND | physical pin 9 |
+| SDA | GPIO 2, physical pin 3 |
+| SCL | GPIO 3, physical pin 5 |
+| IO | trunk DQ |
+
+**Two things come off the board when it goes in.** The discrete **2.2 kΩ** 1-Wire pull-up — the
+DS2482 supplies its own weak pull-up plus an active one, and an external resistor fights both —
+and any driver-side series damping resistor, whose only job is softening a weakly driven edge and
+which therefore works against the part's sole contribution. Per-branch damping at a distribution
+block would survive a master swap, but this bus is a chain and wants none.
+
+**Keep the DQ rail at 3.3 V.** `w1-gpio` pinned that for you because GPIO 4 is not 5 V tolerant;
+the bridge does not, and a master driving DQ to 5 V into probes powered from 3.3 V exceeds their
+VDD + 0.3 V absolute maximum. The 1-Wire side *can* move to 5 V for noise margin once the Pi only
+ever sees I²C, but the probes' VDD has to move at the same time. Do not mix the rails.
+
+**GPIO 4 still stays unassigned**, even though the bridge frees it. Rollback to `w1-gpio` needs it,
+and a relay channel sitting on that pin would make this board depend on the migration succeeding.
+Promote it to a spare only once the bridge has run through a heating season.
+
+**This is the section §7's warning is really about.** The 24 V feed of §3.1 is new switched wiring
+entering the same enclosure as a slow open-drain line with a passive pull-up and no differential
+rejection — the bus that has already collapsed once. Optoisolation protects the *Pi*; it does
+nothing about two cables sharing a tray. Bring the 24 V and the relay field wiring in through a
+separate entry from the 1-wire trunk, and put the DS2482 and its decoupling beside the 1-wire
+terminals rather than across the housing from them.
