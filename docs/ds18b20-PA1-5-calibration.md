@@ -55,8 +55,12 @@ offset by −0.10 and changes no slope, no pair correction and no ΔT.
 0.9941/0.9939, PA2 at 1.0016/1.0009 — so the PA1 pair correction moves 0.013 °F between 45 and
 140 °F and PA2's moves 0.101 °F, against loop deltas of 2–20 °F.
 
-**IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22. At 45 °F that is worth
-under 0.04 K, so redoing them is optional.
+**IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22, worth under 0.04 K at
+45 °F. **UBT and LBT need nothing further: the buffer tank runs chilled only**, so an ice-point
+calibration sits 13 degrees from its one operating point and is the right calibration rather than a
+provisional one. **IN and OUT are the pair that would benefit from hot points**, since the primary
+loop carries boiler water in heating — which is why the ΔT panel is built to show the sign
+inversion. Their pair correction is unaffected either way.
 
 ## Method
 
