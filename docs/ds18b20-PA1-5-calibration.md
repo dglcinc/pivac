@@ -4,6 +4,52 @@ Fourteen DS18B20 stainless probes, addressed, labelled, and ice-point calibrated
 (David's Mac, UNO R4 WiFi over USB, `arduino-cli`). Ten are the PA1–PA5 loop probes; four are
 older probes recovered from earlier service.
 
+## Two-point calibration (2026-08-29)
+
+PA1, PA2 and the four recovered probes were measured at **two** bath points: an ice slush
+referenced at 32.10 °F, and a **sous vide circulator at 100.0 °F**, both read with the Thermapen
+held among the probe tips. Bath stability was 0.025 °F range over 14 minutes for the ice and
+0.011 °F over 9 minutes for the circulator, so neither run is limited by drift.
+
+`OneWireTherm` applies an offset but has no gain term, so the useful product of two points is not a
+fit to install — it is the ability to state the offset **at the temperature where the probe works**.
+The chilled loop runs near 45 °F, and that is the column deployed.
+
+| Label | slope | offset °F @32 | @45 | @100 | @140 | **offset K @45 (deployed)** |
+|---|---|---|---|---|---|---|
+| PA1A | 0.9954 | +1.223 | +1.163 | +0.908 | +0.728 | **+0.646** |
+| PA1B | 0.9955 | +0.904 | +0.845 | +0.594 | +0.423 | **+0.469** |
+| PA2A | 1.0049 | −0.196 | −0.133 | +0.137 | +0.334 | **−0.074** |
+| PA2B | 1.0039 | +0.238 | +0.287 | +0.499 | +0.653 | **+0.160** |
+| PA6A | 1.0015 | +0.291 | +0.310 | +0.390 | +0.448 | **+0.172** |
+| PA6B | 0.9977 | +0.660 | +0.630 | +0.502 | +0.410 | **+0.350** |
+| PA7A | 1.0009 | +0.100 | +0.111 | +0.160 | +0.195 | **+0.062** |
+| PA7B | 0.9943 | +0.891 | +0.816 | +0.500 | +0.270 | **+0.454** |
+
+**Every slope is within 0.5% of unity**, so the error is nearly constant and the single-point ice
+offsets were never far wrong — moving to the 45 °F value shifts each probe by at most 0.043 K.
+
+**⚠️ Do not calibrate a 45 °F probe at 100 °F.** Distance from the operating point dominates, not
+bath quality. Applying the `@100` offset at 45 °F costs up to **0.316 °F** (PA7B); applying the ice
+offset costs at most **0.043 °F**. The better-controlled bath gives the worse calibration here,
+because 45 °F is 13 degrees from the ice point and 55 from the circulator.
+
+**⚠️ Heating season is a different operating point.** The loops run near **140 °F** in heating,
+where the correct offsets differ from the deployed 45 °F values by up to 0.3 K (0.55 °F on PA7B).
+Absolute readings carry that error; **pair ΔT does not**, because the two probes of a pair have
+nearly identical slopes — PA1 at 0.9954/0.9955 and PA2 at 1.0049/1.0039 — so the PA1 pair
+correction moves only 0.013 °F between 45 and 140 °F and PA2's moves 0.101 °F. The `@140` column
+is **extrapolated 40 degrees past the hot anchor** and should be treated as indicative; a third
+bath point would be needed to deploy it.
+
+**A constant thermometer bias cancels from the slope.** Reading 32.00/99.90 instead of
+32.10/100.00 shifts every offset by −0.10 °F and changes no slope, no pair correction and no ΔT.
+The mean slope across the eight probes is 0.9993, which says the two references agree with each
+other on the 68 °F span to about 0.05 °F.
+
+**IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22. At 45 °F that is worth
+under 0.04 K, so redoing them is optional.
+
 ## Method
 
 - Bus on D2, external 4.7 kΩ pull-up to **5 V**, normal (non-parasitic) power, 12-bit resolution.
@@ -15,6 +61,10 @@ older probes recovered from earlier service.
 - Calibration bath: circulating ice-water slush, packed with ice, stirred. Reference = Fluke
   Thermapen ONE held co-located with the bundled probes during the logging window.
 - Offsets are the mean of a stable window: per-probe SD 0.009–0.060 °F, bath flat within ±0.02 °F.
+- **⚠️ Filter the sentinel values before taking any mean.** DallasTemperature returns −127 °C
+  (−196.6 °F) for a device that vanished mid-read, and a DS18B20 returns 85.0 °C (185 °F) when a
+  conversion never completed. **One −196.6 row, logged as a probe was unplugged while its ROM was
+  still enumerated, moved a 196-sample mean by 1.17 °F.**
 
 **Offset convention:** add the offset to the raw reading to correct it. `offset = reference − mean`.
 A DS18B20's absolute spec is ±0.5 °C (±0.9 °F), so the ~1.4 °F spread across a batch is expected
