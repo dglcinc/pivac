@@ -103,22 +103,44 @@ The panel's 24 V is **AC**, from the same transformer that energises the relay c
 decides the supply question. The LTV-847's LED reverse-breaks down near 5–6 V, so 24 VAC puts
 about 34 V peak across it on every negative half-cycle and a bare quad optocoupler fails quickly.
 
-**A DIN-rail 24 VDC supply feeds the sense loop.** DIN space is available, and the LED resistor
-then stays 4.7 kΩ at 1/4 W passing 4.85 mA, with no rectification anywhere. It also decouples
-monitoring from control power, which matters more than it first appears: sharing the coil
-transformer means a control-power failure removes the ability to report itself, since every channel
-reads inactive and that is indistinguishable from an idle system. The load is 58 mA, about 1.4 W,
-so any supply on the rail is oversized.
+**The sense loop runs on an isolated DC supply, and the voltage is free.** The LED only needs
+current, so any isolated DC source works with the resistor sized to it. Nothing on the Pi side
+changes with the choice.
 
-**Without a supply, rectify the panel's 24 VAC at the board instead.** One bridge rectifier and one
-**100 µF, 50 V** capacitor at the 24 V input serve all twelve channels. Rectified 24 VAC smooths to
-roughly 32.5 V, so keep 4.7 kΩ but specify it **1/2 W**: it then passes 6.7 mA. The capacitor is
-not optional — unsmoothed, the LEDs go dark near each zero crossing and `pivac.GPIO` samples
-instantaneously, so channels read inactive at random. Sizing for all twelve closed, 80 mA held
-through a ~2 ms trough within 5 V of ripple, wants about 32 µF.
+| Supply | LED resistor | Current | Dissipation |
+|---|---|---|---|
+| 5 V | 820 Ω | 4.6 mA | 17 mW |
+| **12 V** | **2.2 kΩ** | **4.9 mA** | 53 mW |
+| 24 V | 4.7 kΩ | 4.85 mA | 110 mW |
+| rectified 24 VAC (~32.5 V) | 4.7 kΩ, **1/2 W** | 6.7 mA | 0.21 W |
 
-Do not fit per-channel AC-input optocouplers in place of either. They chop at line frequency, which
-puts the same sampling problem on every channel and needs an RC filter on each to fix.
+**A 12 V DC wall wart is the build value.** Measure it before sizing the resistors rather than
+trusting the label: the load is 58 mA against a wart rated for several hundred, so an unregulated
+unit sits near its peak and reads 16–18 V. A regulated switching wart gives a true 12 V and takes
+the 2.2 kΩ.
+
+Lower voltage costs margin on the field wiring, not function. Wetting depends on voltage as well as
+current, so a higher-voltage loop punches through contact oxide that a low one can sit on top of,
+and a transient coupled from the panel's switched inductive loads is a larger fraction of 5 V than
+of 24 V. 12 V keeps most of that margin.
+
+**The upgrade path is the panel's own 24 VAC**, which removes the wall wart. Add a bridge rectifier
+and a **100 µF, 50 V** capacitor at the same board input and change the twelve resistors to 4.7 kΩ
+at 1/2 W; nothing else moves, so leave board space at the input for them. Measure the transformer
+open-circuit first — control transformers often read 26–28 VAC at light load, rectifying to 36–39 V
+rather than 32.5. Capacity is not a constraint: 58 mA of DC draws roughly 150–200 mA RMS through a
+capacitor-input rectifier. The capacitor is not optional on that path, because unsmoothed the LEDs
+go dark near each zero crossing and `pivac.GPIO` samples instantaneously, so channels read inactive
+at random.
+
+What that path gives back is the failure-mode distinction. Sharing the coil transformer means a
+control-power failure also removes the ability to report it, since every channel reads inactive and
+that is indistinguishable from an idle system. It is narrow in practice — the boiler and chiller
+stop running, loop temperatures drift, and `CHIL` never asserts on a hot day, all already alerted
+on.
+
+Do not fit per-channel AC-input optocouplers in place of the bridge. They chop at line frequency,
+which puts the same sampling problem on every channel and needs an RC filter on each to fix.
 
 **Feed 24 V once, at the board.** The resistor and the LED are board-mounted, so no supply
 conductor goes out to the relays. Field wiring keeps the topology it already has: one conductor per
@@ -142,10 +164,10 @@ chassis or to Pi ground now does nothing at all, which is the entire point of th
 | Item | Part | Notes |
 |---|---|---|
 | Optocoupler | **LTV-847** (or PC847), quad, DIP-16 | 3 packages cover 12 channels. Through-hole, suits perfboard. `LTV-817`/`PC817` DIP-4 if singles are preferred. |
-| LED resistor | 4.7 kΩ, 1/4 W, 1% metal film | one per channel |
+| LED resistor | **2.2 kΩ** at 12 V, 1/4 W, 1% metal film | one per channel; see the §3.1 table for other supplies |
 | Optional filter | 100 nF ceramic, GPIO to Pi GND | noise and contact bounce |
-| 24 VDC supply | DIN-rail, any rating (load is 58 mA) | feeds the sense loop — see §3.1 |
-| Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | only if running off the panel's 24 VAC |
+| DC supply | 12 V wall wart (load is 58 mA) | feeds the sense loop — see §3.1 for sizing |
+| Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | later, if moving to the panel's 24 VAC |
 | Smoothing capacitor | **100 µF, 50 V** radial electrolytic, 105 °C | only with the bridge, across the rectified feed |
 
 Channel-to-channel isolation inside the quad package is absent, which is fine here because every
