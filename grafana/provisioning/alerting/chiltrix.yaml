@@ -5,11 +5,9 @@ apiVersion: 1
 # module -> Signal K -> InfluxDB (hvac.chiller.chiltrix.*). Routes to the same
 # graph-bridge contact point as every other pivac rule.
 #
-# ⚠️ SHIPPED PAUSED. None of these metrics exist yet — pivac.ChiltrixModbus is not
-# written. A rule on a metric that has never existed emails on EVERY evaluation under
-# noDataState: Alerting, so every rule below carries isPaused: true. Unpause after the
-# module publishes and the paths are visible in InfluxDB, then redeploy, restart
-# grafana-server, and verify against the alert_rule table (see CLAUDE.md).
+# CONFIRMED BY A CONTROLLED TEST, 2026-08-29. The Y-strainer was cleaned (David judged
+# it 30-50% blocked by eye) and startupFlow recovered from 22.9 to 54.0 L/min immediately,
+# with flow at matched 24-28 Hz going 18.4 -> 39.6 and the evaporator dT 9.5 -> 5.6 degF.
 #
 # ---------------------------------------------------------------------------
 # WHY THESE SIGNALS AND NOT THE OBVIOUS ONES
@@ -33,7 +31,7 @@ apiVersion: 1
 #
 # What DID separate cleanly, measured across the same event:
 #
-#   pumpOnlyFlow    52.9 -> 24.1 L/min   (fixed pump speed, compressor off)
+#   startupFlow     52.9 -> 22.9 L/min   (the plateau around a compressor start)
 #   flow at 25-27Hz 45-50 -> 17-19 L/min (matched compressor speed)
 #   run duration    9-22 min -> 354 min  (single continuous run)
 #
@@ -42,53 +40,24 @@ apiVersion: 1
 # of reading C13 on the panel in the pump-only window, which CLAUDE.md documents as the
 # manual check.
 #
-# ⚠️ IT DOES NOT ESTABLISH FIXED PUMP SPEED, AND THAT IS AN OPEN QUESTION. The CX's pump
-# is variable-speed under controller command at all times, and CLAUDE.md already records
-# the controller trimming pump speed to hold an evaporator dT (P53 sets the floor at
-# 40%). Nothing observed here rules out the controller simply commanding the pre-start
-# pump slower. The competing reading of the 2026-08-28 event is exactly that: the clean
-# period ran a 5-6 F dT, BELOW the Chiltrix 9 F design dT, and the "degraded" end state
-# of 9.5 F is the controller converging ON its design point rather than a restriction.
-# That alternative explains the falling flow, the widening dT and the pinned outlet
-# equally well, and many controller parameters are not observable over Modbus.
+# The competing explanation - that the controller was adaptively re-trimming its pump - is
+# resolved rather than refuted. The controller DOES trim pump speed to hold an evaporator dT
+# (P53 floor 40%), but the 28 Aug behaviour was the restriction DEFEATING that control: it ran
+# 18.4 L/min at 9.5 degF, the pump as fast as the restriction allowed and the dT still not
+# narrowing. Clean, it holds 5.6 degF with 39.6 L/min. Wide dT was the symptom of capped flow,
+# not an operating point the controller chose.
 #
-# Two attempts to break the tie both FAILED on instrument resolution, so do not treat
-# this as settled: register 256 quantizes to 0.1 A (24 W) against a pump-alone draw of
-# 22-200 W, and the Emporia chiltrix circuit polls at 60 s against a ~70 s pump-only
-# window that sits inside a longer compressor-off period.
-#
-# WHAT WOULD SETTLE IT, in order of cheapness:
-#   1. Registers 248 ("cx34 internal pump speed") and 260 ("cx50 pump speed %") from the
-#      ChiltrixScan candidate table. Unconfirmed guesses, but a plausible percentage that
-#      tracks flow settles it outright. Read them before assuming this rule is sound.
-#   2. Clean the Y-strainer and watch whether flow returns to ~52 L/min with nothing else
-#      changed.
-# Until one of those lands, chiltrix-pump-only-flow-low may be measuring the controller
-# rather than the plumbing, and would false-fire on every adaptive re-trim. It stays
-# paused for that reason as much as for the missing module.
+# The decisive measurement was taken with the COMPRESSOR OFF - inlet and outlet within 0.2 degF,
+# so no evaporator dT existed for the controller to hold - and flow still more than doubled on
+# cleaning. That removes the confound by construction.
 #
 # ---------------------------------------------------------------------------
-# REQUIRED DERIVED PATHS (pivac.ChiltrixModbus must compute these Pi-side)
+# THRESHOLDS, set from measured values on both sides:
 #
-#   hvac.chiller.chiltrix.pumpOnlyFlow   L/min. Register 213 sampled only while
-#       register 227 (Hz) == 0 AND flow is above an idle floor (~15 L/min) — i.e. the
-#       pre-start / post-stop window. HELD at its last reading between windows, so a
-#       long continuous run leaves the last good value standing rather than going
-#       stale. Deep idle (~3-7 L/min, pump nearly stopped per P52) must be excluded
-#       or it will read as a total restriction.
-#   hvac.chiller.chiltrix.runDuration    Seconds of the current compressor run
-#       (227 > 0). Holds the last run's duration while stopped.
-#
-# Both follow the pivac.DomesticWater .runVolume / .runDuration precedent: snapshot
-# on a state edge, compute in the daemon, hold while idle.
-#
-# Raw paths the rules also use: .waterFlow (213, L/min), .compressorHz (227),
-# .inletTemp (281, KELVIN — so the staleness sentinel is "< 100", as for 1-wire).
-#
-# ---------------------------------------------------------------------------
-# THRESHOLDS ARE PROVISIONAL. They rest on ~19 h of clean baseline and one
-# degradation event. Re-tune once a few weeks of clean cooling season accumulate,
-# especially the 40 L/min pump-only floor.
+#   startupFlow   clean 52.9-54.0   fouled 20.6-23.0   ALERT AT 40
+# The 28 Aug decline ran 52.9 -> 35.6 over eleven hours before collapsing to 20.6, so 40 fires
+# roughly a day before the plant misbehaves noticeably. THIS LOOP CAN LOSE HALF ITS FLOW IN
+# ABOUT A WEEK - the 18-day interval from commissioning to the first blockage is NOT the prior.
 #
 # To retire a rule from this file later, add a top-level deleteRules: block naming
 # its uid — provisioning is ADDITIVE and deleting a rule from the group does NOT
@@ -104,7 +73,7 @@ groups:
       # twice the P65 = 20 L/min P5 trip, so it warns hours-to-days ahead of a trip.
       # 'last' rather than 'mean' because the value is held between pump-only windows.
       - uid: chiltrix-pump-only-flow-low
-        title: Chiltrix pump-only flow low (water-side restriction)
+        title: Chiltrix startup flow low (water-side restriction)
         condition: C
         data:
           - refId: A
@@ -116,7 +85,7 @@ groups:
               datasource:
                 type: influxdb
                 uid: bdxaqnfllu5fkf
-              measurement: hvac.chiller.chiltrix.pumpOnlyFlow
+              measurement: hvac.chiller.chiltrix.startupFlow
               policy: default
               resultFormat: time_series
               orderByTime: ASC
@@ -183,19 +152,19 @@ groups:
         execErrState: OK
         for: 30m
         annotations:
-          summary: "Chiltrix pump-only flow has fallen below 40 L/min — water-side restriction, check the Y-strainer"
+          summary: "Chiltrix startup flow has fallen below 40 L/min — water-side restriction, clean the Y-strainer"
           runbook: |
-            hvac.chiller.chiltrix.pumpOnlyFlow is register 213 read while the compressor
-            is off, which removes compressor speed as a confound but does NOT prove the
-            pump speed is fixed — see the open question in this file's header. Clean
-            baseline is 52.9 L/min; it fell to 24.1 during the 2026-08-28 event.
+            hvac.chiller.chiltrix.startupFlow is the flow plateau around a compressor
+            start — a flat 52.9 L/min held from ~70 s before the compressor engages until
+            ~140 s into the run, spanning the power ramp. Clean is 52.9-54.0 L/min; it fell
+            to 20.6-23.0 during the 2026-08-28 fouling, and cleaning the Y-strainer restored
+            it to 54.0 within one cycle.
 
-            FIRST, rule out the controller. Read registers 248 and 260 (candidate pump
-            speed) and check whether the evaporator dT has simply moved toward the 9 F
-            design value, which is a legitimate adaptive re-trim and not a fault. The
-            fouling history also argues for caution: the first strainer blockage took
-            about three weeks from commissioning, and a fresh loop should foul FASTEST,
-            so a much shorter interval than that is evidence against fouling.
+            The Y-strainer is the first suspect and has been the cause both times. It fouls
+            with calcium-looking scale migrating from the boiler side of the shared four-pipe
+            loop. THE VISUAL UNDERSTATES IT BADLY: on 2026-08-29 the screen looked 30-50%
+            blocked by eye while costing 60% of the flow, because a Y-strainer screen carries
+            several times the pipe's open area. Judge by this metric, not by looking.
 
             The Y-strainer is the first suspect: it fouls with calcium-looking scale that
             migrates from the boiler side of the shared four-pipe loop, and it did exactly
@@ -205,8 +174,9 @@ groups:
             1. Confirm on the panel: C13 is the live flow readout. Read it in the 1-2
                minute pump-only window at the start of a run — C13 reads 0 at idle and
                that is normal.
-            2. Pull and clean the Y-strainer screen. Expect pumpOnlyFlow to return to
-               ~52 L/min; if it does not, the restriction is elsewhere.
+            2. Pull and clean the Y-strainer screen. Expect startupFlow to return to
+               ~52-54 L/min within one cycle; if it does not, the restriction is elsewhere
+               — a partly closed isolation valve, an air lock, or the pump itself.
             3. Do NOT open the autofill to recover pressure. This is a glycol loop —
                plain water carries in the calcium and oxygen that caused the fouling,
                dilutes the glycol silently, and hides leaks. Top up manually with
@@ -216,7 +186,7 @@ groups:
         labels:
           severity: warning
           source: chiltrix
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -323,7 +293,7 @@ groups:
         labels:
           severity: warning
           source: chiltrix
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -493,7 +463,7 @@ groups:
         labels:
           severity: warning
           source: chiltrix
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
@@ -598,6 +568,6 @@ groups:
         labels:
           severity: warning
           source: chiltrix
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
