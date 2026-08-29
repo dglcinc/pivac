@@ -24,7 +24,7 @@ the whole thing down. A shared return also converges every channel's current on 
 degrading connection there presents as all fifteen channels misbehaving at once, which is a far
 harder fault to chase than three going dead together.
 
-Five spare against seven in service already covers the known expansion — restoring the leak-pan
+Four spare against seven in service — J4 position 1 carries the supply — already covers the known expansion — restoring the leak-pan
 input displaced by `CHIL`, and a stage-2 `Y2` sense for the master bedroom. Three more channels
 bought at the cost of unpluggability is not worth it.
 
@@ -189,6 +189,20 @@ channel from the board to that relay's N/O pole, and one common daisy-chained al
 Only the common changes character — it is now the transformer common returning to connector pin 4,
 where today it is Pi board ground.
 
+**The supply lands on J4 rather than a board terminal, so the housing never has to be opened.**
+`+V` goes to **J4 position 1** and the return uses **J4 position 4**, which is already the COM net,
+so the cost is one spare channel — BCM 18 — leaving four spares against a known expansion of two.
+Unplugging J4 then de-energises every channel, which is acceptable because J4 is the expansion
+connector with nothing in service on it, and it doubles as a single-point service disconnect for
+the sense loop.
+
+**Label that position `+14V` on both the board and the plug, and keep it at the end of the
+connector.** A live position sitting among dry-contact positions is a hazard: a relay contact wired
+into it by mistake puts a direct short from the supply to COM through that contact. The conductor
+also leaves the enclosure without current limiting, so mount the supply at the housing and keep the
+run short. The reverse-protection diode can sit in the barrel adapter's screw terminal rather than
+on the board, which keeps it outside the case too.
+
 **The board is the common point, so no panel-side terminal block is involved.** Each group's common
 daisy-chains along its relays and returns to pin 4 of that group's connector; the four pin-4
 positions tie together on the board, and the supply's V− lands there once. The property that
@@ -253,7 +267,7 @@ be unplugged without splitting a system.
 | **J1** — boiler / DHW | `ZV` — BCM 17 | `DHW` — BCM 27 | `BLR` — BCM 22 | **24 V COM** |
 | **J2** — cooling | `CHIL` — BCM 25 | `BOS1` — BCM 6 | `BOS2` — BCM 5 | **24 V COM** |
 | **J3** — mixed | `DEHUM` — BCM 12 | spare — BCM 23 | spare — BCM 24 | **24 V COM** |
-| **J4** — expansion | spare — BCM 18 | spare — BCM 13 | spare — BCM 19 | **24 V COM** |
+| **J4** — power + expansion | **`+14V` supply in** | spare — BCM 13 | spare — BCM 19 | **24 V COM** (also the supply return) |
 
 J2 puts the three cooling sources together, matching the zone-to-source map in
 `docs/cdp-chiller-rework-plan.md` §3, so a cooling question is answered from one connector.
