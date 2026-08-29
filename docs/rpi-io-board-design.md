@@ -36,29 +36,40 @@ problem, never a pin problem.
 
 ## 2. Why optoisolation rather than a resistor network
 
-**GPIO 26 is dead** — the pad is shorted to ground and cannot be driven high even as an output,
-diagnosed 2026-07-01 and attributed to the 2026-06-23 power event. That is the failure mode this
-stage has to stop, and no arrangement of pull-ups prevents it. A rebuild is the moment to fix it.
+A GPIO pad has already died on this system. **GPIO 26 is shorted to ground** and cannot be driven
+high even as an output, diagnosed 2026-07-01 and attributed to the 2026-06-23 power event. That is
+the failure mode this stage exists to stop, and a rebuild is the moment to address it.
 
-A resistor-only input also forces a choice with no good answer. The series resistor that limits
-fault current and the pull-up that sets the idle level form a divider, so they cannot both be
-1 kΩ: a closed contact would sit at 1.65 V against an input-low threshold near 0.8–1.0 V and the
-channel would read permanently high. Sizing them correctly, at roughly ten to one, then trades
-away the other property that matters.
+A resistor network is a real alternative and it is worth being honest about how close it comes.
+The series resistor that limits fault current and the pull-up that sets the idle level form a
+divider, so they trade against each other: 1 kΩ series with a 10 kΩ pull-up holds a closed contact
+at 0.3 V, well under the 0.8–1.0 V input-low threshold, limits a 24 V field fault to about 24 mA,
+and needs three commodity passives per channel.
 
-| Arrangement | Closed level | Wetting current | Survives a field fault |
-|---|---|---|---|
-| 1 kΩ series, internal ~50 kΩ pull-up | 65 mV | 65 µA — too low | limits to ~24 mA at 24 V |
-| 1 kΩ pull-up, no series | 0 V | 3.3 mA | no |
-| 1 kΩ series, 10 kΩ pull-up | 0.3 V | 0.3 mA — marginal | yes |
-| **Optocoupler** | **~0.2 V** | **4.8 mA** | **yes, absolutely** |
+| Arrangement | Closed level | Wetting current | Field fault | Isolated |
+|---|---|---|---|---|
+| as built today: no series, internal ~50 kΩ pull-up | 0 V | 66 µA | unlimited into the pad | no |
+| 1 kΩ series, internal ~50 kΩ pull-up | 65 mV | 65 µA | limits to ~24 mA at 24 V | no |
+| 1 kΩ series, 10 kΩ pull-up, 100 nF | 0.3 V | 0.3 mA | limits to ~24 mA at 24 V | no |
+| **Optocoupler** | **~0.2 V** | **2.9 mA** | **stopped outright** | **yes** |
 
-Wetting current is the quiet one. Dry contacts that only ever pass tens of microamps grow oxide
-films and begin reading intermittently, which presents as a failing sensor rather than as a wiring
-choice made years earlier.
+**Wetting current is not the argument, and an earlier revision of this section was wrong to make
+it.** The generic guidance is that dry contacts passing only tens of microamps grow oxide films and
+read intermittently. This installation has run seven channels at 66 µA for over a year with no
+intermittent reads, so 0.3 mA from a resistor network would be a fivefold improvement on something
+already adequate. Service history beats the rule of thumb here.
 
-Isolation also removes the shared ground between the Pi and the control panel, so no field wiring
-can raise the Pi's reference.
+The argument that survives is galvanic isolation. **GPIO 26 is dead**, and a resistor network
+limits fault current into the pad without stopping it — a sustained short from a field wire to 24 V
+still pushes ~24 mA into a clamp diode rated for a few. Isolation removes the shared ground between
+the Pi and the control panel entirely, so no field wiring can reach the Pi's reference at all.
+
+That said, the evidence does not prove isolation would have saved GPIO 26, because the failure was
+never root-caused. "Attributed to the 2026-06-23 power event" is a hypothesis. If a transient
+coupled onto a long field wire, a series resistor and a filter capacitor would probably have
+absorbed it; if it arrived through the Pi's own supply, isolation would not have helped either.
+Optoisolation is chosen because it is unconditionally correct rather than because it is the proven
+cure, and because the parts were already on hand.
 
 ## 3. The circuit
 
