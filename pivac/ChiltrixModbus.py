@@ -29,6 +29,12 @@ published under `.raw.r<addr>` rather than dropped: several addresses are
 suspected to be an operating state, a fault code or a pump speed, and the
 moment that identifies them is a live alarm which cannot be recaptured after
 the fact.
+
+Raw addresses keep the bare address in the path deliberately.  The
+address = parameter-number mapping for the settings block is supported by four
+value matches but is not proven, so nothing in the data model asserts it; the
+interpretation lives in CLAUDE.md where it can be corrected without orphaning a
+measurement.
 """
 
 import logging
@@ -62,11 +68,24 @@ NAMED = {
     281: ("inletTemp",       "tempK"),   # return from the house, the warm side in cooling
 }
 
-# Every address in these ranges answered when probed on 2026-08-28.  Anything
-# without a NAMED entry publishes under .raw.r<addr>.  Ranges are read one
-# command each; addresses that do not answer cost a Modbus timeout, so do not
-# widen these to span the gaps.
-RAW_RANGES = [(53, 53), (59, 59), (65, 65), (109, 109),
+# ⚠️ ANSWERING PROVES NOTHING ON THIS UNIT.  Every address from 0 to 359 answers
+# function 03 with no gaps (scanned 2026-08-29), and it does not stop there —
+# that is only where the scan stopped.  So a response is not evidence that an
+# address is meaningful, and the count of answering registers is not a discovery
+# about the chiller.  Meaning comes only from Chiltrix's document plus value
+# cross-checks against things already known.
+#
+# 0-139 is the settings block, polled because a parameter changed on the panel is
+# exactly what later explains a change in behaviour and nothing else in this
+# system records one.  Four have confirmed identities at address = parameter
+# number: 53=P53 pump min speed 40%, 59=P59 antifreeze 3 degC, 64=P64 flow-meter
+# select, 109=P109 target range.  65 reads 14 against a documented P65 of 20,
+# which most likely means that setting was changed on this unit.
+#
+# The upper space is deliberately NOT swept.  Only the addresses below carry a
+# documented meaning or a community-map candidate worth catching during a live
+# fault; publishing the rest would be hundreds of InfluxDB series of noise.
+RAW_RANGES = [(0, 139),
               (140, 146), (202, 214), (225, 227), (243, 248),
               (256, 261), (264, 264), (281, 285)]
 
@@ -268,6 +287,9 @@ def status(config={}, output="default"):
         result["evaporatorDelta"] = round((regs[281] - regs[205]) / 10.0, 2)
 
     _derive(regs, result)
+    # How many of the addresses WE ASKED FOR answered.  Not a property of the
+    # chiller — it answers everything — but a useful link-health signal, since a
+    # degrading bus drops responses.
     result["registerCount"] = len(regs)
 
     if output != "signalk":
