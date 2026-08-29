@@ -297,176 +297,6 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
-      # ---- Approaching the P5 low-flow trip, while running ----
-      # A = flow, B = mean over 20m; D = compressor Hz, E = mean over 20m.
-      # The Hz gate is essential: at idle the pump nearly stops (~3-7 L/min per P52),
-      # so an ungated flow threshold would fire continuously whenever the unit is off.
-      # Uses raw registers only — no derived paths — so it works from day one.
-      - uid: chiltrix-flow-approaching-trip
-        title: Chiltrix water flow approaching the P5 low-flow trip
-        condition: G
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: bdxaqnfllu5fkf
-            model:
-              datasource:
-                type: influxdb
-                uid: bdxaqnfllu5fkf
-              measurement: hvac.chiller.chiltrix.waterFlow
-              policy: default
-              resultFormat: time_series
-              orderByTime: ASC
-              groupBy:
-                - type: time
-                  params:
-                    - $__interval
-                - type: fill
-                  params:
-                    - none
-              select:
-                - - type: field
-                    params:
-                      - value
-                  - type: mean
-                    params: []
-              tags: []
-              refId: A
-              intervalMs: 60000
-              maxDataPoints: 43200
-          - refId: B
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: reduce
-              expression: A
-              reducer: mean
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: B
-              intervalMs: 1000
-              maxDataPoints: 43200
-          - refId: D
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: bdxaqnfllu5fkf
-            model:
-              datasource:
-                type: influxdb
-                uid: bdxaqnfllu5fkf
-              measurement: hvac.chiller.chiltrix.compressorHz
-              policy: default
-              resultFormat: time_series
-              orderByTime: ASC
-              groupBy:
-                - type: time
-                  params:
-                    - $__interval
-                - type: fill
-                  params:
-                    - none
-              select:
-                - - type: field
-                    params:
-                      - value
-                  - type: mean
-                    params: []
-              tags: []
-              refId: D
-              intervalMs: 60000
-              maxDataPoints: 43200
-          - refId: E
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: reduce
-              expression: D
-              reducer: mean
-              settings:
-                mode: replaceNN
-                replaceWithValue: 0
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: E
-              intervalMs: 1000
-              maxDataPoints: 43200
-          - refId: F
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: math
-              expression: ($B < 24) && ($E > 5)
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: F
-              intervalMs: 1000
-              maxDataPoints: 43200
-          - refId: G
-            relativeTimeRange:
-              from: 1200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: threshold
-              expression: F
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: G
-              conditions:
-                - evaluator:
-                    type: gt
-                    params:
-                      - 0.5
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - G
-                  reducer:
-                    type: last
-                  type: query
-              intervalMs: 1000
-              maxDataPoints: 43200
-        noDataState: OK
-        execErrState: OK
-        for: 15m
-        annotations:
-          summary: "Chiltrix water flow has averaged under 24 L/min while the compressor is running — close to the 20 L/min P5 trip"
-          runbook: |
-            Register 213 has averaged below 24 L/min over 20 minutes with the compressor
-            running (227 > 5 Hz). P65 sets the P5 "indoor unit water flow error" trip at
-            20 L/min on a CX65/CX75, so this is the last warning before the unit starts
-            alarming and resetting. "Indoor unit" is a misnomer inherited from split-system
-            firmware — on a monobloc it is the water side of the plate exchanger.
-
-            Removing ~30,000 BTU/hr at the design 9 F dT needs ~25 L/min, so the margin
-            here is thin by design: losing a fifth of the flow crosses the trip at full
-            output while part load keeps running. An isolated early P5 followed later by a
-            cluster is a fouling curve.
-
-            Act on chiltrix-pump-only-flow-low's runbook — clean the strainer. If the
-            screen is clean, check for a closed isolation valve, an air lock, and the loop
-            pressure (normal 21-23 psi; it has touched 27.1, and the relief is 30).
-        labels:
-          severity: warning
-          source: chiltrix
-        isPaused: false
-        notification_settings:
-          receiver: graph-bridge
-
       # ---- Freshness: the Modbus link or the module stopped ----
       # inletTemp is Kelvin, so "< 100" is never true while data flows — detection is
       # purely noDataState: Alerting, the same sentinel the 1-wire rules use.
@@ -571,3 +401,18 @@ groups:
         isPaused: false
         notification_settings:
           receiver: graph-bridge
+
+# Provisioning is ADDITIVE: deleting a rule from the group above does NOT remove it from
+# Grafana — it keeps evaluating with provenance=file, uneditable in the UI, indefinitely.
+# Leave this block in place permanently; deleting an already-absent rule is a no-op, and
+# removing it would let a stale Grafana DB resurrect the UID.
+deleteRules:
+  # Retired 2026-08-29, the same day it was deployed. The rule fired below 24 L/min while
+  # the compressor ran, on the premise that low running flow means approaching the P65 trip.
+  # That premise is wrong: the controller drives flow that low routinely at part load on a
+  # CLEAN strainer — measured at a constant 26 Hz halving its own flow 41.3 -> 21.8 L/min,
+  # and 31% of running 5-minute buckets after the cleanout sat under 24 with a 30-minute
+  # consecutive stretch against a 15-minute trigger. Flow while running is a controlled
+  # output, so no fixed threshold on it is sound. startupFlow carries the fouling signal.
+  - orgId: 1
+    uid: chiltrix-flow-approaching-trip
