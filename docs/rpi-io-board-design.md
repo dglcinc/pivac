@@ -283,9 +283,11 @@ The durability rules are the same as the 1-wire enclosure work in
 housing entry, no mid-air solder joints, and every channel labelled with the name it publishes
 under so the board matches `docs/PhoenixContact-BC-RPI-label.docx`.
 
-**Check the wire gauge against the terminals.** PTSM 0,5 accepts **24–20 AWG**, 0.5 mm² nominal.
-18 AWG is 0.82 mm² and will not land in them, so any 18 AWG field run has to transition to smaller
-wire before the board.
+**Wire gauge is already compatible.** PTSM 0,5 accepts **24–20 AWG**, 0.5 mm² nominal, and the
+field wiring here is **22 AWG** with 20 and 24 also on hand — all inside range, so no run needs a
+gauge transition. Ferrules apply only to stranded conductors; 22 AWG control wire is usually solid,
+which lands directly. 18 AWG would not fit at all (0.82 mm²), which matters only if a future run
+uses it.
 
 **Vestigial line to remove with this build.** `pivac/GPIO.py:17` runs
 `os.system('modprobe w1-gpio')` at import, a leftover from when the GPIO and 1-wire modules shared
@@ -331,7 +333,8 @@ work from that, not from this table.
 
 #### Step 1 — dry-fit the layout
 
-Place every part without soldering and check it fits: three DIP packages, twelve resistors, and the
+Everything mounts in the INT-PCB's own prototyping area, so no daughter board is needed. Place
+every part without soldering and check it fits: three DIP packages, twelve resistors, and the
 wiring to the four PTSM connectors. Confirm the board clears the DIN housing with the cover on
 before committing to a layout — the RPI-BC carrier is not generous.
 
