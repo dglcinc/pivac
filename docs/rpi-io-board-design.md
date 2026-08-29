@@ -110,14 +110,16 @@ changes with the choice.
 | Supply | LED resistor | Current | Dissipation |
 |---|---|---|---|
 | 5 V | 820 Ω | 4.6 mA | 17 mW |
-| **12 V** | **2.2 kΩ** | **4.9 mA** | 53 mW |
+| 12 V | 2.2 kΩ | 4.9 mA | 53 mW |
+| **14.7 V** (this build) | **2.7 kΩ** | **5.0 mA** | 68 mW |
 | 24 V | 4.7 kΩ | 4.85 mA | 110 mW |
 | rectified 24 VAC (~32.5 V) | 4.7 kΩ, **1/2 W** | 6.7 mA | 0.21 W |
 
-**A 12 V DC wall wart is the build value.** Measure it before sizing the resistors rather than
-trusting the label: the load is 58 mA against a wart rated for several hundred, so an unregulated
-unit sits near its peak and reads 16–18 V. A regulated switching wart gives a true 12 V and takes
-the 2.2 kΩ.
+**A 12 V DC wall wart measuring 14.7 V is the build value, so the resistor is 2.7 kΩ.** Measure
+rather than trusting the label — the load is 58 mA against a wart rated for several hundred, so an
+unregulated unit sits near its peak, and this one reads 2.7 V above its marking. The design is
+insensitive to the sag that follows under load: anywhere from 14.0 to 15.0 V gives 4.7–5.1 mA
+through 2.7 kΩ, and the stage tolerates 3–10 mA without complaint.
 
 Lower voltage costs margin on the field wiring, not function. Wetting depends on voltage as well as
 current, so a higher-voltage loop punches through contact oxide that a low one can sit on top of,
@@ -164,7 +166,7 @@ chassis or to Pi ground now does nothing at all, which is the entire point of th
 | Item | Part | Notes |
 |---|---|---|
 | Optocoupler | **LTV-847** (or PC847), quad, DIP-16 | 3 packages cover 12 channels. Through-hole, suits perfboard. `LTV-817`/`PC817` DIP-4 if singles are preferred. |
-| LED resistor | **2.2 kΩ** at 12 V, 1/4 W, 1% metal film | one per channel; see the §3.1 table for other supplies |
+| LED resistor | **2.7 kΩ** at the measured 14.7 V, 1/4 W, 1% metal film | one per channel; see the §3.1 table for other supplies |
 | Optional filter | 100 nF ceramic, GPIO to Pi GND | noise and contact bounce |
 | DC supply | 12 V wall wart (load is 58 mA) | feeds the sense loop — see §3.1 for sizing |
 | Bridge rectifier | **DB107**, DIP-4 through hole, 1 A / 1000 V | later, if moving to the panel's 24 VAC |
