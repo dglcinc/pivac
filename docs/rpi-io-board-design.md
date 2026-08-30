@@ -358,18 +358,26 @@ board is not dense enough to need it.
 
 Two mechanical rules matter more than the wire choice.
 
-**Solder to the pad, never to the side of a socket pin.** The pin goes through the hole and the
-wire is soldered to the pad it sits in, so one joint holds both. Wire tacked onto the side of a pin
-is a fatigue point, and it interferes with seating a chip.
+**A wire and a socket pin share the pad, never the hole.** The holes are ⌀1.0 mm and 22 AWG is
+0.64 mm, so the wire fits a hole on its own but cannot go into one the pin already fills. Forcing it
+lifts the pad. The sequence is: solder the socket pin in the hole as normal, then on the solder side
+tin the wire end a few millimetres, lay it **flat across the annular ring** — the exposed copper
+around that hole — against the pin's existing solder fillet, and reflow so the solder wets both.
+One pad, two conductors, one continuous fillet.
 
-**Do not force 22 AWG into a hole that already holds a socket pin.** The holes are ⌀1.0 mm and
-22 AWG is 0.64 mm, so the wire fits a hole on its own and cannot share one with a pin. Forcing it
-lifts the pad. Land it on the **annular ring instead** — the exposed copper around that hole on the
-solder side. Tin the ring, tin the wire end, lay it flat across the ring, and solder.
+**Do not wrap wire around a pin, and do not tack it to the side of one.** Neither is a gas-tight
+joint on a short flat socket pin, both are fatigue points, and both interfere with seating a chip.
+Wire wrapping is a real technique but it needs wire-wrap sockets with long square posts, 30 AWG
+wire and a tool, and the added height fights the housing clearance checked in Step 1.
 
-This only ever applies at the socket end. The GPIO fan-out pads hold nothing, so a wire drops
-straight through those holes, and so does the resistor lead at its own pad. One end of almost every
-run is therefore a plain through-hole joint.
+**If the ring feels too tight to work on, use the adjacent hole instead.** Run the wire through a
+free hole next to the pin, then link that hole to the socket pad with a short piece of bare wire on
+the solder side. Both ends of the insulated run are then plain through-hole joints and only the
+2.54 mm link is a surface joint. It costs one extra joint per channel and is easier to inspect.
+
+**Either way this applies only at the socket end.** The GPIO fan-out pads hold nothing, so a wire
+drops straight through those holes, and so does the resistor lead at its own pad. One end of almost
+every run is a plain through-hole joint, and there are twelve socket-end connections in total.
 
 **Keep the two sides of each package apart, because that is what the board is for.** Pins 1–8 are
 the field side at 14 V and pins 9–16 are the Pi side. Route those two families on opposite sides of
