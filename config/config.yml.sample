@@ -135,6 +135,59 @@ pivac.OneWireTherm:
         0316a015e7ff:
             outname: Unassigned
 
+pivac.LoopDelta:
+    description: Per-run supply/return delta-T for the primary and secondary chilled-water loops
+    enabled: true
+
+    # Derived module: reads what pivac.OneWireTherm, pivac.GPIO and pivac.RedLink have
+    # already published rather than touching hardware, so it does not contend for the
+    # 1-wire bus or the GPIO pins and does not open a second Honeywell session.
+    sk_url: http://localhost:3000/signalk/v1/api/vessels/self
+    sk_path: environment.inside.hvac
+    request_timeout: 5
+
+    # Ignore any source value older than this. Stale is treated as missing, so a probe
+    # that stopped reporting cannot keep feeding a delta-T.
+    max_age_s: 120
+
+    # Report 0 for the first N seconds of a run. The probes still hold the stagnant
+    # values they drifted to with the pump off, so plotting those as live would be
+    # the fiction the gate exists to remove. Past it the live value is published,
+    # charge-up included -- delta-T overshoots to about +6.2 K a minute in against a
+    # settled +4.0, and that shape is real and worth seeing.
+    settle_s: 60
+
+    daemon_sleep: 20
+
+    # Each loop publishes <sk_path>.<name>.flowing and <sk_path>.<name>.deltaT every
+    # cycle. deltaT takes three values and each means something different: a number is
+    # the live measurement, 0 means the loop is not measuring (idle, or charging within
+    # settle_s), and a GAP means a source is stale or this module is down. Publishing 0
+    # for idle rather than nothing is what keeps that third case readable.
+    # KELVIN (a difference, so Fahrenheit is * 9/5 with NO offset).
+    #
+    # `relay` is the switch that proves this loop is pumping. CHIL is the Taco, which
+    # the HZ432 energizes on a call from ANY chiller zone -- including one on the other
+    # loop -- so a secondary also needs `zones` to narrow it. Once each secondary pump
+    # has its own sense input, set `relay` to that channel and delete `zones`: the relay
+    # is read locally every 0.5 s while the zone state comes from Honeywell's cloud with
+    # a measured median lag of 48 s.
+    loops:
+        primary:
+            supply: IN
+            return: OUT
+            relay: CHIL
+        LOOPA:
+            supply: LOOPA_SUP
+            return: LOOPA_RET
+            relay: CHIL
+            zones: [KIDS_ROOM, MASTER_BR]
+        LOOPB:
+            supply: LOOPB_SUP
+            return: LOOPB_RET
+            relay: CHIL
+            zones: [DSTRS_FAM_ROOM]
+
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
     enabled: true
