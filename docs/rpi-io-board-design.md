@@ -14,19 +14,24 @@ bridge in §8. The 1-wire bus itself, including the DS2482 procedure, is a separ
 
 ## 1. What sets the channel count
 
-Four 4-position PTSM connectors give sixteen positions. They ship with the INT-PCB SET, so they are not a separate order. One per connector carries that group's
-field common, leaving **12 monitored channels** — seven in service and five spare.
+Four 4-position PTSM connectors give sixteen positions. They ship with the INT-PCB SET, so they
+are not a separate order. One position per connector carries that group's field common, and **J4
+position 1 carries the +14 V supply** (§3.1), leaving **11 monitored channels — seven in service
+and four spare**.
+
+Three quad packages give twelve optocoupler channels, so one is built with no connector position
+behind it. That is why the parts list and the bench test in §6.1 both count in twelves.
 
 **A single shared common would give fifteen channels and is the wrong trade.** These are pluggable
 connectors, so putting the only common on one of them means unplugging that connector disables
-every channel on the board, including the eleven wired elsewhere. Servicing one group would take
+every channel on the board, including the twelve wired elsewhere. Servicing one group would take
 the whole thing down. A shared return also converges every channel's current on one contact, so a
 degrading connection there presents as all fifteen channels misbehaving at once, which is a far
 harder fault to chase than three going dead together.
 
-Four spare against seven in service — J4 position 1 carries the supply — already covers the known expansion — restoring the leak-pan
-input displaced by `CHIL`, and a stage-2 `Y2` sense for the master bedroom. Three more channels
-bought at the cost of unpluggability is not worth it.
+Four spare already covers the known expansion: restoring the leak-pan input displaced by `CHIL`,
+and a stage-2 `Y2` sense for the master bedroom. Three more channels bought at the cost of
+unpluggability is not worth it.
 
 Electrically either choice is fine; a group's three LEDs draw about 15 mA through a contact rated
 4 A. The argument is entirely about service and diagnosis.
@@ -94,6 +99,17 @@ only resistor left is on the field side, setting LED current.
 ```
 
 Relay closed → LED lit → phototransistor conducts → GPIO reads LOW.
+
+The whole board is that channel twelve times against three rails:
+
+![Complete board schematic](rpi-io-board-schematic.svg)
+
+Two things read off it that the single-channel view hides. The **`24 V COM` rail touches no channel**
+— it exists only to tie the four connector pin-4 positions and the supply return together, because
+each channel's return path leaves the board through its relay and comes back on that net. And the
+**Pi ground rail is a twelve-way net of its own**, since every phototransistor emitter returns to it.
+That rail and the `+V` rail are the two longest conductors on the board and the two that must never
+meet.
 
 **Polarity already matches.** `pivac/GPIO.py` computes
 `presult = GPIO.input(pin) == (pullmode == "pulldown")`, so under the configured
@@ -305,6 +321,107 @@ before any optocoupler is committed, they remove soldering heat from the ICs ent
 channel later becomes a swap rather than a desolder. They are the one addition worth making to an
 order that is otherwise closed.
 
+#### The board itself
+
+From Phoenix Contact's customer drawing 00914691/00 for ident 2202994, in
+`~/OneDrive - DGLC/Claude/HVAC Manuals/phoenix contact pcb.pdf`:
+
+| | |
+|---|---|
+| Board | 59 × 85 mm, 1.6 mm thick |
+| Matrix | **2.54 mm pitch, ⌀1.0 mm plated holes** |
+| Terminal area A | `PSTD 0,65×0,65/40-2,54` — the 40-position Pi header |
+| Terminal area B | `PTSM 0,5/4-HH-2,5-THR` — the 4-position connector footprints, 2.5 mm pitch |
+
+Two features decide the wiring. **The Pi header fans out on traces into the matrix**, so every GPIO
+arrives at its own matrix pad and the Pi-side connection is pad to pad — no wiring to the header
+itself. And **the matrix is isolated pads with no bus strips**, so the `+V` and COM rails have to be
+built rather than picked up. The drawing is marked *simplified representation*, so confirm that
+second point with a continuity check across two adjacent holes before laying anything out; it takes
+ten seconds and the whole rail plan depends on it.
+
+The drawing also hatches **restricted areas** where the housing intrudes. Check them during the
+Step 1 dry-fit, before a layout is committed.
+
+#### Interconnect — how a connection is actually made
+
+Deciding this up front is what keeps the wiring short, and short wiring is what makes the rest of
+the sequence easy to verify. The whole board is **three rails, twelve resistors and 22 point-to-point
+runs** — the runs being an LED cathode and a phototransistor collector for each of the eleven landed
+channels.
+
+**Three rails, one continuous conductor each.** Two are on the field side: `+V` feeding twelve
+resistors, and `24 V COM` tying the four connector pin-4 positions together. The third is on the Pi
+side: **every phototransistor emitter returns to Pi ground**, so twelve emitters share one rail to a
+ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** laid
+along a straight row of holes and soldered to every pad it passes, rather than as a chain of
+jumpers. It is lower impedance, obvious to trace a year later, and it is what makes Step 3
+diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a chain of
+jumpers gives one dead pad and no indication of which joint failed. Sleeve the wire where it crosses
+another net.
+
+**The `+V` rail and the Pi ground rail must never meet, and they are the two that look most alike.**
+Both are bare wire spanning most of the board, and bridging them destroys the isolation the whole
+stage exists for. Keep them on opposite sides of the DIP row, matching the pin-1-to-8 versus
+pin-9-to-16 split, and route them so they never approach each other.
+
+**The resistor is the connection, not something a wire connects to.** Each channel needs 4.7 kΩ from
+the `+V` rail to its LED anode, so place the resistor to span that gap directly: one lead into a
+free hole on the rail row, the other reaching the socket's anode pad. That is the whole connection.
+Twelve resistors, no jumper wires on that leg at all. Stand a resistor on end if a horizontal span
+will not reach; the lead can be formed to any multiple of 2.54 mm.
+
+**Everything else: 22 AWG solid insulated, formed to right angles.** Strip a few millimetres, bend
+the wire flat to the board with pliers, and run it. It lies flatter and traces better than fine
+stranded wire. 30 AWG Kynar exists for dense boards where wires must share holes, and this board is
+not dense enough to need it.
+
+Two mechanical rules matter more than the wire choice.
+
+**A wire and a socket pin share the pad, never the hole.** The holes are ⌀1.0 mm and 22 AWG is
+0.64 mm, so the wire fits a hole on its own but cannot go into one the pin already fills. Forcing it
+lifts the pad. The sequence is: solder the socket pin in the hole as normal, then on the solder side
+tin the wire end a few millimetres, lay it **flat across the annular ring** — the exposed copper
+around that hole — against the pin's existing solder fillet, and reflow so the solder wets both.
+One pad, two conductors, one continuous fillet.
+
+**Do not wrap wire around a pin, and do not tack it to the side of one.** Neither is a gas-tight
+joint on a short flat socket pin, both are fatigue points, and both interfere with seating a chip.
+Wire wrapping is a real technique but it needs wire-wrap sockets with long square posts, 30 AWG
+wire and a tool, and the added height fights the housing clearance checked in Step 1.
+
+**If the ring feels too tight to work on, use the adjacent hole instead.** Run the wire through a
+free hole next to the pin, then link that hole to the socket pad with a short piece of bare wire on
+the solder side. Both ends of the insulated run are then plain through-hole joints and only the
+2.54 mm link is a surface joint. It costs one extra joint per channel and is easier to inspect.
+
+**This applies at every socket pin, resistors included** — a resistor lead cannot enter an occupied
+hole any more than a wire can. Every other lead and wire end drops straight through a hole, because
+the GPIO fan-out pads, the connector positions and the rail rows all hold nothing.
+
+**Count the work before starting, because it is more than it looks.** 46 of the 48 socket pins get
+soldered: 12 resistor anode leads, 12 emitters onto the Pi ground rail, 11 cathodes and 11
+collectors. The two spare are the twelfth channel's cathode and collector, which have nowhere to go
+until a connector position frees up. Only **22 of those are discrete wires** needing strip, form and
+route — the emitters are twelve tacks along one continuous rail, and the resistor leads come formed.
+
+**That count is the honest argument for 30 AWG wire-wrap wire, which is thin enough to enter the
+hole beside the pin** where 22 AWG is not: a 1.0 mm hole with a 0.64 × 0.25 mm socket pin in it has
+room for a 0.25 mm conductor, which is what the gauge exists for. Against that, 22 AWG strips with
+ordinary tools, holds a formed shape, and is far easier to trace. Soldering to an occupied pad is
+routine work rather than a special technique — melt the existing fillet, feed the tinned end in — so
+22 AWG remains the recommendation, but the choice is a trade rather than obvious.
+
+**Keep the two sides of each package apart, because that is what the board is for.** Pins 1–8 are
+the field side at 14 V and pins 9–16 are the Pi side. Route those two families on opposite sides of
+the package and leave a clear channel beneath each DIP with no crossing nets. The optocoupler gives
+you the isolation barrier internally; wiring that carries a field conductor across the Pi-side pins
+bridges around it, and no amount of care inside the package compensates.
+
+**Seating a socket:** solder two diagonal corner pins first, check the socket sits flat against the
+board, then solder the remaining fourteen. A socket soldered at an angle cannot be corrected
+without removing it. Leave the optocouplers out of the sockets until Step 4.
+
 #### Step 0 — identify the pinout with a meter, before anything is soldered
 
 **Do this even though the expected arrangement is written below.** Getting it wrong destroys all
@@ -340,6 +457,24 @@ before committing to a layout — the RPI-BC carrier is not generous.
 
 Orient all three packages **the same way**, notch in the same direction. Mixed orientation is the
 single most common way this build goes wrong, and it is invisible once the ICs are in.
+
+**Which way is decided for you.** Pins 1–8 are the LEDs and 9–16 the phototransistors, and on a DIP
+with the notch at the left end pins 1–8 run along the bottom edge and 9–16 along the top. The board
+fixes the rest: the Pi header is at the top and the PTSM connectors at the bottom. So **notch left,
+phototransistor side facing the header, LED side facing the connectors** puts every run on its short
+path and keeps the field and Pi wiring on opposite sides of each package, which is the separation
+§3 asks for.
+
+![Proposed board floor plan](rpi-io-board-layout.svg)
+
+The bands drawn in copper are fixed by the drawing; everything else is a proposal to check against
+the board before committing.
+
+**One prerequisite the drawing does not give you: which fan-out pad is which GPIO.** The header's
+traces run into the matrix unlabelled, so ring them out with a continuity meter — probe from each
+header pin to the pads near it — and write the map down before placing anything. Eleven of those
+pads are wiring targets and getting one wrong moves a relay's identity, which then shows up in
+InfluxDB as a renamed measurement rather than as an obvious fault.
 
 #### Step 2 — solder in height order
 
@@ -394,8 +529,8 @@ before the connector is ever inserted.
 ## 7. The extension board, and why relay wiring stays off it
 
 The **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) in the adjacent housing carries the 1-wire
-bus on 3-position headers, and it can host GPIO channels beyond the twelve here. Do that only if
-twelve is genuinely exhausted.
+bus on 3-position headers, and it can host GPIO channels beyond the eleven here. Do that only if
+eleven is genuinely exhausted.
 
 **Keep switched 24 V field wiring away from the 1-wire bus.** DQ is a slow open-drain line with a
 passive pull-up and no differential rejection, and it is the bus that has already collapsed once.
@@ -408,7 +543,7 @@ headers and bring their field wiring out of a separate entry. The DS2482, its pu
 decoupling want that board space anyway, and they belong beside the 1-wire terminals rather than
 across the housing from them.
 
-Twelve channels against seven in service, with the leak-pan input and a `Y2` sense as the known
+Eleven channels against seven in service, with the leak-pan input and a `Y2` sense as the known
 additions, means this should not come up. Recorded so the option is a decision rather than a
 discovery.
 

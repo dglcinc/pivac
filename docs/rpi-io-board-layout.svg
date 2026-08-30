@@ -1,0 +1,190 @@
+<svg viewBox="0 0 700 930" role="img" aria-label="Proposed floor plan of the RPI-BC input board: the Pi header and its fan-out occupy the top edge and the four PTSM connectors the bottom, both fixed by the board drawing. Between them, three DIP-16 sockets sit in a row with the phototransistor half facing the header and the LED half facing the connectors, with the Pi ground rail above and the plus-14-volt rail and twelve resistors below." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<defs><pattern id="mtx" x="0" y="0" width="25.4" height="25.4" patternUnits="userSpaceOnUse"><circle cx="12.7" cy="12.7" r="2.1" fill="currentColor" opacity=".22"/></pattern><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="currentColor">
+<rect x="58" y="58" width="590" height="850" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+<rect x="64" y="64" width="578" height="838" fill="url(#mtx)"/>
+<text x="58" y="42" font-size="11.5" font-weight="600">59 mm</text>
+<text x="26" y="483" font-size="11.5" font-weight="600" transform="rotate(-90 26 483)">85 mm</text>
+<text x="648" y="42" text-anchor="end" font-size="10.5" opacity=".75">matrix 2.54 mm · holes 1.0 mm</text>
+<rect x="74" y="74" width="558" height="104" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
+<text x="84" y="92" font-size="11.5" font-weight="600" fill="#A85F22">Pi header — 40-pos PSTD</text>
+<text x="84" y="107" font-size="10" fill="#A85F22" opacity=".85">fan-out traces carry each GPIO to its own matrix pad</text>
+<rect x="104" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="104" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="128" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="128" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="152" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="152" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="176" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="176" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="200" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="200" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="224" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="224" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="248" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="248" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="272" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="272" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="296" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="296" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="320" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="320" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="344" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="344" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="368" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="368" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="392" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="392" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="416" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="416" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="440" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="440" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="464" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="464" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="488" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="488" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="512" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="512" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="536" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="536" y="124" width="9" height="9" fill="#A85F22"/>
+<rect x="560" y="110" width="9" height="9" fill="#A85F22"/>
+<rect x="560" y="124" width="9" height="9" fill="#A85F22"/>
+<path d="M118,138 Q130,160 178,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
+<path d="M238,138 Q250,160 308,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
+<path d="M388,138 Q400,160 458,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
+<line x1="94" y1="240" x2="612" y2="240" stroke="currentColor" stroke-width="3"/>
+<text x="94" y="232" font-size="11" font-weight="600">Pi GND rail — 12 emitters</text>
+<text x="612" y="232" font-size="10" opacity=".8" text-anchor="end">to a GND fan-out pad</text>
+<text x="84" y="256" font-size="11.5" font-weight="600">3 × DIP-16, all notches left, pins 9–16 facing the header</text>
+<rect x="92" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M92,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<rect x="110" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="110" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="126" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="126" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="142" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="142" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="158" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="158" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="174" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="174" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="190" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="190" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="206" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="206" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="222" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="222" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<text x="167" y="306" text-anchor="middle" font-size="10.5">LTV-847 #1</text>
+<text x="106" y="352" font-size="9">1</text>
+<text x="106" y="256" font-size="9">16</text>
+<rect x="278" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M278,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<rect x="296" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="296" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="312" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="312" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="328" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="328" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="344" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="344" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="360" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="360" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="376" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="376" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="392" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="392" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="408" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="408" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<text x="353" y="306" text-anchor="middle" font-size="10.5">LTV-847 #2</text>
+<text x="292" y="352" font-size="9">1</text>
+<text x="292" y="256" font-size="9">16</text>
+<rect x="464" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M464,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<rect x="482" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="482" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="498" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="498" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="514" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="514" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="530" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="530" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="546" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="546" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="562" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="562" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="578" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="578" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="594" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
+<rect x="594" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
+<text x="539" y="306" text-anchor="middle" font-size="10.5">LTV-847 #3</text>
+<text x="478" y="352" font-size="9">1</text>
+<text x="478" y="256" font-size="9">16</text>
+<text x="92" y="240" font-size="10" opacity=".8">pins 9–16 · phototransistors · Pi side ↑</text>
+<text x="92" y="368" font-size="10" opacity=".8">pins 1–8 · LEDs · field side ↓</text>
+<text x="84" y="382" font-size="11.5" font-weight="600">12 × 4.7 kΩ — each spans the rail to its own LED anode</text>
+<line x1="115" y1="390" x2="115" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="104" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="115" y1="417" x2="115" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="160" y1="390" x2="160" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="149" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="160" y1="417" x2="160" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="205" y1="390" x2="205" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="194" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="205" y1="417" x2="205" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="250" y1="390" x2="250" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="239" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="250" y1="417" x2="250" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="295" y1="390" x2="295" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="284" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="295" y1="417" x2="295" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="340" y1="390" x2="340" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="329" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="340" y1="417" x2="340" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="385" y1="390" x2="385" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="374" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="385" y1="417" x2="385" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="430" y1="390" x2="430" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="419" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="430" y1="417" x2="430" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="475" y1="390" x2="475" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="464" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="475" y1="417" x2="475" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="520" y1="390" x2="520" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="509" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="520" y1="417" x2="520" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="565" y1="390" x2="565" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="554" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="565" y1="417" x2="565" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="610" y1="390" x2="610" y2="406" stroke="currentColor" stroke-width="1.2"/>
+<rect x="599" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="610" y1="417" x2="610" y2="434" stroke="currentColor" stroke-width="1.2"/>
+<line x1="94" y1="434" x2="612" y2="434" stroke="currentColor" stroke-width="3"/>
+<text x="94" y="452" font-size="11" font-weight="600">+14 V rail</text>
+<rect x="74" y="776" width="558" height="104" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
+<text x="84" y="794" font-size="11.5" font-weight="600" fill="#A85F22">4 × PTSM 0,5/4 — J1 J2 J3 J4</text>
+<text x="84" y="809" font-size="10" fill="#A85F22" opacity=".85">position fixed by the board; +14 V enters at J4.1, COM returns on every pin 4</text>
+<rect x="110" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="135" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="160" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="185" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="154" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J1</text>
+<rect x="246" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="271" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="296" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="321" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="290" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J2</text>
+<rect x="382" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="407" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="432" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="457" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="426" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J3</text>
+<rect x="518" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="543" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="568" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<rect x="593" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="562" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J4</text>
+<rect x="58" y="926" width="16" height="10" fill="none" stroke="#A85F22" stroke-width="2"/>
+<text x="82" y="934" font-size="10.5" fill="#A85F22">fixed by drawing 00914691/00</text>
+<rect x="308" y="926" width="16" height="10" fill="none" stroke="currentColor" stroke-width="1.4"/>
+<text x="332" y="934" font-size="10.5">proposed — verify before committing</text>
+</g></svg>
