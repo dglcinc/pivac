@@ -21,18 +21,19 @@ ACC  = "#A85F22"
 out = []
 W_, H_ = 660, 1090
 out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC extension board, component side, close-margin end at the top. Three 3-position probe sockets have their pins in row 2 with entries facing the row-1 edge and the enclosure opening. Three bare rails on rows 3, 4 and 5 bus VCC, DATA and GND. Three component-side bridges at columns 6, 10 and 12 carry those nets over the keep-out band at rows 8 and 9 into the lower field, where the DS2482 sits in columns 8 and 11, rows 12 to 15, and a 4-position link terminal to the Pi board sits in row 18, columns 8 to 11. The power-riser field at columns 1 to 5, rows 11 to 23, is unused." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
+out.append(f'<rect x="0" y="0" width="{W_}" height="{H_}" fill="#ffffff"/>')
 out.append('<defs>'
   '<pattern id="hx2" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
   f'<line x1="0" y1="0" x2="0" y2="9" stroke="{ACC}" stroke-width="1.4" opacity=".55"/></pattern>'
   '</defs>')
-out.append('<g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="currentColor">')
+out.append('<g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#1a1a1a">')
 out.append(f'<text x="{MX-140}" y="22" font-size="13" font-weight="600">EXT BOARD, COMPONENT SIDE — hole grid (column,row)</text>')
 out.append(f'<text x="{MX-140}" y="38" font-size="10" opacity=".82">row 1 = the end whose holes sit CLOSEST to the board edge · column 1 = the power-riser side</text>')
 
 # outline: unequal end margins, as on the real board
 bx0, bx1 = X(1)-1.1*P, X(14)+1.1*P
 by0, by1 = Y(1)-1.0*P, Y(32)+1.45*P
-out.append(f'<rect x="{bx0:.0f}" y="{by0:.0f}" width="{bx1-bx0:.0f}" height="{by1-by0:.0f}" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>')
+out.append(f'<rect x="{bx0:.0f}" y="{by0:.0f}" width="{bx1-bx0:.0f}" height="{by1-by0:.0f}" rx="4" fill="none" stroke="#1a1a1a" stroke-width="2"/>')
 out.append(f'<text x="{(bx0+bx1)/2:.0f}" y="{by0-24:.0f}" text-anchor="middle" font-size="9.5" font-weight="600">▲ SHORT-END OPENING — probe plugs enter here ▲</text>')
 out.append(f'<text x="{(bx0+bx1)/2:.0f}" y="{by0-11:.0f}" text-anchor="middle" font-size="8.5" opacity=".8">row 1 is the narrow end margin — this is how you tell the two ends apart</text>')
 out.append(f'<text x="{(bx0+bx1)/2:.0f}" y="{by1+15:.0f}" text-anchor="middle" font-size="9" opacity=".85">▼ second short-end opening (spare) ▼</text>')
@@ -56,7 +57,7 @@ out.append(f'<text x="{X(1)-4:.0f}" y="{Y(8)-P/2-4:.0f}" font-size="9" fill="{AC
 out.append(f'<text x="{X(1)-4:.0f}" y="{Y(26)+P/2+12:.0f}" font-size="9" fill="{ACC}">keep-out — rows 25–26</text>')
 
 # riser field, unused
-out.append(f'<rect x="{X(1)-13:.0f}" y="{Y(11)-13:.0f}" width="{X(5)-X(1)+26:.0f}" height="{Y(23)-Y(11)+26:.0f}" rx="4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="5 4" opacity=".65"/>')
+out.append(f'<rect x="{X(1)-13:.0f}" y="{Y(11)-13:.0f}" width="{X(5)-X(1)+26:.0f}" height="{Y(23)-Y(11)+26:.0f}" rx="4" fill="none" stroke="#1a1a1a" stroke-width="1.3" stroke-dasharray="5 4" opacity=".65"/>')
 out.append(f'<text x="{X(3):.0f}" y="{Y(17)+3:.0f}" text-anchor="middle" font-size="9" font-weight="600" opacity=".8" transform="rotate(-90 {X(3):.0f} {Y(17):.0f})">POWER RISER — UNUSED</text>')
 
 # holes
@@ -67,12 +68,12 @@ def exists(c,r):
 for r in range(1,33):
     for c in range(1,15):
         if exists(c,r):
-            out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="2.6" fill="currentColor" opacity=".22"/>')
+            out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="2.6" fill="#1a1a1a" opacity=".22"/>')
 for r in range(13,22):
     for c in (1,2):
-        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(r)-3:.0f}" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>')
+        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(r)-3:.0f}" width="6" height="6" fill="none" stroke="#1a1a1a" stroke-width="1" opacity=".5"/>')
     for c in (4,5):
-        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="4" fill="none" stroke="currentColor" stroke-width=".9" opacity=".4"/>')
+        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="4" fill="none" stroke="#1a1a1a" stroke-width=".9" opacity=".4"/>')
 
 def wire(pts, col, dash=None, wdt=1.5):
     d = ' '.join(f'{x:.0f},{y:.0f}' for x,y in pts)
@@ -89,12 +90,12 @@ for name, c0 in (('H1',2), ('H2',7), ('H3',12)):
         out.append(f'<text x="{X(c0+k):.0f}" y="{Y(2)+3:.0f}" text-anchor="middle" font-size="7.5" fill="{ACC}">{lab}</text>')
 
 # rails rows 3 / 4 / 5
-out.append(f'<line x1="{X(2):.0f}" y1="{Y(3):.0f}" x2="{X(12):.0f}" y2="{Y(3):.0f}" stroke="currentColor" stroke-width="2.8"/>')
-out.append(f'<line x1="{X(3):.0f}" y1="{Y(4):.0f}" x2="{X(13):.0f}" y2="{Y(4):.0f}" stroke="currentColor" stroke-width="2.8"/>')
-out.append(f'<line x1="{X(4):.0f}" y1="{Y(5):.0f}" x2="{X(14):.0f}" y2="{Y(5):.0f}" stroke="currentColor" stroke-width="2.8"/>')
+out.append(f'<line x1="{X(2):.0f}" y1="{Y(3):.0f}" x2="{X(12):.0f}" y2="{Y(3):.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
+out.append(f'<line x1="{X(3):.0f}" y1="{Y(4):.0f}" x2="{X(13):.0f}" y2="{Y(4):.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
+out.append(f'<line x1="{X(4):.0f}" y1="{Y(5):.0f}" x2="{X(14):.0f}" y2="{Y(5):.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
 out.append(f'<text x="{MX-140}" y="54" font-size="10" opacity=".82">bus rails, solder side: row 3 = VCC · row 4 = DATA · row 5 = GND</text>')
 for c in (2,7,12):                                    # V: bare stub
-    out.append(f'<line x1="{X(c):.0f}" y1="{Y(2):.0f}" x2="{X(c):.0f}" y2="{Y(3):.0f}" stroke="currentColor" stroke-width="1.7"/>')
+    out.append(f'<line x1="{X(c):.0f}" y1="{Y(2):.0f}" x2="{X(c):.0f}" y2="{Y(3):.0f}" stroke="#1a1a1a" stroke-width="1.7"/>')
 for c in (3,8,13):                                    # D: insulated jumper over the VCC rail
     wire([(X(c),Y(2)),(X(c),Y(4))], ONEW)
 for c in (4,9,14):                                    # G: insulated jumper over both rails
@@ -106,24 +107,24 @@ for c, r0, lab in ((6,3,'V'), (10,4,'D'), (12,5,'G')):
     out.append(f'<text x="{X(c)+7:.0f}" y="{Y(8)+14:.0f}" font-size="8" font-weight="600" fill="{ONEW}">{lab}</text>')
 
 # lower-field rails
-out.append(f'<line x1="{X(6):.0f}" y1="{Y(10):.0f}" x2="{X(6):.0f}" y2="{Y(18):.0f}" stroke="currentColor" stroke-width="2.8"/>')
-out.append(f'<line x1="{X(12):.0f}" y1="{Y(10):.0f}" x2="{X(12):.0f}" y2="{Y(18):.0f}" stroke="currentColor" stroke-width="2.8"/>')
+out.append(f'<line x1="{X(6):.0f}" y1="{Y(10):.0f}" x2="{X(6):.0f}" y2="{Y(18):.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
+out.append(f'<line x1="{X(12):.0f}" y1="{Y(10):.0f}" x2="{X(12):.0f}" y2="{Y(18):.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
 out.append(f'<text x="{X(6):.0f}" y="{Y(10)-8:.0f}" text-anchor="middle" font-size="8.5" font-weight="600">VCC</text>')
 out.append(f'<text x="{X(12):.0f}" y="{Y(10)-8:.0f}" text-anchor="middle" font-size="8.5" font-weight="600">GND</text>')
 
 # DS2482 socket, cols 8 & 11, rows 12-15, notch toward row 11
 x0,x1 = X(8)-3, X(11)+3
 y0,y1 = Y(12)-P/2+3, Y(15)+P/2-3
-out.append(f'<rect x="{x0:.0f}" y="{y0:.0f}" width="{x1-x0:.0f}" height="{y1-y0:.0f}" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>')
-out.append(f'<path d="M{(x0+x1)/2-8:.0f},{y0:.0f} a8,8 0 0,1 16,0" fill="none" stroke="currentColor" stroke-width="1.7"/>')
+out.append(f'<rect x="{x0:.0f}" y="{y0:.0f}" width="{x1-x0:.0f}" height="{y1-y0:.0f}" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.7"/>')
+out.append(f'<path d="M{(x0+x1)/2-8:.0f},{y0:.0f} a8,8 0 0,1 16,0" fill="none" stroke="#1a1a1a" stroke-width="1.7"/>')
 out.append(f'<text x="{(x0+x1)/2:.0f}" y="{Y(11)-4:.0f}" text-anchor="middle" font-size="9.5" font-weight="600">DS2482 — notch UP</text>')
 for r,l in {12:'VCC',13:'IO',14:'GND',15:'SCL'}.items():
-    out.append(f'<rect x="{X(8)-3:.0f}" y="{Y(r)-4:.0f}" width="6" height="8" fill="currentColor"/>')
+    out.append(f'<rect x="{X(8)-3:.0f}" y="{Y(r)-4:.0f}" width="6" height="8" fill="#1a1a1a"/>')
     out.append(f'<text x="{X(8)+7:.0f}" y="{Y(r)+3:.0f}" font-size="7">{l}</text>')
 for r,l in {12:'AD0',13:'AD1',14:'n/c',15:'SDA'}.items():
-    out.append(f'<rect x="{X(11)-3:.0f}" y="{Y(r)-4:.0f}" width="6" height="8" fill="currentColor"/>')
+    out.append(f'<rect x="{X(11)-3:.0f}" y="{Y(r)-4:.0f}" width="6" height="8" fill="#1a1a1a"/>')
     out.append(f'<text x="{X(11)-7:.0f}" y="{Y(r)+3:.0f}" text-anchor="end" font-size="7">{l}</text>')
-out.append(f'<circle cx="{X(8)-8:.0f}" cy="{Y(12)-9:.0f}" r="2.3" fill="currentColor"/>')
+out.append(f'<circle cx="{X(8)-8:.0f}" cy="{Y(12)-9:.0f}" r="2.3" fill="#1a1a1a"/>')
 out.append(f'<text x="{X(8)-13:.0f}" y="{Y(12)-6:.0f}" text-anchor="end" font-size="7">pin1</text>')
 
 # 100 nF at (9,16)-(10,16)
@@ -148,8 +149,8 @@ out.append(f'<text x="{X(12)+13:.0f}" y="{Y(18)+12:.0f}" font-size="7" fill="{I2
 wire([(X(6),Y(12)),(X(8),Y(12))], ONEW)                       # V1 rail -> VCC pin
 wire([(X(6),Y(16)),(X(9),Y(16))], ONEW)                       # V2 rail -> cap
 wire([(X(6),Y(18)),(X(8),Y(18))], ONEW)                       # V3 rail -> 3V3 pin
-out.append(f'<line x1="{X(12):.0f}" y1="{Y(12):.0f}" x2="{X(11):.0f}" y2="{Y(12):.0f}" stroke="currentColor" stroke-width="1.7"/>')  # AD0 stub
-out.append(f'<line x1="{X(12):.0f}" y1="{Y(13):.0f}" x2="{X(11):.0f}" y2="{Y(13):.0f}" stroke="currentColor" stroke-width="1.7"/>')  # AD1 stub
+out.append(f'<line x1="{X(12):.0f}" y1="{Y(12):.0f}" x2="{X(11):.0f}" y2="{Y(12):.0f}" stroke="#1a1a1a" stroke-width="1.7"/>')  # AD0 stub
+out.append(f'<line x1="{X(12):.0f}" y1="{Y(13):.0f}" x2="{X(11):.0f}" y2="{Y(13):.0f}" stroke="#1a1a1a" stroke-width="1.7"/>')  # AD1 stub
 wire([(X(12),Y(14)),(X(8),Y(14))], ONEW)                      # G1 rail -> GND pin
 wire([(X(12),Y(16)),(X(10),Y(16))], ONEW)                     # G2 rail -> cap
 wire([(X(10),Y(10)),(X(10),Y(10)+7),(X(7),Y(10)+7),(X(7),Y(13)),(X(8),Y(13))], ONEW)  # D1 -> IO
@@ -157,8 +158,8 @@ wire([(X(8),Y(15)),(X(8),Y(17)-6),(X(10),Y(17)-6),(X(10),Y(18))], I2C)   # S1 SC
 wire([(X(11),Y(15)),(X(11),Y(17)+6),(X(9),Y(17)+6),(X(9),Y(18))], I2C)   # S2 SDA
 
 # legend
-ly = Y(32)+52
-out.append(f'<line x1="{MX-110}" y1="{ly:.0f}" x2="{MX-72}" y2="{ly:.0f}" stroke="currentColor" stroke-width="2.8"/>')
+ly = Y(32)+88
+out.append(f'<line x1="{MX-110}" y1="{ly:.0f}" x2="{MX-72}" y2="{ly:.0f}" stroke="#1a1a1a" stroke-width="2.8"/>')
 out.append(f'<text x="{MX-64}" y="{ly+3:.0f}" font-size="9">bare rail or 1-hole stub, solder side</text>')
 out.append(f'<line x1="{MX+180}" y1="{ly:.0f}" x2="{MX+218}" y2="{ly:.0f}" stroke="{ONEW}" stroke-width="1.5"/>')
 out.append(f'<text x="{MX+226}" y="{ly+3:.0f}" font-size="9">insulated wire, solder side</text>')
