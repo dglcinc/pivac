@@ -16,11 +16,12 @@ ACC   = "#A85F22"   # fixed-by-drawing accent
 out = []
 W_, H_ = 835, 1030
 out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
+out.append(f'<rect x="0" y="0" width="{W_}" height="{H_}" fill="#ffffff"/>')
 out.append('<defs>'
   '<pattern id="hx" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
   f'<line x1="0" y1="0" x2="0" y2="9" stroke="{ACC}" stroke-width="1.4" opacity=".55"/></pattern>'
   '</defs>')
-out.append('<g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="currentColor">')
+out.append('<g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#1a1a1a">')
 
 out.append(f'<text x="{MX-18}" y="22" font-size="13" font-weight="600">COMPONENT SIDE — hole grid (column,row), TOP view of drawing 00914691/00</text>')
 
@@ -28,7 +29,7 @@ out.append(f'<text x="{MX-18}" y="22" font-size="13" font-weight="600">COMPONENT
 # board outline: edges relative to hole grid (measured from drawing)
 bx0, bx1 = X(1)-0.6*P, X(23)+0.6*P
 by0, by1 = Y(1)-3.4*P, Y(30)+1.0*P
-out.append(f'<rect x="{bx0:.0f}" y="{by0:.0f}" width="{bx1-bx0:.0f}" height="{by1-by0:.0f}" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>')
+out.append(f'<rect x="{bx0:.0f}" y="{by0:.0f}" width="{bx1-bx0:.0f}" height="{by1-by0:.0f}" rx="4" fill="none" stroke="#1a1a1a" stroke-width="2"/>')
 
 # column numbers (top, below connector zone: put above board top edge) and row numbers (left+right)
 for c in range(1,24):
@@ -72,13 +73,13 @@ for (c,r) in sorted(HS):
     elif r==2 and 6<=c<=21:
         out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="3.4" fill="{FIELD}" opacity=".5"/>')
     else:
-        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="2.6" fill="currentColor" opacity=".22"/>')
+        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="2.6" fill="#1a1a1a" opacity=".22"/>')
 
 # header pads cols 1-2 rows 1-20
 for r in range(1,21):
     for c in (1,2):
-        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="5" fill="none" stroke="currentColor" stroke-width="1.4"/>')
-out.append(f'<circle cx="{X(2):.0f}" cy="{Y(1):.0f}" r="5" fill="currentColor"/>')
+        out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="5" fill="none" stroke="#1a1a1a" stroke-width="1.4"/>')
+out.append(f'<circle cx="{X(2):.0f}" cy="{Y(1):.0f}" r="5" fill="#1a1a1a"/>')
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-34:.0f}" font-size="8.5" font-weight="600">dark pad =</text>')
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-23:.0f}" font-size="8.5" font-weight="600">Pi pin 1</text>')
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-12:.0f}" font-size="8.5" font-weight="600">(confirmed)</text>')
@@ -121,10 +122,10 @@ def dip(name, rtop, notch, chans):
     rbot = rtop+3
     x0,x1 = X(7)-P/2, X(14)+P/2
     y0,y1 = Y(rtop)-P/2+4, Y(rbot)+P/2-4
-    out.append(f'<rect x="{x0:.0f}" y="{y0:.0f}" width="{x1-x0:.0f}" height="{y1-y0:.0f}" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>')
+    out.append(f'<rect x="{x0:.0f}" y="{y0:.0f}" width="{x1-x0:.0f}" height="{y1-y0:.0f}" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.7"/>')
     nx = x1 if notch=='right' else x0
     sweep = '0,0' # arc
-    out.append(f'<path d="M{nx:.0f},{(y0+y1)/2-8:.0f} a8,8 0 0,{"1" if notch=="right" else "0"} 0,16" fill="none" stroke="currentColor" stroke-width="1.7"/>')
+    out.append(f'<path d="M{nx:.0f},{(y0+y1)/2-8:.0f} a8,8 0 0,{"1" if notch=="right" else "0"} 0,16" fill="none" stroke="#1a1a1a" stroke-width="1.7"/>')
     out.append(f'<text x="{(x0+x1)/2:.0f}" y="{(y0+y1)/2+4:.0f}" text-anchor="middle" font-size="10" font-weight="600">{name} · notch {notch.upper()}</text>')
     # pins + letters
     if notch=='right':
@@ -136,18 +137,18 @@ def dip(name, rtop, notch, chans):
         botpins = {7:'A',8:'K',9:'A',10:'K',11:'A',12:'K',13:'A',14:'K'}
         p1c = 7
     for c,l in toppins.items():
-        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(rtop)-4:.0f}" width="6" height="8" fill="currentColor"/>')
+        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(rtop)-4:.0f}" width="6" height="8" fill="#1a1a1a"/>')
         out.append(f'<text x="{X(c):.0f}" y="{Y(rtop)-8:.0f}" text-anchor="middle" font-size="8">{l}</text>')
     for c,l in botpins.items():
-        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(rbot)-4:.0f}" width="6" height="8" fill="currentColor"/>')
+        out.append(f'<rect x="{X(c)-3:.0f}" y="{Y(rbot)-4:.0f}" width="6" height="8" fill="#1a1a1a"/>')
         out.append(f'<text x="{X(c):.0f}" y="{Y(rbot)+15:.0f}" text-anchor="middle" font-size="8">{l}</text>')
     # pin 1 marker
     r1 = rbot if notch=='right' else rbot  # pin1 is on LED row: notch right → LED row is top; pin1 col14 top... careful:
     # notch right: pin1 = top row, col14 ; notch left: pin1 = bottom row? for C (notch left) LED row is bottom, pin1 col7 bottom
     if notch=='right':
-        out.append(f'<circle cx="{X(14)+9:.0f}" cy="{Y(rtop):.0f}" r="2.2" fill="currentColor"/>')
+        out.append(f'<circle cx="{X(14)+9:.0f}" cy="{Y(rtop):.0f}" r="2.2" fill="#1a1a1a"/>')
     else:
-        out.append(f'<circle cx="{X(7)-9:.0f}" cy="{Y(rbot):.0f}" r="2.2" fill="currentColor"/>')
+        out.append(f'<circle cx="{X(7)-9:.0f}" cy="{Y(rbot):.0f}" r="2.2" fill="#1a1a1a"/>')
 
 dip('IC-A', 8, 'right', None)
 dip('IC-B', 13, 'right', None)
@@ -183,20 +184,20 @@ for row,cs in ((8,(14,12,10,8)),(13,(14,12,10,8)),(21,(13,11,9,7))):
         out.append(f'<path d="M{X(a):.0f},{Y(row):.0f} Q{(X(a)+X(b))/2:.0f},{Y(row)-10:.0f} {X(b):.0f},{Y(row):.0f}" fill="none" stroke="{FIELD}" stroke-width="1.2"/>')
 
 # COM rail row 3, cols 9-21 + stubs to row 2
-out.append(f'<line x1="{X(9):.0f}" y1="{Y(3):.0f}" x2="{X(21):.0f}" y2="{Y(3):.0f}" stroke="currentColor" stroke-width="2.6"/>')
+out.append(f'<line x1="{X(9):.0f}" y1="{Y(3):.0f}" x2="{X(21):.0f}" y2="{Y(3):.0f}" stroke="#1a1a1a" stroke-width="2.6"/>')
 out.append(f'<text x="{X(9)+8:.0f}" y="{Y(3)-7:.0f}" font-size="9" font-weight="600">24V COM rail (bare) — stubs up at cols 9·13·17·21</text>')
 for c in (9,13,17,21):
-    out.append(f'<line x1="{X(c):.0f}" y1="{Y(3):.0f}" x2="{X(c):.0f}" y2="{Y(2):.0f}" stroke="currentColor" stroke-width="1.6"/>')
+    out.append(f'<line x1="{X(c):.0f}" y1="{Y(3):.0f}" x2="{X(c):.0f}" y2="{Y(2):.0f}" stroke="#1a1a1a" stroke-width="1.6"/>')
 
 # ground rails row 12 (cols 7-13) and row 17 (cols 7-14) + stubs
-out.append(f'<line x1="{X(7):.0f}" y1="{Y(12):.0f}" x2="{X(13):.0f}" y2="{Y(12):.0f}" stroke="currentColor" stroke-width="2.6"/>')
+out.append(f'<line x1="{X(7):.0f}" y1="{Y(12):.0f}" x2="{X(13):.0f}" y2="{Y(12):.0f}" stroke="#1a1a1a" stroke-width="2.6"/>')
 for c in (7,9,11,13):
-    out.append(f'<line x1="{X(c):.0f}" y1="{Y(12):.0f}" x2="{X(c):.0f}" y2="{Y(11):.0f}" stroke="currentColor" stroke-width="1.6"/>')
-out.append(f'<line x1="{X(7):.0f}" y1="{Y(17):.0f}" x2="{X(14):.0f}" y2="{Y(17):.0f}" stroke="currentColor" stroke-width="2.6"/>')
+    out.append(f'<line x1="{X(c):.0f}" y1="{Y(12):.0f}" x2="{X(c):.0f}" y2="{Y(11):.0f}" stroke="#1a1a1a" stroke-width="1.6"/>')
+out.append(f'<line x1="{X(7):.0f}" y1="{Y(17):.0f}" x2="{X(14):.0f}" y2="{Y(17):.0f}" stroke="#1a1a1a" stroke-width="2.6"/>')
 for c in (7,9,11,13):
-    out.append(f'<line x1="{X(c):.0f}" y1="{Y(17):.0f}" x2="{X(c):.0f}" y2="{Y(16):.0f}" stroke="currentColor" stroke-width="1.6"/>')
+    out.append(f'<line x1="{X(c):.0f}" y1="{Y(17):.0f}" x2="{X(c):.0f}" y2="{Y(16):.0f}" stroke="#1a1a1a" stroke-width="1.6"/>')
 for c in (8,10,12,14):
-    out.append(f'<line x1="{X(c):.0f}" y1="{Y(17):.0f}" x2="{X(c):.0f}" y2="{Y(18):.0f}" stroke="currentColor" stroke-width="1.6"/>')
+    out.append(f'<line x1="{X(c):.0f}" y1="{Y(17):.0f}" x2="{X(c):.0f}" y2="{Y(18):.0f}" stroke="#1a1a1a" stroke-width="1.6"/>')
 out.append(f'<text x="{X(14)+6:.0f}" y="{Y(12)+3:.0f}" font-size="9" font-weight="600">Pi GND rail A</text>')
 out.append(f'<text x="{X(14)+22:.0f}" y="{Y(17)+3:.0f}" font-size="9" font-weight="600">Pi GND rail B·C</text>')
 # ground jumpers
@@ -257,7 +258,7 @@ out.append(f'<text x="{X(5):.0f}" y="{Y(20)+4:.0f}" text-anchor="middle" font-si
 
 # legend
 ly = Y(30)+2.2*P
-out.append(f'<line x1="{MX-14}" y1="{ly:.0f}" x2="{MX+26}" y2="{ly:.0f}" stroke="currentColor" stroke-width="2.6"/>')
+out.append(f'<line x1="{MX-14}" y1="{ly:.0f}" x2="{MX+26}" y2="{ly:.0f}" stroke="#1a1a1a" stroke-width="2.6"/>')
 out.append(f'<text x="{MX+34}" y="{ly+3:.0f}" font-size="9">bare rail (solder side)</text>')
 out.append(f'<line x1="{MX+190}" y1="{ly:.0f}" x2="{MX+230}" y2="{ly:.0f}" stroke="{FIELD}" stroke-width="1.5"/>')
 out.append(f'<text x="{MX+238}" y="{ly+3:.0f}" font-size="9">field wire (insulated)</text>')
