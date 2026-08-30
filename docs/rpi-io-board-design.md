@@ -310,6 +310,28 @@ before any optocoupler is committed, they remove soldering heat from the ICs ent
 channel later becomes a swap rather than a desolder. They are the one addition worth making to an
 order that is otherwise closed.
 
+#### The board itself
+
+From Phoenix Contact's customer drawing 00914691/00 for ident 2202994, in
+`~/OneDrive - DGLC/Claude/HVAC Manuals/phoenix contact pcb.pdf`:
+
+| | |
+|---|---|
+| Board | 59 × 85 mm, 1.6 mm thick |
+| Matrix | **2.54 mm pitch, ⌀1.0 mm plated holes** |
+| Terminal area A | `PSTD 0,65×0,65/40-2,54` — the 40-position Pi header |
+| Terminal area B | `PTSM 0,5/4-HH-2,5-THR` — the 4-position connector footprints, 2.5 mm pitch |
+
+Two features decide the wiring. **The Pi header fans out on traces into the matrix**, so every GPIO
+arrives at its own matrix pad and the Pi-side connection is pad to pad — no wiring to the header
+itself. And **the matrix is isolated pads with no bus strips**, so the `+V` and COM rails have to be
+built rather than picked up. The drawing is marked *simplified representation*, so confirm that
+second point with a continuity check across two adjacent holes before laying anything out; it takes
+ten seconds and the whole rail plan depends on it.
+
+The drawing also hatches **restricted areas** where the housing intrudes. Check them during the
+Step 1 dry-fit, before a layout is committed.
+
 #### Interconnect — how a connection is actually made
 
 Three kinds of connection exist on this board and they want different treatment. Deciding this up
@@ -340,11 +362,14 @@ Two mechanical rules matter more than the wire choice.
 wire is soldered to the pad it sits in, so one joint holds both. Wire tacked onto the side of a pin
 is a fatigue point, and it interferes with seating a chip.
 
-**Do not force 22 AWG into a hole that already holds a socket pin.** It will not go, and forcing it
+**Do not force 22 AWG into a hole that already holds a socket pin.** The holes are ⌀1.0 mm and
+22 AWG is 0.64 mm, so the wire fits a hole on its own and cannot share one with a pin. Forcing it
 lifts the pad. Land it on the **annular ring instead** — the exposed copper around that hole on the
-solder side. Tin the wire end, lay it flat across the ring, and solder. If the ring is too small to
-take it, run the wire to the nearest free hole in the same net and bridge the short gap. Planning
-the layout in Step 1 so parts sit next to what they connect to is what keeps this rare.
+solder side. Tin the ring, tin the wire end, lay it flat across the ring, and solder.
+
+This only ever applies at the socket end. The GPIO fan-out pads hold nothing, so a wire drops
+straight through those holes, and so does the resistor lead at its own pad. One end of almost every
+run is therefore a plain through-hole joint.
 
 **Keep the two sides of each package apart, because that is what the board is for.** Pins 1–8 are
 the field side at 14 V and pins 9–16 are the Pi side. Route those two families on opposite sides of
