@@ -556,7 +556,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Temperature rise across each load while that loop is actually pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Each run draws as its own segment and the gaps between are real — with a pump off its two probes sit in a dead leg and hold a plausible positive ΔT indefinitely (loop A reads +3.6 °F stopped, against +5.0 running), so an ungated series is mostly fiction. pivac.LoopDelta gates on the CHIL relay narrowed by each secondary's zone calls, and discards the first three minutes of every run, where ΔT overshoots to +6.2 °F against a settled +4.0. The plotted value is the run's mean so far, so the last sample of a segment is the full-run mean. Source is Kelvin and ΔT is a difference, so the conversion is *9/5 with NO offset — do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 °F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
+      "description": "Temperature rise across each load while that loop is pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Three values, three meanings: a number is a live measurement, 0 means the loop is not running (or is within the first minute of a run, still charging), and a GAP means a source is stale or pivac.LoopDelta is down. Zero is a convention, never a measured zero — with a pump off the two probes sit in a dead leg and hold a plausible positive ΔT indefinitely (loop A reads +3.6 °F stopped against +5.0 running), so an ungated series is mostly fiction. Gated on the CHIL relay narrowed by each secondary's zone calls. Source is Kelvin and ΔT is a difference, so the conversion is *9/5 with NO offset — do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 °F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -579,12 +579,12 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "always",
+            "showPoints": "auto",
             "spanNulls": false,
             "stacking": {
               "group": "A",

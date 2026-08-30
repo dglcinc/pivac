@@ -138,19 +138,21 @@ pivac.LoopDelta:
     # that stopped reporting cannot keep feeding a delta-T.
     max_age_s: 120
 
-    # Discard the first N seconds of every run. Cold water reaches the supply probe
-    # before the return responds, so delta-T overshoots (+6.2 K measured at one minute
-    # against a settled +4.0) and only lands by minute three.
-    settle_s: 180
+    # Report 0 for the first N seconds of a run. The probes still hold the stagnant
+    # values they drifted to with the pump off, so plotting those as live would be
+    # the fiction the gate exists to remove. Past it the live value is published,
+    # charge-up included -- delta-T overshoots to about +6.2 K a minute in against a
+    # settled +4.0, and that shape is real and worth seeing.
+    settle_s: 60
 
     daemon_sleep: 20
 
-    # Each loop publishes <sk_path>.<name>.flowing every cycle, and
-    # <sk_path>.<name>.deltaT -- the run's mean so far -- every cycle while that loop
-    # is pumping and past the transient, and not at all otherwise. So each run draws
-    # as its own segment: the value is readable and so is the call's duration, and the
-    # segment's last sample is the full-run mean. KELVIN (a difference, so Fahrenheit
-    # is * 9/5 with NO offset).
+    # Each loop publishes <sk_path>.<name>.flowing and <sk_path>.<name>.deltaT every
+    # cycle. deltaT takes three values and each means something different: a number is
+    # the live measurement, 0 means the loop is not measuring (idle, or charging within
+    # settle_s), and a GAP means a source is stale or this module is down. Publishing 0
+    # for idle rather than nothing is what keeps that third case readable.
+    # KELVIN (a difference, so Fahrenheit is * 9/5 with NO offset).
     #
     # `relay` is the switch that proves this loop is pumping. CHIL is the Taco, which
     # the HZ432 energizes on a call from ANY chiller zone -- including one on the other

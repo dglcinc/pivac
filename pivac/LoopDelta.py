@@ -14,13 +14,17 @@ before the return responds, so delta-T overshoots — +6.2 K against a settled
 +4.0 K at one minute in — and only lands by minute three.  `settle_s` discards
 that window.
 
-What survives is one number per run, drawn across that run.  `.deltaT` is the
-run's mean so far, published every cycle once the transient has passed and not
-at all otherwise, so each run renders as its own segment: the value is readable
-and so is how long the call lasted, while the gaps between runs are honest
-absences rather than held-over numbers.  The last sample of a segment is the
-full-run mean.  `.flowing` is emitted every cycle regardless and carries
-liveness.
+So `.deltaT` carries the live difference while the loop is pumping and **0**
+while it is not.  Zero means "no valid measurement", never a measured zero, and
+the point of using it rather than simply publishing nothing is that it keeps a
+GAP meaning what a gap should mean: a source is stale or this module is down.
+Idle-as-gap conflates the two and throws that away.
+
+The first `settle_s` of a run also reads 0.  The probes still hold the stagnant
+values they drifted to with the pump off, so plotting those as live would be the
+very fiction the gate exists to remove.  Once past it the instantaneous value is
+published rather than a running mean: the charge-up is real data, the shape
+within a call is worth seeing, and an average would hide both.
 
 This is a derived module: it reads what other pivac modules have already
 published to Signal K rather than touching hardware.  That keeps it off the
@@ -115,27 +119,28 @@ def _gate_open(relay_state, zone_states):
 def _advance(state, gated, delta, now, settle_s):
     """Advance one loop's run state machine.
 
-    Returns (value, flowing).  `value` is the mean delta-T so far in the current
-    run, and is None while the loop is idle or still inside settle_s — so a run
-    shorter than settle_s publishes nothing at all, which is correct: it was
-    entirely startup transient and never held a measurement.
+    Returns (value, flowing), where value is one of three things and each means
+    something different:
 
-    The running mean is published every cycle rather than one value at the end,
-    so the chart shows the call's duration as well as its value.  It converges
-    within a few samples and its last value is the full-run mean.
+      a number — the loop's live delta-T, measured and valid
+      0        — the loop is not producing a measurement (idle, or still
+                 charging within settle_s of the start of a run)
+      None     — no data at all; a source is stale or unreadable
+
+    Keeping idle at 0 rather than publishing nothing is what preserves the third
+    case.  If idle were a gap, a gap would mean either "not running" or "this
+    module is down", and the chart could not tell you which.
     """
     if not gated:
         state["running"] = False
-        return None, False
+        return 0.0, False
     if not state["running"]:
         state.update(running=True, start=now, sum=0.0, n=0)
+    if delta is None:
         return None, True
-    if delta is not None and now - state["start"] >= settle_s:
-        state["sum"] += delta
-        state["n"] += 1
-    if not state["n"]:
-        return None, True
-    return round(state["sum"] / state["n"], 3), True
+    if now - state["start"] < settle_s:
+        return 0.0, True
+    return round(delta, 3), True
 
 
 def status(config={}, output="default"):
@@ -143,7 +148,7 @@ def status(config={}, output="default"):
     base = config.get("sk_url", _DEFAULT_URL).rstrip("/")
     timeout = config.get("request_timeout", 5)
     max_age_s = config.get("max_age_s", 120)
-    settle_s = config.get("settle_s", 180)
+    settle_s = config.get("settle_s", 60)
     loops = config.get("loops", {})
     rounding = config.get("rounding", 3)
 
