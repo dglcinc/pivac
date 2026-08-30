@@ -288,6 +288,44 @@ be unplugged without splitting a system.
 J2 puts the three cooling sources together, matching the zone-to-source map in
 `docs/cdp-chiller-rework-plan.md` §3, so a cooling question is answered from one connector.
 
+### 5.1 Header pins, and finding pad 1
+
+Wiring the fan-out needs physical pin numbers, not just BCM numbers:
+
+| Physical | BCM | This board | | Physical | BCM | This board |
+|---|---|---|---|---|---|---|
+| 1 | — | 3V3 → DS2482 VDD | | 22 | 25 | `CHIL` |
+| 3 | 2 | DS2482 SDA | | 29 | 5 | `BOS2` |
+| 5 | 3 | DS2482 SCL | | 31 | 6 | `BOS1` |
+| 8 / 10 | 14 / 15 | serial console — leave | | 32 | 12 | `DEHUM` |
+| 9 | — | GND → DS2482, emitter rail | | 33 | 13 | spare |
+| 11 | 17 | `ZV` | | 35 | 19 | spare |
+| 13 | 27 | `DHW` | | 37 | 26 | **dead — do not use** |
+| 15 | 22 | `BLR` | | 27 / 28 | 0 / 1 | ID EEPROM — leave |
+| 16 | 23 | spare | | 7 | 4 | left unassigned (§8) |
+| 18 | 24 | spare | | 19,21,23,24,26 | 7–11 | SPI block — leave |
+
+Grounds are physical **6, 9, 14, 20, 25, 30, 34, 39**; 3V3 is **1** and **17**; 5V is **2** and **4**.
+
+**Find pad 1 on the board rather than deducing it.** A footprint marks pin 1, almost always as a
+square pad among round ones, sometimes as a silkscreen `1` or a corner dot. The customer drawing is
+a *simplified representation* that renders every pad as an identical circle, so it cannot settle
+this — but the board itself will.
+
+**Mounting face-down does reverse the apparent order**, so a standard Pi pinout diagram read
+straight onto the carrier puts the odd and even rows on the wrong sides. That is a real trap, and it
+is also why deducing pad 1 from which way the Pi faces is the hard way round: the footprint already
+knows, and the mating is fixed by the socket.
+
+**Confirm with the eight ground pins, which is faster than ringing out forty.** Grounds sit at
+physical 6, 9, 14, 20, 25, 30, 34 and 39 — an irregular spacing no other net shares — so finding
+those eight with a continuity meter pins the orientation, the numbering direction *and* the
+row order at once, with nothing left ambiguous. Every other pad then follows by counting, and the
+handful you actually use are worth confirming individually anyway.
+
+That single ground net is also what the emitter rail lands on, so the check produces its first
+wiring target as a by-product.
+
 **BCM 7–11 are left entirely unspent.** That is the SPI block, and keeping it contiguous means SPI
 can be enabled later for an ADC or a display without disturbing a relay channel. BCM 19 was the
 cancelled YOFF rewire and is free; its `config.yml` entry stays commented out.
