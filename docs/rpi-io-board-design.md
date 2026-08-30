@@ -288,6 +288,44 @@ be unplugged without splitting a system.
 J2 puts the three cooling sources together, matching the zone-to-source map in
 `docs/cdp-chiller-rework-plan.md` §3, so a cooling question is answered from one connector.
 
+### 5.1 Header pins, and finding pad 1
+
+Wiring the fan-out needs physical pin numbers, not just BCM numbers:
+
+| Physical | BCM | This board | | Physical | BCM | This board |
+|---|---|---|---|---|---|---|
+| 1 | — | 3V3 → DS2482 VDD | | 22 | 25 | `CHIL` |
+| 3 | 2 | DS2482 SDA | | 29 | 5 | `BOS2` |
+| 5 | 3 | DS2482 SCL | | 31 | 6 | `BOS1` |
+| 8 / 10 | 14 / 15 | serial console — leave | | 32 | 12 | `DEHUM` |
+| 9 | — | GND → DS2482, emitter rail | | 33 | 13 | spare |
+| 11 | 17 | `ZV` | | 35 | 19 | spare |
+| 13 | 27 | `DHW` | | 37 | 26 | **dead — do not use** |
+| 15 | 22 | `BLR` | | 27 / 28 | 0 / 1 | ID EEPROM — leave |
+| 16 | 23 | spare | | 7 | 4 | left unassigned (§8) |
+| 18 | 24 | spare | | 19,21,23,24,26 | 7–11 | SPI block — leave |
+
+Grounds are physical **6, 9, 14, 20, 25, 30, 34, 39**; 3V3 is **1** and **17**; 5V is **2** and **4**.
+
+**Find pad 1 on the board rather than deducing it.** A footprint marks pin 1, almost always as a
+square pad among round ones, sometimes as a silkscreen `1` or a corner dot. The customer drawing is
+a *simplified representation* that renders every pad as an identical circle, so it cannot settle
+this — but the board itself will.
+
+**Mounting face-down does reverse the apparent order**, so a standard Pi pinout diagram read
+straight onto the carrier puts the odd and even rows on the wrong sides. That is a real trap, and it
+is also why deducing pad 1 from which way the Pi faces is the hard way round: the footprint already
+knows, and the mating is fixed by the socket.
+
+**Confirm with the eight ground pins, which is faster than ringing out forty.** Grounds sit at
+physical 6, 9, 14, 20, 25, 30, 34 and 39 — an irregular spacing no other net shares — so finding
+those eight with a continuity meter pins the orientation, the numbering direction *and* the
+row order at once, with nothing left ambiguous. Every other pad then follows by counting, and the
+handful you actually use are worth confirming individually anyway.
+
+That single ground net is also what the emitter rail lands on, so the check produces its first
+wiring target as a by-product.
+
 **BCM 7–11 are left entirely unspent.** That is the SPI block, and keeping it contiguous means SPI
 can be enabled later for an ADC or a display without disturbing a relay channel. BCM 19 was the
 cancelled YOFF rewire and is free; its `config.yml` entry stays commented out.
@@ -340,8 +378,20 @@ built rather than picked up. The drawing is marked *simplified representation*, 
 second point with a continuity check across two adjacent holes before laying anything out; it takes
 ten seconds and the whole rail plan depends on it.
 
-The drawing also hatches **restricted areas** where the housing intrudes. Check them during the
-Step 1 dry-fit, before a layout is committed.
+**The cross-hatched bands are restricted areas**, defined as such in the drawing's own General
+Information block. They mark where something mechanical intrudes — housing ribs, standoffs, the Pi
+above, connector bodies — so nothing may occupy that space.
+
+**They matter more here than on a normal build, because they are on the back and so is all the
+wiring.** Every rail and every point-to-point run goes on the solder side, since socket pads are
+unreachable from the other face. So the restricted bands and the wiring plan compete for the same
+surface, and that is the constraint most likely to force a layout change.
+
+What the drawing does not give is the permitted height — whether a band is a total keep-out or
+allows something low-profile. Formed 22 AWG lying flat is a fraction of a millimetre proud and may
+well pass where a component body would not. **Settle it against the board and the housing during the
+Step 1 dry-fit, cover on**, and route the rails clear of the bands if there is any doubt. This is
+the reason that dry-fit is a step rather than a formality.
 
 #### Interconnect — how a connection is actually made
 
@@ -353,12 +403,35 @@ channels.
 **Three rails, one continuous conductor each.** Two are on the field side: `+V` feeding twelve
 resistors, and `24 V COM` tying the four connector pin-4 positions together. The third is on the Pi
 side: **every phototransistor emitter returns to Pi ground**, so twelve emitters share one rail to a
-ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** laid
-along a straight row of holes and soldered to every pad it passes, rather than as a chain of
-jumpers. It is lower impedance, obvious to trace a year later, and it is what makes Step 3
-diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a chain of
-jumpers gives one dead pad and no indication of which joint failed. Sleeve the wire where it crosses
-another net.
+ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** rather
+than a chain of jumpers. It is lower impedance, obvious to trace a year later, and it is what makes
+Step 3 diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a
+chain of jumpers gives one dead pad and no indication of which joint failed.
+
+**All three go on the solder side.** Socket pads are unreachable from the component side once the
+socket is in, so the ground rail has no choice; the other two follow it so there is one convention
+rather than two.
+
+**Only the `+V` rail can run straight through its targets, and the reason generalises.** Its targets
+are the twelve resistor leads, and *you* place those — so put all twelve upper leads in one row and
+run the rail along it, soldering to each. The other two rails serve pins whose positions are fixed
+by a part, and in both cases the pins they must reach alternate with pins they must not touch.
+
+**Along a DIP's top edge the pins run C E C E C E C E** — collector on 16, emitter on 15, collector
+on 14, and so on — so a rail laid down that pin row shorts every phototransistor it passes. **At a
+connector only pin 4 is COM**; pins 1–3 are channels, so a rail along the connector pin row shorts
+all eleven channels to COM.
+
+**So those two rails run in a free row offset from the pins they serve, with a short stub down to
+each target** — twelve stubs for the ground rail, four for COM. One hole pitch is enough offset.
+Either cut individual stubs, or form the rail wire into a comb with a tab at each target and lay it
+once; the comb is tidier and the stubs are easier to correct.
+
+**Rails bare, point-to-point runs insulated.** That is what makes the crossings a non-issue: an
+insulated cathode run passing over a bare rail is not a short, and the cathode runs do have to cross
+the `+V` rail, because anodes and cathodes alternate along the package's bottom edge. **Sleeve only
+where a rail crosses a rail** — the `+V` feed coming up from J4.1 past the COM rail is the one place
+that happens.
 
 **The `+V` rail and the Pi ground rail must never meet, and they are the two that look most alike.**
 Both are bare wire spanning most of the board, and bridging them destroys the isolation the whole
@@ -468,7 +541,9 @@ path and keeps the field and Pi wiring on opposite sides of each package, which 
 ![Proposed board floor plan](rpi-io-board-layout.svg)
 
 The bands drawn in copper are fixed by the drawing; everything else is a proposal to check against
-the board before committing.
+the board before committing. `C`/`E` and `A`/`K` on the package edges are what force the offset
+rails: the ground rail cannot follow the `C E C E` row and the COM rail cannot follow the connector
+row.
 
 **One prerequisite the drawing does not give you: which fan-out pad is which GPIO.** The header's
 traces run into the matrix unlabelled, so ring them out with a continuity meter — probe from each

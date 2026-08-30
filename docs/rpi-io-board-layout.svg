@@ -1,190 +1,228 @@
-<svg viewBox="0 0 700 930" role="img" aria-label="Proposed floor plan of the RPI-BC input board: the Pi header and its fan-out occupy the top edge and the four PTSM connectors the bottom, both fixed by the board drawing. Between them, three DIP-16 sockets sit in a row with the phototransistor half facing the header and the LED half facing the connectors, with the Pi ground rail above and the plus-14-volt rail and twelve resistors below." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
-<defs><pattern id="mtx" x="0" y="0" width="25.4" height="25.4" patternUnits="userSpaceOnUse"><circle cx="12.7" cy="12.7" r="2.1" fill="currentColor" opacity=".22"/></pattern><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<svg viewBox="0 0 760 980" role="img" aria-label="Rail routing on the solder side of the RPI-BC input board. The plus-14-volt rail runs straight through the row of twelve resistor leads. The Pi ground rail and the 24 volt COM rail each run in a free row offset from the pins they serve, with a short stub to each target, because along a DIP top edge the pins alternate collector and emitter and along a connector only pin 4 is COM." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<defs><pattern id="mtx2" width="25.4" height="25.4" patternUnits="userSpaceOnUse"><circle cx="12.7" cy="12.7" r="2" fill="currentColor" opacity=".18"/></pattern></defs>
 <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="currentColor">
-<rect x="58" y="58" width="590" height="850" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
-<rect x="64" y="64" width="578" height="838" fill="url(#mtx)"/>
-<text x="58" y="42" font-size="11.5" font-weight="600">59 mm</text>
-<text x="26" y="483" font-size="11.5" font-weight="600" transform="rotate(-90 26 483)">85 mm</text>
-<text x="648" y="42" text-anchor="end" font-size="10.5" opacity=".75">matrix 2.54 mm · holes 1.0 mm</text>
-<rect x="74" y="74" width="558" height="104" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
-<text x="84" y="92" font-size="11.5" font-weight="600" fill="#A85F22">Pi header — 40-pos PSTD</text>
-<text x="84" y="107" font-size="10" fill="#A85F22" opacity=".85">fan-out traces carry each GPIO to its own matrix pad</text>
-<rect x="104" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="104" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="128" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="128" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="152" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="152" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="176" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="176" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="200" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="200" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="224" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="224" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="248" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="248" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="272" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="272" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="296" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="296" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="320" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="320" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="344" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="344" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="368" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="368" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="392" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="392" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="416" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="416" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="440" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="440" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="464" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="464" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="488" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="488" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="512" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="512" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="536" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="536" y="124" width="9" height="9" fill="#A85F22"/>
-<rect x="560" y="110" width="9" height="9" fill="#A85F22"/>
-<rect x="560" y="124" width="9" height="9" fill="#A85F22"/>
-<path d="M118,138 Q130,160 178,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
-<path d="M238,138 Q250,160 308,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
-<path d="M388,138 Q400,160 458,170" fill="none" stroke="#A85F22" stroke-width="1.1" opacity=".8"/>
-<line x1="94" y1="240" x2="612" y2="240" stroke="currentColor" stroke-width="3"/>
-<text x="94" y="232" font-size="11" font-weight="600">Pi GND rail — 12 emitters</text>
-<text x="612" y="232" font-size="10" opacity=".8" text-anchor="end">to a GND fan-out pad</text>
-<text x="84" y="256" font-size="11.5" font-weight="600">3 × DIP-16, all notches left, pins 9–16 facing the header</text>
-<rect x="92" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<path d="M92,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<rect x="110" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="110" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="126" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="126" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="142" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="142" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="158" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="158" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="174" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="174" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="190" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="190" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="206" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="206" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="222" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="222" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<text x="167" y="306" text-anchor="middle" font-size="10.5">LTV-847 #1</text>
-<text x="106" y="352" font-size="9">1</text>
-<text x="106" y="256" font-size="9">16</text>
-<rect x="278" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<path d="M278,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<rect x="296" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="296" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="312" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="312" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="328" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="328" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="344" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="344" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="360" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="360" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="376" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="376" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="392" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="392" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="408" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="408" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<text x="353" y="306" text-anchor="middle" font-size="10.5">LTV-847 #2</text>
-<text x="292" y="352" font-size="9">1</text>
-<text x="292" y="256" font-size="9">16</text>
-<rect x="464" y="264" width="150" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<path d="M464,293 a9,9 0 0,0 0,18" fill="none" stroke="currentColor" stroke-width="1.6"/>
-<rect x="482" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="482" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="498" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="498" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="514" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="514" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="530" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="530" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="546" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="546" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="562" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="562" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="578" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="578" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="594" y="334" width="7" height="8" fill="currentColor" opacity=".75"/>
-<rect x="594" y="262" width="7" height="8" fill="currentColor" opacity=".75"/>
-<text x="539" y="306" text-anchor="middle" font-size="10.5">LTV-847 #3</text>
-<text x="478" y="352" font-size="9">1</text>
-<text x="478" y="256" font-size="9">16</text>
-<text x="92" y="240" font-size="10" opacity=".8">pins 9–16 · phototransistors · Pi side ↑</text>
-<text x="92" y="368" font-size="10" opacity=".8">pins 1–8 · LEDs · field side ↓</text>
-<text x="84" y="382" font-size="11.5" font-weight="600">12 × 4.7 kΩ — each spans the rail to its own LED anode</text>
-<line x1="115" y1="390" x2="115" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="104" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="115" y1="417" x2="115" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="160" y1="390" x2="160" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="149" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="160" y1="417" x2="160" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="205" y1="390" x2="205" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="194" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="205" y1="417" x2="205" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="250" y1="390" x2="250" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="239" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="250" y1="417" x2="250" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="295" y1="390" x2="295" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="284" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="295" y1="417" x2="295" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="340" y1="390" x2="340" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="329" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="340" y1="417" x2="340" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="385" y1="390" x2="385" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="374" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="385" y1="417" x2="385" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="430" y1="390" x2="430" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="419" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="430" y1="417" x2="430" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="475" y1="390" x2="475" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="464" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="475" y1="417" x2="475" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="520" y1="390" x2="520" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="509" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="520" y1="417" x2="520" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="565" y1="390" x2="565" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="554" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="565" y1="417" x2="565" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="610" y1="390" x2="610" y2="406" stroke="currentColor" stroke-width="1.2"/>
-<rect x="599" y="406" width="22" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
-<line x1="610" y1="417" x2="610" y2="434" stroke="currentColor" stroke-width="1.2"/>
-<line x1="94" y1="434" x2="612" y2="434" stroke="currentColor" stroke-width="3"/>
-<text x="94" y="452" font-size="11" font-weight="600">+14 V rail</text>
-<rect x="74" y="776" width="558" height="104" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
-<text x="84" y="794" font-size="11.5" font-weight="600" fill="#A85F22">4 × PTSM 0,5/4 — J1 J2 J3 J4</text>
-<text x="84" y="809" font-size="10" fill="#A85F22" opacity=".85">position fixed by the board; +14 V enters at J4.1, COM returns on every pin 4</text>
-<rect x="110" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="135" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="160" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="185" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<text x="154" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J1</text>
-<rect x="246" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="271" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="296" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="321" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<text x="290" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J2</text>
-<rect x="382" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="407" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="432" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="457" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<text x="426" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J3</text>
-<rect x="518" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="543" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="568" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<rect x="593" y="828" width="12" height="20" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
-<text x="562" y="864" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J4</text>
-<rect x="58" y="926" width="16" height="10" fill="none" stroke="#A85F22" stroke-width="2"/>
-<text x="82" y="934" font-size="10.5" fill="#A85F22">fixed by drawing 00914691/00</text>
-<rect x="308" y="926" width="16" height="10" fill="none" stroke="currentColor" stroke-width="1.4"/>
-<text x="332" y="934" font-size="10.5">proposed — verify before committing</text>
+<text x="64" y="30" font-size="13" font-weight="600">SOLDER SIDE — all three rails live here</text>
+<text x="64" y="48" font-size="10.5" opacity=".8">Socket pads are only reachable from this side, so the ground rail has no choice; the other two follow it for one convention.</text>
+<rect x="64" y="66" width="590" height="850" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+<rect x="70" y="72" width="578" height="838" fill="url(#mtx2)"/>
+<rect x="80" y="80" width="558" height="56" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
+<text x="90" y="102" font-size="11" font-weight="600" fill="#A85F22">Pi header + fan-out — pad↔GPIO map must be rung out</text>
+<line x1="94" y1="174" x2="624" y2="174" stroke="currentColor" stroke-width="3"/>
+<text x="94" y="164" font-size="11.5" font-weight="600">Pi GND rail — free row, 12 stubs</text>
+<rect x="98" y="234" width="150" height="70" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M98,261 a8,8 0 0,0 0,16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<text x="173" y="274" text-anchor="middle" font-size="10">LTV-847 #1</text>
+<rect x="114" y="231" width="6" height="7" fill="currentColor"/>
+<text x="117" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="114" y="300" width="6" height="7" fill="currentColor"/>
+<text x="117" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="131" y="231" width="6" height="7" fill="currentColor"/>
+<text x="134" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="134" y1="231" x2="134" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="131" y="300" width="6" height="7" fill="currentColor"/>
+<text x="134" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="148" y="231" width="6" height="7" fill="currentColor"/>
+<text x="151" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="148" y="300" width="6" height="7" fill="currentColor"/>
+<text x="151" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="165" y="231" width="6" height="7" fill="currentColor"/>
+<text x="168" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="168" y1="231" x2="168" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="165" y="300" width="6" height="7" fill="currentColor"/>
+<text x="168" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="182" y="231" width="6" height="7" fill="currentColor"/>
+<text x="185" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="182" y="300" width="6" height="7" fill="currentColor"/>
+<text x="185" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="199" y="231" width="6" height="7" fill="currentColor"/>
+<text x="202" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="202" y1="231" x2="202" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="199" y="300" width="6" height="7" fill="currentColor"/>
+<text x="202" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="216" y="231" width="6" height="7" fill="currentColor"/>
+<text x="219" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="216" y="300" width="6" height="7" fill="currentColor"/>
+<text x="219" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="233" y="231" width="6" height="7" fill="currentColor"/>
+<text x="236" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="236" y1="231" x2="236" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="233" y="300" width="6" height="7" fill="currentColor"/>
+<text x="236" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="284" y="234" width="150" height="70" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M284,261 a8,8 0 0,0 0,16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<text x="359" y="274" text-anchor="middle" font-size="10">LTV-847 #2</text>
+<rect x="300" y="231" width="6" height="7" fill="currentColor"/>
+<text x="303" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="300" y="300" width="6" height="7" fill="currentColor"/>
+<text x="303" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="317" y="231" width="6" height="7" fill="currentColor"/>
+<text x="320" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="320" y1="231" x2="320" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="317" y="300" width="6" height="7" fill="currentColor"/>
+<text x="320" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="334" y="231" width="6" height="7" fill="currentColor"/>
+<text x="337" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="334" y="300" width="6" height="7" fill="currentColor"/>
+<text x="337" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="351" y="231" width="6" height="7" fill="currentColor"/>
+<text x="354" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="354" y1="231" x2="354" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="351" y="300" width="6" height="7" fill="currentColor"/>
+<text x="354" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="368" y="231" width="6" height="7" fill="currentColor"/>
+<text x="371" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="368" y="300" width="6" height="7" fill="currentColor"/>
+<text x="371" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="385" y="231" width="6" height="7" fill="currentColor"/>
+<text x="388" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="388" y1="231" x2="388" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="385" y="300" width="6" height="7" fill="currentColor"/>
+<text x="388" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="402" y="231" width="6" height="7" fill="currentColor"/>
+<text x="405" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="402" y="300" width="6" height="7" fill="currentColor"/>
+<text x="405" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="419" y="231" width="6" height="7" fill="currentColor"/>
+<text x="422" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="422" y1="231" x2="422" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="419" y="300" width="6" height="7" fill="currentColor"/>
+<text x="422" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="470" y="234" width="150" height="70" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<path d="M470,261 a8,8 0 0,0 0,16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+<text x="545" y="274" text-anchor="middle" font-size="10">LTV-847 #3</text>
+<rect x="486" y="231" width="6" height="7" fill="currentColor"/>
+<text x="489" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="486" y="300" width="6" height="7" fill="currentColor"/>
+<text x="489" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="503" y="231" width="6" height="7" fill="currentColor"/>
+<text x="506" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="506" y1="231" x2="506" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="503" y="300" width="6" height="7" fill="currentColor"/>
+<text x="506" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="520" y="231" width="6" height="7" fill="currentColor"/>
+<text x="523" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="520" y="300" width="6" height="7" fill="currentColor"/>
+<text x="523" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="537" y="231" width="6" height="7" fill="currentColor"/>
+<text x="540" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="540" y1="231" x2="540" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="537" y="300" width="6" height="7" fill="currentColor"/>
+<text x="540" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="554" y="231" width="6" height="7" fill="currentColor"/>
+<text x="557" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="554" y="300" width="6" height="7" fill="currentColor"/>
+<text x="557" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="571" y="231" width="6" height="7" fill="currentColor"/>
+<text x="574" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="574" y1="231" x2="574" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="571" y="300" width="6" height="7" fill="currentColor"/>
+<text x="574" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<rect x="588" y="231" width="6" height="7" fill="currentColor"/>
+<text x="591" y="226" text-anchor="middle" font-size="8.5" opacity=".85">C</text>
+<rect x="588" y="300" width="6" height="7" fill="currentColor"/>
+<text x="591" y="316" text-anchor="middle" font-size="8.5" opacity=".85">A</text>
+<rect x="605" y="231" width="6" height="7" fill="currentColor"/>
+<text x="608" y="226" text-anchor="middle" font-size="8.5" opacity=".85">E</text>
+<line x1="608" y1="231" x2="608" y2="174" stroke="currentColor" stroke-width="1.6"/>
+<rect x="605" y="300" width="6" height="7" fill="currentColor"/>
+<text x="608" y="316" text-anchor="middle" font-size="8.5" opacity=".85">K</text>
+<text x="94" y="338" font-size="10" opacity=".85">top edge alternates C E C E — a rail along the pin row would short every phototransistor</text>
+<text x="94" y="356" font-size="11.5" font-weight="600">+14 V rail — straight through, because you place its targets</text>
+<line x1="117" y1="307" x2="117" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="107" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="117" y1="380" x2="117" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="151" y1="307" x2="151" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="141" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="151" y1="380" x2="151" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="185" y1="307" x2="185" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="175" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="185" y1="380" x2="185" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="219" y1="307" x2="219" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="209" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="219" y1="380" x2="219" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="303" y1="307" x2="303" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="293" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="303" y1="380" x2="303" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="337" y1="307" x2="337" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="327" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="337" y1="380" x2="337" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="371" y1="307" x2="371" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="361" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="371" y1="380" x2="371" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="405" y1="307" x2="405" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="395" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="405" y1="380" x2="405" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="489" y1="307" x2="489" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="479" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="489" y1="380" x2="489" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="523" y1="307" x2="523" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="513" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="523" y1="380" x2="523" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="557" y1="307" x2="557" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="547" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="557" y1="380" x2="557" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="591" y1="307" x2="591" y2="370" stroke="currentColor" stroke-width="1.2"/>
+<rect x="581" y="370" width="20" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+<line x1="591" y1="380" x2="591" y2="386" stroke="currentColor" stroke-width="1.2"/>
+<line x1="94" y1="386" x2="624" y2="386" stroke="currentColor" stroke-width="3"/>
+<line x1="134" y1="307" x2="134" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="168" y1="307" x2="168" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="202" y1="307" x2="202" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="236" y1="307" x2="236" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="320" y1="307" x2="320" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="354" y1="307" x2="354" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="388" y1="307" x2="388" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="422" y1="307" x2="422" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="506" y1="307" x2="506" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="540" y1="307" x2="540" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="574" y1="307" x2="574" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<line x1="608" y1="307" x2="608" y2="798" stroke="currentColor" stroke-width="1.1" stroke-dasharray="4 3" opacity=".6"/>
+<text x="94" y="408" font-size="10" opacity=".85">dashed = insulated cathode runs; they cross the bare rail freely</text>
+<line x1="94" y1="768" x2="624" y2="768" stroke="currentColor" stroke-width="3"/>
+<text x="94" y="758" font-size="11.5" font-weight="600">24 V COM rail — free row, 4 stubs to pin 4 only</text>
+<rect x="80" y="798" width="558" height="86" rx="3" fill="none" stroke="#A85F22" stroke-width="2"/>
+<rect x="112" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="118" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">1</text>
+<rect x="137" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="143" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">2</text>
+<rect x="162" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="168" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">3</text>
+<rect x="187" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="193" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">4</text>
+<line x1="193" y1="812" x2="193" y2="768" stroke="currentColor" stroke-width="1.6"/>
+<text x="156" y="870" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J1</text>
+<rect x="248" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="254" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">1</text>
+<rect x="273" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="279" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">2</text>
+<rect x="298" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="304" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">3</text>
+<rect x="323" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="329" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">4</text>
+<line x1="329" y1="812" x2="329" y2="768" stroke="currentColor" stroke-width="1.6"/>
+<text x="292" y="870" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J2</text>
+<rect x="384" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="390" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">1</text>
+<rect x="409" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="415" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">2</text>
+<rect x="434" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="440" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">3</text>
+<rect x="459" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="465" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">4</text>
+<line x1="465" y1="812" x2="465" y2="768" stroke="currentColor" stroke-width="1.6"/>
+<text x="428" y="870" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J3</text>
+<rect x="520" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="526" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">1</text>
+<rect x="545" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="551" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">2</text>
+<rect x="570" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="576" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">3</text>
+<rect x="595" y="812" width="12" height="18" rx="1.5" fill="none" stroke="#A85F22" stroke-width="1.5"/>
+<text x="601" y="844" text-anchor="middle" font-size="8.5" fill="#A85F22">4</text>
+<line x1="601" y1="812" x2="601" y2="768" stroke="currentColor" stroke-width="1.6"/>
+<text x="564" y="870" text-anchor="middle" font-size="10.5" fill="#A85F22" font-weight="600">J4</text>
+<text x="94" y="902" font-size="10" opacity=".85">pins 1–3 are channels — a rail along this row would short every one to COM</text>
+<rect x="64" y="950" width="16" height="10" fill="none" stroke="#A85F22" stroke-width="2"/>
+<text x="88" y="958" font-size="10.5" fill="#A85F22">fixed by drawing 00914691/00</text>
+<text x="314" y="958" font-size="10.5">rails bare · runs insulated · sleeve only where a rail crosses a rail</text>
 </g></svg>
