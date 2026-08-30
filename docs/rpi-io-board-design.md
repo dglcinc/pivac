@@ -310,6 +310,52 @@ before any optocoupler is committed, they remove soldering heat from the ICs ent
 channel later becomes a swap rather than a desolder. They are the one addition worth making to an
 order that is otherwise closed.
 
+#### Interconnect — how a connection is actually made
+
+Three kinds of connection exist on this board and they want different treatment. Deciding this up
+front is what keeps the wiring short, and short wiring is what makes the rest of the sequence easy
+to verify.
+
+**The two rails: one continuous conductor each.** The `+V` line feeds twelve resistors and the COM
+line ties the four connector pin-4 positions together. Run each as a single length of **bare 22 AWG
+solid copper** laid along a straight row of holes, soldered to every pad it passes, rather than as a
+chain of individual jumpers. It is lower impedance, it is obvious to trace a year later, and it is
+what makes Step 3 diagnostic: a rail fault then shows up as a *run* of dead pads with a clear
+starting point, where a chain of jumpers gives one dead pad and no indication of which joint failed.
+Sleeve the wire where it has to cross another net.
+
+**Resistor to LED anode: reuse the resistor's own lead.** Each resistor has to reach its socket's
+anode pin, and after forming the resistor the offcut lead is already the right stiffness and
+length. Bend it over and solder it into the anode pad. Twelve connections, no added wire, and more
+rigid than anything you could route.
+
+**Everything else: 22 AWG solid insulated, formed to right angles.** Strip a few millimetres,
+bend the wire flat to the board with pliers, and run it. It lies flatter and traces better than
+fine stranded wire. 30 AWG Kynar exists for dense boards where wires must share holes, and this
+board is not dense enough to need it.
+
+Two mechanical rules matter more than the wire choice.
+
+**Solder to the pad, never to the side of a socket pin.** The pin goes through the hole and the
+wire is soldered to the pad it sits in, so one joint holds both. Wire tacked onto the side of a pin
+is a fatigue point, and it interferes with seating a chip.
+
+**Do not force 22 AWG into a hole that already holds a socket pin.** It will not go, and forcing it
+lifts the pad. Land it on the **annular ring instead** — the exposed copper around that hole on the
+solder side. Tin the wire end, lay it flat across the ring, and solder. If the ring is too small to
+take it, run the wire to the nearest free hole in the same net and bridge the short gap. Planning
+the layout in Step 1 so parts sit next to what they connect to is what keeps this rare.
+
+**Keep the two sides of each package apart, because that is what the board is for.** Pins 1–8 are
+the field side at 14 V and pins 9–16 are the Pi side. Route those two families on opposite sides of
+the package and leave a clear channel beneath each DIP with no crossing nets. The optocoupler gives
+you the isolation barrier internally; wiring that carries a field conductor across the Pi-side pins
+bridges around it, and no amount of care inside the package compensates.
+
+**Seating a socket:** solder two diagonal corner pins first, check the socket sits flat against the
+board, then solder the remaining fourteen. A socket soldered at an angle cannot be corrected
+without removing it. Leave the optocouplers out of the sockets until Step 4.
+
 #### Step 0 — identify the pinout with a meter, before anything is soldered
 
 **Do this even though the expected arrangement is written below.** Getting it wrong destroys all
