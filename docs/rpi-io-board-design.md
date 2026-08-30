@@ -469,7 +469,38 @@ the solder side. Both ends of the insulated run are then plain through-hole join
 2.54 mm link is a surface joint. It costs one extra joint per channel and is easier to inspect.
 
 **This applies at every socket pin, resistors included** — a resistor lead cannot enter an occupied
-hole any more than a wire can. Every other lead and wire end drops straight through a hole, because
+hole any more than a wire can, and it is one of the *larger* things you might try, not one of the
+smaller ones. A ¼ W axial lead is **0.5–0.6 mm**, about the same as the socket pin's own tail, so
+0.6 + 0.5 overruns a 1.0 mm hole outright. The rail end of each resistor drops into its own free
+hole comfortably; only the anode end lands on a ring.
+
+**What actually fits alongside a pin**, taking a machined socket's ⌀0.5 mm round tail as the case
+that binds — two circles inside a 1.0 mm hole cannot exceed 1.0 mm across together, so the
+conductor's ceiling is 0.5 mm before any allowance for solder:
+
+| Conductor | Diameter | Shares a pin hole? |
+|---|---|---|
+| 20 AWG solid | 0.81 mm | no |
+| 22 AWG solid | 0.64 mm | no |
+| ¼ W resistor lead | 0.5–0.6 mm | no |
+| 24 AWG solid | 0.51 mm | no — at the ceiling, no room for solder |
+| 26 AWG solid | 0.41 mm | yes, but tight |
+| 28 AWG solid | 0.32 mm | yes |
+| 30 AWG wire-wrap | 0.25 mm | yes, with room for solder to flow |
+
+**Measure your own pin before trusting the table.** A machined turned-pin socket has a round tail
+near ⌀0.5 mm and is the tight case; a stamped dual-wipe socket has a flat blade around
+0.5 × 0.25 mm, which pushed against the hole wall leaves noticeably more room and may take 24 AWG.
+Thirty seconds with calipers settles which you have.
+
+**A conductor that merely fits is not the goal — solder has to fit too.** A joint packed to the wall
+wicks badly and sets up cold. That is why 30 AWG is the gauge people actually use for this, and why
+26 AWG is the honest ceiling rather than 24. Plating takes a few hundredths off the nominal 1.0 mm
+as well.
+
+**None of this changes the recommendation**, because sharing a hole is not the technique here: the
+ring landing needs no clearance at all, which is what makes 22 AWG workable despite being far too
+large to share. Every other lead and wire end drops straight through a hole, because
 the GPIO fan-out pads, the connector positions and the rail rows all hold nothing.
 
 **Count the work before starting, because it is more than it looks.** 46 of the 48 socket pins get
