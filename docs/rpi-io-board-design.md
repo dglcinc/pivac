@@ -498,9 +498,16 @@ wicks badly and sets up cold. That is why 30 AWG is the gauge people actually us
 26 AWG is the honest ceiling rather than 24. Plating takes a few hundredths off the nominal 1.0 mm
 as well.
 
-**None of this changes the recommendation**, because sharing a hole is not the technique here: the
-ring landing needs no clearance at all, which is what makes 22 AWG workable despite being far too
-large to share. Every other lead and wire end drops straight through a hole, because
+**The deciding argument is sequencing, not fit.** A wire can only enter a hole beside a pin if it
+goes in *before* the pin is soldered, or if a finished joint is reheated — which risks unseating the
+socket. So hole-sharing forces every run to be placed and routed during Step 2, before the bare-board
+power-on check of Step 3 has confirmed anything. Ring landing keeps the two independent: solder the
+sockets, verify the board empty, then wire, and change one run later without disturbing a socket
+joint.
+
+**So the recommendation stands.** Sharing a hole is not the technique here, and the ring landing
+needs no clearance at all — which is what makes 22 AWG workable despite being far too large to
+share. Every other lead and wire end drops straight through a hole, because
 the GPIO fan-out pads, the connector positions and the rail rows all hold nothing.
 
 **Count the work before starting, because it is more than it looks.** 46 of the 48 socket pins get
