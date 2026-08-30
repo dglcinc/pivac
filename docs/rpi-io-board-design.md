@@ -334,27 +334,36 @@ Step 1 dry-fit, before a layout is committed.
 
 #### Interconnect — how a connection is actually made
 
-Three kinds of connection exist on this board and they want different treatment. Deciding this up
-front is what keeps the wiring short, and short wiring is what makes the rest of the sequence easy
-to verify.
+Deciding this up front is what keeps the wiring short, and short wiring is what makes the rest of
+the sequence easy to verify. The whole board is **three rails, twelve resistors and 22 point-to-point
+runs** — the runs being an LED cathode and a phototransistor collector for each of the eleven landed
+channels.
 
-**The two rails: one continuous conductor each.** The `+V` line feeds twelve resistors and the COM
-line ties the four connector pin-4 positions together. Run each as a single length of **bare 22 AWG
-solid copper** laid along a straight row of holes, soldered to every pad it passes, rather than as a
-chain of individual jumpers. It is lower impedance, it is obvious to trace a year later, and it is
-what makes Step 3 diagnostic: a rail fault then shows up as a *run* of dead pads with a clear
-starting point, where a chain of jumpers gives one dead pad and no indication of which joint failed.
-Sleeve the wire where it has to cross another net.
+**Three rails, one continuous conductor each.** Two are on the field side: `+V` feeding twelve
+resistors, and `24 V COM` tying the four connector pin-4 positions together. The third is on the Pi
+side: **every phototransistor emitter returns to Pi ground**, so twelve emitters share one rail to a
+ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** laid
+along a straight row of holes and soldered to every pad it passes, rather than as a chain of
+jumpers. It is lower impedance, obvious to trace a year later, and it is what makes Step 3
+diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a chain of
+jumpers gives one dead pad and no indication of which joint failed. Sleeve the wire where it crosses
+another net.
 
-**Resistor to LED anode: reuse the resistor's own lead.** Each resistor has to reach its socket's
-anode pin, and after forming the resistor the offcut lead is already the right stiffness and
-length. Bend it over and solder it into the anode pad. Twelve connections, no added wire, and more
-rigid than anything you could route.
+**The `+V` rail and the Pi ground rail must never meet, and they are the two that look most alike.**
+Both are bare wire spanning most of the board, and bridging them destroys the isolation the whole
+stage exists for. Keep them on opposite sides of the DIP row, matching the pin-1-to-8 versus
+pin-9-to-16 split, and route them so they never approach each other.
 
-**Everything else: 22 AWG solid insulated, formed to right angles.** Strip a few millimetres,
-bend the wire flat to the board with pliers, and run it. It lies flatter and traces better than
-fine stranded wire. 30 AWG Kynar exists for dense boards where wires must share holes, and this
-board is not dense enough to need it.
+**The resistor is the connection, not something a wire connects to.** Each channel needs 4.7 kΩ from
+the `+V` rail to its LED anode, so place the resistor to span that gap directly: one lead into a
+free hole on the rail row, the other reaching the socket's anode pad. That is the whole connection.
+Twelve resistors, no jumper wires on that leg at all. Stand a resistor on end if a horizontal span
+will not reach; the lead can be formed to any multiple of 2.54 mm.
+
+**Everything else: 22 AWG solid insulated, formed to right angles.** Strip a few millimetres, bend
+the wire flat to the board with pliers, and run it. It lies flatter and traces better than fine
+stranded wire. 30 AWG Kynar exists for dense boards where wires must share holes, and this board is
+not dense enough to need it.
 
 Two mechanical rules matter more than the wire choice.
 
@@ -375,9 +384,22 @@ free hole next to the pin, then link that hole to the socket pad with a short pi
 the solder side. Both ends of the insulated run are then plain through-hole joints and only the
 2.54 mm link is a surface joint. It costs one extra joint per channel and is easier to inspect.
 
-**Either way this applies only at the socket end.** The GPIO fan-out pads hold nothing, so a wire
-drops straight through those holes, and so does the resistor lead at its own pad. One end of almost
-every run is a plain through-hole joint, and there are twelve socket-end connections in total.
+**This applies at every socket pin, resistors included** — a resistor lead cannot enter an occupied
+hole any more than a wire can. Every other lead and wire end drops straight through a hole, because
+the GPIO fan-out pads, the connector positions and the rail rows all hold nothing.
+
+**Count the work before starting, because it is more than it looks.** 46 of the 48 socket pins get
+soldered: 12 resistor anode leads, 12 emitters onto the Pi ground rail, 11 cathodes and 11
+collectors. The two spare are the twelfth channel's cathode and collector, which have nowhere to go
+until a connector position frees up. Only **22 of those are discrete wires** needing strip, form and
+route — the emitters are twelve tacks along one continuous rail, and the resistor leads come formed.
+
+**That count is the honest argument for 30 AWG wire-wrap wire, which is thin enough to enter the
+hole beside the pin** where 22 AWG is not: a 1.0 mm hole with a 0.64 × 0.25 mm socket pin in it has
+room for a 0.25 mm conductor, which is what the gauge exists for. Against that, 22 AWG strips with
+ordinary tools, holds a formed shape, and is far easier to trace. Soldering to an occupied pad is
+routine work rather than a special technique — melt the existing fillet, feed the tinned end in — so
+22 AWG remains the recommendation, but the choice is a trade rather than obvious.
 
 **Keep the two sides of each package apart, because that is what the board is for.** Pins 1–8 are
 the field side at 14 V and pins 9–16 are the Pi side. Route those two families on opposite sides of
