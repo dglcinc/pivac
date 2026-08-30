@@ -100,6 +100,17 @@ only resistor left is on the field side, setting LED current.
 
 Relay closed → LED lit → phototransistor conducts → GPIO reads LOW.
 
+The whole board is that channel twelve times against three rails:
+
+![Complete board schematic](rpi-io-board-schematic.svg)
+
+Two things read off it that the single-channel view hides. The **`24 V COM` rail touches no channel**
+— it exists only to tie the four connector pin-4 positions and the supply return together, because
+each channel's return path leaves the board through its relay and comes back on that net. And the
+**Pi ground rail is a twelve-way net of its own**, since every phototransistor emitter returns to it.
+That rail and the `+V` rail are the two longest conductors on the board and the two that must never
+meet.
+
 **Polarity already matches.** `pivac/GPIO.py` computes
 `presult = GPIO.input(pin) == (pullmode == "pulldown")`, so under the configured
 `pullmode: "pullup"` a LOW pin reports as active. No `config.yml` change, and no InfluxDB
@@ -446,6 +457,24 @@ before committing to a layout — the RPI-BC carrier is not generous.
 
 Orient all three packages **the same way**, notch in the same direction. Mixed orientation is the
 single most common way this build goes wrong, and it is invisible once the ICs are in.
+
+**Which way is decided for you.** Pins 1–8 are the LEDs and 9–16 the phototransistors, and on a DIP
+with the notch at the left end pins 1–8 run along the bottom edge and 9–16 along the top. The board
+fixes the rest: the Pi header is at the top and the PTSM connectors at the bottom. So **notch left,
+phototransistor side facing the header, LED side facing the connectors** puts every run on its short
+path and keeps the field and Pi wiring on opposite sides of each package, which is the separation
+§3 asks for.
+
+![Proposed board floor plan](rpi-io-board-layout.svg)
+
+The bands drawn in copper are fixed by the drawing; everything else is a proposal to check against
+the board before committing.
+
+**One prerequisite the drawing does not give you: which fan-out pad is which GPIO.** The header's
+traces run into the matrix unlabelled, so ring them out with a continuity meter — probe from each
+header pin to the pads near it — and write the map down before placing anything. Eleven of those
+pads are wiring targets and getting one wrong moves a relay's identity, which then shows up in
+InfluxDB as a renamed measurement rather than as an obvious fault.
 
 #### Step 2 — solder in height order
 
