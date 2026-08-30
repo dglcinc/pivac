@@ -33,7 +33,14 @@ apiVersion: 1
 #
 #   startupFlow     52.9 -> 22.9 L/min   (the plateau around a compressor start)
 #   flow at 25-27Hz 45-50 -> 17-19 L/min (matched compressor speed)
-#   run duration    9-22 min -> 354 min  (single continuous run)
+#
+# Run duration separated in that one event (354 min against 9-22) but is NOT an
+# alarmable quantity: on 2026-08-29, the day after the strainer was cleaned, runs
+# lengthened with load to 232 minutes with startupFlow holding 50.5-54.0 the whole
+# time. Runs have no maximum — the unit runs until inlet reaches its stop point, and
+# a hot day plus a large zone call legitimately takes hours. The 90-minute rule
+# built on it false-fired on that clean 232-minute run and was retired (see
+# deleteRules below).
 #
 # The pump-only window removes compressor speed as a confound: the compressor is off,
 # so nothing on the refrigerant side is moving the number. It is the Modbus equivalent
@@ -166,10 +173,8 @@ groups:
             blocked by eye while costing 60% of the flow, because a Y-strainer screen carries
             several times the pipe's open area. Judge by this metric, not by looking.
 
-            The Y-strainer is the first suspect: it fouls with calcium-looking scale that
-            migrates from the boiler side of the shared four-pipe loop, and it did exactly
-            this on 2026-08-22 (P5 alarms, C13 over 54 L/min after cleaning). A partly
-            closed isolation valve or an air lock reads the same way.
+            It did exactly this on 2026-08-22 too (P5 alarms, C13 over 54 L/min after
+            cleaning). A partly closed isolation valve or an air lock reads the same way.
 
             1. Confirm on the panel: C13 is the live flow readout. Read it in the 1-2
                minute pump-only window at the start of a run — C13 reads 0 at idle and
@@ -183,113 +188,6 @@ groups:
                premixed glycol to the 21-23 psi the loop normally holds, then vent.
             4. Permanent fix is a hydronic dirt separator with a blowdown valve. A finer
                in-line filter clogs faster than the Y does.
-        labels:
-          severity: warning
-          source: chiltrix
-        isPaused: false
-        notification_settings:
-          receiver: graph-bridge
-
-      # ---- Compressor run duration excessive ----
-      # Clean runs are 9-22 min. The restriction event produced one 354-minute run.
-      # 90 min is 4x the clean maximum, so a hot-day long run will not trip it.
-      - uid: chiltrix-run-duration-excessive
-        title: Chiltrix compressor running over 90 minutes without stopping
-        condition: C
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 7200
-              to: 0
-            datasourceUid: bdxaqnfllu5fkf
-            model:
-              datasource:
-                type: influxdb
-                uid: bdxaqnfllu5fkf
-              measurement: hvac.chiller.chiltrix.runDuration
-              policy: default
-              resultFormat: time_series
-              orderByTime: ASC
-              groupBy:
-                - type: time
-                  params:
-                    - $__interval
-                - type: fill
-                  params:
-                    - none
-              select:
-                - - type: field
-                    params:
-                      - value
-                  - type: max
-                    params: []
-              tags: []
-              refId: A
-              intervalMs: 60000
-              maxDataPoints: 43200
-          - refId: B
-            relativeTimeRange:
-              from: 7200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: reduce
-              expression: A
-              reducer: max
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: B
-              intervalMs: 1000
-              maxDataPoints: 43200
-          - refId: C
-            relativeTimeRange:
-              from: 7200
-              to: 0
-            datasourceUid: __expr__
-            model:
-              type: threshold
-              expression: B
-              datasource:
-                type: __expr__
-                uid: __expr__
-              refId: C
-              conditions:
-                - evaluator:
-                    type: gt
-                    params:
-                      - 5400
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - C
-                  reducer:
-                    type: last
-                  type: query
-              intervalMs: 1000
-              maxDataPoints: 43200
-        noDataState: OK
-        execErrState: OK
-        for: 5m
-        annotations:
-          summary: "Chiltrix has run over 90 minutes without stopping — it is not reaching its return-water target"
-          runbook: |
-            Clean cycles are 9-22 minutes, ending when inlet water reaches ~44.6 F. A run
-            this long means the chiller cannot pull the loop down. This is the signal that
-            actually caught the 2026-08-28 restriction: the unit still reached its stop
-            point, it just took 354 minutes instead of 11.
-
-            Restriction and genuine overload look different in the registers:
-              restriction — compressor part-loaded (227 around 25-30 Hz) while flow (213)
-                            is low and the evaporator dT is wide (9-10 F against a clean
-                            5 F). Check chiltrix-pump-only-flow-low, then the strainer.
-              overload    — compressor near maximum (227 at 55-60 Hz) with normal flow and
-                            a normal dT. That is a hot day plus a large zone call, not a
-                            fault.
-            Also check that the loop is not simply making up a large heat gain: compare
-            against environment.outside.thermostat.temperature and the zone calls on
-            electrical.ac.switch.utility.CHIL.
         labels:
           severity: warning
           source: chiltrix
@@ -416,3 +314,14 @@ deleteRules:
   # output, so no fixed threshold on it is sound. startupFlow carries the fouling signal.
   - orgId: 1
     uid: chiltrix-flow-approaching-trip
+  # Retired 2026-08-30. The 90-minute threshold rested on "clean runs are 9-22 min",
+  # which one day of clean-strainer data refuted: on 2026-08-29 runs lengthened with
+  # load to 232 minutes (10, 12, 20, 12, 10, 12, 22, 36, 232) while startupFlow held
+  # 50.5-54.0 L/min throughout. Run length has no maximum — the unit runs until inlet
+  # reaches its stop point, and a hot day takes hours. The rule fired on that normal
+  # 232-minute run. Fouling coverage is not lost: the 2026-08-28 startupFlow decline
+  # spanned eleven hours of ordinary-length cycles BEFORE the 354-minute run, and the
+  # degraded run's own start registered a 22.9 plateau, so chiltrix-pump-only-flow-low
+  # fires earlier than a duration rule ever did. runDuration stays published for panels.
+  - orgId: 1
+    uid: chiltrix-run-duration-excessive
