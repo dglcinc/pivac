@@ -353,12 +353,35 @@ channels.
 **Three rails, one continuous conductor each.** Two are on the field side: `+V` feeding twelve
 resistors, and `24 V COM` tying the four connector pin-4 positions together. The third is on the Pi
 side: **every phototransistor emitter returns to Pi ground**, so twelve emitters share one rail to a
-ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** laid
-along a straight row of holes and soldered to every pad it passes, rather than as a chain of
-jumpers. It is lower impedance, obvious to trace a year later, and it is what makes Step 3
-diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a chain of
-jumpers gives one dead pad and no indication of which joint failed. Sleeve the wire where it crosses
-another net.
+ground pad on the header fan-out. Run each as a single length of **bare 22 AWG solid copper** rather
+than a chain of jumpers. It is lower impedance, obvious to trace a year later, and it is what makes
+Step 3 diagnostic: a rail fault shows as a *run* of dead pads with a clear starting point, where a
+chain of jumpers gives one dead pad and no indication of which joint failed.
+
+**All three go on the solder side.** Socket pads are unreachable from the component side once the
+socket is in, so the ground rail has no choice; the other two follow it so there is one convention
+rather than two.
+
+**Only the `+V` rail can run straight through its targets, and the reason generalises.** Its targets
+are the twelve resistor leads, and *you* place those — so put all twelve upper leads in one row and
+run the rail along it, soldering to each. The other two rails serve pins whose positions are fixed
+by a part, and in both cases the pins they must reach alternate with pins they must not touch.
+
+**Along a DIP's top edge the pins run C E C E C E C E** — collector on 16, emitter on 15, collector
+on 14, and so on — so a rail laid down that pin row shorts every phototransistor it passes. **At a
+connector only pin 4 is COM**; pins 1–3 are channels, so a rail along the connector pin row shorts
+all eleven channels to COM.
+
+**So those two rails run in a free row offset from the pins they serve, with a short stub down to
+each target** — twelve stubs for the ground rail, four for COM. One hole pitch is enough offset.
+Either cut individual stubs, or form the rail wire into a comb with a tab at each target and lay it
+once; the comb is tidier and the stubs are easier to correct.
+
+**Rails bare, point-to-point runs insulated.** That is what makes the crossings a non-issue: an
+insulated cathode run passing over a bare rail is not a short, and the cathode runs do have to cross
+the `+V` rail, because anodes and cathodes alternate along the package's bottom edge. **Sleeve only
+where a rail crosses a rail** — the `+V` feed coming up from J4.1 past the COM rail is the one place
+that happens.
 
 **The `+V` rail and the Pi ground rail must never meet, and they are the two that look most alike.**
 Both are bare wire spanning most of the board, and bridging them destroys the isolation the whole
@@ -468,7 +491,9 @@ path and keeps the field and Pi wiring on opposite sides of each package, which 
 ![Proposed board floor plan](rpi-io-board-layout.svg)
 
 The bands drawn in copper are fixed by the drawing; everything else is a proposal to check against
-the board before committing.
+the board before committing. `C`/`E` and `A`/`K` on the package edges are what force the offset
+rails: the ground rail cannot follow the `C E C E` row and the COM rail cannot follow the connector
+row.
 
 **One prerequisite the drawing does not give you: which fan-out pad is which GPIO.** The header's
 traces run into the matrix unlabelled, so ring them out with a continuity meter — probe from each
