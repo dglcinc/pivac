@@ -83,9 +83,18 @@ pivac.OneWireTherm:
     # sk_path, rounding, and scale be specified at sensor level. If not specified, top level value used.
     #
     # `offset` is a per-sensor calibration correction added to the reading, in KELVIN
-    # (identical to degrees Celsius as a difference). The bench ice-point values below come
-    # from docs/ds18b20-PA1-5-calibration.md. Apply them: the secondary-loop measurement is a
+    # (identical to degrees Celsius as a difference). Bench values are in
+    # docs/ds18b20-PA1-5-calibration.md. Apply them: the secondary-loop measurement is a
     # difference of a few degrees, and the probe-to-probe spread is larger than that.
+    #
+    # LOOPA_*/LOOPB_* are three-point values interpolated to 45 F, the chilled-loop
+    # operating point. IN/OUT/UBT/LBT are single-point ice values; the difference that
+    # makes at 45 F is under 0.04 K.
+    #
+    # In heating season the loops run near 140 F, where the correct offsets are
+    # LOOPA_SUP +0.346, LOOPA_RET +0.220, LOOPB_SUP +0.029, LOOPB_RET +0.152 --
+    # up to 0.32 K from the values set here. Pair delta-T needs those heating values
+    # too, because each loop spans two bench pairs (see the supply note below).
     #
     # There is no physical outdoor DS18B20 — outdoor air comes solely from pivac.RedLink
     # (environment.outside.thermostat.temperature).
@@ -105,21 +114,24 @@ pivac.OneWireTherm:
         000000c915c1:
             outname: LBT
             offset: 0.466
-        # Secondary loop A — kids room, then master bedroom (attic coil). Probes PA2A / PA2B.
-        0000001ac0a9:
+        # Secondary loop A — kids room, then master bedroom (attic coil).
+        # Supply PA1A, return PA2B. The two supply probes were cross-connected between
+        # the loops at install and are relabelled here rather than physically re-run,
+        # so each loop spans two bench pairs. Offsets stay with their ROM.
+        000000cc0c90:
             outname: LOOPA_SUP
-            offset: -0.184
+            offset: 0.653
         0000001a9154:
             outname: LOOPA_RET
-            offset: 0.083
-        # Secondary loop B — lower family room, kitchen, great room. Probes PA1A / PA1B.
-        # Note the probe pair number and the loop letter differ: pair 1 serves loop B.
-        000000cc0c90:
+            offset: 0.171
+        # Secondary loop B — lower family room, kitchen, great room.
+        # Supply PA2A, return PA1B.
+        0000001ac0a9:
             outname: LOOPB_SUP
-            offset: 0.588
+            offset: -0.062
         000000c99b56:
             outname: LOOPB_RET
-            offset: 0.423
+            offset: 0.474
         0316a015e7ff:
             outname: Unassigned
 
