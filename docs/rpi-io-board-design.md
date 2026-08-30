@@ -497,7 +497,8 @@ way.
 
 **Reserved pins.** GPIO 2/3 (pads (5,3), (5,4)) are the I²C for the DS2482 1-wire bridge on
 the extension board; pin 1's 3V3 pad (5,2) and pin 9's ground pad (5,6) feed it — the
-four-wire link is specified in `docs/ds18b20-bus-topology.md` §5.4. GPIO 4 (pad (5,5)) stays
+four-wire link is specified in `docs/ds18b20-bus-topology.md` §5.5, soldered at this end and
+plugged at the other so the extension board lifts out alone. GPIO 4 (pad (5,5)) stays
 unassigned until the bridge has survived a
 heating season, so `w1-gpio` rollback stays possible. GPIO 14/15 stay a serial console — the
 recovery path on a headless DIN-mounted Pi. BCM 7–11 stay a contiguous SPI block for a future
