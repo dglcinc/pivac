@@ -378,8 +378,20 @@ built rather than picked up. The drawing is marked *simplified representation*, 
 second point with a continuity check across two adjacent holes before laying anything out; it takes
 ten seconds and the whole rail plan depends on it.
 
-The drawing also hatches **restricted areas** where the housing intrudes. Check them during the
-Step 1 dry-fit, before a layout is committed.
+**The cross-hatched bands are restricted areas**, defined as such in the drawing's own General
+Information block. They mark where something mechanical intrudes — housing ribs, standoffs, the Pi
+above, connector bodies — so nothing may occupy that space.
+
+**They matter more here than on a normal build, because they are on the back and so is all the
+wiring.** Every rail and every point-to-point run goes on the solder side, since socket pads are
+unreachable from the other face. So the restricted bands and the wiring plan compete for the same
+surface, and that is the constraint most likely to force a layout change.
+
+What the drawing does not give is the permitted height — whether a band is a total keep-out or
+allows something low-profile. Formed 22 AWG lying flat is a fraction of a millimetre proud and may
+well pass where a component body would not. **Settle it against the board and the housing during the
+Step 1 dry-fit, cover on**, and route the rails clear of the bands if there is any doubt. This is
+the reason that dry-fit is a step rather than a formality.
 
 #### Interconnect — how a connection is actually made
 
