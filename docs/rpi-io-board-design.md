@@ -120,10 +120,9 @@ corner steps in (columns 1–2 exist from row 22 down, column 1 ending near row 
 
 ### 4.2 Pi header fan-out — the GPIO access pads
 
-The header is 2 columns × 20 rows. Its top-right pad (2,1) is marked as position 1 and is
-expected to be **Pi pin 1** — step 1 verifies this before anything is soldered. Header row *k*
-then carries Pi pins 2k−1 (column 2) and 2k (column 1), and Phoenix's traces give every pin
-its access pads **one row below its own row**:
+The header is 2 columns × 20 rows. Its top-right pad (2,1) is position 1 = **Pi pin 1**
+(confirmed on the board). Header row *k* carries Pi pins 2k−1 (column 2) and 2k (column 1),
+and Phoenix's traces give every pin its access pads **one row below its own row**:
 
 - **odd pin 2k−1** → one access pad at **(5, k+1)**
 - **even pin 2k** → two access pads, **(3, k+1)** and **(4, k+1)** (electrically the same —
@@ -317,6 +316,25 @@ Pi wires stay left of the chips and may run over the column 3–5 pads (same sid
 Field wires stay right of the chips and must never enter columns 1–6. Where a wire crosses a
 bare rail it crosses at a right angle, pressed flat, insulation intact.
 
+**Landing pads, top to bottom.** Every hole a Pi-side wire ends in, in row order — the
+checklist to tick off as the wires go down (also drawn with leader labels on the figure):
+
+| Hole | Pi pin | Lands there |
+|---|---|---|
+| (5,7) | 11 | `ZV` collector wire |
+| (5,8) | 13 | `DHW` collector wire |
+| (5,9) | 15 | `BLR` collector wire |
+| (4,9) | 16 | `SP-A` collector wire |
+| (4,10) | 18 | `SP-B` collector wire |
+| (4,11) | 20 | ground jumper from rail A |
+| (4,12) | 22 | `CHIL` collector wire |
+| (5,16) | 29 | `BOS2` collector wire |
+| (4,16) | 30 | ground jumper from rail B·C |
+| (5,17) | 31 | `BOS1` collector wire |
+| (4,17) | 32 | `DEHUM` collector wire |
+| (5,18) | 33 | `SP-C` collector wire |
+| (5,19) | 35 | `SP-D` collector wire |
+
 ## 6. Build sequence
 
 Each step verifies the one before it. Three joint rules apply throughout:
@@ -343,19 +361,15 @@ All with the continuity meter, nothing soldered yet:
 
 1. **Isolated matrix:** two adjacent free holes must NOT beep. Confirms there are no hidden
    bus strips (the drawing is a simplified representation).
-2. **Position 1:** find the marked pad on the header footprint — expect square/marked at
-   (2,1).
-3. **Header fan-out spot checks:** (2,1)↔(5,2) beeps; (1,1)↔(3,2) and (1,1)↔(4,2) beep;
+2. **Header fan-out spot checks:** (2,1)↔(5,2) beeps; (1,1)↔(3,2) and (1,1)↔(4,2) beep;
    (2,20)↔(5,21) beeps; a deliberate wrong pair, e.g. (2,1)↔(5,3), stays silent. That confirms
    the §4.2 rule at both ends of the header.
-4. **Plug fan-out spot checks:** leftmost plug position ↔ (6,2); rightmost ↔ (21,2).
-5. **Pi pin identity — the ground pattern.** Mate the board with the powered-off Pi (or hold
-   it aligned) and check continuity from the Pi's ground (a USB shell works) to each of:
-   (3,4), (5,6), (3,8), (3,11), (5,14), (3,16), (3,18), (5,21). All eight beep and no
-   neighbouring pad does — that spacing is unique to the ground pins, so it proves position 1,
-   the numbering direction and the row order in one pass. **If any of the eight misses, stop:
-   the header map is mirrored. Re-derive §4.2 from the pattern the meter shows before touching
-   a soldering iron.**
+3. **Plug fan-out spot checks:** leftmost plug position ↔ (6,2); rightmost ↔ (21,2).
+4. **The ground pattern.** Position 1 at (2,1) is confirmed, so this is the cheap whole-map
+   proof on the physical board: mate it with the powered-off Pi (or hold it aligned) and check
+   continuity from the Pi's ground (a USB shell works) to each of (3,4), (5,6), (3,8), (3,11),
+   (5,14), (3,16), (3,18), (5,21). All eight beep and no neighbouring pad does — that spacing
+   is unique to the ground pins.
 
 ### Step 2 — dry-fit, cover on
 
@@ -481,9 +495,10 @@ silence on a hot day and the boiler alerts already cover that gap. Moving to the
 24 VAC supply would tie the two failures together; the freshness alerts don't change either
 way.
 
-**Reserved pins.** GPIO 2/3 (pads (5,3), (5,4)) are the I²C for the DS2482 1-wire bridge,
-which lives beside the 1-wire terminals on the extension board — see
-`docs/ds18b20-bus-topology.md` §7. GPIO 4 stays unassigned until the bridge has survived a
+**Reserved pins.** GPIO 2/3 (pads (5,3), (5,4)) are the I²C for the DS2482 1-wire bridge on
+the extension board; pin 1's 3V3 pad (5,2) and pin 9's ground pad (5,6) feed it — the
+four-wire link is specified in `docs/ds18b20-bus-topology.md` §5.4. GPIO 4 (pad (5,5)) stays
+unassigned until the bridge has survived a
 heating season, so `w1-gpio` rollback stays possible. GPIO 14/15 stay a serial console — the
 recovery path on a headless DIN-mounted Pi. BCM 7–11 stay a contiguous SPI block for a future
 ADC or display. Vestigial cleanup that lands with the DS2482: `pivac/GPIO.py:17`'s

@@ -4,7 +4,7 @@ RPI-BC INT-PCB input board. Coordinates: col 1-23 left-to-right, row 1-30 top-to
 matching drawing 00914691/00 viewed from the component (TOP) side."""
 
 P = 24.0            # pixels per 2.54 mm pitch
-MX, MY = 78.0, 150.0  # svg position of hole (1,1)
+MX, MY = 190.0, 150.0  # svg position of hole (1,1)
 
 def X(c): return MX + (c-1)*P
 def Y(r): return MY + (r-1)*P
@@ -14,7 +14,7 @@ PI    = "#4A7FB5"   # pi-side wiring (blue)
 ACC   = "#A85F22"   # fixed-by-drawing accent
 
 out = []
-W_, H_ = 700, 1010
+W_, H_ = 835, 1010
 out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
 out.append('<defs>'
   '<pattern id="hx" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
@@ -34,7 +34,7 @@ out.append(f'<rect x="{bx0:.0f}" y="{by0:.0f}" width="{bx1-bx0:.0f}" height="{by
 for c in range(1,24):
     out.append(f'<text x="{X(c):.0f}" y="{by0-6:.0f}" text-anchor="middle" font-size="8.5" opacity=".75">{c}</text>')
 for r in range(1,31):
-    out.append(f'<text x="{bx0-8:.0f}" y="{Y(r)+3:.0f}" text-anchor="end" font-size="8.5" opacity=".75">{r}</text>')
+    out.append(f'<text x="{bx0-6:.0f}" y="{Y(r)+3:.0f}" text-anchor="end" font-size="8.5" opacity=".75">{r}</text>')
     out.append(f'<text x="{bx1+8:.0f}" y="{Y(r)+3:.0f}" font-size="8.5" opacity=".75">{r}</text>')
 
 # hole occupancy
@@ -81,7 +81,7 @@ for r in range(1,21):
 out.append(f'<circle cx="{X(2):.0f}" cy="{Y(1):.0f}" r="5" fill="currentColor"/>')
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-34:.0f}" font-size="8.5" font-weight="600">dark pad =</text>')
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-23:.0f}" font-size="8.5" font-weight="600">Pi pin 1</text>')
-out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-12:.0f}" font-size="8.5" font-weight="600">(verify)</text>')
+out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-12:.0f}" font-size="8.5" font-weight="600">(confirmed)</text>')
 # pin-pair labels every few rows
 
 
@@ -187,8 +187,8 @@ for c in (8,10,12,14):
 out.append(f'<text x="{X(14)+6:.0f}" y="{Y(12)+3:.0f}" font-size="9" font-weight="600">Pi GND rail A</text>')
 out.append(f'<text x="{X(14)+22:.0f}" y="{Y(17)+3:.0f}" font-size="9" font-weight="600">Pi GND rail B·C</text>')
 # ground jumpers
-wire([(X(7),Y(12)),(X(4.6),Y(12)),(X(4),Y(11.4)),(X(4),Y(11))], PI)
-wire([(X(7),Y(17)),(X(4.6),Y(17)),(X(4),Y(16.4)),(X(4),Y(16))], PI)
+wire([(X(7),Y(12)),(X(4)+8,Y(12)),(X(4)+8,Y(11)+5),(X(4),Y(11))], PI)
+wire([(X(7),Y(17)),(X(4)+8,Y(17)),(X(4)+8,Y(16)+5),(X(4),Y(16))], PI)
 
 # field cathode links
 wire([(X(6),Y(7)),(X(7),Y(8))], FIELD)
@@ -203,18 +203,33 @@ wire([(X(16),Y(7)),(X(16)+3,Y(7)+3),(X(16)+3,Y(21)-3),(X(10),Y(21))], FIELD)  # 
 wire([(X(19),Y(7)),(X(17)+3,Y(7)),(X(17)+3,Y(21)+3),(X(14),Y(21))], FIELD)    # SP-C -> K(14,21)
 wire([(X(21),Y(7)),(X(21)+4,Y(7)+6),(X(21)+4,Y(21)-6),(X(12),Y(21))], FIELD)                        # SP-D -> K(12,21)
 
-# pi-side collector runs
-wire([(X(8),Y(11)),(X(8),Y(11.5)),(X(6),Y(11.5)),(X(6),Y(7)),(X(5),Y(7))], PI)       # ZV
-wire([(X(10),Y(11)),(X(10),Y(11.6)),(X(6.2),Y(11.6)),(X(6.2),Y(8)),(X(5),Y(8))], PI) # DHW
-wire([(X(12),Y(11)),(X(12),Y(12.5)),(X(6),Y(12.5)),(X(6),Y(9)),(X(5),Y(9))], PI)     # BLR
-wire([(X(14),Y(11)),(X(14),Y(12.6)),(X(4),Y(12.6)),(X(4),Y(12))], PI)                # CHIL
-wire([(X(12),Y(16)),(X(12),Y(16.5)),(X(5),Y(16.5)),(X(5),Y(16))], PI)                # BOS2
-wire([(X(10),Y(16)),(X(10),Y(16.6)),(X(6),Y(16.6)),(X(6),Y(17)),(X(5),Y(17))], PI)   # BOS1
-wire([(X(14),Y(16)),(X(14),Y(16.4)),(X(4.4),Y(16.4)),(X(4),Y(17))], PI)              # DEHUM
-wire([(X(7),Y(18)),(X(7),Y(17.5)),(X(4),Y(17.5)),(X(4),Y(9))], PI)                   # SP-A -> (4,9)
-wire([(X(9),Y(18)),(X(9),Y(17.6)),(X(4.2),Y(17.6)),(X(4.2),Y(10)),(X(4),Y(10))], PI) # SP-B -> (4,10)
-wire([(X(11),Y(18)),(X(11),Y(17.4)),(X(6),Y(17.4)),(X(6),Y(19)),(X(5),Y(19))], PI)   # SP-D? -> (5,19)
-wire([(X(13),Y(18)),(X(13),Y(17.3)),(X(5.4),Y(17.3)),(X(5),Y(18))], PI)              # SP-C -> (5,18)
+# pi-side collector runs — one dedicated lane each, no two share a street
+# horizontal lanes are offsets below the named row; vertical lanes are offsets from the named col
+wire([(X(8),Y(11)),(X(8),Y(11)+8),(X(6)-6,Y(11)+8),(X(6)-6,Y(7)),(X(5),Y(7))], PI)          # ZV
+wire([(X(10),Y(11)),(X(10),Y(11)+15),(X(6)+2,Y(11)+15),(X(6)+2,Y(8)),(X(5),Y(8))], PI)      # DHW
+wire([(X(12),Y(11)),(X(12),Y(12)+8),(X(6)+9,Y(12)+8),(X(6)+9,Y(9)),(X(5),Y(9))], PI)        # BLR
+wire([(X(14),Y(11)),(X(14),Y(12)+13),(X(4),Y(12)+13),(X(4),Y(12))], PI)                     # CHIL
+wire([(X(12),Y(16)),(X(12),Y(16)+7),(X(5),Y(16)+7),(X(5),Y(16))], PI)                       # BOS2
+wire([(X(10),Y(16)),(X(10),Y(16)+13),(X(6)-6,Y(16)+13),(X(6)-6,Y(17)),(X(5),Y(17))], PI)    # BOS1
+wire([(X(14),Y(16)),(X(14),Y(16)+19),(X(4),Y(16)+19),(X(4),Y(17))], PI)                     # DEHUM
+wire([(X(13),Y(18)),(X(13),Y(17)+6),(X(5)+8,Y(17)+6),(X(5),Y(18))], PI)                     # SP-C
+wire([(X(11),Y(18)),(X(11),Y(17)+11),(X(6)+2,Y(17)+11),(X(6)+2,Y(19)),(X(5),Y(19))], PI)    # SP-D
+wire([(X(9),Y(18)),(X(9),Y(17)+16),(X(4)+2,Y(17)+16),(X(4)+2,Y(10)),(X(4),Y(10))], PI)      # SP-B
+wire([(X(7),Y(18)),(X(7),Y(17)+21),(X(4)-6,Y(17)+21),(X(4)-6,Y(9)),(X(4),Y(9))], PI)        # SP-A
+
+# landing-pad labels, top to bottom, with leader lines (pin 1 confirmed, so pin numbers are definitive)
+LAND = [ (5,7,'11','ZV'), (5,8,'13','DHW'), (5,9,'15','BLR'), (4,9,'16','SP-A'),
+         (4,10,'18','SP-B'), (4,11,'20','GND·A'), (4,12,'22','CHIL'),
+         (5,16,'29','BOS2'), (4,16,'30','GND·B·C'), (5,17,'31','BOS1'),
+         (4,17,'32','DEHUM'), (5,18,'33','SP-C'), (5,19,'35','SP-D') ]
+lasty = 0
+for c,r,pin,nm in LAND:
+    ly_ = max(Y(r)+3, lasty+13)
+    lasty = ly_
+    out.append(f'<text x="{MX-146}" y="{ly_:.0f}" font-size="8.5" fill="{PI}">pin {pin} · {nm}</text>')
+    out.append(f'<text x="{MX-74}" y="{ly_:.0f}" font-size="8.5" fill="{PI}" opacity=".8">({c},{r})</text>')
+    out.append(f'<line x1="{MX-24}" y1="{ly_-3:.0f}" x2="{X(c)-6:.0f}" y2="{Y(r):.0f}" stroke="{PI}" stroke-width=".7" opacity=".45" stroke-dasharray="2 2"/>')
+    out.append(f'<circle cx="{X(c):.0f}" cy="{Y(r):.0f}" r="4.6" fill="none" stroke="{PI}" stroke-width="1.2"/>')
 
 # GPIO landing labels (left margin)
 glabels = [ (5,7,'ZV pin11'), (5,8,'DHW pin13'), (5,9,'BLR pin15'), (4,12,'CHIL pin22'),
