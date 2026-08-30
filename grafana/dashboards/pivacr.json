@@ -556,7 +556,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Temperature rise across each load, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary loop's return minus supply. At fixed flow the spread is proportional to load, which is the number to read here; absolute temperatures are on the Hydronic Temps panel above. The sign carries information, so the axis is deliberately not clamped at zero: heating season inverts every pair because supply becomes the warm side, idle sits near zero on sensor noise, and a probe pair wired backwards reads negative without ever going stale. Loop A is probe pair PA2 and loop B is pair PA1 — the pair number and the loop letter deliberately differ. The axis is centred on zero and left to autoscale rather than clamped, so small deltas still resolve and a winter inversion or a backwards pair stays on-chart.",
+      "description": "Temperature rise across each load while that loop is actually pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Each run draws as its own segment and the gaps between are real — with a pump off its two probes sit in a dead leg and hold a plausible positive ΔT indefinitely (loop A reads +3.6 °F stopped, against +5.0 running), so an ungated series is mostly fiction. pivac.LoopDelta gates on the CHIL relay narrowed by each secondary's zone calls, and discards the first three minutes of every run, where ΔT overshoots to +6.2 °F against a settled +4.0. The plotted value is the run's mean so far, so the last sample of a segment is the full-run mean. Source is Kelvin and ΔT is a difference, so the conversion is *9/5 with NO offset — do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 °F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -579,12 +579,12 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
+            "lineWidth": 2,
+            "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -701,7 +701,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPA_SUP.temperature",
+          "measurement": "environment.inside.hvac.primary.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -720,7 +720,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -728,7 +728,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A supply"
+          "alias": "Primary ΔT — whole house"
         },
         {
           "datasource": {
@@ -749,7 +749,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPA_RET.temperature",
+          "measurement": "environment.inside.hvac.LOOPA.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -768,7 +768,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -776,7 +776,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A return"
+          "alias": "Loop A ΔT — kids / master bedroom"
         },
         {
           "datasource": {
@@ -797,7 +797,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPB_SUP.temperature",
+          "measurement": "environment.inside.hvac.LOOPB.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -816,7 +816,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -824,222 +824,11 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop B supply"
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "environment.inside.hvac.LOOPB_RET.temperature",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "D",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " *9/5-459.67"
-                ],
-                "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false,
-          "alias": "Loop B return"
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "environment.inside.hvac.IN.temperature",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "E",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " *9/5-459.67"
-                ],
-                "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false,
-          "alias": "Primary IN"
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "environment.inside.hvac.OUT.temperature",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "F",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " *9/5-459.67"
-                ],
-                "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false,
-          "alias": "Primary OUT"
+          "alias": "Loop B ΔT — family / kitchen / great room"
         }
       ],
       "title": "Loop ΔT — Primary and Secondary Pairs",
-      "type": "timeseries",
-      "transformations": [
-        {
-          "id": "joinByField",
-          "options": {
-            "byField": "Time",
-            "mode": "outer"
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "binary": {
-              "left": "Primary OUT",
-              "operator": "-",
-              "right": "Primary IN"
-            },
-            "alias": "Primary ΔT — whole house",
-            "replaceFields": false
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "binary": {
-              "left": "Loop A return",
-              "operator": "-",
-              "right": "Loop A supply"
-            },
-            "alias": "Loop A ΔT — kids / master bedroom",
-            "replaceFields": false
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "binary": {
-              "left": "Loop B return",
-              "operator": "-",
-              "right": "Loop B supply"
-            },
-            "alias": "Loop B ΔT — family / kitchen / great room",
-            "replaceFields": false
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Loop A supply": true,
-              "Loop A return": true,
-              "Loop B supply": true,
-              "Loop B return": true,
-              "Primary IN": true,
-              "Primary OUT": true
-            },
-            "indexByName": {
-              "Primary ΔT — whole house": 0,
-              "Loop A ΔT — kids / master bedroom": 1,
-              "Loop B ΔT — family / kitchen / great room": 2
-            },
-            "renameByName": {}
-          }
-        }
-      ]
+      "type": "timeseries"
     },
     {
       "datasource": {

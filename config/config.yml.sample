@@ -146,8 +146,11 @@ pivac.LoopDelta:
     daemon_sleep: 20
 
     # Each loop publishes <sk_path>.<name>.flowing every cycle, and
-    # <sk_path>.<name>.deltaT once per completed run, in KELVIN (a difference, so
-    # Fahrenheit is * 9/5 with NO offset).
+    # <sk_path>.<name>.deltaT -- the run's mean so far -- every cycle while that loop
+    # is pumping and past the transient, and not at all otherwise. So each run draws
+    # as its own segment: the value is readable and so is the call's duration, and the
+    # segment's last sample is the full-run mean. KELVIN (a difference, so Fahrenheit
+    # is * 9/5 with NO offset).
     #
     # `relay` is the switch that proves this loop is pumping. CHIL is the Taco, which
     # the HZ432 energizes on a call from ANY chiller zone -- including one on the other

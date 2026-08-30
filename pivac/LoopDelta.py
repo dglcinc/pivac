@@ -14,11 +14,13 @@ before the return responds, so delta-T overshoots — +6.2 K against a settled
 +4.0 K at one minute in — and only lands by minute three.  `settle_s` discards
 that window.
 
-What survives is one number per run.  After trimming the transient off a 7-13
-minute call there is not enough continuous data to draw an honest line, so this
-publishes the run's mean once, when the run ends, and says nothing in between.
-`.flowing` is emitted every cycle instead, which is what carries liveness and
-explains the gaps.
+What survives is one number per run, drawn across that run.  `.deltaT` is the
+run's mean so far, published every cycle once the transient has passed and not
+at all otherwise, so each run renders as its own segment: the value is readable
+and so is how long the call lasted, while the gaps between runs are honest
+absences rather than held-over numbers.  The last sample of a segment is the
+full-run mean.  `.flowing` is emitted every cycle regardless and carries
+liveness.
 
 This is a derived module: it reads what other pivac modules have already
 published to Signal K rather than touching hardware.  That keeps it off the
@@ -113,25 +115,27 @@ def _gate_open(relay_state, zone_states):
 def _advance(state, gated, delta, now, settle_s):
     """Advance one loop's run state machine.
 
-    Returns (completed, flowing).  `completed` is the mean delta-T of a run that
-    has just ended, and is None on every other cycle — including at the end of a
-    run shorter than settle_s, which yields no value at all.  That is correct:
-    such a run is entirely startup transient and never held a measurement.
+    Returns (value, flowing).  `value` is the mean delta-T so far in the current
+    run, and is None while the loop is idle or still inside settle_s — so a run
+    shorter than settle_s publishes nothing at all, which is correct: it was
+    entirely startup transient and never held a measurement.
+
+    The running mean is published every cycle rather than one value at the end,
+    so the chart shows the call's duration as well as its value.  It converges
+    within a few samples and its last value is the full-run mean.
     """
-    completed = None
-    if gated:
-        if not state["running"]:
-            state.update(running=True, start=now, sum=0.0, n=0)
-        elif delta is not None and now - state["start"] >= settle_s:
-            state["sum"] += delta
-            state["n"] += 1
-    elif state["running"]:
+    if not gated:
         state["running"] = False
-        if state["n"]:
-            completed = round(state["sum"] / state["n"], 3)
-        else:
-            logger.info("LoopDelta run ended with no settled samples; nothing published")
-    return completed, gated
+        return None, False
+    if not state["running"]:
+        state.update(running=True, start=now, sum=0.0, n=0)
+        return None, True
+    if delta is not None and now - state["start"] >= settle_s:
+        state["sum"] += delta
+        state["n"] += 1
+    if not state["n"]:
+        return None, True
+    return round(state["sum"] / state["n"], 3), True
 
 
 def status(config={}, output="default"):
@@ -166,13 +170,11 @@ def status(config={}, output="default"):
             zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
                            for z in loop["zones"]]
 
-        completed, flowing = _advance(state, _gate_open(relay, zone_states),
-                                      delta, now, settle_s)
+        value, flowing = _advance(state, _gate_open(relay, zone_states),
+                                  delta, now, settle_s)
         result["%s.flowing" % name] = 1 if flowing else 0
-        if completed is not None:
-            result["%s.deltaT" % name] = round(completed, rounding)
-            logger.info("LoopDelta %s run finished: %.3f K over %d samples",
-                        name, completed, state["n"])
+        if value is not None:
+            result["%s.deltaT" % name] = round(value, rounding)
 
     return _emit(result, sk_path, output)
 

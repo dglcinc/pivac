@@ -8,7 +8,9 @@ Dependency-free (no pytest, no Signal K): run directly with
 The cases below use the measured behaviour of this system.  A secondary loop
 holds a plausible positive delta-T while its pump is off, so the gate is what
 separates a measurement from fiction, and the first minutes of a run are a
-startup transient rather than data.
+startup transient rather than data.  delta-T is published every cycle through
+the settled part of a run so the chart shows the call's duration, which is what
+the sample counts below check.
 """
 import os
 import sys
@@ -54,30 +56,34 @@ def test_gate():
 
 
 def test_runs():
-    # 20 s steps: the transient is the first 9 samples (180 s).
+    # 20 s steps, so settle_s=180 makes the first 9 samples of a run transient.
     transient = [(True, 6.2)] * 9
     settled = [(True, 4.0)] * 9
     cases = [
+        # label, sequence, (values published, last value)
         ("idle throughout publishes nothing",
-         [(False, 3.6)] * 20, []),
+         [(False, 3.6)] * 20, (0, None)),
         ("run shorter than settle publishes nothing",
-         [(True, 6.2)] * 5 + [(False, 3.6)] * 3, []),
-        ("transient is excluded from the mean",
-         transient + settled + [(False, 3.6)], [4.0]),
-        ("value appears once, at the end of the run",
-         transient + settled + [(False, 3.6)] * 5, [4.0]),
-        ("two runs publish two values",
+         [(True, 6.2)] * 5 + [(False, 3.6)] * 3, (0, None)),
+        ("transient publishes nothing, settled portion does",
+         transient + settled + [(False, 3.6)], (9, 4.0)),
+        ("the segment spans only the run, not the idle after it",
+         transient + settled + [(False, 3.6)] * 8, (9, 4.0)),
+        ("two runs give two segments, each ending on its own mean",
          transient + settled + [(False, 3.6)] * 3
-         + transient + [(True, 5.0)] * 9 + [(False, 3.6)], [4.0, 5.0]),
-        ("a stale probe mid-run drops that sample only",
-         transient + [(True, None)] * 3 + settled + [(False, 3.6)], [4.0]),
+         + transient + [(True, 5.0)] * 9 + [(False, 3.6)], (18, 5.0)),
+        ("a stale probe mid-run suppresses only its own samples",
+         transient + [(True, None)] * 3 + settled + [(False, 3.6)], (9, 4.0)),
+        ("the running mean converges on the full-run mean",
+         transient + [(True, 3.0)] * 1 + [(True, 5.0)] * 1 + [(False, 0.0)], (2, 4.0)),
     ]
     failures = 0
     for label, seq, expected in cases:
-        got = _run(seq)
+        pub = _run(seq)
+        got = (len(pub), pub[-1] if pub else None)
         ok = got == expected
         failures += not ok
-        print("%-4s run:  %-45s -> %s (expected %s)"
+        print("%-4s run:  %-52s -> %s (expected %s)"
               % ("ok" if ok else "FAIL", label, got, expected))
     return failures, len(cases)
 
