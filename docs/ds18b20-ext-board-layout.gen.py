@@ -132,28 +132,29 @@ out.append(f'<rect x="{(X(9)+X(10))/2-9:.0f}" y="{Y(16)-5:.0f}" width="18" heigh
 out.append(f'<text x="{(X(9)+X(10))/2:.0f}" y="{Y(16)-9:.0f}" text-anchor="middle" font-size="7.5" fill="{ONEW}">100n</text>')
 
 # 4-position link terminal, pins row 18 cols 8-11, body toward row 19
-tx0,tx1 = X(8)-15, X(11)+15
+tx0,tx1 = X(8)-15, X(12)+15
 out.append(f'<rect x="{tx0:.0f}" y="{Y(18)-13:.0f}" width="{tx1-tx0:.0f}" height="{Y(21)-Y(18)+13:.0f}" rx="3" fill="none" stroke="{I2C}" stroke-width="1.9"/>')
-for c,l in ((8,'C'),(9,'V'),(10,'G'),(11,'D')):
+for c,l in ((8,'V'),(9,'D'),(10,'C'),(11,'4'),(12,'G')):
     out.append(f'<circle cx="{X(c):.0f}" cy="{Y(18):.0f}" r="5.5" fill="none" stroke="{I2C}" stroke-width="1.5"/>')
     out.append(f'<text x="{X(c):.0f}" y="{Y(18)+3:.0f}" text-anchor="middle" font-size="7.5" fill="{I2C}">{l}</text>')
 out.append(f'<text x="{(tx0+tx1)/2:.0f}" y="{Y(20)+2:.0f}" text-anchor="middle" font-size="9" font-weight="700" fill="{I2C}">LINK TO THE Pi BOARD</text>')
-out.append(f'<text x="{(tx0+tx1)/2:.0f}" y="{Y(20)+14:.0f}" text-anchor="middle" font-size="8" fill="{I2C}">SCL · 3V3 · GND · SDA</text>')
+out.append(f'<text x="{(tx0+tx1)/2:.0f}" y="{Y(20)+14:.0f}" text-anchor="middle" font-size="8" fill="{I2C}">3V3 · SDA · SCL · spare · GND</text>')
 out.append(f'<text x="{(tx0+tx1)/2:.0f}" y="{Y(21)+8:.0f}" text-anchor="middle" font-size="8" fill="{I2C}">pull this plug + the probe plugs</text>')
 out.append(f'<text x="{(tx0+tx1)/2:.0f}" y="{Y(21)+19:.0f}" text-anchor="middle" font-size="8" fill="{I2C}">and the board lifts out</text>')
+out.append(f'<text x="{X(12)+13:.0f}" y="{Y(18)+3:.0f}" font-size="7" fill="{I2C}">GND lands</text>')
+out.append(f'<text x="{X(12)+13:.0f}" y="{Y(18)+12:.0f}" font-size="7" fill="{I2C}">on the rail</text>')
 
 # lower-field wiring
 wire([(X(6),Y(12)),(X(8),Y(12))], ONEW)                       # V1 rail -> VCC pin
 wire([(X(6),Y(16)),(X(9),Y(16))], ONEW)                       # V2 rail -> cap
-wire([(X(6),Y(18)),(X(9),Y(18))], ONEW)                       # V3 rail -> 3V3 pin
+wire([(X(6),Y(18)),(X(8),Y(18))], ONEW)                       # V3 rail -> 3V3 pin
 out.append(f'<line x1="{X(12):.0f}" y1="{Y(12):.0f}" x2="{X(11):.0f}" y2="{Y(12):.0f}" stroke="currentColor" stroke-width="1.7"/>')  # AD0 stub
 out.append(f'<line x1="{X(12):.0f}" y1="{Y(13):.0f}" x2="{X(11):.0f}" y2="{Y(13):.0f}" stroke="currentColor" stroke-width="1.7"/>')  # AD1 stub
 wire([(X(12),Y(14)),(X(8),Y(14))], ONEW)                      # G1 rail -> GND pin
 wire([(X(12),Y(16)),(X(10),Y(16))], ONEW)                     # G2 rail -> cap
-wire([(X(12),Y(18)),(X(10),Y(18))], ONEW)                     # G3 rail -> GND pin
 wire([(X(10),Y(10)),(X(10),Y(10)+7),(X(7),Y(10)+7),(X(7),Y(13)),(X(8),Y(13))], ONEW)  # D1 -> IO
-wire([(X(8),Y(15)),(X(8)-6,Y(16)),(X(8)-6,Y(17)),(X(8),Y(18))], I2C)     # S1 SCL
-wire([(X(11),Y(15)),(X(11)+6,Y(16)),(X(11)+6,Y(17)),(X(11),Y(18))], I2C) # S2 SDA
+wire([(X(8),Y(15)),(X(8),Y(17)-6),(X(10),Y(17)-6),(X(10),Y(18))], I2C)   # S1 SCL
+wire([(X(11),Y(15)),(X(11),Y(17)+6),(X(9),Y(17)+6),(X(9),Y(18))], I2C)   # S2 SDA
 
 # legend
 ly = Y(32)+52

@@ -1,4 +1,4 @@
-<svg viewBox="0 0 835 1010" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<svg viewBox="0 0 835 1030" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
 <defs><pattern id="hx" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#A85F22" stroke-width="1.4" opacity=".55"/></pattern></defs>
 <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="currentColor">
 <text x="172.0" y="22" font-size="13" font-weight="600">COMPONENT SIDE — hole grid (column,row), TOP view of drawing 00914691/00</text>
@@ -804,6 +804,22 @@
 <text x="180" y="116" font-size="8.5" font-weight="600">dark pad =</text>
 <text x="180" y="127" font-size="8.5" font-weight="600">Pi pin 1</text>
 <text x="180" y="138" font-size="8.5" font-weight="600">(confirmed)</text>
+<rect x="223" y="161" width="77" height="122" rx="3" fill="none" stroke="#4A7FB5" stroke-width="1.9"/>
+<circle cx="286" cy="174" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="286" y="177" text-anchor="middle" font-size="7.5" fill="#4A7FB5">V</text>
+<circle cx="286" cy="198" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="286" y="201" text-anchor="middle" font-size="7.5" fill="#4A7FB5">D</text>
+<circle cx="286" cy="222" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="286" y="225" text-anchor="middle" font-size="7.5" fill="#4A7FB5">C</text>
+<circle cx="286" cy="246" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="286" y="249" text-anchor="middle" font-size="7.5" fill="#4A7FB5">4</text>
+<circle cx="286" cy="270" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="286" y="273" text-anchor="middle" font-size="7.5" fill="#4A7FB5">G</text>
+<text x="44.0" y="177" font-size="8.5" font-weight="700" fill="#4A7FB5">LINK → 1-WIRE BOARD</text>
+<text x="44.0" y="201" font-size="8.5" fill="#4A7FB5">5-way, (5,2)–(5,6)</text>
+<text x="44.0" y="225" font-size="8.5" fill="#4A7FB5">pins land on the</text>
+<text x="44.0" y="249" font-size="8.5" fill="#4A7FB5">GPIO pads, no wires</text>
+<line x1="166.0" y1="198" x2="221" y2="222" stroke="#4A7FB5" stroke-width=".8" opacity=".5" stroke-dasharray="2 2"/>
 <rect x="249" y="88" width="99" height="32" rx="3" fill="none" stroke="#A85F22" stroke-width="1.6"/>
 <text x="299" y="82" text-anchor="middle" font-size="10" font-weight="600" fill="#A85F22">J1</text>
 <circle cx="263" cy="104" r="5" fill="none" stroke="#A85F22" stroke-width="1.4"/>
@@ -1138,4 +1154,5 @@
 <text x="198.0" y="956" font-size="9">hole (5,20) = Pi pin 37 (GPIO 26, dead) — never use</text>
 <text x="180.0" y="974" font-size="9">header row k carries Pi pins 2k−1 (col 2) and 2k (col 1); even-pin access pads sit at (3,k+1)+(4,k+1), odd-pin at (5,k+1)</text>
 <text x="180.0" y="992" font-size="9">each plug pin fans out on a board trace to its row-2 access pad (thin lines at top)</text>
+<text x="180.0" y="1010" font-size="9" fill="#4A7FB5">link terminal, top to bottom: V = 3V3 · D = SDA · C = SCL · 4 = GPIO 4 (spare / 1-wire rollback) · G = GND</text>
 </g></svg>

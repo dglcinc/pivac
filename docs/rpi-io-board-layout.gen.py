@@ -14,7 +14,7 @@ PI    = "#4A7FB5"   # pi-side wiring (blue)
 ACC   = "#A85F22"   # fixed-by-drawing accent
 
 out = []
-W_, H_ = 835, 1010
+W_, H_ = 835, 1030
 out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
 out.append('<defs>'
   '<pattern id="hx" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
@@ -84,6 +84,19 @@ out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-23:.0f}" font-size="8.5" font-weig
 out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-12:.0f}" font-size="8.5" font-weight="600">(confirmed)</text>')
 # pin-pair labels every few rows
 
+
+# 5-position link terminal to the 1-wire board: pins on the column-5 access pads,
+# rows 2-6, entry facing left over the empty column 3-4 pads.
+LT = {2:'V', 3:'D', 4:'C', 5:'4', 6:'G'}
+out.append(f'<rect x="{X(2)+9:.0f}" y="{Y(2)-13:.0f}" width="{X(5)-X(2)+5:.0f}" height="{Y(6)-Y(2)+26:.0f}" rx="3" fill="none" stroke="{PI}" stroke-width="1.9"/>')
+for r,l in LT.items():
+    out.append(f'<circle cx="{X(5):.0f}" cy="{Y(r):.0f}" r="5.5" fill="none" stroke="{PI}" stroke-width="1.5"/>')
+    out.append(f'<text x="{X(5):.0f}" y="{Y(r)+3:.0f}" text-anchor="middle" font-size="7.5" fill="{PI}">{l}</text>')
+out.append(f'<text x="{MX-146}" y="{Y(2)+3:.0f}" font-size="8.5" font-weight="700" fill="{PI}">LINK → 1-WIRE BOARD</text>')
+out.append(f'<text x="{MX-146}" y="{Y(3)+3:.0f}" font-size="8.5" fill="{PI}">5-way, (5,2)–(5,6)</text>')
+out.append(f'<text x="{MX-146}" y="{Y(4)+3:.0f}" font-size="8.5" fill="{PI}">pins land on the</text>')
+out.append(f'<text x="{MX-146}" y="{Y(5)+3:.0f}" font-size="8.5" fill="{PI}">GPIO pads, no wires</text>')
+out.append(f'<line x1="{MX-24}" y1="{Y(3):.0f}" x2="{X(2)+7:.0f}" y2="{Y(4):.0f}" stroke="{PI}" stroke-width=".8" opacity=".5" stroke-dasharray="2 2"/>')
 
 # connectors above row 1
 PX = {i+1: MX + (px-221.0)/61.57*P for i,px in enumerate(
@@ -266,6 +279,7 @@ out.append(f'<text x="{MX-10}" y="{ly4+3:.0f}" font-size="11" font-weight="700" 
 out.append(f'<text x="{MX+8}" y="{ly4+3:.0f}" font-size="9">hole (5,20) = Pi pin 37 (GPIO 26, dead) — never use</text>')
 out.append(f'<text x="{MX-10}" y="{ly4+21:.0f}" font-size="9">header row k carries Pi pins 2k−1 (col 2) and 2k (col 1); even-pin access pads sit at (3,k+1)+(4,k+1), odd-pin at (5,k+1)</text>')
 out.append(f'<text x="{MX-10}" y="{ly4+39:.0f}" font-size="9">each plug pin fans out on a board trace to its row-2 access pad (thin lines at top)</text>')
+out.append(f'<text x="{MX-10}" y="{ly4+57:.0f}" font-size="9" fill="{PI}">link terminal, top to bottom: V = 3V3 · D = SDA · C = SCL · 4 = GPIO 4 (spare / 1-wire rollback) · G = GND</text>')
 out.append('</g></svg>')
 import os
 open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'rpi-io-board-layout.svg'),'w').write('\n'.join(out)+'\n')

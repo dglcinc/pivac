@@ -627,30 +627,33 @@
 <line x1="344" y1="510" x2="368" y2="510" stroke="#C2622A" stroke-width="1.3"/>
 <rect x="347" y="505" width="18" height="10" rx="2" fill="none" stroke="#C2622A" stroke-width="1.5"/>
 <text x="356" y="501" text-anchor="middle" font-size="7.5" fill="#C2622A">100n</text>
-<rect x="305" y="545" width="102" height="85" rx="3" fill="none" stroke="#4A7FB5" stroke-width="1.9"/>
+<rect x="305" y="545" width="126" height="85" rx="3" fill="none" stroke="#4A7FB5" stroke-width="1.9"/>
 <circle cx="320" cy="558" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
-<text x="320" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">C</text>
+<text x="320" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">V</text>
 <circle cx="344" cy="558" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
-<text x="344" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">V</text>
+<text x="344" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">D</text>
 <circle cx="368" cy="558" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
-<text x="368" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">G</text>
+<text x="368" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">C</text>
 <circle cx="392" cy="558" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
-<text x="392" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">D</text>
-<text x="356" y="608" text-anchor="middle" font-size="9" font-weight="700" fill="#4A7FB5">LINK TO THE Pi BOARD</text>
-<text x="356" y="620" text-anchor="middle" font-size="8" fill="#4A7FB5">SCL · 3V3 · GND · SDA</text>
-<text x="356" y="638" text-anchor="middle" font-size="8" fill="#4A7FB5">pull this plug + the probe plugs</text>
-<text x="356" y="649" text-anchor="middle" font-size="8" fill="#4A7FB5">and the board lifts out</text>
+<text x="392" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">4</text>
+<circle cx="416" cy="558" r="5.5" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<text x="416" y="561" text-anchor="middle" font-size="7.5" fill="#4A7FB5">G</text>
+<text x="368" y="608" text-anchor="middle" font-size="9" font-weight="700" fill="#4A7FB5">LINK TO THE Pi BOARD</text>
+<text x="368" y="620" text-anchor="middle" font-size="8" fill="#4A7FB5">3V3 · SDA · SCL · spare · GND</text>
+<text x="368" y="638" text-anchor="middle" font-size="8" fill="#4A7FB5">pull this plug + the probe plugs</text>
+<text x="368" y="649" text-anchor="middle" font-size="8" fill="#4A7FB5">and the board lifts out</text>
+<text x="429" y="561" font-size="7" fill="#4A7FB5">GND lands</text>
+<text x="429" y="570" font-size="7" fill="#4A7FB5">on the rail</text>
 <polyline points="272,414 320,414" fill="none" stroke="#C2622A" stroke-width="1.5"/>
 <polyline points="272,510 344,510" fill="none" stroke="#C2622A" stroke-width="1.5"/>
-<polyline points="272,558 344,558" fill="none" stroke="#C2622A" stroke-width="1.5"/>
+<polyline points="272,558 320,558" fill="none" stroke="#C2622A" stroke-width="1.5"/>
 <line x1="416" y1="414" x2="392" y2="414" stroke="currentColor" stroke-width="1.7"/>
 <line x1="416" y1="438" x2="392" y2="438" stroke="currentColor" stroke-width="1.7"/>
 <polyline points="416,462 320,462" fill="none" stroke="#C2622A" stroke-width="1.5"/>
 <polyline points="416,510 368,510" fill="none" stroke="#C2622A" stroke-width="1.5"/>
-<polyline points="416,558 368,558" fill="none" stroke="#C2622A" stroke-width="1.5"/>
 <polyline points="368,366 368,373 296,373 296,438 320,438" fill="none" stroke="#C2622A" stroke-width="1.5"/>
-<polyline points="320,486 314,510 314,534 320,558" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
-<polyline points="392,486 398,510 398,534 392,558" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<polyline points="320,486 320,528 368,528 368,558" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
+<polyline points="392,486 392,540 344,540 344,558" fill="none" stroke="#4A7FB5" stroke-width="1.5"/>
 <line x1="42.0" y1="946" x2="80.0" y2="946" stroke="currentColor" stroke-width="2.8"/>
 <text x="88.0" y="949" font-size="9">bare rail or 1-hole stub, solder side</text>
 <line x1="332.0" y1="946" x2="370.0" y2="946" stroke="#C2622A" stroke-width="1.5"/>

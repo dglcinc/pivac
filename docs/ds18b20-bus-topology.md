@@ -42,12 +42,14 @@ two ends dropping through holes on either side.
 ## 2. What the finished system is
 
 ```
- Pi ──40-pin──► INT board ══ 4-wire cable ══►┤ LINK PLUG ├─► EXT board ─► DS2482
-                (3V3 · GND · SDA · SCL)                          │
-                                                                 │  VCC · DATA · GND bus
-                                                                 ├─┤ H1 ├─► TRUNK ─► field chain, 8 probes
-                                                                 ├─┤ H2 ├─► spare (outdoor run)
-                                                                 └─┤ H3 ├─► spare
+                       5-wire cable: 3V3 · SDA · SCL · spare · GND
+                              ┌───────────────────────────┐
+ Pi ──40-pin──► INT board ──┤PLUG├                     ┤PLUG├── EXT board ──► DS2482
+                                                                     │
+                                             VCC · DATA · GND bus ───┤
+                                                                     ├─┤H1├─► TRUNK ─► 8 probes
+                                                                     ├─┤H2├─► spare (outdoor)
+                                                                     └─┤H3├─► spare
 ```
 
 The DS2482 turns the Pi's I²C into 1-wire timing generated in hardware with a driven rising
@@ -55,10 +57,10 @@ edge — which is what an eight-probe run in a mechanical room wants, and why th
 pull-up and the old GPIO 4 wiring come off (Appendix A).
 
 **Everything that leaves this board is on a plug.** The three probe sockets sit at the
-short-end opening, and the four-wire link to the Pi board lands on its own terminal. Pull four
-plugs and the EXT board lifts out of the enclosure without touching the Pi board or the field
-wiring. Sensors keep their `28-*` names throughout, so pivac, the calibration offsets and the
-InfluxDB history are untouched.
+short-end opening, and the five-way link to the Pi board lands on a terminal at **each** end,
+so the cable is replaceable too. Pull four plugs and the EXT board lifts out of the enclosure
+without touching the Pi board or the field wiring. Sensors keep their `28-*` names
+throughout, so pivac, the calibration offsets and the InfluxDB history are untouched.
 
 ## 3. Parts
 
@@ -68,10 +70,10 @@ InfluxDB history are untouched.
 | IC socket | DIP-8 | 1 |
 | Probe sockets | **PTSM 0,5/3-HH-2,5-THR** print header, horizontal entry (order 1778560 black / 1815277 white) | 3 |
 | Probe plugs | **PTSM 0,5/3-P-2,5** (order 1778845) | 3 |
-| Link terminal | **PTSM 0,5/4-HH-2,5-THR** print header, horizontal entry | 1 |
-| Link plug | **PTSM 0,5/4-P-2,5** | 1 |
+| Link terminal | **PTSM 0,5/5-HH-2,5-THR** print header, horizontal entry | 1 |
+| Link plug | **PTSM 0,5/5-P-2,5** | 1 |
 | Decoupling | 100 nF ceramic | 1 |
-| Link cable | 4-conductor, ~150 mm, board to board | 1 |
+| Link cable | 5-conductor, ~150 mm, board to board | 1 |
 | Wire | insulated 22 AWG solid + a scrap of bare | — |
 
 Removed, not added: the 2.2 kΩ pull-up and any series resistor — the DS2482 supplies its own
@@ -180,19 +182,28 @@ AD0 and AD1 at ground set I²C address `0x18`, which the software step expects.
 
 ### 5.5 Link terminal and decoupling
 
-The 4-position header sits with its **pins in row 18** and its body facing row 19, clear of
-both keep-out bands:
+The 5-position header sits with its **pins in row 18** and its body facing row 19, clear of
+both keep-out bands. Positions run straight through to the matching terminal on the Pi board,
+so the cable is a plain five-conductor run with no crossovers:
 
-| Hole | Signal | INT board hole (Pi pin) |
-|---|---|---|
-| (8,18) | SCL | (5,4) — pin 5 |
-| (9,18) | 3V3 | (5,2) — pin 1 |
-| (10,18) | GND | (5,6) — pin 9 |
-| (11,18) | SDA | (5,3) — pin 3 |
+| Pos | Hole here | Signal | Pi board hole (Pi pin) | Connects to |
+|---|---|---|---|---|
+| 1 | (8,18) | 3V3 | (5,2) — pin 1 | VCC rail (wire V3) |
+| 2 | (9,18) | SDA | (5,3) — pin 3 | chip pin 5 (wire S2) |
+| 3 | (10,18) | SCL | (5,4) — pin 5 | chip pin 4 (wire S1) |
+| 4 | (11,18) | spare | (5,5) — pin 7, GPIO 4 | **nothing — parked** |
+| 5 | (12,18) | GND | (5,6) — pin 9 | **the GND rail, which already lands on this pad** |
 
-Those INT-board holes are the GPIO access pads named in `docs/rpi-io-board-design.md` §4.2.
-The cable is soldered at the INT end and plugs in at this end, which is what makes the EXT
-board removable on its own.
+**The order is set by the Pi board, where those five signals sit on consecutive access pads**
+(`docs/rpi-io-board-design.md` §5.5) — GPIO 4 falls between SCL and GND, which is why the
+cable is five conductors rather than four. Position 4 is parked here; on a rollback to
+`w1-gpio` it becomes the bus data line and moves to the DATA net, which is the whole of §9.
+
+**Both ends are plugs**, so the cable itself is replaceable and either board lifts out alone.
+**Mark position 1 on both boards and both plugs** — reversed, this plug puts 3V3 on ground.
+
+GND needs no wire at all: the rail already runs down column 12 to row 18, so it solders to
+that pad and the connector pin drops into the same hole.
 
 The **100 nF capacitor** goes across the two lower-field rails at **(9,16) and (10,16)**, body
 flat between them, one hole below the chip.
@@ -212,18 +223,19 @@ Then eleven connections. Bare where marked, otherwise insulated 22 AWG:
 |---|---|---|---|---|
 | V1 | VCC | rail at (6,12) | ring (8,12) | chip VCC |
 | V2 | VCC | rail at (6,16) | hole (9,16) | capacitor |
-| V3 | VCC | rail at (6,18) | ring (9,18) | link 3V3 |
+| V3 | VCC | rail at (6,18) | ring (8,18) | link position 1 |
 | G1 | GND | rail at (12,14) | ring (8,14) | chip GND, passing under the package |
 | G2 | GND | rail at (12,16) | hole (10,16) | capacitor |
-| G3 | GND | rail at (12,18) | ring (10,18) | link GND |
 | — | GND | rail at (12,12) | ring (11,12) | **bare** 1-hole stub — AD0 |
 | — | GND | rail at (12,13) | ring (11,13) | **bare** 1-hole stub — AD1 |
 | D1 | DATA | bridge foot (10,10) | ring (8,13) | left along row 10, down column 7, in to IO |
-| S1 | SCL | ring (8,15) | ring (8,18) | down the left of the package |
-| S2 | SDA | ring (11,15) | ring (11,18) | down the right of the package |
+| S1 | SCL | ring (8,15) | ring (10,18) | down and right, crossing S2 once |
+| S2 | SDA | ring (11,15) | ring (9,18) | down and left, crossing S1 once |
 
 G1 runs beneath the DIP package on the solder side, which is fine — the package is on the
-other face. Every other run stays in the free columns 6, 7 and 12.
+other face. S1 and S2 cross once between rows 16 and 17; run one a few millimetres above the
+other so the crossing is a clean right angle. Every other run stays in the free columns 6, 7
+and 12.
 
 ## 6. Build sequence
 
@@ -247,9 +259,10 @@ The bus is live today, so from step 3 on it is down. Do it in one sitting and ex
 5. **Rails, then jumpers, then bridges, then wires** — §5.2, §5.3, §5.6 in that order, then
    the capacitor.
 6. **Check before the chip goes in.** Continuity from each socket's VCC pin to the chip's
-   VCC ring and to the link 3V3 pin; the same for DATA (to the chip's IO ring) and GND. Then
-   silence between every pair: VCC↔GND, VCC↔DATA, DATA↔GND, and every net ↔ PCTLZ (11,14).
-   SCL rings (8,15)↔(8,18) beep; SDA rings (11,15)↔(11,18) beep; SCL↔SDA stays silent.
+   VCC ring and to link position 1 (8,18); the same for DATA (to the chip's IO ring) and GND
+   (to link position 5, (12,18)). Then silence between every pair: VCC↔GND, VCC↔DATA,
+   DATA↔GND, and every net ↔ PCTLZ (11,14) and ↔ the parked position 4 (11,18). SCL
+   (8,15)↔(10,18) beeps; SDA (11,15)↔(9,18) beeps; SCL↔SDA stays silent.
 7. **Software, then chip.** Run §8's config edit and reboot with the socket still empty. Power
    off, seat the DS2482 (notch up), power on: `i2cdetect -y 1` shows `0x18`.
 8. **Bring the bus up.** Instantiate per §8, plug the trunk into H1, and
@@ -335,10 +348,11 @@ the PR #122 calibration offsets key off the unchanged `28-*` names. With the DS2
 
 ## 9. Rollback
 
-Uncomment `dtoverlay=w1-gpio`, refit the 2.2 kΩ pull-up between the DATA and VCC rails, and
-run a data wire from the INT board's GPIO 4 access pad — hole **(5,5)**, Pi pin 7 — into the
-link terminal's SDA position (11,18), which the DS2482 no longer occupies once the chip is
-pulled. Reboot. `i2c_arm=on` and the module-load file are harmless left in place.
+Pull the DS2482 out of its socket, refit the 2.2 kΩ pull-up between the DATA and VCC rails,
+and move **one wire**: the parked link position 4 (11,18), which is already tied to the Pi's
+GPIO 4 through the cable, goes to the DATA net. Uncomment `dtoverlay=w1-gpio` and reboot.
+`i2c_arm=on` and the module-load file are harmless left in place. Carrying GPIO 4 in the cable
+is what makes this a one-wire change rather than a rewire.
 
 ---
 
@@ -350,12 +364,14 @@ have to leave through a short end, which puts the sockets in row 2 with their en
 the row-1 edge. Row 1 rather than row 32 because that end's holes sit closer to the board
 edge, so the plug entries land closest to the opening.
 
-**Why both cables are plugs.** The DS2482 needs four conductors from the Pi (3V3, GND, SDA,
-SCL), so a 3-pin disconnect cannot sit on the Pi side of the converter — hence a 4-position
-terminal for the link and 3-position sockets for the 1-wire side. With both, the EXT board is
-a line-replaceable unit: four plugs out, board out, nothing else disturbed. Unplugging a
-1-wire bus is clean — the kernel keeps polling, the module logs a sensor-count change and
-recovers when it returns.
+**Why every cable is a plug, and why the link is five-way.** The DS2482 needs four conductors
+from the Pi (3V3, GND, SDA, SCL), so a 3-pin disconnect cannot sit on the Pi side of the
+converter. On the Pi board those four arrive on consecutive access pads with **GPIO 4 sitting
+between SCL and GND**, so no four-position window spans them; taking five lands the terminal
+straight on the pads with no wires and carries the rollback line as a bonus. With plugs at
+both ends of the link and on all three probe sockets, either board is a line-replaceable unit
+and the cables themselves are replaceable. Unplugging a 1-wire bus is clean — the kernel keeps
+polling, the module logs a sensor-count change and recovers when it returns.
 
 **Why a chain and not a star.** Every open-ended cable branch reflects the signal's edges
 back at a delay set by its length. Four short branches kept the echoes clear of the moment the
