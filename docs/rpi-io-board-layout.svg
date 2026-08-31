@@ -1108,6 +1108,10 @@
 <polyline points="430,558 430,545 312,545 312,582 286,582" fill="none" stroke="#4A7FB5" stroke-width="1.4"/>
 <polyline points="382,558 382,550 264,550 264,366 262,366" fill="none" stroke="#4A7FB5" stroke-width="1.4"/>
 <polyline points="334,558 334,555 256,555 256,342 262,342" fill="none" stroke="#4A7FB5" stroke-width="1.4"/>
+<rect x="271" y="410" width="62" height="9" fill="#ffffff"/>
+<text x="274" y="417" font-size="7.5" fill="#4A7FB5">to pin 20 GND</text>
+<rect x="271" y="530" width="62" height="9" fill="#ffffff"/>
+<text x="274" y="537" font-size="7.5" fill="#4A7FB5">to pin 30 GND</text>
 <text x="44.0" y="297" font-size="8.5" fill="#4A7FB5">pin 11 · ZV</text>
 <text x="116.0" y="297" font-size="8.5" fill="#4A7FB5" opacity=".8">(5,7)</text>
 <line x1="166.0" y1="294" x2="280" y2="294" stroke="#4A7FB5" stroke-width=".7" opacity=".45" stroke-dasharray="2 2"/>

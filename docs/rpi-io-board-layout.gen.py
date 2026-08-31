@@ -244,6 +244,12 @@ wire([(X(11),Y(18)),(X(11),Y(17)+11),(X(6)+2,Y(17)+11),(X(6)+2,Y(19)),(X(5),Y(19
 wire([(X(9),Y(18)),(X(9),Y(17)+16),(X(4)+2,Y(17)+16),(X(4)+2,Y(10)),(X(4),Y(10))], PI)      # SP-B
 wire([(X(7),Y(18)),(X(7),Y(17)+21),(X(4)-6,Y(17)+21),(X(4)-6,Y(9)),(X(4),Y(9))], PI)        # SP-A
 
+# destination tags on the two rail-to-Pi ground jumpers (white underlay so the tag reads
+# over the congested wire lanes; drawn after all wires so it overlays them)
+for y_r, pin in ((12, 20), (17, 30)):
+    out.append(f'<rect x="{X(4)+9:.0f}" y="{Y(y_r)-4:.0f}" width="62" height="9" fill="#ffffff"/>')
+    out.append(f'<text x="{X(4)+12:.0f}" y="{Y(y_r)+3:.0f}" font-size="7.5" fill="{PI}">to pin {pin} GND</text>')
+
 # landing-pad labels, top to bottom, with leader lines (pin 1 confirmed, so pin numbers are definitive)
 LAND = [ (5,7,'11','ZV'), (5,8,'13','DHW'), (5,9,'15','BLR'), (4,9,'16','SP-A'),
          (4,10,'18','SP-B'), (4,11,'20','GND·A'), (4,12,'22','CHIL'),
