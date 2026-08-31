@@ -102,7 +102,7 @@ InfluxDB history is orphaned. SP-D's resistor runs diagonally to (21,7) because 
 | Supply | 12 V DC wall wart (measures 14.7 V; load is only ~35 mA) | 1 |
 | Protection diode | 1N4007, mounted in the barrel-adapter screw terminal, not on the board | 1 |
 | Plugs | 4-position PTSM plugs, shipped with the INT-PCB SET | 4 |
-| Link terminal | 5-position screw terminal, 2.54 mm pitch — the 1-wire board | 1 |
+| Link terminal | 5-position pluggable screw-terminal set, **2.54 mm pitch** (straight-pin header + screw-clamp plug, 28–16 AWG) — the 1-wire board | 1 |
 
 Tools: soldering iron, solder, flush cutters, small pliers, multimeter with continuity and
 diode modes, calipers. A phone camera doubles as an infrared-LED detector in step 8.
@@ -344,12 +344,14 @@ checklist to tick off as the wires go down (also drawn with leader labels on the
 
 ### 5.5 Link terminal to the 1-wire board
 
-A 5-position screw terminal (2.54 mm pitch) with its **pins in row 25, columns 3–7** —
-position 1 at (3,25) — in the expansion area below the lower keep-out band. A connector
-cannot sit on the column-5 access pads themselves: with entry toward the header there is no
-room to land a plug or cable past the GPIO socket, and a body wide enough to clear the socket
-shades (6,2), ZV's access pad. Wire entry faces the bottom edge; the step-2 dry-fit settles
-the final orientation by where the cable leaves the housing.
+A 5-position pluggable screw-terminal header (2.54 mm pitch — matrix-exact, no drift) with
+its **pins in row 25, columns 3–7** — position 1 at (3,25) — in the expansion area below the
+lower keep-out band; the cable lands in the mating screw-clamp plug, so this end unplugs like
+the EXT end. A connector cannot sit on the column-5 access pads themselves: with entry toward
+the header there is no room to land a plug or cable past the GPIO socket, and a body wide
+enough to clear the socket shades (6,2), ZV's access pad. The plug mates vertically and its
+wires leave sideways; the step-2 dry-fit settles which way they face by where the cable
+leaves the housing.
 
 Five insulated wires connect the GPIO access pads to the terminal:
 
@@ -374,8 +376,8 @@ so matching it keeps the cable a straight-through five-conductor run with no cro
 the 1-wire bridge ever comes out, that conductor becomes the bus data line with one move at
 the far end.
 
-A screw terminal has no polarisation, so **mark position 1 on the board, the terminal and the
-cable**: reversed, this link puts 3V3 on ground.
+The plug has no polarisation, so **mark position 1 on the board, the plug and the cable**:
+reversed, this link puts 3V3 on ground.
 
 The other end of this cable is specified in `docs/ds18b20-bus-topology.md` §5.5.
 
@@ -427,9 +429,9 @@ the board in the housing with the Pi and the cover. Check four clearances:
   hole to its row-2 pad with a short bare link before the plugs go on.
 - The solder side against the Pi: nothing may protrude into the §4.4 areas. Trim all
   solder-side joints there flush.
-- The link terminal at row 25, columns 3–7: body and screw access against the housing, and
-  the cable's run toward the 1-wire board. Rotate the entry 180° if the cable wants the other
-  side; the pins do not move (§5.5).
+- The link terminal at row 25, columns 3–7: header height with its plug inserted against the
+  housing, and the plug's wire exit toward the 1-wire board. Rotate the header 180° if the
+  wires want the other side; the pins do not move (§5.5).
 
 ### Step 3 — solder the sockets and the link terminal
 

@@ -44,7 +44,7 @@ two ends dropping through holes on either side.
 ```
                        5-wire cable: 3V3 · SDA · SCL · spare · GND
                               ┌───────────────────────────┐
- Pi ──40-pin──► INT board ──[SCREW]                    ┤PLUG├── EXT board ──► DS2482
+ Pi ──40-pin──► INT board ──┤PLUG├                     ┤PLUG├── EXT board ──► DS2482
                                                                      │
                                              VCC · DATA · GND bus ───┤
                                                                      ├─┤H1├─► TRUNK ─► 8 probes
@@ -57,10 +57,10 @@ edge — which is what an eight-probe run in a mechanical room wants, and why th
 pull-up and the old GPIO 4 wiring come off (Appendix A).
 
 **Everything that leaves this board is on a plug.** The three probe sockets sit at the
-short-end opening, and the five-way link to the Pi board lands on a terminal at **each** end
-(a plug here, screw clamps on the Pi board), so the cable is replaceable too. Pull four
-connections and the EXT board lifts out of the enclosure without touching the Pi board or the
-field wiring. Sensors keep their `28-*` names
+short-end opening, and the five-way link to the Pi board lands on a pluggable terminal at
+**each** end (a PTSM plug here, a screw-clamp plug on the Pi board), so the cable is
+replaceable too. Pull four plugs and the EXT board lifts out of the enclosure without
+touching the Pi board or the field wiring. Sensors keep their `28-*` names
 throughout, so pivac, the calibration offsets and the InfluxDB history are untouched.
 
 ## 3. Parts
@@ -200,9 +200,9 @@ so the cable is a plain five-conductor run with no crossovers:
 cable is five conductors rather than four. Position 4 is parked here; on a rollback to
 `w1-gpio` it becomes the bus data line and moves to the DATA net, which is the whole of §9.
 
-**The cable detaches at both ends** — the plug here, screw clamps on the Pi board — so it is
-replaceable and either board lifts out alone. **Mark position 1 on both boards, the plug and
-the cable** — reversed, this link puts 3V3 on ground.
+**The cable detaches at both ends** — the PTSM plug here, a screw-clamp plug on the Pi
+board — so it is replaceable and either board lifts out alone. **Mark position 1 on both
+boards, both plugs and the cable** — reversed, this link puts 3V3 on ground.
 
 GND needs no wire at all: the rail already runs down column 12 to row 18, so it solders to
 that pad and the connector pin drops into the same hole.
@@ -251,7 +251,7 @@ The bus is live today, so from step 3 on it is down. Do it in one sitting and ex
 2. **Dry-fit, cover on.** Place the three probe sockets at row 2, the DIP socket, and the link
    terminal without soldering. Confirm the socket bodies clear the enclosure and their entries
    line up with the short-end opening; confirm the link terminal and its plug clear the lid;
-   confirm the link cable reaches the Pi board's screw terminal (its row 25, below the lower
+   confirm the link cable reaches the Pi board's link terminal (its row 25, below the lower
    keep-out band) through the long-side opening. **If the socket
    overhang fouls the case, move all three one row in — pins to row 3, rails to rows 4, 5, 6,
    VCC bridge from (6,4)** — and carry that one-row shift through the rest of the build.
