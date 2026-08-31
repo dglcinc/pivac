@@ -15,7 +15,7 @@ ACC   = "#A85F22"   # fixed-by-drawing accent
 
 out = []
 W_, H_ = 835, 1030
-out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
+out.append(f'<svg viewBox="0 0 {W_} {H_}" role="img" aria-label="Hole-by-hole placement map of the RPI-BC input board, component side. Columns 1 to 23 run left to right, rows 1 to 30 top to bottom. The Pi header occupies columns 1 and 2; its access pads are columns 3 to 5. The four plugs sit above row 1 and their access pads are row 2, columns 6 to 21. Three optocoupler sockets sit at columns 7 to 14. Eleven resistors bridge the upper keep-out band from row 2 to row 7. Rails: 24V COM on row 3, Pi ground on rows 12 and 17, plus-14V down column 18. A five-position screw terminal at row 25, columns 3 to 7, links to the 1-wire board, fed by five component-side wires from the column-5 access pads." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">')
 out.append(f'<rect x="0" y="0" width="{W_}" height="{H_}" fill="#ffffff"/>')
 out.append('<defs>'
   '<pattern id="hx" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
@@ -63,7 +63,7 @@ hrect(X(20)-P/2, Y(6)+P/2, X(20)+P/2, Y(22)-P/2)  # strip col 20 between the ban
 for r in (8,12,16,20):                             # standoff bulges on the strip
     out.append(f'<circle cx="{X(20)-2:.0f}" cy="{Y(r):.0f}" r="{0.5*P:.0f}" fill="url(#hx)" stroke="{ACC}" stroke-width="1.2"/>')
 out.append(f'<text x="{(X(6)+bx1)/2-40:.0f}" y="{Y(5)-P/2-4:.0f}" font-size="9" fill="{ACC}">keep-out band — rows 5–6, cols 6–23</text>')
-out.append(f'<text x="{X(3)+4:.0f}" y="{Y(23)+P/2+12:.0f}" font-size="9" fill="{ACC}">keep-out band — rows 22–23, cols 3–23</text>')
+out.append(f'<text x="{X(9):.0f}" y="{Y(23)+P/2+12:.0f}" font-size="9" fill="{ACC}">keep-out band — rows 22–23, cols 3–23</text>')
 out.append(f'<text x="{X(20)+P/2+3:.0f}" y="{Y(14)+3:.0f}" font-size="9" fill="{ACC}" transform="rotate(90 {X(20)+P/2+3:.0f} {Y(14)+3:.0f})">keep-out — col 20, rows 5–23</text>')
 
 # grid dots
@@ -86,18 +86,31 @@ out.append(f'<text x="{X(1)-10:.0f}" y="{Y(1)-12:.0f}" font-size="8.5" font-weig
 # pin-pair labels every few rows
 
 
-# 5-position link terminal to the 1-wire board: pins on the column-5 access pads,
-# rows 2-6, entry facing left over the empty column 3-4 pads.
+# Link to the 1-wire board: wires start on the column-5 access pads rows 2-6, run on the
+# COMPONENT side (dashed) down the columns 3-4 face and over the lower band, end in the
+# row-24 holes; bare one-hole links drop to the screw-terminal pins at row 25, columns 3-7.
 LT = {2:'V', 3:'D', 4:'C', 5:'4', 6:'G'}
-out.append(f'<rect x="{X(2)+9:.0f}" y="{Y(2)-13:.0f}" width="{X(5)-X(2)+5:.0f}" height="{Y(6)-Y(2)+26:.0f}" rx="3" fill="none" stroke="{PI}" stroke-width="1.9"/>')
 for r,l in LT.items():
     out.append(f'<circle cx="{X(5):.0f}" cy="{Y(r):.0f}" r="5.5" fill="none" stroke="{PI}" stroke-width="1.5"/>')
     out.append(f'<text x="{X(5):.0f}" y="{Y(r)+3:.0f}" text-anchor="middle" font-size="7.5" fill="{PI}">{l}</text>')
-out.append(f'<text x="{MX-146}" y="{Y(2)+3:.0f}" font-size="8.5" font-weight="700" fill="{PI}">LINK → 1-WIRE BOARD</text>')
-out.append(f'<text x="{MX-146}" y="{Y(3)+3:.0f}" font-size="8.5" fill="{PI}">5-way, (5,2)–(5,6)</text>')
-out.append(f'<text x="{MX-146}" y="{Y(4)+3:.0f}" font-size="8.5" fill="{PI}">pins land on the</text>')
-out.append(f'<text x="{MX-146}" y="{Y(5)+3:.0f}" font-size="8.5" fill="{PI}">GPIO pads, no wires</text>')
-out.append(f'<line x1="{MX-24}" y1="{Y(3):.0f}" x2="{X(2)+7:.0f}" y2="{Y(4):.0f}" stroke="{PI}" stroke-width=".8" opacity=".5" stroke-dasharray="2 2"/>')
+out.append(f'<text x="{MX-146}" y="{Y(2)+3:.0f}" font-size="8.5" font-weight="700" fill="{PI}">LINK PADS (5,2)–(5,6)</text>')
+out.append(f'<text x="{MX-146}" y="{Y(3)+3:.0f}" font-size="8.5" fill="{PI}">5 wires, component</text>')
+out.append(f'<text x="{MX-146}" y="{Y(4)+3:.0f}" font-size="8.5" fill="{PI}">side, to the terminal</text>')
+out.append(f'<text x="{MX-146}" y="{Y(5)+3:.0f}" font-size="8.5" fill="{PI}">at row 25</text>')
+out.append(f'<line x1="{MX-24}" y1="{Y(3):.0f}" x2="{X(5)-7:.0f}" y2="{Y(3):.0f}" stroke="{PI}" stroke-width=".8" opacity=".5" stroke-dasharray="2 2"/>')
+for i in range(5):
+    lane = X(3) - 10 + i*5
+    y24 = Y(24) - 4 - i*3
+    out.append(f'<polyline points="{X(5):.0f},{Y(2+i):.0f} {lane:.0f},{Y(2+i):.0f} {lane:.0f},{y24:.0f} {X(3+i):.0f},{y24:.0f} {X(3+i):.0f},{Y(24):.0f}" fill="none" stroke="{PI}" stroke-width="1.3" stroke-dasharray="5 4"/>')
+    out.append(f'<line x1="{X(3+i):.0f}" y1="{Y(24):.0f}" x2="{X(3+i):.0f}" y2="{Y(25):.0f}" stroke="{PI}" stroke-width="1.6"/>')
+out.append(f'<rect x="{X(3)-14:.0f}" y="{Y(25)-13:.0f}" width="{X(7)-X(3)+28:.0f}" height="30" rx="3" fill="none" stroke="{PI}" stroke-width="1.9"/>')
+for i,l in enumerate(['V','D','C','4','G']):
+    out.append(f'<circle cx="{X(3+i):.0f}" cy="{Y(25):.0f}" r="5.5" fill="none" stroke="{PI}" stroke-width="1.5"/>')
+    out.append(f'<text x="{X(3+i):.0f}" y="{Y(25)+3:.0f}" text-anchor="middle" font-size="7.5" fill="{PI}">{l}</text>')
+out.append(f'<text x="{MX-146}" y="{Y(25)-8:.0f}" font-size="8.5" font-weight="700" fill="{PI}">LINK → 1-WIRE BOARD</text>')
+out.append(f'<text x="{MX-146}" y="{Y(25)+4:.0f}" font-size="8.5" fill="{PI}">screw terminal</text>')
+out.append(f'<text x="{MX-146}" y="{Y(25)+16:.0f}" font-size="8.5" fill="{PI}">(3,25)–(7,25)</text>')
+out.append(f'<line x1="{MX-24}" y1="{Y(25):.0f}" x2="{X(3)-16:.0f}" y2="{Y(25):.0f}" stroke="{PI}" stroke-width=".8" opacity=".5" stroke-dasharray="2 2"/>')
 
 # connectors above row 1
 PX = {i+1: MX + (px-221.0)/61.57*P for i,px in enumerate(
@@ -280,7 +293,7 @@ out.append(f'<text x="{MX-10}" y="{ly4+3:.0f}" font-size="11" font-weight="700" 
 out.append(f'<text x="{MX+8}" y="{ly4+3:.0f}" font-size="9">hole (5,20) = Pi pin 37 (GPIO 26, dead) — never use</text>')
 out.append(f'<text x="{MX-10}" y="{ly4+21:.0f}" font-size="9">header row k carries Pi pins 2k−1 (col 2) and 2k (col 1); even-pin access pads sit at (3,k+1)+(4,k+1), odd-pin at (5,k+1)</text>')
 out.append(f'<text x="{MX-10}" y="{ly4+39:.0f}" font-size="9">each plug pin fans out on a board trace to its row-2 access pad (thin lines at top)</text>')
-out.append(f'<text x="{MX-10}" y="{ly4+57:.0f}" font-size="9" fill="{PI}">link terminal, top to bottom: V = 3V3 · D = SDA · C = SCL · 4 = GPIO 4 (spare / 1-wire rollback) · G = GND</text>')
+out.append(f'<text x="{MX-10}" y="{ly4+57:.0f}" font-size="9" fill="{PI}">link: (5,2)–(5,6) → 5 wires (component side) → terminal (3,25)–(7,25); V=3V3 · D=SDA · C=SCL · 4=GPIO4 rollback · G=GND</text>')
 out.append('</g></svg>')
 import os
 open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'rpi-io-board-layout.svg'),'w').write('\n'.join(out)+'\n')
