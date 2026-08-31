@@ -180,8 +180,13 @@ for ct,cb,lab in RES:
     stag = 30 if (ct % 2 == 0) else 16
     out.append(f'<text x="{mx:.0f}" y="{my+stag:.0f}" text-anchor="middle" font-size="7" fill="{FIELD}">{lab}</text>')
 
-# +14V: bridge (dashed, component side) col 18 rows 2..7, then solid rail rows 7..21
+# +14V: the 1N4007 is the bridge (body dashed, component side) col 18 rows 2..7 with its
+# band at the row-7 end, then solid rail rows 7..21
 out.append(f'<line x1="{X(18):.0f}" y1="{Y(2):.0f}" x2="{X(18):.0f}" y2="{Y(7):.0f}" stroke="{FIELD}" stroke-width="2" stroke-dasharray="5 4"/>')
+dmy = (Y(2)+Y(7))/2
+out.append(f'<polygon points="{X(18)-5:.0f},{dmy-6:.0f} {X(18)+5:.0f},{dmy-6:.0f} {X(18):.0f},{dmy+3:.0f}" fill="{FIELD}"/>')
+out.append(f'<line x1="{X(18)-5:.0f}" y1="{dmy+5:.0f}" x2="{X(18)+5:.0f}" y2="{dmy+5:.0f}" stroke="{FIELD}" stroke-width="2"/>')
+out.append(f'<text x="{X(18)-8:.0f}" y="{Y(3)+2:.0f}" font-size="7" fill="{FIELD}" transform="rotate(90 {X(18)-8:.0f} {Y(3):.0f})">1N4007 · band ↓ (18,7)</text>')
 out.append(f'<line x1="{X(18):.0f}" y1="{Y(7):.0f}" x2="{X(18):.0f}" y2="{Y(21):.0f}" stroke="{FIELD}" stroke-width="2.6"/>')
 out.append(f'<text x="{X(18)+6:.0f}" y="{Y(10)+3:.0f}" font-size="9" font-weight="600" fill="{FIELD}" transform="rotate(90 {X(18)+6:.0f} {Y(10):.0f})">+14 V rail (bare)</text>')
 # feeders + anode hops
@@ -285,7 +290,7 @@ out.append(f'<line x1="{MX+390}" y1="{ly:.0f}" x2="{MX+430}" y2="{ly:.0f}" strok
 out.append(f'<text x="{MX+438}" y="{ly+3:.0f}" font-size="9">Pi wire (insulated)</text>')
 ly2 = ly+18
 out.append(f'<line x1="{MX-14}" y1="{ly2:.0f}" x2="{MX+26}" y2="{ly2:.0f}" stroke="{FIELD}" stroke-width="1.5" stroke-dasharray="5 4"/>')
-out.append(f'<text x="{MX+34}" y="{ly2+3:.0f}" font-size="9">component-side bridge (resistor body or wire) over a keep-out band</text>')
+out.append(f'<text x="{MX+34}" y="{ly2+3:.0f}" font-size="9">component-side bridge (resistor or diode body, or wire) over a keep-out band</text>')
 ly3 = ly2+18
 out.append(f'<circle cx="{MX-4}" cy="{ly3:.0f}" r="3.4" fill="{PI}" opacity=".42"/>')
 out.append(f'<text x="{MX+8}" y="{ly3+3:.0f}" font-size="9">GPIO access pad (cols 3–5)</text>')

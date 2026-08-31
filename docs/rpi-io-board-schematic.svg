@@ -1,4 +1,4 @@
-<svg viewBox="0 0 820 610" role="img" aria-label="Complete schematic of the twelve-channel optoisolated input board: the supply enters through a series 1N4007 protection diode into J4.1; on the field side a plus-14-volt rail runs to each LED anode, and each cathode returns through its 4.7-kilohm resistor to its plug position and relay; an isolation barrier separates them from twelve phototransistors whose collectors go to named GPIO pins and whose emitters share a Pi ground rail." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<svg viewBox="0 0 820 610" role="img" aria-label="Complete schematic of the twelve-channel optoisolated input board: the supply enters at J4.1 and passes through an on-board series 1N4007 protection diode; on the field side a plus-14-volt rail runs to each LED anode, and each cathode returns through its 4.7-kilohm resistor to its plug position and relay; an isolation barrier separates them from twelve phototransistors whose collectors go to named GPIO pins and whose emitters share a Pi ground rail." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
 <rect x="0" y="0" width="820" height="610" fill="#ffffff"/>
 <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
 <g fill="#1a1a1a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11">
@@ -9,12 +9,12 @@
 <text x="420" y="598" text-anchor="middle" font-size="10.5" opacity=".8">no conductor crosses this line</text>
 <line x1="132" y1="88" x2="132" y2="511" stroke="#1a1a1a" stroke-width="2.5"/>
 <text x="132" y="80" text-anchor="middle" font-size="11.5" font-weight="600">+14 V rail</text>
-<line x1="8" y1="88" x2="36" y2="88" stroke="#1a1a1a" stroke-width="1.6"/>
-<polygon points="36,82 36,94 47,88" fill="#1a1a1a"/>
-<line x1="47" y1="82" x2="47" y2="94" stroke="#1a1a1a" stroke-width="1.8"/>
-<line x1="47" y1="88" x2="131" y2="88" stroke="#1a1a1a" stroke-width="1.6" marker-end="url(#ar)"/>
-<text x="42" y="76" text-anchor="middle" font-size="9">1N4007</text>
-<text x="92" y="84" text-anchor="end" font-size="10.5">J4.1</text>
+<line x1="46" y1="88" x2="78" y2="88" stroke="#1a1a1a" stroke-width="1.6"/>
+<polygon points="78,82 78,94 89,88" fill="#1a1a1a"/>
+<line x1="89" y1="82" x2="89" y2="94" stroke="#1a1a1a" stroke-width="1.8"/>
+<line x1="89" y1="88" x2="131" y2="88" stroke="#1a1a1a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="80" y="76" text-anchor="middle" font-size="9">1N4007</text>
+<text x="44" y="84" text-anchor="end" font-size="10.5">J4.1</text>
 <line x1="726" y1="88" x2="726" y2="511" stroke="#1a1a1a" stroke-width="2.5"/>
 <text x="726" y="80" text-anchor="middle" font-size="11.5" font-weight="600">Pi GND rail</text>
 <line x1="727" y1="88" x2="784" y2="88" stroke="#1a1a1a" stroke-width="1.6" marker-end="url(#ar)"/>

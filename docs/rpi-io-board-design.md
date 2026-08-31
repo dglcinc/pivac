@@ -63,9 +63,11 @@ reads LOW. `pivac/GPIO.py` already reports LOW as active under `pullmode: "pullu
 config or InfluxDB change is needed. The Pi side needs no parts at all: the internal pull-up
 sets the idle level, and the chip does the rest.
 
-The 14 V comes from a 12 V wall wart (measuring 14.7 V) through a protection diode, entering
-on plug J4 position 1. Each plug's position 4 is the shared return (**24V COM — never call it
-GND**; it must not touch Pi ground, or the whole point of the board is lost).
+The 14 V comes from a 12 V wall wart (measuring 14.7 V), entering on plug J4 position 1 and
+passing through the on-board 1N4007 into the rail — the protection lives on the board, so no
+future supply or adapter swap can bypass it. Each plug's position 4 is the shared return
+(**24V COM — never call it GND**; it must not touch Pi ground, or the whole point of the
+board is lost).
 
 ### 2.1 Channel master map
 
@@ -100,7 +102,7 @@ InfluxDB history is orphaned. SP-D's resistor runs diagonally to (21,7) because 
 | Rail / stub wire | bare 22 AWG solid copper | ~1 m |
 | Hook-up wire | insulated 22 AWG solid | ~2 m |
 | Supply | 12 V DC wall wart (measures 14.7 V; load is only ~35 mA) | 1 |
-| Protection diode | 1N4007, mounted in the barrel-adapter screw terminal, not on the board | 1 |
+| Protection diode | 1N4007, on the board — its body is the +14 V bridge at (18,2)→(18,7) (§5.3) | 1 |
 | Plugs | 4-position PTSM plugs, shipped with the INT-PCB SET | 4 |
 | Link terminal | 5-position pluggable screw-terminal set, **2.54 mm pitch** (straight-pin header + screw-clamp plug, 28–16 AWG) — the 1-wire board | 1 |
 
@@ -182,7 +184,7 @@ conductor last — it is the one live position among dry contacts.
 The solder side faces the Pi, and the cross-hatched areas in the drawing are where the Pi and
 housing come close. Inspected with the board installed: **there is no solder-side clearance
 over these areas at all**, so no solder-side wire, rail, joint or pin tail may sit in them,
-and anything that must cross them crosses on the component side, as the resistors, the +14 V
+and anything that must cross them crosses on the component side, as the resistors, the 1N4007
 bridge and the link wires do:
 
 | Area | Holes covered |
@@ -206,9 +208,10 @@ side, as the link wires do.
 
 ## 5. Placement map
 
-![Placement map](rpi-io-board-layout.svg)
-
-*(Figure source: `docs/rpi-io-board-layout.gen.py` — regenerate with `python3` after edits.)*
+The full-board placement map is deliberately **not embedded here** — print it separately from
+[`docs/rpi-io-board-layout.svg`](rpi-io-board-layout.svg). (Embedded, the large SVG chokes
+the printer and needs flattening in Acrobat first; the small schematic in Appendix A is fine.)
+Figure source: `docs/rpi-io-board-layout.gen.py` — regenerate with `python3` after edits.
 
 ### 5.1 IC sockets
 
@@ -259,9 +262,11 @@ middle soldered at each stub or crossing:
 | **Pi GND B·C** | row 17, (7,17)→(14,17) | up onto (7,16), (9,16), (11,16), (13,16); down onto (8,18), (10,18), (12,18), (14,18) |
 | **+14 V** | column 18, (18,7)→(18,21) | none — the three feeders below tap it |
 
-The +14 V rail is fed by a **component-side insulated bridge** from the J4.1 plug pad:
-(18,2)→(18,7), crossing the upper band on the top face exactly as the resistors do. Both the
-bridge (from the top) and the rail's end (on the ring, from below) solder at (18,7).
+The +14 V rail is fed from the J4.1 plug pad **through the 1N4007, whose body is the bridge**:
+anode lead in (18,2), **cathode (band) lead in (18,7)**, the body flat on the component side
+crossing the upper band exactly as the resistors do — the same 5-hole span they use. Both the
+diode's cathode lead (from the top) and the rail's end (on the ring, from below) solder at
+(18,7). Band toward the rail; backwards, the board reads dead at power-up (step 7 catches it).
 
 Three insulated **feeders** carry +14 V from the rail to each chip's first A pin, and short
 insulated **hops** pass it along the LED row, jumping over each K pin:
@@ -450,11 +455,13 @@ COM plug positions beeps; ground rail A ↔ Pi pin 20's pad (4,11) beeps; rail B
 beeps; **+14 V rail ↔ any ground rail stays silent, and every rail ↔ every other rail stays
 silent.**
 
-### Step 5 — resistors and the +14 V bridge
+### Step 5 — resistors and the diode bridge
 
-Eleven resistors per §2.1, bodies flat on the component side over rows 3–6; then the insulated
-bridge (18,2)→(18,7). Meter: each plug channel position ↔ its row-7 hole reads ~4.7 kΩ; J4
-position 1 ↔ the +14 V rail beeps.
+Eleven resistors per §2.1, bodies flat on the component side over rows 3–6; then the 1N4007
+as the (18,2)→(18,7) bridge, **band toward row 7** (§5.3). Meter: each plug channel position
+↔ its row-7 hole reads ~4.7 kΩ; J4 position 1 ↔ the +14 V rail in **diode mode** reads ~0.6 V
+with red on the J4.1 pad and open reversed — a beep both ways is a wrong part, silence both
+ways a bad joint, conduction only the wrong way a backwards diode.
 
 ### Step 6 — wires
 
@@ -475,13 +482,12 @@ With no ICs there is no current path, so this is safe and diagnostic:
    field link). From each A-pin ring to the +14 V rail, a beep (proves feeder + hops). From
    each E-pin ring to its ground rail, a beep. From each C-pin ring to its GPIO access pad, a
    beep.
-2. Wire the supply, first use here: the 1N4007 sits **in series in the + conductor**, inside
-   the barrel-adapter screw terminal — **band (cathode) toward the board**, anode toward the
-   wart. Verify before connecting: adapter output reads ≈ +14 V (the wart's 14.7 V less the
-   diode's ~0.7 V drop); a reversed wart or a backwards diode reads 0 V there. Then power it
-   into J4 (position 1 +, position 4 −): every A-pin pad reads **≈ +14 V relative to COM**.
-   0 V on one chip's pads is that chip's feeder or hops; 0 V everywhere is the J4.1 landing —
-   or the supply, which the adapter-output check above rules out first. Power down.
+2. Power the wall wart into J4 (position 1 +, position 4 −; the barrel-adapter screw
+   terminal holds only wire — the diode is on the board): every A-pin pad reads **≈ +14 V
+   relative to COM** (the wart's 14.7 V less the 1N4007's ~0.7 V drop). 0 V on one chip's
+   pads is that chip's feeder or hops. 0 V everywhere is a reversed wart, a backwards diode,
+   or the J4.1 landing — check the wart's polarity at the adapter first, then re-run step 5's
+   diode-mode check. Power down.
 
 ### Step 8 — chips in, channel-by-channel test
 

@@ -113,9 +113,10 @@ build sits in rows 1–7 or rows 10–24, between the bands.
 
 ## 5. Placement map
 
-![EXT board placement map](ds18b20-ext-board-layout.svg)
-
-*(Figure source: `docs/ds18b20-ext-board-layout.gen.py`.)*
+The placement map is deliberately **not embedded here** — print it separately from
+[`docs/ds18b20-ext-board-layout.svg`](ds18b20-ext-board-layout.svg). (Embedded, a large board
+SVG chokes the printer and needs flattening in Acrobat first.) Figure source:
+`docs/ds18b20-ext-board-layout.gen.py`.
 
 ### 5.1 Probe sockets
 
