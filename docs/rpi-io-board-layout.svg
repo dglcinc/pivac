@@ -1048,6 +1048,9 @@
 <rect x="653" y="223" width="10" height="22" rx="2" fill="none" stroke="#C2622A" stroke-width="1.5" transform="rotate(-11 658 234)"/>
 <text x="658" y="264" text-anchor="middle" font-size="7" fill="#C2622A">SP-D</text>
 <line x1="598" y1="174" x2="598" y2="294" stroke="#C2622A" stroke-width="2" stroke-dasharray="5 4"/>
+<polygon points="593,228 603,228 598,237" fill="#C2622A"/>
+<line x1="593" y1="239" x2="603" y2="239" stroke="#C2622A" stroke-width="2"/>
+<text x="590" y="200" font-size="7" fill="#C2622A" transform="rotate(90 590 198)">1N4007 · band ↓ (18,7)</text>
 <line x1="598" y1="294" x2="598" y2="630" stroke="#C2622A" stroke-width="2.6"/>
 <text x="604" y="369" font-size="9" font-weight="600" fill="#C2622A" transform="rotate(90 604 366)">+14 V rail (bare)</text>
 <polyline points="598,318 502,318" fill="none" stroke="#C2622A" stroke-width="1.4"/>
@@ -1172,7 +1175,7 @@
 <line x1="580.0" y1="899" x2="620.0" y2="899" stroke="#4A7FB5" stroke-width="1.5"/>
 <text x="628.0" y="902" font-size="9">Pi wire (insulated)</text>
 <line x1="176.0" y1="917" x2="216.0" y2="917" stroke="#C2622A" stroke-width="1.5" stroke-dasharray="5 4"/>
-<text x="224.0" y="920" font-size="9">component-side bridge (resistor body or wire) over a keep-out band</text>
+<text x="224.0" y="920" font-size="9">component-side bridge (resistor or diode body, or wire) over a keep-out band</text>
 <circle cx="186.0" cy="935" r="3.4" fill="#4A7FB5" opacity=".42"/>
 <text x="198.0" y="938" font-size="9">GPIO access pad (cols 3–5)</text>
 <circle cx="406.0" cy="935" r="3.4" fill="#C2622A" opacity=".5"/>

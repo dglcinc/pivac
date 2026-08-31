@@ -26,8 +26,9 @@ XRAIL, XLED, XPHOTO, XGRAIL = 132, 340, 500, 726
 
 out = []
 out.append('<svg viewBox="0 0 820 610" role="img" aria-label="Complete schematic of the '
-           'twelve-channel optoisolated input board: the supply enters through a series '
-           '1N4007 protection diode into J4.1; on the field side a plus-14-volt rail '
+           'twelve-channel optoisolated input board: the supply enters at J4.1 and passes '
+           'through an on-board series 1N4007 protection diode; on the field side a '
+           'plus-14-volt rail '
            'runs to each LED anode, and each cathode returns through its 4.7-kilohm resistor '
            'to its plug position and relay; an isolation barrier separates them from twelve '
            'phototransistors whose collectors go to named GPIO pins and whose emitters share '
@@ -48,13 +49,13 @@ out.append('<text x="420" y="598" text-anchor="middle" font-size="10.5" opacity=
 # the two rails and their feeds
 out.append(f'<line x1="{XRAIL}" y1="88" x2="{XRAIL}" y2="511" stroke="{INK}" stroke-width="2.5"/>')
 out.append(f'<text x="{XRAIL}" y="80" text-anchor="middle" font-size="11.5" font-weight="600">+14 V rail</text>')
-# supply feed: wart -> series 1N4007 (in the barrel adapter) -> J4.1 -> rail
-out.append(f'<line x1="8" y1="88" x2="36" y2="88" stroke="{INK}" stroke-width="1.6"/>')
-out.append(f'<polygon points="36,82 36,94 47,88" fill="{INK}"/>')
-out.append(f'<line x1="47" y1="82" x2="47" y2="94" stroke="{INK}" stroke-width="1.8"/>')
-out.append(f'<line x1="47" y1="88" x2="{XRAIL-1}" y2="88" stroke="{INK}" stroke-width="1.6" marker-end="url(#ar)"/>')
-out.append('<text x="42" y="76" text-anchor="middle" font-size="9">1N4007</text>')
-out.append('<text x="92" y="84" text-anchor="end" font-size="10.5">J4.1</text>')
+# supply feed: wart -> J4.1 -> on-board series 1N4007 (its body is the +14V bridge) -> rail
+out.append(f'<line x1="46" y1="88" x2="78" y2="88" stroke="{INK}" stroke-width="1.6"/>')
+out.append(f'<polygon points="78,82 78,94 89,88" fill="{INK}"/>')
+out.append(f'<line x1="89" y1="82" x2="89" y2="94" stroke="{INK}" stroke-width="1.8"/>')
+out.append(f'<line x1="89" y1="88" x2="{XRAIL-1}" y2="88" stroke="{INK}" stroke-width="1.6" marker-end="url(#ar)"/>')
+out.append('<text x="80" y="76" text-anchor="middle" font-size="9">1N4007</text>')
+out.append('<text x="44" y="84" text-anchor="end" font-size="10.5">J4.1</text>')
 out.append(f'<line x1="{XGRAIL}" y1="88" x2="{XGRAIL}" y2="511" stroke="{INK}" stroke-width="2.5"/>')
 out.append(f'<text x="{XGRAIL}" y="80" text-anchor="middle" font-size="11.5" font-weight="600">Pi GND rail</text>')
 out.append(f'<line x1="{XGRAIL+1}" y1="88" x2="784" y2="88" stroke="{INK}" stroke-width="1.6" marker-end="url(#ar)"/>')
