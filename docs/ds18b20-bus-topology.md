@@ -57,9 +57,10 @@ edge — which is what an eight-probe run in a mechanical room wants, and why th
 pull-up and the old GPIO 4 wiring come off (Appendix A).
 
 **Everything that leaves this board is on a plug.** The three probe sockets sit at the
-short-end opening, and the five-way link to the Pi board lands on a terminal at **each** end,
-so the cable is replaceable too. Pull four plugs and the EXT board lifts out of the enclosure
-without touching the Pi board or the field wiring. Sensors keep their `28-*` names
+short-end opening, and the five-way link to the Pi board lands on a pluggable terminal at
+**each** end (a PTSM plug here, a screw-clamp plug on the Pi board), so the cable is
+replaceable too. Pull four plugs and the EXT board lifts out of the enclosure without
+touching the Pi board or the field wiring. Sensors keep their `28-*` names
 throughout, so pivac, the calibration offsets and the InfluxDB history are untouched.
 
 ## 3. Parts
@@ -73,7 +74,7 @@ throughout, so pivac, the calibration offsets and the InfluxDB history are untou
 | Link terminal | **PTSM 0,5/5-HH-2,5-THR** print header, horizontal entry | 1 |
 | Link plug | **PTSM 0,5/5-P-2,5** | 1 |
 | Decoupling | 100 nF ceramic | 1 |
-| Link cable | 5-conductor, ~150 mm, board to board | 1 |
+| Link cable | 5-conductor, board to board — length measured at the dry-fit (the Pi-board terminal sits at its row 25, below the lower keep-out band) | 1 |
 | Wire | insulated 22 AWG solid + a scrap of bare | — |
 
 Removed, not added: the 2.2 kΩ pull-up and any series resistor — the DS2482 supplies its own
@@ -186,7 +187,7 @@ The 5-position header sits with its **pins in row 18** and its body facing row 1
 both keep-out bands. Positions run straight through to the matching terminal on the Pi board,
 so the cable is a plain five-conductor run with no crossovers:
 
-| Pos | Hole here | Signal | Pi board hole (Pi pin) | Connects to |
+| Pos | Hole here | Signal | Pi board pad (Pi pin) | Connects to |
 |---|---|---|---|---|
 | 1 | (8,18) | 3V3 | (5,2) — pin 1 | VCC rail (wire V3) |
 | 2 | (9,18) | SDA | (5,3) — pin 3 | chip pin 5 (wire S2) |
@@ -199,8 +200,9 @@ so the cable is a plain five-conductor run with no crossovers:
 cable is five conductors rather than four. Position 4 is parked here; on a rollback to
 `w1-gpio` it becomes the bus data line and moves to the DATA net, which is the whole of §9.
 
-**Both ends are plugs**, so the cable itself is replaceable and either board lifts out alone.
-**Mark position 1 on both boards and both plugs** — reversed, this plug puts 3V3 on ground.
+**The cable detaches at both ends** — the PTSM plug here, a screw-clamp plug on the Pi
+board — so it is replaceable and either board lifts out alone. **Mark position 1 on both
+boards, both plugs and the cable** — reversed, this link puts 3V3 on ground.
 
 GND needs no wire at all: the rail already runs down column 12 to row 18, so it solders to
 that pad and the connector pin drops into the same hole.
@@ -249,7 +251,8 @@ The bus is live today, so from step 3 on it is down. Do it in one sitting and ex
 2. **Dry-fit, cover on.** Place the three probe sockets at row 2, the DIP socket, and the link
    terminal without soldering. Confirm the socket bodies clear the enclosure and their entries
    line up with the short-end opening; confirm the link terminal and its plug clear the lid;
-   confirm the link cable reaches the Pi board through the long-side opening. **If the socket
+   confirm the link cable reaches the Pi board's link terminal (its row 25, below the lower
+   keep-out band) through the long-side opening. **If the socket
    overhang fouls the case, move all three one row in — pins to row 3, rails to rows 4, 5, 6,
    VCC bridge from (6,4)** — and carry that one-row shift through the rest of the build.
 3. **Strip the old arrangement.** Unplug the trunk, remove the 2.2 kΩ pull-up, the GPIO 4 data

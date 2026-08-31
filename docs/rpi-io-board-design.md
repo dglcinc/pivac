@@ -102,8 +102,7 @@ InfluxDB history is orphaned. SP-D's resistor runs diagonally to (21,7) because 
 | Supply | 12 V DC wall wart (measures 14.7 V; load is only ~35 mA) | 1 |
 | Protection diode | 1N4007, mounted in the barrel-adapter screw terminal, not on the board | 1 |
 | Plugs | 4-position PTSM plugs, shipped with the INT-PCB SET | 4 |
-| Link terminal | **PTSM 0,5/5-HH-2,5-THR** print header, horizontal entry — the 1-wire board | 1 |
-| Link plug | **PTSM 0,5/5-P-2,5** | 1 |
+| Link terminal | 5-position pluggable screw-terminal set, **2.54 mm pitch** (straight-pin header + screw-clamp plug, 28–16 AWG) — the 1-wire board | 1 |
 
 Tools: soldering iron, solder, flush cutters, small pliers, multimeter with continuity and
 diode modes, calipers. A phone camera doubles as an infrared-LED detector in step 8.
@@ -134,11 +133,11 @@ The full map, with this board's use of each pin:
 
 | Row k | Pi pin (col 2) | Use | Access pad | Pi pin (col 1) | Use | Access pads |
 |---|---|---|---|---|---|---|
-| 1 | 1 · 3V3 | **link, position 1** | **(5,2)** | 2 · 5V | — | (3,2) (4,2) |
-| 2 | 3 · GPIO2 | **link, position 2 — SDA** | **(5,3)** | 4 · 5V | — | (3,3) (4,3) |
-| 3 | 5 · GPIO3 | **link, position 3 — SCL** | **(5,4)** | 6 · GND | verify | (3,4) (4,4) |
-| 4 | 7 · GPIO4 | **link, position 4 — spare** | **(5,5)** | 8 · GPIO14 | serial console — leave | (3,5) (4,5) |
-| 5 | 9 · GND | **link, position 5** | **(5,6)** | 10 · GPIO15 | serial console — leave | (3,6) (4,6) |
+| 1 | 1 · 3V3 | **link wire, position 1** | **(5,2)** | 2 · 5V | — | (3,2) (4,2) |
+| 2 | 3 · GPIO2 | **link wire, position 2 — SDA** | **(5,3)** | 4 · 5V | — | (3,3) (4,3) |
+| 3 | 5 · GPIO3 | **link wire, position 3 — SCL** | **(5,4)** | 6 · GND | verify | (3,4) (4,4) |
+| 4 | 7 · GPIO4 | **link wire, position 4 — spare** | **(5,5)** | 8 · GPIO14 | serial console — leave | (3,5) (4,5) |
+| 5 | 9 · GND | **link wire, position 5** | **(5,6)** | 10 · GPIO15 | serial console — leave | (3,6) (4,6) |
 | 6 | 11 · GPIO17 | **ZV** | **(5,7)** | 12 · GPIO18 | unused | (3,7) (4,7) |
 | 7 | 13 · GPIO27 | **DHW** | **(5,8)** | 14 · GND | verify | (3,8) (4,8) |
 | 8 | 15 · GPIO22 | **BLR** | **(5,9)** | 16 · GPIO23 | **SP-A** | (3,9) **(4,9)** |
@@ -181,7 +180,10 @@ conductor last — it is the one live position among dry contacts.
 ### 4.4 Keep-out areas (solder side)
 
 The solder side faces the Pi, and the cross-hatched areas in the drawing are where the Pi and
-housing come close. No solder-side wire, rail, joint or pin tail may sit in them:
+housing come close. Inspected with the board installed: **there is no solder-side clearance
+over these areas at all**, so no solder-side wire, rail, joint or pin tail may sit in them,
+and anything that must cross them crosses on the component side, as the resistors, the +14 V
+bridge and the link wires do:
 
 | Area | Holes covered |
 |---|---|
@@ -197,8 +199,10 @@ cross the lower band freely, and rows 1–4 and 24–30 are clear across the ful
 ### 4.5 Free holes
 
 After this build: row 1 columns 22–23; rows 3–4 columns 6–23 (except rail stubs); columns
-22–23 rows 2–21; and everything below row 23 (columns 3+ only in rows 22–23). The area below
-the lower band is the natural home for a future addition; reach it through columns 1–2.
+22–23 rows 2–21; and everything below row 23 (columns 3+ only in rows 22–23) except the link
+terminal and its wire-entry holes at rows 24–25, columns 3–7 (§5.5). The area below the lower
+band also remains the natural home for a future addition; cross the band on the component
+side, as the link wires do.
 
 ## 5. Placement map
 
@@ -340,33 +344,40 @@ checklist to tick off as the wires go down (also drawn with leader labels on the
 
 ### 5.5 Link terminal to the 1-wire board
 
-A 5-position header with its **pins in column 5, rows 2–6**, entry facing left over the empty
-column 3–4 pads. Its pins land directly in the GPIO access pads, so **this connection needs no
-wires at all**:
+A 5-position pluggable screw-terminal header (2.54 mm pitch — matrix-exact, no drift) with
+its **pins in row 25, columns 3–7** — position 1 at (3,25) — in the expansion area below the
+lower keep-out band; the cable lands in the mating screw-clamp plug, so this end unplugs like
+the EXT end. A connector cannot sit on the column-5 access pads themselves: with entry toward
+the header there is no room to land a plug or cable past the GPIO socket, and a body wide
+enough to clear the socket shades (6,2), ZV's access pad. The plug mates vertically and its
+wires leave sideways; the step-2 dry-fit settles which way they face by where the cable
+leaves the housing.
 
-| Position | Hole | Pi pin | Signal |
-|---|---|---|---|
-| 1 | (5,2) | 1 | 3V3 |
-| 2 | (5,3) | 3 | SDA |
-| 3 | (5,4) | 5 | SCL |
-| 4 | (5,5) | 7 | GPIO 4 — spare, and the 1-wire rollback line |
-| 5 | (5,6) | 9 | GND |
+Five insulated wires connect the GPIO access pads to the terminal:
 
-**Five positions rather than four because GPIO 4 sits between SCL and GND on that column.** No
-four-position window spans the four signals, and moving the terminal into free matrix would
-cost four wires running the length of the board. Taking the fifth position turns the cable
-into a straight-through five-conductor run and carries the rollback line for free — if the
-1-wire bridge ever comes out, that conductor becomes the bus data line with one move at the
-far end.
+| Position | Pin hole | Wire from pad | Pi pin | Signal |
+|---|---|---|---|---|
+| 1 | (3,25) | (5,2) | 1 | 3V3 |
+| 2 | (4,25) | (5,3) | 3 | SDA |
+| 3 | (5,25) | (5,4) | 5 | SCL |
+| 4 | (6,25) | (5,5) | 7 | GPIO 4 — spare, and the 1-wire rollback line |
+| 5 | (7,25) | (5,6) | 9 | GND |
 
-The plug is polarised, but **mark position 1 on both the board and the plug** anyway: inserted
-backwards this one shorts 3V3 to ground.
+The wires run on the **component side**, where the keep-outs do not apply (§4.4): from each
+pad, left onto the columns 3–4 face, straight down the board and over the lower band, ending
+in the free row-24 hole above its terminal position. A one-hole bare link on the solder
+side — (c,24) → (c,25), entirely below the band — completes each run to the terminal ring.
+All five signals are Pi-domain, so the run stays in the left region and never nears the field
+wiring.
 
-Two clearance questions the drawing cannot settle, both for the step-2 dry-fit. The body sits
-over the column 3–4 pads and reaches toward the Pi header at columns 1–2 — fine if the header's
-mating connector is on the solder side, a clash if anything of it stands proud on the
-component side. And the cable leaves toward the board's left edge. If either fouls, fit a
-vertical-entry part instead so the cable leaves upward; the pins do not move.
+**Five positions rather than four because the fifth conductor is the rollback line.** The
+extension board's terminal parks GPIO 4 as position 4 (`docs/ds18b20-bus-topology.md` §5.5),
+so matching it keeps the cable a straight-through five-conductor run with no crossovers — if
+the 1-wire bridge ever comes out, that conductor becomes the bus data line with one move at
+the far end.
+
+The plug has no polarisation, so **mark position 1 on the board, the plug and the cable**:
+reversed, this link puts 3V3 on ground.
 
 The other end of this cable is specified in `docs/ds18b20-bus-topology.md` §5.5.
 
@@ -408,7 +419,7 @@ All with the continuity meter, nothing soldered yet:
 
 ### Step 2 — dry-fit, cover on
 
-Place the three sockets, a resistor bent to span rows 2→7, the link terminal at column 5, and
+Place the three sockets, a resistor bent to span rows 2→7, the link terminal at row 25, and
 the board in the housing with the Pi and the cover. Check four clearances:
 
 - Component-side height over the keep-out rows (resistor bodies, socket + chip) against the
@@ -418,18 +429,18 @@ the board in the housing with the Pi and the cover. Check four clearances:
   hole to its row-2 pad with a short bare link before the plugs go on.
 - The solder side against the Pi: nothing may protrude into the §4.4 areas. Trim all
   solder-side joints there flush.
-- The link terminal's body over the column 3–4 pads, and its plug and cable leaving toward the
-  left edge. A vertical-entry part is the fallback if either fouls (§5.5).
+- The link terminal at row 25, columns 3–7: header height with its plug inserted against the
+  housing, and the plug's wire exit toward the 1-wire board. Rotate the header 180° if the
+  wires want the other side; the pins do not move (§5.5).
 
 ### Step 3 — solder the sockets and the link terminal
 
 Orientation per §5.1 — **IC-C notch left**. For each socket: solder two diagonal corner pins,
 check it sits flat, then the remaining fourteen. Leave the chips out until step 8.
 
-Then the 5-position link terminal at column 5, rows 2–6 (§5.5). Meter it straight away, before
-anything else lands nearby: position 1 ↔ Pi pin 1, position 5 ↔ Pi ground, and **position 1 ↔
-position 5 silent**. That last check is the one that matters — those two are 3V3 and ground on
-adjacent-but-one pins of the same plug.
+Then the 5-position link terminal at row 25, columns 3–7 (§5.5). Its holes are isolated
+matrix, so the only immediate check is silence between every adjacent pair of positions; the
+continuity checks come with its wires in step 6.
 
 ### Step 4 — rails, stubs and jumpers
 
@@ -450,6 +461,11 @@ position 1 ↔ the +14 V rail beeps.
 Feeders, hops, field wires, Pi wires per §5.3–5.4, in that order (shortest reach first). Keep
 the two wire families on their own sides of the chips; that separation is the isolation gap,
 and no care inside the chip survives a wire that bridges around it.
+
+Then the five link wires per §5.5 — component side down the columns 3–4 face, ends into the
+row-24 holes, bare links down to the terminal rings. Meter the link when they are down:
+terminal position 1 ↔ Pi pin 1 beeps, position 5 ↔ Pi ground beeps, and **position 1 ↔
+position 5 stays silent** — those two are 3V3 and ground on the same terminal.
 
 ### Step 7 — electrical check before any chip is fitted
 
@@ -539,9 +555,9 @@ silence on a hot day and the boiler alerts already cover that gap. Moving to the
 24 VAC supply would tie the two failures together; the freshness alerts don't change either
 way.
 
-**Reserved pins.** Column 5 rows 2–6 are the link terminal (§5.5): 3V3, the I²C pair GPIO 2/3,
-GPIO 4 and ground, feeding the DS2482 1-wire bridge on the extension board
-(`docs/ds18b20-bus-topology.md` §5.5). GPIO 4 rides in the plug as a spare and stays
+**Reserved pins.** Column 5 rows 2–6 are the link pads (§5.5): 3V3, the I²C pair GPIO 2/3,
+GPIO 4 and ground, wired to the link terminal at row 25 and on to the DS2482 1-wire bridge on
+the extension board (`docs/ds18b20-bus-topology.md` §5.5). GPIO 4 rides in the cable as a spare and stays
 unassigned as a relay channel until the bridge has survived a
 heating season, so `w1-gpio` rollback stays possible. GPIO 14/15 stay a serial console — the
 recovery path on a headless DIN-mounted Pi. BCM 7–11 stay a contiguous SPI block for a future
