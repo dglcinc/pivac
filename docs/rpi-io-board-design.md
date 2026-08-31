@@ -475,9 +475,13 @@ With no ICs there is no current path, so this is safe and diagnostic:
    field link). From each A-pin ring to the +14 V rail, a beep (proves feeder + hops). From
    each E-pin ring to its ground rail, a beep. From each C-pin ring to its GPIO access pad, a
    beep.
-2. Power the wall wart into J4 (position 1 +, position 4 −, diode in the barrel adapter):
-   every A-pin pad reads **≈ +14 V relative to COM**. 0 V means a broken feeder or hop;
-   negative means the supply is reversed and the diode has done its job. Power down.
+2. Wire the supply, first use here: the 1N4007 sits **in series in the + conductor**, inside
+   the barrel-adapter screw terminal — **band (cathode) toward the board**, anode toward the
+   wart. Verify before connecting: adapter output reads ≈ +14 V (the wart's 14.7 V less the
+   diode's ~0.7 V drop); a reversed wart or a backwards diode reads 0 V there. Then power it
+   into J4 (position 1 +, position 4 −): every A-pin pad reads **≈ +14 V relative to COM**.
+   0 V on one chip's pads is that chip's feeder or hops; 0 V everywhere is the J4.1 landing —
+   or the supply, which the adapter-output check above rules out first. Power down.
 
 ### Step 8 — chips in, channel-by-channel test
 
