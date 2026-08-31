@@ -505,10 +505,12 @@ year, so contact wetting was never the argument — isolation is.
 either way; current and function are identical. Putting the resistor on the K side lets its
 body be the band crossing: the upper keep-out separates the plug pads (row 2) from the chips
 (rows 7+) on the solder side, and the component side is the only legal path across. Eleven
-resistor bodies do the crossing with zero extra wires. (The schematic below draws the resistor
-on the +V side; same circuit, different physical order.)
+resistor bodies do the crossing with zero extra wires.
 
 ![Board schematic](rpi-io-board-schematic.svg)
+
+*(Figure source: `docs/rpi-io-board-schematic.gen.py` — regenerate with `python3` after
+edits.)*
 
 **Why IC-C is rotated.** A ground rail must sit one row off its chip's C/E row (the pins
 alternate C E C E, so a rail on the pin row itself would short every switch). IC-C's C/E row
