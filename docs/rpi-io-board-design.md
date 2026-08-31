@@ -209,8 +209,8 @@ side, as the link wires do.
 ## 5. Placement map
 
 The full-board placement map is deliberately **not embedded here** — print it separately from
-[`docs/rpi-io-board-layout.svg`](rpi-io-board-layout.svg). (Embedded, the large SVG chokes
-the printer and needs flattening in Acrobat first; the small schematic in Appendix A is fine.)
+[`docs/rpi-io-board-layout.svg`](rpi-io-board-layout.svg). (Any embedded SVG chokes the
+printer and needs flattening in Acrobat first — no figure in this doc is embedded.)
 Figure source: `docs/rpi-io-board-layout.gen.py` — regenerate with `python3` after edits.
 
 ### 5.1 IC sockets
@@ -533,10 +533,9 @@ body be the band crossing: the upper keep-out separates the plug pads (row 2) fr
 (rows 7+) on the solder side, and the component side is the only legal path across. Eleven
 resistor bodies do the crossing with zero extra wires.
 
-![Board schematic](rpi-io-board-schematic.svg)
-
-*(Figure source: `docs/rpi-io-board-schematic.gen.py` — regenerate with `python3` after
-edits.)*
+The schematic is not embedded — print it separately from
+[`docs/rpi-io-board-schematic.svg`](rpi-io-board-schematic.svg) (source:
+`docs/rpi-io-board-schematic.gen.py`, regenerate with `python3` after edits).
 
 **Why IC-C is rotated.** A ground rail must sit one row off its chip's C/E row (the pins
 alternate C E C E, so a rail on the pin row itself would short every switch). IC-C's C/E row
