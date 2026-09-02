@@ -107,6 +107,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | pivac-domestic-water    | pivac.DomesticWater     | **Domestic** water meter (DAE MJ-75a, 0.1 gal/pulse) on UNO R4 WiFi | 10.0.0.188 |
 | pivac-chiltrix          | pivac.ChiltrixModbus    | **Chiltrix CX75** heat pump, all 45 Modbus registers | RS-485 → UNO R4 on USB |
 | pivac-loop-delta        | pivac.LoopDelta         | Gated per-run loop ΔT (derived; reads Signal K)   | none — derived |
+| pivac-grafana-alerts    | pivac.GrafanaAlerts     | Grafana alert state → Signal K notifications (derived; reads Grafana's API) | 127.0.0.1:4000 |
 
 > **⚠️ The two Arduino module/delta names are inverted vs their physical roles — legacy, do NOT rename** (InfluxDB already holds history under these measurement names; renaming would orphan it). Verified 2026-06-01 against the WilhelmSK gauge wiring and the boards' WiFi MACs:
 >
@@ -130,6 +131,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
+- Grafana API token: `~/.config/grafana-claude-agent.key` (mode 600) on **both** the Pi and the Mac — service account `sa-1-claude`, Admin role. Use it as `-H "Authorization: Bearer $(cat ~/.config/grafana-claude-agent.key)"` against `http://127.0.0.1:4000/grafana/api/...` on the Pi. **Never ask for the Grafana admin password; this is the credential.** The poller's own Viewer token (service account `pivac-alerts`) lives only in the `pivac.GrafanaAlerts` block of `/etc/pivac/config.yml`.
 - WireGuard keys (unused, kept for reference): `/etc/wireguard/`
 
 ## Remote Access
@@ -186,7 +188,7 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chiller Time, DHW panels) is a Signal K-managed InfluxDB datasource. It does not appear in the Grafana datasources API but is still functional.
 
-**Grafana runtime facts (learned 2026-07-20):** Grafana listens on **port 4000** (not 3000) and serves under the `/grafana/` sub-path — API base is `http://127.0.0.1:4000/grafana/api/...` (admin password is set; not admin/admin). This is a **Grafana 13 unified-storage** install: live dashboards are stored in the **`resource` table** of `/var/lib/grafana/grafana.db`, NOT the legacy `dashboard` table (which is stale — reading it will mislead you). Inspect live panels with `python3 sqlite3` (no `sqlite3` CLI on the Pi). Run InfluxQL directly via the v1 endpoint: `curl -G http://localhost:8086/query --data-urlencode 'db=pivac' --data-urlencode 'q=...' -H "Authorization: Token <active influx token>"`.
+**Grafana runtime facts (learned 2026-07-20):** Grafana listens on **port 4000** (not 3000) and serves under the `/grafana/` sub-path — API base is `http://127.0.0.1:4000/grafana/api/...`, authenticated with the service-account token at `~/.config/grafana-claude-agent.key` (see Key File Locations; the admin password is set, not admin/admin, and is not needed). This is a **Grafana 13 unified-storage** install: live dashboards are stored in the **`resource` table** of `/var/lib/grafana/grafana.db`, NOT the legacy `dashboard` table (which is stale — reading it will mislead you). Inspect live panels with `python3 sqlite3` (no `sqlite3` CLI on the Pi). Run InfluxQL directly via the v1 endpoint: `curl -G http://localhost:8086/query --data-urlencode 'db=pivac' --data-urlencode 'q=...' -H "Authorization: Token <active influx token>"`.
 
 **Panel alignment:** every timeseries panel on PivacR pins `custom.axisWidth: 50` so all plot areas share a left edge — keep new panels consistent. Don't set a per-panel `axisLabel` (it renders left of the ticks and pushes that panel's plot right). Note: **state-timeline panels can't set axis/row-label width** (Grafana #85040), so boolean/status data that must line up with the numeric-axis panels should be a **timeseries with stepped lines**, not a state-timeline.
 
@@ -241,6 +243,8 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
   - ~~`chiltrix-run-duration-excessive`~~ — **RETIRED 2026-08-30 and removed via `deleteRules:`.** Its 90-minute threshold rested on "clean runs are 9–22 min", which one clean-strainer day refuted: on 2026-08-29 runs lengthened with load to **232 minutes** (10, 12, 20, 12, 10, 12, 22, 36, 232) while startupFlow held 50.5–54.0 L/min throughout, and the rule fired on that normal run. Run length has no maximum — the unit runs until inlet reaches its stop point, and a hot day takes hours. Fouling coverage is not lost: the 2026-08-28 startupFlow decline spanned eleven hours of ordinary-length cycles *before* the 354-minute run, so the flow rule fires earlier than a duration rule ever did. `runDuration` stays published for dashboards.
   - `pivac.ChiltrixModbus` derives both alert inputs in the daemon (state edge + hold, the `pivac.DomesticWater` `.runVolume` precedent): **`startupFlow`** = max flow seen from the last stop through the first 150 s of a run, excluding the 2–5 L/min deep-idle sensing trickle via a 15 L/min floor (those samples would read as total restriction), and **`runDuration`** = seconds of the current run, holding the last run's length while stopped.
 
+**Every rule is also mirrored into Signal K as a notification** by `pivac.GrafanaAlerts` (`pivac-grafana-alerts.service`, added 2026-09-02), so WilhelmSK shows the same alarms the email path sends. It polls Grafana's Prometheus-compatible rules API for the full rule set and the Alertmanager alerts API for which are firing, and publishes every rule every cycle under `notifications.pivac.<rule uid with - → _>` with state `normal` while quiet and `warn`/`alert`/`alarm` from the `severity` label (`warning`/`info`/`critical`) while firing. Grafana stays the evaluator; a silence in Grafana reads as `normal` here too. Republishing the whole set each cycle means a restart of Signal K or of the poller self-heals within one cycle, and a dead poller leaves every path stale together. The Grafana service-account token (Viewer) lives in the module's block in `/etc/pivac/config.yml`; see `config/config.grafana-alerts-sample.yml`. Push delivery to the phone would additionally need the `signalk-push-notifications` plugin paired with the app; in-app display needs nothing.
+
 **Test the bridge end-to-end:**
 ```bash
 curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json' \
@@ -286,8 +290,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -n 50 --no-pager
 ```
 
 If systemd service or timer files were changed:
@@ -298,7 +302,7 @@ sudo systemctl daemon-reload
 
 **Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta signalk influxdb nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts signalk influxdb nginx
 ```
 Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
@@ -352,7 +356,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now arduino-watchdog.tim
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -501,6 +505,7 @@ journalctl -u signalk -n 50 --no-pager
 | `WaterMeter` | Sensus iPerl water-meter **LCD** via Tapo RTSP camera (`10.0.0.85`) — reads the cumulative gallons totalizer via perspective-warp + **whole-glyph template matching** (NOT segment thresholding — a reflective LCD's "off" segments aren't black). Emits `environment.water.domestic.consumption` (gal) + `.flowing`. See `docs/water-meter-camera-monitoring-plan.md`. |
 | `ChiltrixModbus` | Chiltrix CX75 over RS-485 Modbus RTU (A3/B3, 9600 8N1, slave 1, function 03), bridged by an UNO R4 on USB running the `ChiltrixScan` sketch. **Read only — function 03, never 6 or 16**, though 140–146 are writable. Drives the sketch's `s <from> <to>` range-read rather than its `watch`, which caps at 6 registers. Publishes **all 45 registers that answer**: 13 confirmed ones under named paths (`hvac.chiller.chiltrix.*`, temperatures in **Kelvin**), the rest under `.raw.r<addr>`. Also emits `.evaporatorDelta`, `.runDuration` and `.startupFlow`. ~6.8 s per cycle at `daemon_sleep: 30`. |
 | `LoopDelta` | **Derived** — reads Signal K rather than hardware, so it never contends for the 1-wire bus or the GPIO pins and opens no second Honeywell session. Publishes `environment.inside.hvac.{primary,LOOPA,LOOPB}.deltaT` every cycle, taking **three values with three meanings: a number is a live measurement, `0` means the loop is not measuring** (idle, or within `settle_s` of a start while the probes still hold their stagnant values), **and a GAP means a source is stale or the module is down**. Publishing 0 for idle rather than nothing is what keeps that third case readable, since idle-as-gap conflates a stopped pump with a dead service. In **Kelvin**: a difference, so °F is `*9/5` with **no** offset. `.flowing` (0/1) is emitted every cycle. Gated on the `CHIL` relay, narrowed to each secondary's zones. See the dead-leg note in Known Operational Behaviours. |
+| `GrafanaAlerts` | **Derived** — polls Grafana (`127.0.0.1:4000/grafana`, service-account token in config) and publishes every alert rule as a Signal K notification under `notifications.pivac.<uid>`: `normal` while quiet, `warn`/`alert`/`alarm` by severity while firing, silences honoured via the Alertmanager API. Publishes nothing at all when Grafana is unreadable, so a dead link shows as stale rather than quiet. See the Alerting section. |
 | `Sprinkler` | OpenSprinkler irrigation flow via the local HTTP API (`10.0.0.17:5000`) — polls `/jc`, computes `(flcrt/flwrt)*fpr*60*flow_scale`, emits `environment.water.irrigation.flowRate` (gal/min) + `.active`. Auth = **md5(device password)** in config `password_md5` (Pi-only secret). Overlaid on the domestic flow panels (Grafana). |
 
 ## pivac.Sentry Module

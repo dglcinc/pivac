@@ -1,0 +1,24 @@
+# Grafana alert state -> Signal K notifications. Merge this block into
+# /etc/pivac/config.yml.
+#
+# Every alert rule Grafana evaluates is published every cycle under
+# <sk_path>.<rule uid>, state `normal` while quiet and warn/alert/alarm (from
+# the rule's `severity` label: warning/info/critical) while firing. WilhelmSK
+# shows Signal K notifications as alarms. Grafana stays the evaluator; this
+# module only mirrors its state, and honours Grafana silences.
+#
+# `token` is a Grafana service-account token (Viewer role is enough). Mint one
+# under Administration -> Service accounts, or with the admin API:
+#   curl -u admin:<pw> -X POST http://127.0.0.1:4000/grafana/api/serviceaccounts \
+#        -H 'Content-Type: application/json' -d '{"name":"pivac-alerts","role":"Viewer"}'
+#   curl -u admin:<pw> -X POST http://127.0.0.1:4000/grafana/api/serviceaccounts/<id>/tokens \
+#        -H 'Content-Type: application/json' -d '{"name":"pivac-grafana-alerts"}'
+# The token is Pi-local: it never goes in the repo.
+pivac.GrafanaAlerts:
+  description: Grafana alert state mirrored to Signal K notifications
+  enabled: true
+  grafana_url: http://127.0.0.1:4000/grafana
+  token: glsa_REPLACE_ME
+  sk_path: notifications.pivac
+  request_timeout: 5
+  daemon_sleep: 30
