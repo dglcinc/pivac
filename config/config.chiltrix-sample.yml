@@ -18,3 +18,9 @@ pivac.ChiltrixModbus:
   port: /dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_E8F60AA93AA8-if01
   baud: 115200
   daemon_sleep: 60
+
+  # Ignore idle-side flow samples this long after a compressor stop. The pump
+  # spins down over the next sample or two, and a sample caught mid-ramp
+  # (0 Hz, 30-40 L/min) would otherwise stand as startupFlow until the next
+  # start — which false-fired chiltrix-pump-only-flow-low on 2026-09-02.
+  stop_settle_s: 180
