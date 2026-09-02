@@ -100,7 +100,12 @@ _state = {
     "startup_flow": None,    # max flow seen across the current start window
     "startup_flow_last": None,
     "prev_hz": None,
+    "stopped_at": None,      # wall clock of the last compressor stop edge
 }
+
+# Idle-side flow samples this soon after a stop edge are the pump spinning
+# down and are excluded from the plateau.  See _derive.
+STOP_SETTLE_S = 180
 
 
 def _open(port, baud):
@@ -188,7 +193,7 @@ def _convert(kind, raw):
     return int(raw)
 
 
-def _derive(regs, result):
+def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
     """Compressor run duration, and the flow plateau around a start.
 
     Flow is NOT a fixed reference at an arbitrary moment: the pump nearly stops
@@ -199,6 +204,18 @@ def _derive(regs, result):
     That plateau is the comparable number, so it is captured as the maximum
     flow seen from the last stop through the first 150 s of the run, and held
     until the next start replaces it.
+
+    The idle side of the window opens `stop_settle_s` after the stop edge.
+    The pump spins down over the next sample or two, and a sample that lands
+    mid-ramp reads a plausible 30-40 L/min with the compressor already at 0 Hz.
+    Without the guard that sample became the plateau, the idle trickle could
+    not displace it, and it stood until the next start: 36 minutes on
+    2026-09-02, longer than the alert's 30-minute window, so
+    chiltrix-pump-only-flow-low fired on a strainer that read the same
+    52.9 L/min before and after cleaning.  The pump-only window before a start
+    is unaffected, since the compressor's minimum-off timer keeps restarts
+    well past the settle period, and the run side of the window captures the
+    plateau regardless.
 
     Note this does not establish that the plateau is a FIXED commanded speed —
     an adaptive re-trim by the controller would move it too.  See the header of
@@ -225,14 +242,18 @@ def _derive(regs, result):
         if _state["run_started"] is not None:
             _state["run_duration"] = now - _state["run_started"]
         _state["run_started"] = None
+        _state["stopped_at"] = now
         if _state["startup_flow"] is not None:
             _state["startup_flow_last"] = _state["startup_flow"]
         _state["startup_flow"] = None
 
     if flow is not None:
         lpm = flow / 10.0
-        in_window = hz == 0 or (_state["run_started"] is not None
-                                and now - _state["run_started"] <= 150)
+        settling = (_state["stopped_at"] is not None
+                    and now - _state["stopped_at"] < stop_settle_s)
+        in_window = ((hz == 0 and not settling)
+                     or (_state["run_started"] is not None
+                         and now - _state["run_started"] <= 150))
         if in_window and lpm > 15.0:     # excludes the deep-idle sensing trickle
             if _state["startup_flow"] is None or lpm > _state["startup_flow"]:
                 _state["startup_flow"] = lpm
@@ -286,7 +307,7 @@ def status(config={}, output="default"):
     if 281 in regs and 205 in regs:
         result["evaporatorDelta"] = round((regs[281] - regs[205]) / 10.0, 2)
 
-    _derive(regs, result)
+    _derive(regs, result, float(config.get("stop_settle_s", STOP_SETTLE_S)))
     # How many of the addresses WE ASKED FOR answered.  Not a property of the
     # chiller — it answers everything — but a useful link-health signal, since a
     # degrading bus drops responses.
