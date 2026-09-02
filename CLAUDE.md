@@ -131,6 +131,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
+- Grafana API token: `~/.config/grafana-claude-agent.key` (mode 600) on **both** the Pi and the Mac — service account `sa-1-claude`, Admin role. Use it as `-H "Authorization: Bearer $(cat ~/.config/grafana-claude-agent.key)"` against `http://127.0.0.1:4000/grafana/api/...` on the Pi. **Never ask for the Grafana admin password; this is the credential.** The poller's own Viewer token (service account `pivac-alerts`) lives only in the `pivac.GrafanaAlerts` block of `/etc/pivac/config.yml`.
 - WireGuard keys (unused, kept for reference): `/etc/wireguard/`
 
 ## Remote Access
@@ -187,7 +188,7 @@ Grafana datasource `bdxaqnfllu5fkf` uses the `pivac` bucket via InfluxQL compati
 
 The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chiller Time, DHW panels) is a Signal K-managed InfluxDB datasource. It does not appear in the Grafana datasources API but is still functional.
 
-**Grafana runtime facts (learned 2026-07-20):** Grafana listens on **port 4000** (not 3000) and serves under the `/grafana/` sub-path — API base is `http://127.0.0.1:4000/grafana/api/...` (admin password is set; not admin/admin). This is a **Grafana 13 unified-storage** install: live dashboards are stored in the **`resource` table** of `/var/lib/grafana/grafana.db`, NOT the legacy `dashboard` table (which is stale — reading it will mislead you). Inspect live panels with `python3 sqlite3` (no `sqlite3` CLI on the Pi). Run InfluxQL directly via the v1 endpoint: `curl -G http://localhost:8086/query --data-urlencode 'db=pivac' --data-urlencode 'q=...' -H "Authorization: Token <active influx token>"`.
+**Grafana runtime facts (learned 2026-07-20):** Grafana listens on **port 4000** (not 3000) and serves under the `/grafana/` sub-path — API base is `http://127.0.0.1:4000/grafana/api/...`, authenticated with the service-account token at `~/.config/grafana-claude-agent.key` (see Key File Locations; the admin password is set, not admin/admin, and is not needed). This is a **Grafana 13 unified-storage** install: live dashboards are stored in the **`resource` table** of `/var/lib/grafana/grafana.db`, NOT the legacy `dashboard` table (which is stale — reading it will mislead you). Inspect live panels with `python3 sqlite3` (no `sqlite3` CLI on the Pi). Run InfluxQL directly via the v1 endpoint: `curl -G http://localhost:8086/query --data-urlencode 'db=pivac' --data-urlencode 'q=...' -H "Authorization: Token <active influx token>"`.
 
 **Panel alignment:** every timeseries panel on PivacR pins `custom.axisWidth: 50` so all plot areas share a left edge — keep new panels consistent. Don't set a per-panel `axisLabel` (it renders left of the ticks and pushes that panel's plot right). Note: **state-timeline panels can't set axis/row-label width** (Grafana #85040), so boolean/status data that must line up with the numeric-axis panels should be a **timeseries with stepped lines**, not a state-timeline.
 
