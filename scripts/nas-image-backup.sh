@@ -14,11 +14,19 @@ IMG_BACKUP=/home/pi/github/RonR-RPi-image-utils/image-backup
 # adds nothing to image consistency, but stopping it blacks out the mlb.dglc.com
 # bowling proxy (whose DB lives on the Mac Mini, unaffected by Pi service stops)
 # and trips the Grafana mlb-availability alert every month. Leave it running.
+# Every pivac unit has Requires=signalk.service, so stopping signalk stops them
+# all regardless of this list — but any service missing from START_SVCS stays
+# dead after the backup. Keep both lists in sync with the Active Services table
+# in CLAUDE.md (learned 2026-09-01: loop-delta, sprinkler, domestic-water and
+# chiltrix were down 4.5h+ after the monthly run).
 STOP_SVCS=(pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi
            pivac-arduino-therm-psi pivac-emporia pivac-sentry
-           signalk influxdb)
+           pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
+           pivac-grafana-alerts signalk influxdb)
 START_SVCS=(signalk influxdb pivac-1wire pivac-redlink pivac-gpio
-            pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry)
+            pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
+            pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
+            pivac-grafana-alerts)
 
 log() { echo "[$(date -Is)] $*"; }
 

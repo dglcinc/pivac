@@ -157,6 +157,44 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hvac.chiller.chiltrix.inletTemp.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#4C9BE8",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Chiller inlet"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hvac.chiller.chiltrix.outletTemp.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#A8D3F5",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Chiller outlet"
+              }
+            ]
           }
         ]
       },
@@ -413,6 +451,100 @@
           ],
           "tags": [],
           "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "hvac.chiller.chiltrix.inletTemp",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "F",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " *9/5-459.67"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "hvac.chiller.chiltrix.outletTemp",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "G",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " *9/5-459.67"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
         }
       ],
       "title": "Hydronic Temps",
@@ -424,7 +556,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Supply and return on each secondary loop, from the bench-calibrated DS18B20 pairs installed 2026-08-22. The number to read here is the supply/return spread, not the absolute temperature. Loop A is probe pair PA2 and loop B is pair PA1 \u2014 the pair number and the loop letter deliberately differ.",
+      "description": "Temperature rise across each load while that loop is pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Three values, three meanings: a number is a live measurement, 0 means the loop is not running (or is within the first minute of a run, still charging), and a GAP means a source is stale or pivac.LoopDelta is down. Zero is a convention, never a measured zero — with a pump off the two probes sit in a dead leg and hold a plausible positive ΔT indefinitely (loop A reads +3.6 °F stopped against +5.0 running), so an ungated series is mostly fiction. Gated on the CHIL relay narrowed by each secondary's zone calls. Source is Kelvin and ΔT is a difference, so the conversion is *9/5 with NO offset — do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 °F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -432,7 +564,6 @@
           },
           "custom": {
             "axisBorderShow": false,
-            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
@@ -449,7 +580,7 @@
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -462,7 +593,9 @@
             "thresholdsStyle": {
               "mode": "off"
             },
-            "axisWidth": 50
+            "axisWidth": 50,
+            "axisSoftMin": -2,
+            "axisSoftMax": 8
           },
           "mappings": [],
           "thresholds": {
@@ -477,13 +610,30 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "fahrenheit",
+          "decimals": 2
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop A supply \u2014 kids / master bedroom"
+              "options": "Primary ΔT — whole house"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8E5FBF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Loop A ΔT — kids / master bedroom"
             },
             "properties": [
               {
@@ -498,43 +648,13 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop A return \u2014 kids / master bedroom"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#A8D3F5",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Loop B supply \u2014 family / kitchen / great room"
+              "options": "Loop B ΔT — family / kitchen / great room"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
                   "fixedColor": "#1B6B36",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Loop B return \u2014 family / kitchen / great room"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#7ECB8B",
                   "mode": "fixed"
                 }
               }
@@ -581,7 +701,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPA_SUP.temperature",
+          "measurement": "environment.inside.hvac.primary.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -600,7 +720,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -608,7 +728,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A supply \u2014 kids / master bedroom"
+          "alias": "Primary ΔT — whole house"
         },
         {
           "datasource": {
@@ -629,7 +749,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPA_RET.temperature",
+          "measurement": "environment.inside.hvac.LOOPA.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -648,7 +768,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -656,7 +776,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A return \u2014 kids / master bedroom"
+          "alias": "Loop A ΔT — kids / master bedroom"
         },
         {
           "datasource": {
@@ -677,7 +797,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "environment.inside.hvac.LOOPB_SUP.temperature",
+          "measurement": "environment.inside.hvac.LOOPB.deltaT",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -696,7 +816,7 @@
               },
               {
                 "params": [
-                  " *9/5-459.67"
+                  " *9/5"
                 ],
                 "type": "math"
               }
@@ -704,58 +824,10 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop B supply \u2014 family / kitchen / great room"
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "environment.inside.hvac.LOOPB_RET.temperature",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "D",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              },
-              {
-                "params": [
-                  " *9/5-459.67"
-                ],
-                "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false,
-          "alias": "Loop B return \u2014 family / kitchen / great room"
+          "alias": "Loop B ΔT — family / kitchen / great room"
         }
       ],
-      "title": "Secondary Loop Supply / Return",
+      "title": "Loop ΔT — Primary and Secondary Pairs",
       "type": "timeseries"
     },
     {
@@ -2155,7 +2227,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Boiler status \u2014 coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
+      "description": "Boiler status — coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2658,7 +2730,7 @@
           "tags": []
         }
       ],
-      "title": "Potable DHW Loop \u2014 Pressure & Recirc Temp",
+      "title": "Potable DHW Loop — Pressure & Recirc Temp",
       "type": "timeseries"
     },
     {
@@ -3929,7 +4001,7 @@
     {
       "type": "row",
       "collapsed": false,
-      "title": "Water \u2014 Domestic & Irrigation",
+      "title": "Water — Domestic & Irrigation",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4041,7 +4113,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 selected range",
+      "title": "Used — selected range",
       "type": "stat",
       "transformations": [
         {
@@ -4181,7 +4253,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 last 24h",
+      "title": "Used — last 24h",
       "type": "stat",
       "timeFrom": "24h",
       "transformations": [
@@ -4322,7 +4394,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used \u2014 last 7d",
+      "title": "Used — last 7d",
       "type": "stat",
       "timeFrom": "7d",
       "transformations": [
@@ -4522,7 +4594,7 @@
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/min) \u2014 Domestic vs Irrigation",
+      "title": "Flow rate (gal/min) — Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -4530,7 +4602,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Consumption rate normalized to gal/hour \u2014 smoother; good for sustained use / leaks.",
+      "description": "Consumption rate normalized to gal/hour — smoother; good for sustained use / leaks.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4692,7 +4764,7 @@
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/hr) \u2014 Domestic vs Irrigation",
+      "title": "Flow rate (gal/hr) — Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -4866,7 +4938,7 @@
         }
       ],
       "timeFrom": "7d",
-      "title": "Water consumption by hour \u2014 last 7 days",
+      "title": "Water consumption by hour — last 7 days",
       "type": "timeseries"
     }
   ],

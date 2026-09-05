@@ -1,358 +1,332 @@
-# DS18B20 Bus Topology and the DS2482 Migration
+# DS18B20 Bus — Build Procedure
 
-**Status:** Reference. Written after the 2026-08-22 bus collapse, when adding the four
-secondary-loop probes took the w1 bus from four healthy devices to zero. · **Owner:** David
+**Status:** Ready to build (EXT board + DS2482). Field-bus rules verified live on the Pi
+(`10.0.0.82`, Pi 4 Model B, kernel `6.18.34+rpt-rpi-v8`). · **Owner:** David
 
-Covers why the bus fails as it grows, how to wire it so it does not, and how to move off the
-Pi's bit-banged `w1-gpio` master to a DS2482 hardware bridge. Machine facts here were verified
-live on the Pi (`10.0.0.82`, Raspberry Pi 4 Model B Rev 1.5, kernel `6.18.34+rpt-rpi-v8`).
+Build procedure for the 1-wire side of the system: the **RPI-BC EXT-PCB HBUS SET** (Mouser
+651-2202995) carrying the DS2482 converter, three probe sockets at the enclosure opening and
+a pluggable link to the Pi board; the field chain out to the eight probes; and the software
+switch from `w1-gpio` to the DS2482. Design reasoning and electrical background are in
+Appendix A.
 
 ---
 
-## 1. The failure this prevents
+## 1. How to read this document
 
-`w1_search: max_slave_count 64 reached` is an electrical fault, not sixty-four sensors. The
-kernel's ROM search walks the address tree one bit at a time. When bit timing is unreliable it
-reads both branches as present at every node, manufactures phantom devices until it hits the
-64-device ceiling, and settles at a `w1_master_slave_count` of **0**. Healthy sensors go dark
-alongside the new ones.
+**Holes are named `(column,row)`.** Set the board up this way and the names are unambiguous:
 
-The failure is silent in pivac. `pivac-1wire` stays `active` and logs only
-`OneWireTherm bus now has 0 sensor(s)`. The 30-minute Grafana freshness alerts are what
-actually report it, and only for sensors whose outage exceeds their window.
+- **Component side up** — the face marked `TOP` on Phoenix drawing 00913308/02 (in
+  `~/OneDrive - DGLC/Claude/HVAC Manuals/`).
+- **Row 1 at the top.** The two short ends are not identical: at one end the first row of
+  holes sits **closer to the board edge** than at the other. That close end is **row 1**.
+  Measure both ends before you start; it is the only way to tell them apart, and everything
+  below depends on it.
+- **Column 1 on the left.** With row 1 up, the **power-riser field** — two columns of pin
+  holes with pre-wired traces, beside a column with no holes at all — falls on your left.
+  That is column 1. If it lands on your right, the board is end-for-end: turn it around and
+  re-check the end margins.
 
-Read the pin before assuming a short. `raspi-gpio get 4` returning `level=1` means the line
-idles high and the pull-up is alive, so the problem is signalling integrity rather than a dead
-short.
+Columns run 1–14, rows 1–32. This is the drawing's TOP view turned 180° in the plane.
 
-## 2. Why a star topology fails and a chain does not
+**Three conductors everywhere.** The bus is always the same trio: **VCC** (3.3 V probe
+power), **GND**, and **DATA** (the 1-wire line, called DQ in datasheets). On every socket,
+plug and cable in this document the order is VCC, DATA, GND.
 
-In a star, every probe's captive lead runs independently back to a common point near the Pi.
-Each lead is an unterminated transmission line. The falling edge of every 1-wire time slot
-travels down all of them at once, reflects off the open far ends, and returns at a delay set by
-each branch's length. Four branches kept those echoes clear of the master's sample point. Eight
-put them on top of the bit it is trying to read.
+**Faces and wire types** follow `docs/rpi-io-board-design.md` §1: components on the component
+side, wires on the solder side; rails and one-hole stubs bare, everything else insulated
+22 AWG solid; a wire never shares a hole with a pin — it lands on the copper ring beside the
+pin's joint. "Ring (c,r)" below means exactly that. The one exception is a **bridge**: an
+insulated wire that runs across the **component** side to get over a keep-out band, with its
+two ends dropping through holes on either side.
 
-A daisy chain is one trunk that leaves the master, visits each sensor location in physical
-order, and ends at the last one. Each probe joins the trunk where it passes, on the shortest
-stub that reaches. There is one line, one far end, and one reflection instead of eight.
-
-## 3. Verify before rewiring
-
-Do these in order. Rewiring first risks pulling cable to fix a probe fault that no topology
-change can cure.
-
-**Bisect the bus.** Add probes back one at a time against
-`cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count`, starting with **PA1A**
-(`28-000000cc0c90`), which logged `err=-5`. A probe that kills the bus every time is that probe
-or its wiring. A bus that fails only past a device count is electrical loading, and §4–§6 apply.
-
-**Confirm each probe's pinout on the bench.** Stainless-probe wire colours are not consistent
-between batches, and a probe with DQ and VDD swapped takes the whole bus down. Put each one on
-the UNO R4 rig used for the PA1–PA5 calibration and confirm it enumerates before it goes near
-the Pi.
-
-**Supply voltage is already ruled out.** The Pi's bus runs at 3.3 V throughout, so the
-DS18B20's `0.7 × VDD` input-high threshold sits at 2.31 V and the bus reaches it with margin.
-The mode is recorded here so it is not re-investigated: a probe powered from 5 V needs 3.5 V to
-register a logic high, which a 3.3 V bus never delivers, and it degrades with loading rather
-than failing outright. `docs/ds18b20-provisioning.md` specifies 5 V for the Arduino bench rig,
-where that is correct. Carrying it across to the Pi is what would introduce the fault.
-
-## 4. Building the chain
-
-Pick a route that passes near the tees, the buffer tank, and both secondary loops. Run one trunk
-along it. Put a junction at each sensor where the trunk arrives, the probe lands, and the trunk
-continues out, all on the same three terminals. Wago 221s or a small DIN block work; use
-gel-filled splices anywhere damp.
-
-Then cut each probe lead to the shortest length that reaches its junction. That is the point of
-the exercise, and coiling the slack instead defeats it. Trimming a DS18B20 lead is a normal,
-reversible modification.
-
-Keep the trunk linear. No branch at the master, no spur that doubles back, and nothing left
-hanging as a stub beyond the probe leads themselves.
-
-### 4.1 Distribution blocks, and when they count as a chain
-
-A commoned 1-to-4 block whose fourth port feeds the next block is a daisy chain **if the blocks
-are distributed along the run**, and a star if they are all clustered at the Pi. The blocks are
-not what decides it. Stub length is.
-
-All ports of such a block are one electrical node with no impedance between them, so a signal
-arriving sees every port diverge at once. Put four of them side by side at the Pi and each probe's
-full-length lead is still a stub off a common junction, which is the star in §2 with extra
-hardware. Mount one **at each sensor location**, run the trunk block to block, and cut each probe
-lead short enough to reach only its local block, and the chained blocks *are* the trunk. That is
-a proper chain, and a more serviceable one than splicing.
-
-The sensors here fall into four natural pairs, which maps onto four blocks:
-
-| Block | Probes | Location |
-|---|---|---|
-| 1 | `IN`, `OUT` | the closely spaced tees |
-| 2 | `UBT`, `LBT` | buffer tank, upper and lower |
-| 3 | `LOOPA_SUP`, `LOOPA_RET` | loop A, kids and master bedroom |
-| 4 | `LOOPB_SUP`, `LOOPB_RET` | loop B, lower family room, kitchen, great room |
-
-Each block carries trunk-in, trunk-out and two probes, so a 4-conductor lever block per conductor
-is exactly the right size. Three blocks per location, one each for DQ, VDD and GND.
-
-The blocks also give a per-probe series resistor somewhere sensible to live, in that probe's DQ
-port, if a lead cannot be trimmed short. A chain with short stubs does not need §6 at all.
-
-### 4.3 The first branch point is on the accessory board
-
-The 1-wire bus leaves the **RPI-BC EXT-PCB HBUS SET** (Mouser 651-2202995) on **two** 3-position
-plugs, both 18 AWG solid: the mechanical-room trunk on one, the outdoor ambient run on the other.
-The bus therefore forks inside the enclosure, at the board, before either cable reaches a breakout.
-The pull-up, plus the DS2482 if it is fitted, stay on that board upstream of both plugs.
-
-That fork is what makes §6.1's per-branch damping cheap here. The junction is already accessible
-with one plug per branch, so a 100 Ω can sit between the common node and each outgoing cable
-without opening anything downstream.
-
-**The mechanical-room side is already a chain, so §4's re-cabling does not apply to it.** Three
-headers sit along the run, each built from Phoenix Contact **ST 1,5/S QUATTRO** feed-through
-blocks, one commoned 4-terminal block per conductor. The trunk enters a header, the local probes
-land on the spare terminals, and the trunk leaves for the next one. That is exactly §4.1's
-distributed-block pattern, which is why the 2026-08-24 diagnosis went to the pull-up rather than
-to topology. The first header carries two of the loop probes and the last carries the other two;
-the middle one carries the original four and uses two blocks per conductor to find the terminals.
-
-The one departure is a **10 ft stub** from the middle header out to the two tank probes, rather
-than the trunk routing through them. It costs the capacitance of its length, about 340 pF. Since
-§5.3 establishes that RC rather than reflection is what binds this bus, that capacitance counts
-the same wherever it sits, so the stub is a length problem and not a topology one.
-
-Terminal budget follows from the block size. A quattro gives four terminals: the first header
-spends them on trunk-in, trunk-out and two probes, and the last on trunk-in and three probes.
-Both are full, so adding a probe at either point needs a second block and a bridge.
-
-**The outdoor run is almost certainly the longest cable on the bus.** Length is capacitance, so
-that one branch probably dominates the RC budget in §5.1 on its own. §5.3 measures the two plugs
-separately, which is what shows whether it does.
-
-**An outdoor cable with no probe on the end is pure cost.** The AMB probe was repurposed as LBT,
-so until §4.4 restores a sensor there, that branch contributes its full capacitance and an
-open-ended reflection while returning no data. Unplugging it at the board is free RC headroom and
-removes one of the two branches outright.
-
-### 4.4 Restoring the outdoor sensor without re-breaking the bus
-
-There is one spare bench-calibrated pair for this: PA3 went to the tank, PA1 and PA2 to the loops,
-and PA4 to IN and OUT, leaving **PA5** with its ice-point offsets already recorded in
-`docs/ds18b20-PA1-5-calibration.md`.
-
-**Sequence it last.** Reconnecting the longest branch on the bus is the same class of change as
-adding the four loop probes, and doing it before the pull-up and topology are settled risks
-reproducing the collapse with one more variable in play. Order: bisect, fix the pull-up, add the
-loop probes, then outdoor.
-
-**Better, give it its own bus.** A second DS2482-100 at address `0x19` — the AD0/AD1 pins select
-`0x18`–`0x1B` — presents a completely independent 1-wire master. Put the outdoor run on one and
-the mechanical room on the other, and neither can take the other down: a fault on a cable that
-runs outside through weather and a wall stops being able to blank the buffer-tank probes. The
-DS2482-800 does the same thing in one package across eight channels, though only the `-100` and
-`ds2484` are named in the kernel module's alias table, so confirm channel handling before buying
-one.
-
-This costs nothing in software. Sensors from every master appear flat under
-`/sys/bus/w1/devices/`, `OneWireTherm` iterates that directory, and the `28-*` names are
-properties of the chips, so a split bus needs no config change and orphans no history.
-
-**Alerting, when it returns.** `environment.outside.temperature` gets a freshness rule under a
-**new UID** rather than reviving `outside-onewire-stale`. That UID is named in the `deleteRules:`
-block in `sensor-freshness.yaml`, which CLAUDE.md says to leave in place permanently, and a UID
-cannot sit in both `rules:` and `deleteRules:`. A new UID sidesteps the conflict and leaves the
-delete block doing its job.
-
-`sentry-outdoor-divergence` needs no change. It was repointed to
-`environment.outside.thermostat.temperature` when the probe was repurposed and works as written; a
-restored DS18B20 becomes a third outdoor source rather than a required one.
-
-Should the star be there and re-cabling be unattractive, that breakout is the hub §6 describes, so
-its per-branch 100 Ω resistors belong at that block. The pair at the accessory board damps the
-board-level fork between the two plugs, which is a different junction. Those sit upstream of the
-breakout's own eight branches and do nothing for them, so the two sets of resistors address
-separate problems and neither substitutes for the other.
-
-### 4.2 Which conductors have to follow the chain
-
-The topology requirement is on **DQ**, and **GND has to follow it** because GND is DQ's return
-path. The loop enclosed by the two is what sets inductance and pickup, so they belong in the same
-cable end to end, ideally the same twisted pair. Giving DQ the long chained route while picking
-GND up from a convenient local earth is the failure this rule exists to prevent.
-
-**VDD is DC power and its topology is electrically irrelevant.** Eight DS18B20s draw roughly
-12 mA between them, which over 30 m of 24 AWG drops about 30 mV. Chain it anyway, in the same
-cable, because there is nothing to gain from a second run.
-
-Fit a **100 nF ceramic across VDD and GND at each block**. It supplies the conversion-current
-transient locally instead of pulling it down the trunk, and it costs pennies.
-
-The single pull-up stays at the master end regardless. One for the whole bus, never one per block.
-
-## 5. Cable and pairing
-
-The rule people get wrong is that **DQ and GND must share one twisted pair**, so the data line has
-its return conductor adjacent. Pairing DQ with VDD instead couples them and puts the pair's mutual
-capacitance directly on the data line.
-
-| T568B conductor | Signal | Pi header (while on `w1-gpio`) |
-|---|---|---|
-| white/orange | DQ | GPIO 4, physical pin 7 |
-| orange | GND | physical pin 9 |
-| blue | VDD | **3.3 V**, physical pin 1 |
-| white/blue | GND | same GND |
-
-Leave the green and brown pairs open at both ends. Do not put anything spare on DQ.
-
-### 5.1 Cable category barely matters; capacitance does
-
-**CAT6 over CAT5e buys close to nothing here.** CAT6's advantages — tighter twist, a spline,
-23 AWG instead of 24, controlled NEXT — are all specified in the 100–250 MHz domain. Standard-speed
-1-Wire runs at roughly 15 kbps. Mutual capacitance is the parameter that matters and the two
-categories sit within a few percent of each other, near 50 pF/m. Use whichever is already on the
-shelf, solid core rather than stranded.
-
-Capacitance matters because it sets the rising edge, and the rising edge is what the failure
-actually is. In a read slot the master releases the line and samples about 15 µs in, so after its
-own low pulse there is roughly 9 µs for the line to climb past the DS18B20's `0.7 × VDD`
-threshold, about 1.2 time constants. Take a 30 m trunk at ~50 pF/m, so about 1.5 nF, plus a couple
-of hundred pF of sensor pin capacitance:
-
-| Pull-up | τ = RC | 1.2τ | Verdict |
-|---|---|---|---|
-| 4.7 kΩ | ~8 µs | ~9.6 µs | misses the sample point |
-| 2.2 kΩ | ~3.7 µs | ~4.5 µs | passes with margin |
-| DS2482 active | driven, sub-µs | — | not a limitation |
-
-That is the whole story of a bus that worked at four probes on short leads and died when cable was
-added. Scale the numbers to the real run length; the shape does not change.
-
-**Shielded cable is a genuine tradeoff, not an upgrade.** It rejects pickup, which matters with an
-inverter-driven Chiltrix compressor and contactors in the same room, but conductor-to-shield
-capacitance adds to the DQ load and pushes the table above in the wrong direction. Start with plain
-UTP. Reach for shielded only if the symptom is intermittent CRC errors rather than a dead bus, and
-stiffen the pull-up if you do. Ground the shield at the master end only.
-
-**Conductor gauge is not the variable; the conductor count is.** The run from the Pi to the first
-block is 18 AWG solid, which is fine — resistance was already irrelevant at 12 mA, and heavier
-copper barely moves DQ's capacitance. What matters is how many grounded conductors sit beside the
-data line. A twisted pair gives DQ one return. Jacketed 3-conductor thermostat cable puts it
-between VDD and GND, **both of which are AC ground**, so it sees roughly twice as much; a
-5-conductor run can be worse again.
-
-**Measured here rather than estimated, this chain runs 112 pF/m** on 20 AWG 3-conductor and
-18 AWG 5-conductor, against ~50 pF/m for CAT5e. So parallel-conductor thermostat wire is not the
-RC bargain its loose spacing suggests: wider spacing does lower the capacitance between any given
-pair, and sandwiching the data line between two grounded conductors more than takes it back. What
-untwisted cable does still cost is the controlled loop area between DQ and its return, which is
-what cancels magnetic pickup from contactors, pumps and the inverter compressor.
-
-The corollary is to leave spare conductors **floating at both ends**. A grounded spare next to DQ
-adds capacitance and returns nothing.
-
-Keep it. Mixing 18 AWG for the first leg with twisted pair further out is fine: at these edge rates
-a change of cable type is a weak partial reflection, while an open stub is a total one. The stubs
-are what matter. If the cable carries spare conductors, leave them open — never parallel them onto
-DQ.
-
-### 5.3 Measure the bus instead of estimating it
-
-The RC table above assumes a run length. The real number takes a few minutes with a multimeter in
-capacitance mode.
-
-**Only the master end comes apart.** Unplug both 3-position connectors at the accessory board and
-leave everything downstream exactly as installed: every probe attached, every branch connected,
-nothing touched at any far end. Disconnecting a far end would remove the capacitance being
-measured.
-
-**Measure the two plugs separately and add the readings.** The branches are in parallel from the
-master's point of view and parallel capacitances sum, so the total is the same either way, and
-measuring them apart also says how much of the budget the outdoor run accounts for on its own.
-Combining them physically is awkward with two connectors and buys nothing.
-
-On each free cable in turn, tie **VDD to GND** and measure from **DQ** to that pair. The supply
-holds VDD at AC ground in normal operation, so the DQ-to-VDD coupling is part of what the pull-up
-charges; leave VDD floating and the reading comes in low. Null the test leads with the meter's REL
-or ZERO function first, since lead capacitance runs 30–100 pF against a reading expected in the
-hundreds of pF to low nF.
+## 2. What the finished system is
 
 ```
-STEP 1 — unplug both connectors at the accessory board
-
-  EXT-PCB HBUS SET                      INSTALLED CABLES — untouched
-  ────────────────                      ────────────────────────────
-
-    3.3 V ──[ pull-up ]──┐                VDD ○ ┐
-                         ├── GPIO 4       DQ  ○ ├─ mechanical-room trunk:
-    GND ─────────────────┘                GND ○ ┘  breakout, all probes
-
-    pull-up and GPIO stay on               VDD ○ ┐
-    this side, out of the reading          DQ  ○ ├─ outdoor run
-                                           GND ○ ┘
-
-STEP 2 — on each cable in turn, tie VDD to GND, meter from DQ to that pair
-
-                    DQ  ○──────────────────┐
-                                        ┌──┴──────────────┐
-                    VDD ○──┬──────────  │  DMM            │
-                           │            │  capacitance    │
-                    GND ○──┴──────────  │  (leads REL'd)  │
-                                        └─────────────────┘
-
-STEP 3 — add the two readings
+                       5-wire cable: 3V3 · SDA · SCL · spare · GND
+                              ┌───────────────────────────┐
+ Pi ──40-pin──► INT board ──┤PLUG├                     ┤PLUG├── EXT board ──► DS2482
+                                                                     │
+                                             VCC · DATA · GND bus ───┤
+                                                                     ├─┤H1├─► TRUNK ─► 8 probes
+                                                                     ├─┤H2├─► spare (outdoor)
+                                                                     └─┤H3├─► spare
 ```
 
-The sum is the C in `τ = RC`, and the master allows roughly 9 µs for the line to rise before it
-samples:
+The DS2482 turns the Pi's I²C into 1-wire timing generated in hardware with a driven rising
+edge — which is what an eight-probe run in a mechanical room wants, and why the discrete
+pull-up and the old GPIO 4 wiring come off (Appendix A).
 
-| Measured DQ-GND | 4.7 kΩ, 1.2τ | 2.2 kΩ, 1.2τ |
+**Everything that leaves this board is on a plug.** The three probe sockets sit at the
+short-end opening, and the five-way link to the Pi board lands on a pluggable terminal at
+**each** end (a PTSM plug here, a screw-clamp plug on the Pi board), so the cable is
+replaceable too. Pull four plugs and the EXT board lifts out of the enclosure without
+touching the Pi board or the field wiring. Sensors keep their `28-*` names
+throughout, so pivac, the calibration offsets and the InfluxDB history are untouched.
+
+## 3. Parts
+
+| Item | Part | Qty |
 |---|---|---|
-| 500 pF | 2.8 µs | 1.3 µs |
-| 1 nF | 5.6 µs | 2.6 µs |
-| 1.5 nF | 8.5 µs | 4.0 µs |
-| 3 nF | 17 µs | 7.9 µs |
+| 1-wire converter | **DS2482-100** (SOIC-8 on a DIP-8 adapter) | 1 |
+| IC socket | DIP-8 | 1 |
+| Probe sockets | **PTSM 0,5/3-HH-2,5-THR** print header, horizontal entry (order 1778560 black / 1815277 white) | 3 |
+| Probe plugs | **PTSM 0,5/3-P-2,5** (order 1778845) | 3 |
+| Link terminal | **PTSM 0,5/5-HH-2,5-THR** print header, horizontal entry | 1 |
+| Link plug | **PTSM 0,5/5-P-2,5** | 1 |
+| Decoupling | 100 nF ceramic | 1 |
+| Link cable | 5-conductor, board to board — length measured at the dry-fit (the Pi-board terminal sits at its row 25, below the lower keep-out band) | 1 |
+| Wire | insulated 22 AWG solid + a scrap of bare | — |
 
-Anything approaching 9 µs is the diagnosis, and the row it lands on says whether a resistor swap
-is sufficient or the DS2482's driven edge is required.
+Removed, not added: the 2.2 kΩ pull-up and any series resistor — the DS2482 supplies its own
+pull-ups and an external one fights it. Keep the pull-up in the spares box; it is the rollback
+part.
 
-**Two budgets, and the difference decides everything here.** The 9 µs above is the *guaranteed*
-worst case: the master holds low about 6 µs in a write slot, and the DS18B20 is specified to
-sample anywhere from 15 to 60 µs after the falling edge, so only the 15 µs end is promised. Real
-parts sample near 30 µs, which puts the working budget closer to **24 µs**. Design to 9 µs; expect
-failure near 24.
+**PTSM is 2.5 mm pitch and the board matrix is 2.54 mm.** Over three positions that is 0.08 mm
+of drift and over four 0.12 mm, which a 0.65 mm pin in a 1.0 mm hole absorbs. Ease the outer
+pins in; do not force them.
 
-**Measured on this bus, 2026-08-24.** Main loop with its four probes, **1.75 nF**. Outdoor run,
-bare cable with no probe fitted, **1.95 nF**. Time to reach `0.7 × VDD`, which is 1.2τ:
+## 4. The EXT board's fixed features
 
-| Bus | C | 4.7 kΩ | 2.2 kΩ |
+### 4.1 The grid
+
+14 columns × 32 rows of plated ⌀1.0 mm holes on a 2.54 mm pitch, isolated pads, no bus strips
+— every rail has to be built. Three gaps, all on the riser side: **column 3 has no holes in
+rows 11–23**, and columns 1–2 have none at rows 11, 12, 22 and 23. The gap column is the
+quickest visual confirmation that you have column 1 on the correct side.
+
+### 4.2 The power-riser field — leave it alone
+
+Columns 1–5, rows 11–23: the riser's 18 pin positions at columns 1–2, the no-hole column 3,
+and the pre-wired access pads at columns 4–5. The riser carries power up to the Pi board and
+**this build does not use it**. Nothing is placed there, and no wire enters it.
+
+### 4.3 Keep-out areas (solder side)
+
+| Area | Holes covered |
+|---|---|
+| Upper band | rows 8–9, full width |
+| Lower band | rows 25–26, full width |
+
+No solder-side rail, wire or joint may sit in either band. **The component side is clear**,
+which is what lets the three bridges in §5.3 cross the upper band. Everything else in this
+build sits in rows 1–7 or rows 10–24, between the bands.
+
+## 5. Placement map
+
+The placement map is deliberately **not embedded here** — print it separately from
+[`docs/ds18b20-ext-board-layout.svg`](ds18b20-ext-board-layout.svg). (Any embedded
+SVG chokes the printer and needs flattening in Acrobat first.) Figure source:
+`docs/ds18b20-ext-board-layout.gen.py`.
+
+### 5.1 Probe sockets
+
+Three 3-position headers with their **pins in row 2** and their **entries facing the row-1
+edge**, so the plugs go in through the short-end opening:
+
+| Socket | VCC pin | DATA pin | GND pin | Use |
+|---|---|---|---|---|
+| **H1** | (2,2) | (3,2) | (4,2) | the trunk to the field chain |
+| **H2** | (7,2) | (8,2) | (9,2) | spare — the outdoor run when it is restored |
+| **H3** | (12,2) | (13,2) | (14,2) | spare / bench tap |
+
+The bodies overhang the row-1 edge, which is what puts the plug entries at the opening. **Check
+that overhang against the enclosure at the step-2 dry-fit before soldering anything** — it is
+the one dimension this layout cannot settle from the drawing.
+
+An empty socket adds nothing to the bus; a plug only becomes a branch when a cable lands in
+it, so leave the spares empty without concern.
+
+### 5.2 Bus rails
+
+Three bare rails on the solder side, one per conductor, spanning the sockets:
+
+| Rail | Row | Runs | Fed from the sockets by |
 |---|---|---|---|
-| Main loop, 4 probes | 1.75 nF | 9.9 µs | 4.6 µs |
-| Main loop, 8 probes | ~2.35 nF | 13.3 µs | 6.2 µs |
-| Main 4 + outdoor — the bus that ran until 6 Aug | 3.70 nF | **20.9 µs** | 9.8 µs |
-| Main 8 + outdoor — the bus that collapsed 22 Aug | ~4.30 nF | **24.3 µs** | 11.4 µs |
+| **VCC** | 3 | (2,3) → (12,3) | bare 1-hole stubs at columns 2, 7, 12 |
+| **DATA** | 4 | (3,4) → (13,4) | insulated jumpers (c,2) → (c,4) at columns 3, 8, 13 |
+| **GND** | 5 | (4,5) → (14,5) | insulated jumpers (c,2) → (c,5) at columns 4, 9, 14 |
 
-**The collapse lands exactly where the real sampling point predicts.** The configuration that
-worked for months sat at 20.9 µs and the one that died sat at 24.3 µs, on either side of ~24. That
-also explains why the failure was total rather than gradual: crossing the threshold corrupts every
-bit of the ROM search at once, which is the §1 phantom-device signature.
+The DATA and GND jumpers cross over the rails above them. Bare rail, insulated jumper — that
+is what makes the crossing safe, and why the rails go down before the jumpers.
 
-This supersedes §2's reflection argument as the explanation for *this* bus. At 1-wire edge rates a
-round trip down even 40 m settles in a few hundred nanoseconds, far inside the sample point, while
-the RC arithmetic predicts the observed failure to within a few percent. Star topology still costs
-capacitance through captive-lead length, so §4 stands on that ground rather than on echoes.
+### 5.3 Bridges over the upper band
 
-**2.2 kΩ carries the whole bus, outdoor included**, at 11.4 µs against the ~24 µs where it
-actually broke — roughly 2× margin, where 4.7 kΩ gave it 1.15×. Only the main-loop-only cases
-clear the 9 µs guaranteed window, so a fully populated bus still relies on real-part behaviour.
-That is the argument for §4.4's separate DS2482 bus, which is now a robustness choice rather than
-an arithmetic requirement.
+Three insulated wires on the **component** side, each dropping through a hole at both ends:
 
-A probe adds about 25 pF, so fitting one changes none of this. Cable length is the whole story, and
-the inventory closes against the measurement exactly:
+| Net | From | To |
+|---|---|---|
+| VCC | (6,3) | (6,10) |
+| DATA | (10,4) | (10,10) |
+| GND | (12,5) | (12,10) |
+
+Each bridge passes over the rails below its start on the component side and touches none of
+them. Columns 6, 10 and 12 are deliberately not socket-pin columns, so no hole carries more
+than two conductors.
+
+### 5.4 DS2482 socket
+
+DIP-8 socket at **columns 8 and 11, rows 12–15**, with the **notch facing row 11** (up, toward
+the probe sockets). Pin 1 is the top-left pin, (8,12). The SOIC-8 sits on its adapter with pin
+1 on the adapter's pin-1 mark.
+
+| Hole | Pin | Name | Connects to |
+|---|---|---|---|
+| (8,12) | 1 | VCC | VCC rail (wire V1) |
+| (8,13) | 2 | IO | the 1-wire DATA net (wire D1) |
+| (8,14) | 3 | GND | GND rail (wire G1) |
+| (8,15) | 4 | SCL | link terminal (wire S1) |
+| (11,15) | 5 | SDA | link terminal (wire S2) |
+| (11,14) | 6 | PCTLZ | **nothing — leave open** |
+| (11,13) | 7 | AD1 | GND rail (bare stub) |
+| (11,12) | 8 | AD0 | GND rail (bare stub) |
+
+AD0 and AD1 at ground set I²C address `0x18`, which the software step expects.
+
+### 5.5 Link terminal and decoupling
+
+The 5-position header sits with its **pins in row 18** and its body facing row 19, clear of
+both keep-out bands. Positions run straight through to the matching terminal on the Pi board,
+so the cable is a plain five-conductor run with no crossovers:
+
+| Pos | Hole here | Signal | Pi board pad (Pi pin) | Connects to |
+|---|---|---|---|---|
+| 1 | (8,18) | 3V3 | (5,2) — pin 1 | VCC rail (wire V3) |
+| 2 | (9,18) | SDA | (5,3) — pin 3 | chip pin 5 (wire S2) |
+| 3 | (10,18) | SCL | (5,4) — pin 5 | chip pin 4 (wire S1) |
+| 4 | (11,18) | spare | (5,5) — pin 7, GPIO 4 | **nothing — parked** |
+| 5 | (12,18) | GND | (5,6) — pin 9 | **the GND rail, which already lands on this pad** |
+
+**The order is set by the Pi board, where those five signals sit on consecutive access pads**
+(`docs/rpi-io-board-design.md` §5.5) — GPIO 4 falls between SCL and GND, which is why the
+cable is five conductors rather than four. Position 4 is parked here; on a rollback to
+`w1-gpio` it becomes the bus data line and moves to the DATA net, which is the whole of §9.
+
+**The cable detaches at both ends** — the PTSM plug here, a screw-clamp plug on the Pi
+board — so it is replaceable and either board lifts out alone. **Mark position 1 on both
+boards, both plugs and the cable** — reversed, this link puts 3V3 on ground.
+
+GND needs no wire at all: the rail already runs down column 12 to row 18, so it solders to
+that pad and the connector pin drops into the same hole.
+
+The **100 nF capacitor** goes across the two lower-field rails at **(9,16) and (10,16)**, body
+flat between them, one hole below the chip.
+
+### 5.6 Lower-field rails and wires
+
+Two more bare rails run down the lower field, each starting at its bridge foot:
+
+| Rail | Column | Runs |
+|---|---|---|
+| **VCC** | 6 | (6,10) → (6,18) |
+| **GND** | 12 | (12,10) → (12,18) |
+
+Then eleven connections. Bare where marked, otherwise insulated 22 AWG:
+
+| # | Net | From | To | Note |
+|---|---|---|---|---|
+| V1 | VCC | rail at (6,12) | ring (8,12) | chip VCC |
+| V2 | VCC | rail at (6,16) | hole (9,16) | capacitor |
+| V3 | VCC | rail at (6,18) | ring (8,18) | link position 1 |
+| G1 | GND | rail at (12,14) | ring (8,14) | chip GND, passing under the package |
+| G2 | GND | rail at (12,16) | hole (10,16) | capacitor |
+| — | GND | rail at (12,12) | ring (11,12) | **bare** 1-hole stub — AD0 |
+| — | GND | rail at (12,13) | ring (11,13) | **bare** 1-hole stub — AD1 |
+| D1 | DATA | bridge foot (10,10) | ring (8,13) | left along row 10, down column 7, in to IO |
+| S1 | SCL | ring (8,15) | ring (10,18) | down and right, crossing S2 once |
+| S2 | SDA | ring (11,15) | ring (9,18) | down and left, crossing S1 once |
+
+G1 runs beneath the DIP package on the solder side, which is fine — the package is on the
+other face. S1 and S2 cross once between rows 16 and 17; run one a few millimetres above the
+other so the crossing is a clean right angle. Every other run stays in the free columns 6, 7
+and 12.
+
+## 6. Build sequence
+
+The bus is live today, so from step 3 on it is down. Do it in one sitting and expect the
+30-minute freshness alerts if it runs long.
+
+1. **Identify the board.** Measure both end margins and mark row 1. Confirm the riser field
+   and the no-hole column are on the left. Meter check: two adjacent free holes must not beep
+   (no hidden bus strips). Identify the DS2482's pins on the bench against the §5.4 table and
+   the adapter's pin-1 mark.
+2. **Dry-fit, cover on.** Place the three probe sockets at row 2, the DIP socket, and the link
+   terminal without soldering. Confirm the socket bodies clear the enclosure and their entries
+   line up with the short-end opening; confirm the link terminal and its plug clear the lid;
+   confirm the link cable reaches the Pi board's link terminal (its row 25, below the lower
+   keep-out band) through the long-side opening. **If the socket
+   overhang fouls the case, move all three one row in — pins to row 3, rails to rows 4, 5, 6,
+   VCC bridge from (6,4)** — and carry that one-row shift through the rest of the build.
+3. **Strip the old arrangement.** Unplug the trunk, remove the 2.2 kΩ pull-up, the GPIO 4 data
+   wire and any series resistor.
+4. **Solder the fixed parts**, lowest first: the DIP socket (two diagonal pins, check it sits
+   flat, then the rest), the three probe sockets, the link terminal. Chip stays out.
+5. **Rails, then jumpers, then bridges, then wires** — §5.2, §5.3, §5.6 in that order, then
+   the capacitor.
+6. **Check before the chip goes in.** Continuity from each socket's VCC pin to the chip's
+   VCC ring and to link position 1 (8,18); the same for DATA (to the chip's IO ring) and GND
+   (to link position 5, (12,18)). Then silence between every pair: VCC↔GND, VCC↔DATA,
+   DATA↔GND, and every net ↔ PCTLZ (11,14) and ↔ the parked position 4 (11,18). SCL
+   (8,15)↔(10,18) beeps; SDA (11,15)↔(9,18) beeps; SCL↔SDA stays silent.
+7. **Software, then chip.** Run §8's config edit and reboot with the socket still empty. Power
+   off, seat the DS2482 (notch up), power on: `i2cdetect -y 1` shows `0x18`.
+8. **Bring the bus up.** Instantiate per §8, plug the trunk into H1, and
+   `cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count` reads **8**. The eight `28-*`
+   names match the roster in CLAUDE.md, and Signal K values resume within one `pivac-1wire`
+   cycle — no restart needed, the module re-scans every cycle.
+
+## 7. The field bus
+
+The rules, in build order — reasons in Appendix A:
+
+1. **One trunk, no branches.** The cable leaves the H1 plug, visits each sensor location in
+   physical order, and ends at the last one. Nothing branches at the board, no spur doubles
+   back, nothing hangs open.
+2. **A block at each location, not a hub at the Pi.** Four locations, four blocks: tees
+   (`IN`, `OUT`), tank (`UBT`, `LBT`), loop A, loop B. Each block is three 4-way lever
+   connectors — one per conductor — carrying trunk-in, trunk-out and its two probes. Add a
+   **100 nF ceramic across VCC–GND at each block**.
+3. **Trim every probe lead** to the shortest length that reaches its block. Coiled slack
+   defeats the exercise.
+4. **DATA and GND share one twisted pair; VCC rides in the same cable.** On CAT5e/6:
+   white/orange = DATA, orange = GND, blue = VCC, white/blue = second GND. Green and brown
+   pairs stay open at both ends; never put anything spare on DATA, and never pair DATA with
+   VCC.
+5. **Measure, don't estimate.** Multimeter in capacitance mode. Only the master end comes
+   apart: unplug the cable at the board and leave everything downstream exactly as installed,
+   every probe attached, because the probes are at the far end and disconnecting there removes
+   the capacitance being measured. On the free plug tie VCC to GND and measure from DATA to that
+   pair; the supply holds VCC at AC ground in operation, so DATA-to-VCC coupling is part of what
+   the pull-up charges, and a floating VCC reads low. Null the meter leads first (REL or ZERO):
+   30–100 pF of lead is not negligible against a reading in the hundreds of pF. With more than
+   one cable at the board, measure each plug separately and add the readings; parallel
+   capacitances sum, and the split says which run dominates. Under ~2 nF the DS2482 drives it
+   with ease. Measured 2026-08-24: main loop with four probes **1.75 nF**, outdoor run as bare
+   cable **1.95 nF**; arithmetic in Appendix A.
+
+```
+   H1 plug ═ trunk ═►│ BLOCK 1 │═►│ BLOCK 2 │═►│ BLOCK 3 │═►│ BLOCK 4 │ ends here
+                     │  tees   │  │  tank   │  │ loop A  │  │ loop B  │
+                        │  │        │  │        │  │        │  │
+                       IN OUT     UBT LBT     A_SUP…     B_SUP…
+```
+
+Mechanical rules for anything in the utility room: every conductor in a screw or spring
+terminal (no mid-air joints, no wire nuts), ferrules on stranded wire, strain relief at every
+enclosure entry, each branch labelled with the probe name it serves
+(`docs/PhoenixContact-BC-RPI-label.docx` convention).
+
+### 7.1 The bus as it stands
+
+The mechanical-room side is already a chain. Three headers sit along the run, each built from
+Phoenix Contact **ST 1,5/S QUATTRO** feed-through blocks, one commoned 4-terminal block per
+conductor: the trunk enters, the local probes land on the spare terminals, and the trunk leaves
+for the next header. That is rule 2 as built, which is why the 2026-08-24 diagnosis went to the
+pull-up and the damping resistors in Appendix A were never fitted. The one departure is a
+**10 ft stub** from the middle header to the two tank probes. RC rather than reflection binds
+this bus, so the stub is a length problem, about 340 pF, and not a topology one. Both end
+headers are full, so a probe added at either needs a second block and a bridge.
+
+The inventory closes against the measurement exactly:
 
 | Segment | Length |
 |---|---|
@@ -363,51 +337,46 @@ the inventory closes against the measurement exactly:
 | eight probe leads, untrimmed | 16 ft |
 | **total conductor** | **45.5 ft / 13.9 m** |
 
-13.9 m at 112 pF/m is 1.55 nF; eight DS18B20 pins at 25 pF each add 200 pF; the sum is 1.75 nF,
-which is what the meter read. **Note what dominates: the probe leads are 16 ft of the 45.5.**
+13.9 m at 112 pF/m is 1.55 nF; eight DS18B20 pins at 25 pF each add 200 pF; the sum is the
+1.75 nF the meter read. The probe leads are 16 ft of the 45.5, which is what makes rule 3 the
+cheapest headroom on the bus.
 
-**Confirmed live 2026-08-24: eight probes on 2.2 kΩ enumerate and hold.** All eight appear in
-`w1_master_slave_count`, publish through `pivac.OneWireTherm`, and both loop pairs read the right
-sign. The predicted 6.2 µs sits inside even the 9 µs guaranteed window, against the 24.3 µs that
-took the bus down at 4.7 kΩ.
+The outdoor run leaves the board on its own plug and currently carries no probe (AMB became
+LBT). Until a probe returns it would contribute its full 1.95 nF and an open end for no data,
+so it stays unplugged; that is free headroom.
 
-**Trimming the probe leads is the cheapest headroom left.** At 16 ft they are 35% of the conductor.
-Cut to roughly 6 in each, the bus sheds 12 ft — about 410 pF at 112 pF/m — and drops to 1.34 nF.
-The outdoor branch's 1.95 nF then fits alongside it at 3.29 nF, inside the 3.4 nF that 2.2 kΩ
-guarantees. That is what buys the outdoor sensor back onto this bus without a second master.
+### 7.2 Planned end state
 
-**Practical length on cable like this**, designing to the guaranteed 9 µs window at 112 pF/m:
+| Change | Now | After | Saves |
+|---|---|---|---|
+| Trim probe leads, 2 ft → 6 in (rule 3) | 546 pF | 137 pF | **409 pF** |
+| Take ~7.5 ft of slack out of the trunk and tank runs | — | — | **~240 pF** |
+| Trunk and tank to CAT5e/CAT6, ~22 ft at 50 pF/m (rule 4) | 1007 pF | 335 pF | **~430 pF** |
+| Eight DS18B20 pins | 200 pF | 200 pF | 0 |
+| **Total** | **1753 pF** | **~670 pF** | **~62 %** |
 
-| Pull-up | C ceiling | Total conductor |
-|---|---|---|
-| 4.7 kΩ | 1.6 nF | ~14 m / 47 ft |
-| 2.2 kΩ | 3.4 nF | ~30 m / 100 ft |
-| 1.5 kΩ | 5.0 nF | ~45 m / 146 ft |
-| DS2482 | not binding | 200–300 m |
+Trimming and de-slacking cost nothing but time and take 37 % between them, so they come first;
+the re-pull adds the remaining 25 %. Redone the same way, the outdoor run falls from 1.95 nF to
+about 870 pF, so the whole bus with outdoor restored lands near 1.57 nF, inside the 9 µs
+guaranteed window on 2.2 kΩ even without the DS2482, with room for several more probes.
 
-At 45.5 ft this bus sits at 45% of the 2.2 kΩ budget, which is the 6.2 µs against 9 µs above. It
-was over the 4.7 kΩ row before a single loop probe was added.
+Two details of the re-pull. The second GND conductor of a CAT pair is the same net as the first
+and merges at the terminal: land both GND conductors of a run in **one** terminal, or a
+pass-through header spends all four GND positions on trunk-in and trunk-out with none left for
+probes. Two 23 AWG is 0.52 mm² against the ST 1,5's 1.5 mm² rating, so cross-section is never
+the constraint. Stranded takes a twin ferrule (2 × 0.25 mm² for 24 AWG, 2 × 0.34–0.5 mm² for
+23 AWG); solid goes bare into the clamp, since it does not crimp predictably. Check that the
+ferrule's insulating collar clears the terminal throat, which is the dimension that limits.
 
-1.5 kΩ is the floor for a passive pull-up on 3.3 V: 2.2 mA stays inside the DS18B20's 4 mA sink,
-and going lower eats low-level margin. Past that the DS2482's driven edge is the only way up.
-"Total conductor" counts every branch and every probe lead, which is why a 60 ft chain can already
-sit at the limit.
+### 7.3 Prove the bus
 
-### 5.4 Bus health is measurable, not just "it enumerates"
-
-Three signals, all free, all in sysfs:
-
-**CRC failures.** Every `w1_slave` read ends `crc=XX YES` or `NO`. Read each sensor repeatedly and
-count the `NO`s. `w1_therm` retries internally, so one reaching sysfs means several consecutive
-failures — a `NO` rate above zero is a bus with no margin.
-
-**Search stability.** `w1_master_slave_count` polled over time must never dip below the expected
-count. This is the sharpest indicator available, because the ROM search is the most timing-critical
-operation on the bus and the one that failed on 22 August. A bus that reads fine but searches
-unreliably is a bus about to collapse.
-
-**`ext_power`.** Each probe reports `1` for externally powered, `0` for parasitic. A `0` on a bus
-wired for external power means VDD is not reaching that probe.
+"It enumerates" is not a measurement. Three signals, all in sysfs. **CRC:** every `w1_slave`
+read ends `crc=XX YES` or `NO`, and since `w1_therm` retries internally, a `NO` reaching sysfs
+is several consecutive failures, so any rate above zero is a bus with no margin. **Search
+stability:** `w1_master_slave_count` must never dip below the expected count; the ROM search is
+the most timing-critical operation on the bus and the one that failed on 2026-08-22.
+**`ext_power`:** `1` per probe; a `0` on a bus wired for external power means VCC is not
+reaching that probe.
 
 ```bash
 ok=0; bad=0; miss=0
@@ -422,305 +391,28 @@ echo "crc_ok=$ok crc_fail=$bad sweeps_not_8=$miss"
 grep . /sys/bus/w1/devices/28-*/ext_power
 ```
 
-**Measured 2026-08-24, immediately after the pull-up change.** Forty sweeps over about seven
-minutes: **320 reads, 0 CRC failures, 0 sweeps returning other than eight devices, all eight
-reporting `ext_power=1` at 12-bit resolution.** Forty clean ROM searches out of forty is the
-evidence that the 6.2 µs figure is real margin rather than luck; on 320 clean reads the error rate
-sits under roughly 1% at 95% confidence.
-
-### 5.5 Planned end state
-
-Three changes take this bus from 1.75 nF to roughly 670 pF. Two of them cost nothing but time.
-
-| Change | Now | After | Saves |
-|---|---|---|---|
-| Trim probe leads, 2 ft → 6 in | 546 pF | 137 pF | **409 pF** |
-| Take ~7.5 ft of slack out of the trunk and tank runs | — | — | **~240 pF** |
-| Trunk and tank to CAT5e/CAT6, ~22 ft at 50 pF/m | 1007 pF | 335 pF | **~430 pF** |
-| Eight DS18B20 pins | 200 pF | 200 pF | 0 |
-| **Total** | **1753 pF** | **~670 pF** | **~62%** |
-
-At 2.2 kΩ that is **1.85 µs against the 9 µs guaranteed budget, about 5× margin**, up from 6.2 µs
-today. Redo the outdoor run the same way and it falls from 1.95 nF to roughly 870 pF, so the whole
-bus with outdoor restored lands near 1.57 nF and stays inside the guaranteed window with room for
-several more probes. That is the version of this bus that stops needing attention.
-
-**Order by payoff against effort.** Trimming and de-slacking together take 1753 pF to about
-1100 pF, a 37 % cut with no cable bought. The re-pull adds the remaining 25 %.
-
-**Why CAT cable wins here has nothing to do with its category.** CAT5e and CAT6 are both specified
-to 100 Ω with a velocity factor near 0.67, and `C = 1/(Z₀·v)` forces both to ~50 pF/m; choosing
-between them is not worth a moment's thought. The gain is entirely that §5's pairing gives DQ
-**one** grounded neighbour where 3-conductor thermostat cable gives it two. That is the same
-mechanism §5.1 measures as 112 pF/m against 50.
-
-**Two things to get right on the re-pull.** DQ and GND share one twisted pair and VDD sits on a
-different pair, per §5; pairing DQ with VDD couples the data line to the supply and discards the
-benefit. And leave the spare pairs open at both ends, never grounded and never paralleled onto DQ,
-since a grounded conductor beside DQ is precisely what makes the present cable expensive.
-
-**Terminal budget, which the second GND conductor threatens.** Both GND conductors are one net and
-merge at the terminals, so the run still lands as three connections. But a pass-through header
-would otherwise spend all four of its GND quattro terminals on trunk-in and trunk-out, leaving none
-for probes. Land both GND conductors of a run in a **single** terminal and the
-one-block-per-conductor layout in §4.3 keeps working unchanged. Two 23 AWG is 0.52 mm² against the
-ST 1,5's 1.5 mm² rating, so the cross-section is never the constraint.
-
-How they land depends on which cable is pulled. **Stranded takes a twin ferrule**, 2 × 0.25 mm² for
-24 AWG or 2 × 0.34–0.5 mm² for 23 AWG, which crimps both conductors into one pin at a consistent
-clamping force. **Solid does not** — it will not compress predictably in a crimp, and the standard
-termination is bare into the clamp, which two solid conductors of this size handle without help.
-Check the ferrule's insulating collar clears the terminal throat before ordering; the collar is
-bulkier than the conductors and is the dimension that actually limits.
-
-### 5.2 The wiring, end to end
-
-```
-MASTER END                                    ONE CABLE, CHAINED BLOCK TO BLOCK
-──────────                                    ────────────────────────────────
-
-  3.3 V ──────┬──────────────────────────────────────────────►  VDD  (blue)
-              │
-          [ 2.2 kΩ ]   one pull-up, master end only
-              │
-  GPIO 4 ─────┴──────────────────────────────────────────────►  DQ   (white/orange)
-  or DS2482 IO
-                                                                GND  (orange)
-  GND ─────────────────────────────────────────────────────────►     + white/blue
-
-
-                    ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
-   master ═════════►│ BLOCK 1 │═►│ BLOCK 2 │═►│ BLOCK 3 │═►│ BLOCK 4 │  trunk ends
-                    │  tees   │  │  tank   │  │ loop A  │  │ loop B  │  here, no
-                    └─┬─────┬─┘  └─┬─────┬─┘  └─┬─────┬─┘  └─┬─────┬─┘  loop back
-                      │     │      │     │      │     │      │     │
-                     IN    OUT    UBT   LBT   A_SUP A_RET  B_SUP B_RET
-                      └── short trimmed stubs, one probe each ──┘
-
-
-   INSIDE ONE BLOCK   three 4-way lever connectors, one per conductor
-
-     DQ   [ trunk in | trunk out | probe 1 | probe 2 ]
-     VDD  [ trunk in | trunk out | probe 1 | probe 2 ]──┐
-     GND  [ trunk in | trunk out | probe 1 | probe 2 ]──┴─ 100 nF across VDD-GND
-```
-
-Nothing branches at the master, the trunk terminates at block 4, and every probe lead is trimmed
-to reach only its own block.
-
-## 6. Pull-up, and the mitigation that needs no new cable
-
-One pull-up for the whole bus, at the master end, from DQ to 3.3 V. Never one per sensor. For
-eight probes on a longer run, drop 4.7 kΩ to **2.2 kΩ**. The DS18B20 sinks 4 mA at 0.4 V, so
-3.3 V / 2.2 kΩ = 1.5 mA is comfortable and even 1.5 kΩ stays in spec. This is the cheapest thing
-to try and it changes no wiring.
-
-If re-running the trunk is impractical, keep the star and fit a **100 Ω series resistor in each
-branch's DQ line at the hub**. It damps the reflection returning off that branch. This is the
-standard mitigation from Maxim AN148, "Guidelines for Reliable Long Line 1-Wire Networks", and
-it costs a handful of resistors rather than a cable pull.
-
-**Treat this as secondary on this bus.** §5.3's measurement puts the failure squarely on rise
-time, and the pull-up alone restores 2× margin. Fit the resistors only if the bus is still
-unreliable at eight probes after the pull-up change.
-
-### 6.1 Where the resistors go
-
-One resistor per branch, in series with **DQ only**, at the hub end. It has to sit between the
-common node and that branch's outgoing wire so it damps the reflection returning off that stub.
-Fitted at the sensor end it does nothing. VDD and GND bus straight through, unbroken.
-
-The value is chosen for mechanics rather than dissipation. Only the talking sensor's own branch
-carries pull-down current, roughly 1.5 mA against a 2.2 kΩ pull-up, so 100 Ω adds about 0.15 V to
-the low level the master sees against a `0.3 × VDD` input-low threshold. Power in the resistor is
-about 0.2 mW. Anything from 22 Ω to 120 Ω works; 1/4 W metal film is far more than enough.
-
-These apply to a star. A daisy chain does not want them, so settle topology first.
-
-**One resistor on the trunk instead of four on the branches does not work.** Put it between the
-incoming trunk and a commoned block and the four branches still meet at a node with nothing
-between them, so a reflection arriving up one branch re-radiates into the other three unimpeded.
-Damping requires the resistor to sit *between* the junction and each stub, where that stub's
-reflection crosses it twice. Upstream of the junction it is on the wrong side of the problem, and
-it costs about 0.14 V of low-level margin for nothing, since every pull-down now works through it.
-
-**The two plugs on the accessory board put a junction within reach, so per-branch damping belongs
-there.** One 100 Ω in each plug's DQ line, between the common node and that plug, is the
-arrangement above with two branches instead of four. The pull-up sits at the common node with
-GPIO 4. The cost is the 0.14 V of low-level margin already priced, plus about 4.5 % on the rise
-constant, since charging current now flows through 2.2 kΩ and 100 Ω in series. Both are noise.
-
-```
-                              ┌──[ 100 Ω ]──── plug 1 DQ ── mechanical room
-                              │
-  GPIO 4 ─────────────────────┤──[ 100 Ω ]──── plug 2 DQ ── outdoor run
-  (or DS2482 IO)              │
-                          [ 2.2 kΩ ]
-                              │
-                            3.3 V
-```
-
-**The single-resistor alternative is source-series termination at the driver.** One 22–100 Ω
-between GPIO 4 and the common node absorbs reflections as they arrive back at the source and
-softens the driven falling edge. It is weaker than per-branch damping, doing nothing about energy
-bouncing between the two branches at their junction, but it leaves the rise path at the bare
-pull-up value. **Put the pull-up on the cable side of it**, not the GPIO side:
-
-```
-                              ┌──── plug 1 DQ ── mechanical room
-                              │
-  GPIO 4 ──────[ 100 Ω ]──────┤──── plug 2 DQ ── outdoor run
-  (or DS2482 IO)              │
-                          [ 2.2 kΩ ]
-                              │
-                            3.3 V
-```
-
-That ordering matters. With the pull-up on the cable side the rise is driven straight onto the
-line, so the resistor costs nothing on the slow edge, and the master's input is high-impedance so
-it reads the true line voltage with no divider error. The resistor then acts only where it is
-wanted: on the master's own driven falling edge, and on reflections coming home. Wire it the other
-way round, pull-up on the GPIO side, and every pull-down reads through a divider while the rise
-time gets worse.
-
-Fit the per-branch pair first. It is one extra resistor and it damps the junction that actually
-exists.
-
-**Remove it if the DS2482 goes in.** That part's whole contribution is a hard-driven edge from an
-active pull-up, and a series resistor in front of it works against exactly that. Start without one
-and add it back only if the bus is still marginal.
-
-### 6.2 A build that survives a utility room
-
-Put the resistors on a small FR4 board in a DIN enclosure on the same rail as the Pi's
-Phoenix Contact carrier. The rules that matter are mechanical, not electrical.
-
-- **Pluggable terminal blocks, one 3-pole per branch** (DQ / VDD / GND). Pluggable means a probe
-  can be lifted during a bisect without disturbing the other seven.
-- **No mid-air solder joints and no wire nuts.** Every conductor lands in a screw or spring
-  terminal, and the board is mechanically fixed rather than hanging on its own wiring.
-- **Ferrules on every stranded conductor** entering a screw terminal.
-- **Strain relief at the enclosure entry.** A tugged cable is the most common failure in a
-  mechanical room, well ahead of any component.
-- **Label each branch with its probe name** — IN, OUT, UBT, LBT, LOOPA_SUP and so on — matching
-  the convention in `docs/PhoenixContact-BC-RPI-label.docx`.
-
-The commercial version of this board is a 1-Wire hub with a port per probe, which implements the
-same per-branch damping and gives plug-in RJ45 ports. It costs more and needs no building.
-
-## 7. Moving to a DS2482 hardware bridge
-
-The Pi's `w1-gpio` overlay bit-bangs the protocol in software. It has no active pull-up, no
-slew-rate control, and its timing jitters whenever the kernel services an interrupt. The DS2482
-generates 1-Wire timing in hardware and drives an active pull-up, which is what a long
-eight-probe run in a mechanical room wants.
-
-Fitting it first, ahead of §4–§6, is defensible and is probably the right call for an eight-probe
-run. It is the case the part exists for, it buys one round of downtime instead of three, and once
-it is in the master stops being a variable in any future diagnosis. Two things it does not fix.
-**An active pull-up shortens the rising edge on a capacitively loaded line; it does not cancel the
-reflections a star topology sends back off eight open stubs.** And no master survives a probe with
-DQ and VDD swapped. The §3 bisect is therefore not optional whichever master is fitted, and since
-it needs no parts it can run while the bridge ships.
-
-The DS2482-100 is the safe choice. The DS2484 adds adjustable 1-Wire timing and weak-pull-up
-resistance in hardware, which would help on a marginal line, but the stock Linux driver exposes
-only the configuration register — `active_pullup`, and `extra_config` for the APU/PPM/SPU/1WS
-bits — so that tuning is out of reach without driver work.
-
-### 7.1 What is already true on this Pi
-
-| Fact | Value |
-|---|---|
-| Kernel driver | `ds2482.ko.xz` present in `6.18.34+rpt-rpi-v8` |
-| Driver binds | `i2c:ds2482` and `i2c:ds2484` |
-| `active_pullup` module parameter | defaults to `1` (enabled), which is what we want |
-| Device-tree overlay | **none ships** — only `w1-gpio*.dtbo`, so instantiate over sysfs |
-| I²C on the header | **currently off** (`dtparam=i2c_arm=off`, line 6) |
-| Live config file | `/boot/firmware/config.txt` (`/boot/config.txt` is a "do not edit" stub) |
-| `i2c-tools` | not installed |
-
-`/dev/i2c-20` and `/dev/i2c-21` already exist. Those are the HDMI DDC buses, not the header. The
-header bus appears as `/dev/i2c-1` once `i2c_arm` is on.
-
-### 7.2 Hardware
-
-A DS2482-100 breakout, or a DS2484; the same driver binds both. Tie AD0 and AD1 to GND for
-address `0x18` (the pair selects `0x18`–`0x1B`).
-
-**Mount the bridge at the Pi.** I²C is a short-range bus and must not carry the mechanical-room
-run. The long cable belongs on the 1-Wire side, which is the whole reason for fitting the part.
-
-| DS2482 pin | Goes to |
-|---|---|
-| VDD | 3.3 V, physical pin 1 |
-| GND | physical pin 9 |
-| SDA | GPIO 2, physical pin 3 |
-| SCL | GPIO 3, physical pin 5 |
-| IO (1-Wire) | trunk DQ |
-
-Remove the discrete 4.7 kΩ pull-up. The DS2482 supplies its own weak pull-up plus the active
-pull-up, and an external resistor fights it. The Pi already has 1.8 kΩ pull-ups on GPIO 2 and 3;
-if the breakout carries its own I²C pull-ups as well, one extra board in parallel is tolerable.
-
-GPIO 2 and 3 are free on this Pi. `pivac.GPIO` watches BCM 17, 27, 22, 5, 6, 12 and 25, and
-`raspi-gpio get 2,3` reports both as unclaimed inputs, so enabling I²C displaces nothing.
-
-**Match the DQ rail to the sensors' VDD.** The DS18B20's absolute-maximum DQ rating is VDD + 0.3 V,
-so a master driving DQ to 5 V into probes powered from 3.3 V damages them. Check which rail a
-breakout powers the DS2482 from before wiring it in, since some Pi 1-Wire boards also carry a
-separate 5 V pin that is auxiliary network power rather than the data line.
-
-Worth knowing: the bridge is what makes 5 V reachable at all. GPIO 4 is not 5 V tolerant, so
-`w1-gpio` pins the bus at 3.3 V. With the DS2482 the Pi only ever sees I²C, so the 1-Wire side can
-run at 5 V, which is the native 1-Wire voltage and buys noise margin on a long run. Moving there
-means lifting the probes' VDD to 5 V at the same time. Do not mix the two rails.
-
-### 7.3 Sourcing
-
-| Option | Notes |
-|---|---|
-| `DS2482S-100+` from Digi-Key | SOIC-8, a few dollars, US stock. Mount on a SOIC-8 adapter alongside the §6.2 resistor board so one enclosure carries both. Needs hand-soldering. |
-| AB Electronics **1 Wire Pi Plus** | DS2482-100 Pi HAT, ESD protection on the 1-Wire port, four I²C addresses, RJ-12 out, 5 V aux input. UK, ships worldwide. Check clearance inside the DIN carrier before committing to a HAT. |
-| Sheepwalk Electronics **RPI3** | DS2482-100 Pi adapter with screw terminals and RJ45, address-jumper selectable. Purpose-built for this. UK, small vendor. |
-| 7Semi / Artekit breakouts | Plain DS2482-100 breakouts, no Pi form factor. |
-
-Fit ESD protection on the 1-Wire port if the board does not carry it. A long run into a mechanical
-room is an antenna, and the DS2482 is the only thing between it and the Pi.
-
-### 7.3 Enable I²C and retire the bit-banged master
-
-Edit `/boot/firmware/config.txt`: set line 6 to `dtparam=i2c_arm=on`, and comment out
-`dtoverlay=w1-gpio` under `[all]` at line 52. Leaving both in place creates two w1 masters and
-makes it ambiguous which one owns a sensor. Then reboot.
-
-```bash
-sudo apt install -y i2c-tools
-i2cdetect -y 1          # expect a device at 0x18
-```
-
-Nothing at `0x18` means AD0/AD1 are not grounded as assumed, or the board is not on 3.3 V.
-
-### 7.4 Instantiate the bridge
-
-```bash
-sudo modprobe ds2482
-echo ds2482 0x18 | sudo tee /sys/bus/i2c/devices/i2c-1/new_device
-cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count
-ls /sys/bus/w1/devices/
-```
-
-`w1_bus_master1` reappears backed by the DS2482, and the `28-*` device names are unchanged.
-
-### 7.5 Make it survive a reboot
-
-Load the module at boot:
-
-```bash
-echo ds2482 | sudo tee /etc/modules-load.d/ds2482.conf
-```
-
-The `new_device` write does not persist, so add `scripts/systemd/ds2482-init.service`:
+Record on 2.2 kΩ, 2026-08-24: **320 reads, 0 CRC failures, 0 sweeps returning other than
+eight devices, all eight `ext_power=1` at 12-bit.** Forty clean ROM searches out of forty is
+what makes the margin in Appendix A real rather than luck. Run it again after every change to
+the bus.
+
+## 8. Software
+
+Facts already verified on this Pi: the kernel ships `ds2482.ko` (binds `ds2482` and `ds2484`),
+its `active_pullup` defaults on, no device-tree overlay ships so the device is instantiated
+over sysfs, and the live config file is `/boot/firmware/config.txt` (`/boot/config.txt` is a
+do-not-edit stub). `/dev/i2c-20`/`21` are HDMI buses; the header bus appears as `/dev/i2c-1`.
+
+1. Edit `/boot/firmware/config.txt`: `dtparam=i2c_arm=on` (line 6), and comment out
+   `dtoverlay=w1-gpio` under `[all]` (line 52) — two masters at once makes sensor ownership
+   ambiguous. Reboot.
+2. `sudo apt install -y i2c-tools`, then `i2cdetect -y 1` → device at `0x18`. Nothing there
+   means AD0/AD1 aren't grounded or the chip isn't powered.
+3. Instantiate: `sudo modprobe ds2482` then
+   `echo ds2482 0x18 | sudo tee /sys/bus/i2c/devices/i2c-1/new_device` — `w1_bus_master1`
+   reappears backed by the bridge, same `28-*` names.
+4. Survive reboots: `echo ds2482 | sudo tee /etc/modules-load.d/ds2482.conf` and install
+   `scripts/systemd/ds2482-init.service`:
 
 ```ini
 [Unit]
@@ -742,28 +434,129 @@ sudo cp ~/github/pivac/scripts/systemd/ds2482-init.service /etc/systemd/system/
 sudo systemctl daemon-reload && sudo systemctl enable --now ds2482-init
 ```
 
-Start ordering is a convenience rather than a requirement. `pivac.OneWireTherm` re-scans the bus
-at the top of every cycle, so a master that appears late self-heals within one daemon cycle.
+Start ordering is a convenience: `pivac.OneWireTherm` re-scans the bus every cycle, so a
+late-appearing master self-heals. No pivac code change and no `/etc/pivac/config.yml` edit —
+the PR #122 calibration offsets key off the unchanged `28-*` names. With the DS2482 in,
+`pivac/GPIO.py:17`'s vestigial `os.system('modprobe w1-gpio')` goes too.
 
-### 7.6 What does not change
+## 9. Rollback
 
-pivac needs no code change and `/etc/pivac/config.yml` needs no edit. `w1thermsensor` reads
-`/sys/bus/w1/devices/28-*`, the ROM-derived names are properties of the chips, and the PR #122
-calibration offsets key off those same names.
+Pull the DS2482 out of its socket, refit the 2.2 kΩ pull-up between the DATA and VCC rails,
+and move **one wire**: the parked link position 4 (11,18), which is already tied to the Pi's
+GPIO 4 through the cable, goes to the DATA net. Uncomment `dtoverlay=w1-gpio` and reboot.
+`i2c_arm=on` and the module-load file are harmless left in place. Carrying GPIO 4 in the cable
+is what makes this a one-wire change rather than a rewire.
 
-### 7.7 Rollback
+---
 
-Uncomment `dtoverlay=w1-gpio`, move the trunk DQ back to GPIO 4, refit the pull-up to 3.3 V, and
-reboot. `dtparam=i2c_arm=on` and the module-load file are harmless if left in place.
+## Appendix A — design decisions and electrical background
 
-## 8. Order of operations
+**Why the probe sockets are at the short end.** The enclosure is open at both short ends and
+at one long side; the long side carrying the riser traces is closed. Field cables therefore
+have to leave through a short end, which puts the sockets in row 2 with their entries facing
+the row-1 edge. Row 1 rather than row 32 because that end's holes sit closer to the board
+edge, so the plug entries land closest to the opening.
 
-1. Bisect the bus one probe at a time, starting with PA1A, and bench-check each probe's pinout.
-2. Unplug the outdoor cable at the board for as long as no probe sits on its far end. It costs
-   capacitance and an open-ended reflection and returns nothing.
-3. Measure DQ-to-GND capacitance per §5.3 and read the verdict off the table there.
-4. Drop the pull-up to 2.2 kΩ.
-5. Re-cable as a daisy chain, or fit 100 Ω series resistors per branch if the star has to stay.
-6. Fit the DS2482 if the bus is still marginal at eight probes.
+**Why every cable is a plug, and why the link is five-way.** The DS2482 needs four conductors
+from the Pi (3V3, GND, SDA, SCL), so a 3-pin disconnect cannot sit on the Pi side of the
+converter. On the Pi board those four arrive on consecutive access pads with **GPIO 4 sitting
+between SCL and GND**, so no four-position window spans them; taking five lands the terminal
+straight on the pads with no wires and carries the rollback line as a bonus. With plugs at
+both ends of the link and on all three probe sockets, either board is a line-replaceable unit
+and the cables themselves are replaceable. Unplugging a 1-wire bus is clean — the kernel keeps
+polling, the module logs a sensor-count change and recovers when it returns.
 
-Each step is cheaper than the one after it, and each is independently reversible.
+**What took the bus down on 2026-08-22, and why a chain still matters.** RC, not reflection.
+The field side was already a chain (§7.1), and at 1-wire edge rates a round trip down even
+40 m settles in a few hundred nanoseconds, far inside the sample point. What changed was
+capacitance against pull-up strength: four more probes with untrimmed leads took the line from
+3.70 nF to about 4.30 nF on a 4.7 kΩ pull-up, and the rise time crossed the point where real
+parts sample (table below). Crossing it corrupts every bit of the ROM search at once, which is
+why the failure was total rather than gradual. The kernel signature is
+`w1_search: max_slave_count 64 reached` followed by a count of 0 (phantom devices from corrupted
+address-search bits, not 64 sensors). The failure is silent in pivac: the service stays
+`active`, only the freshness alerts report it. A chain is still the rule because every branch
+and every captive probe lead is conductor, and conductor is capacitance; the argument is
+length.
+
+**Distributed blocks are a chain; clustered blocks are a star.** All ports of a lever block
+are one node, so blocks side-by-side at the Pi leave every probe lead a full-length branch.
+One block *at each sensor*, trunk block to block, probe leads trimmed short — that is the
+chain, and more serviceable than splices.
+
+**The pull-up arithmetic, kept for diagnosis.** On `w1-gpio` the line rises through the
+pull-up alone, and two budgets apply. The master holds low about 6 µs in a write slot and the
+DS18B20 is specified to sample anywhere from 15 to 60 µs after the falling edge, so the
+*guaranteed* rise budget is about 9 µs (1.2 RC time constants to 0.7 × VCC); real parts sample
+near 30 µs, so the *operative* budget is about 24 µs. Design to 9; expect failure near 24.
+Time to 0.7 × VCC for the configurations this bus has run:
+
+| Bus | C | 4.7 kΩ | 2.2 kΩ |
+|---|---|---|---|
+| Main loop, 4 probes (measured) | 1.75 nF | 9.9 µs | 4.6 µs |
+| Main loop, 8 probes | ~2.35 nF | 13.3 µs | 6.2 µs |
+| Main 4 + outdoor — ran for months to 2026-08-06 | 3.70 nF | **20.9 µs** | 9.8 µs |
+| Main 8 + outdoor — collapsed 2026-08-22 | ~4.30 nF | **24.3 µs** | 11.4 µs |
+
+The configuration that worked sat at 20.9 µs and the one that died at 24.3, either side of the
+operative budget, and the arithmetic predicts the failure to within a few percent. 2.2 kΩ
+carries the whole bus including the outdoor run at 11.4 µs, roughly 2× margin where 4.7 kΩ had
+1.15×, so the second DS2482 for the outdoor run is a fault-isolation choice rather than an
+arithmetic requirement. Only the main-loop cases clear the 9 µs guaranteed window, which is
+what §7.2 fixes. Practical ceilings at 112 pF/m, designing to 9 µs:
+
+| Pull-up | C ceiling | Total conductor |
+|---|---|---|
+| 4.7 kΩ | 1.6 nF | ~14 m / 47 ft |
+| 2.2 kΩ | 3.4 nF | ~30 m / 100 ft |
+| 1.5 kΩ | 5.0 nF | ~45 m / 146 ft |
+| DS2482 | not binding | 200–300 m |
+
+1.5 kΩ is the floor for a passive pull-up on 3.3 V: 2.2 mA stays inside the DS18B20's 4 mA
+sink, and lower eats low-level margin. "Total conductor" counts every branch and every probe
+lead, which is how a 60 ft chain can already sit at the limit. A probe adds about 25 pF, so
+fitting one changes none of this.
+
+The DS2482's driven edge removes the question entirely — and is why the discrete pull-up comes off
+(the part has its own weak plus active pull-up; an external resistor fights the active one),
+and why no series damping resistor belongs in front of it either.
+
+**Cable: pairing matters, category doesn't.** CAT5e and CAT6 are both specified to 100 Ω
+with a velocity factor near 0.67, and `C = 1/(Z₀·v)` forces both to ~50 pF/m; 1-wire at
+~15 kbps cares only about capacitance and which conductor is DATA's neighbour. Jacketed
+3-conductor (thermostat wire style) puts DATA between VCC and GND, both of which are AC ground,
+so DATA sees two grounded neighbours where a twisted pair gives it one: ~112 pF/m, 2.2× worse,
+which is what the 45.5 ft inventory in §7.1 closed on. The corollary is to leave spare
+conductors floating; a grounded conductor beside DATA is exactly what makes the present cable
+expensive. Shielded cable trades pickup rejection for
+added capacitance: plain UTP first; shielded only for intermittent CRC errors, drain grounded
+at the board end only.
+
+**Voltages must match end to end.** The probes run at 3.3 V, so DATA's high level must be
+3.3 V — the DS18B20's limit is VDD + 0.3 V. The DS2482 powered from the Pi's 3.3 V keeps that
+automatic. Moving the bus to 5 V (native 1-wire, more noise margin) is possible with the
+bridge but means moving probe VCC to 5 V at the same time; never mix the rails. (The Arduino
+bench rig runs 5 V throughout — correct there, wrong here.)
+
+**The outdoor run gets its own bus when it returns.** A second DS2482 at address `0x19`
+(AD0 high) on the same I²C link gives the outdoor cable — the longest and most exposed on the
+system — a master of its own, so a fault out there cannot blank the mechanical-room probes.
+H2 is reserved for it; sensors from every master appear flat under `/sys/bus/w1/devices/`, so
+pivac needs nothing. Sequence it last, after the chain is proven, with **PA5**, the only spare
+calibrated pair — PA3 went to the tank, PA1 and PA2 to the loops, PA4 to IN and OUT (offsets in
+`docs/ds18b20-PA1-5-calibration.md`). When it returns,
+`environment.outside.temperature` gets a freshness rule under a **new UID** — its old UID sits
+permanently in `sensor-freshness.yaml`'s `deleteRules:` block and cannot be revived.
+`sentry-outdoor-divergence` needs no change.
+
+**DS2484 and commercial boards.** The DS2484 adds tunable timing but the stock driver only
+exposes `active_pullup`/`extra_config`, so the tuning is unreachable — the DS2482-100 is the
+right part. Off-the-shelf alternatives if hand-soldering the SOIC ever annoys: AB Electronics
+1 Wire Pi Plus, Sheepwalk RPI3. Fit ESD protection on the 1-wire port if the build lacks it —
+a mechanical-room run is an antenna and the DS2482 is all that stands before the Pi.
+
+**Per-branch damping resistors** (100 Ω in each branch's DATA at a hub, Maxim AN148) are the
+mitigation for a star that cannot be re-cabled, and secondary to the pull-up even then. A chain
+does not want them, and neither does the DS2482's driven edge; on this bus they were never
+fitted, because the field side was already a chain and the pull-up was the whole fix (§7.1).
+Recorded so the option stays a decision, not a discovery.

@@ -1,0 +1,26 @@
+# Chiltrix CX75 Modbus reader — merge this block into /etc/pivac/config.yml.
+#
+# The chiller is a Modbus slave on A3/B3 (9600 8N1, slave 1, function 03). An
+# UNO R4 with an RS-485 shield bridges it to the Pi over USB, running the
+# ChiltrixScan sketch from ~/github/Arduino.
+#
+# ⚠️ The serial port is exclusive. This module and chiltrix-logger.service
+# cannot both run — the unit file declares Conflicts= for that reason.
+#
+# `port` should be a stable by-id path rather than /dev/ttyACM0, which is
+# assignment-ordered and would move if another USB serial device appeared:
+#   ls -l /dev/serial/by-id/
+# The board's serial is E8F60AA93AA8, vendor 2341.
+#
+# daemon_sleep 60 gives a comfortable margin: 8 range commands over 181 addresses
+# cost roughly 14 s of bus and serial time per cycle.
+pivac.ChiltrixModbus:
+  port: /dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_E8F60AA93AA8-if01
+  baud: 115200
+  daemon_sleep: 60
+
+  # Ignore idle-side flow samples this long after a compressor stop. The pump
+  # spins down over the next sample or two, and a sample caught mid-ramp
+  # (0 Hz, 30-40 L/min) would otherwise stand as startupFlow until the next
+  # start — which false-fired chiltrix-pump-only-flow-low on 2026-09-02.
+  stop_settle_s: 180
