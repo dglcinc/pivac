@@ -291,9 +291,17 @@ The rules, in build order — reasons in Appendix A:
    white/orange = DATA, orange = GND, blue = VCC, white/blue = second GND. Green and brown
    pairs stay open at both ends; never put anything spare on DATA, and never pair DATA with
    VCC.
-5. **Measure, don't estimate.** Multimeter in capacitance mode, far end open, DATA lifted at
-   the board: DATA-to-GND across the installed cable. Under ~2 nF the DS2482 drives it with
-   ease; the working record here is 1.75 nF measured, arithmetic in Appendix A.
+5. **Measure, don't estimate.** Multimeter in capacitance mode. Only the master end comes
+   apart: unplug the cable at the board and leave everything downstream exactly as installed,
+   every probe attached, because the probes are at the far end and disconnecting there removes
+   the capacitance being measured. On the free plug tie VCC to GND and measure from DATA to that
+   pair; the supply holds VCC at AC ground in operation, so DATA-to-VCC coupling is part of what
+   the pull-up charges, and a floating VCC reads low. Null the meter leads first (REL or ZERO):
+   30–100 pF of lead is not negligible against a reading in the hundreds of pF. With more than
+   one cable at the board, measure each plug separately and add the readings; parallel
+   capacitances sum, and the split says which run dominates. Under ~2 nF the DS2482 drives it
+   with ease. Measured 2026-08-24: main loop with four probes **1.75 nF**, outdoor run as bare
+   cable **1.95 nF**; arithmetic in Appendix A.
 
 ```
    H1 plug ═ trunk ═►│ BLOCK 1 │═►│ BLOCK 2 │═►│ BLOCK 3 │═►│ BLOCK 4 │ ends here
@@ -306,6 +314,87 @@ Mechanical rules for anything in the utility room: every conductor in a screw or
 terminal (no mid-air joints, no wire nuts), ferrules on stranded wire, strain relief at every
 enclosure entry, each branch labelled with the probe name it serves
 (`docs/PhoenixContact-BC-RPI-label.docx` convention).
+
+### 7.1 The bus as it stands
+
+The mechanical-room side is already a chain. Three headers sit along the run, each built from
+Phoenix Contact **ST 1,5/S QUATTRO** feed-through blocks, one commoned 4-terminal block per
+conductor: the trunk enters, the local probes land on the spare terminals, and the trunk leaves
+for the next header. That is rule 2 as built, which is why the 2026-08-24 diagnosis went to the
+pull-up and the damping resistors in Appendix A were never fitted. The one departure is a
+**10 ft stub** from the middle header to the two tank probes. RC rather than reflection binds
+this bus, so the stub is a length problem, about 340 pF, and not a topology one. Both end
+headers are full, so a probe added at either needs a second block and a bridge.
+
+The inventory closes against the measurement exactly:
+
+| Segment | Length |
+|---|---|
+| Pi → header 1, 18 AWG 5-conductor | 15 ft |
+| header 1 → header 2 | 1.5 ft |
+| header 2 → header 3 | 3 ft |
+| header 2 → tank probes, stub | 10 ft |
+| eight probe leads, untrimmed | 16 ft |
+| **total conductor** | **45.5 ft / 13.9 m** |
+
+13.9 m at 112 pF/m is 1.55 nF; eight DS18B20 pins at 25 pF each add 200 pF; the sum is the
+1.75 nF the meter read. The probe leads are 16 ft of the 45.5, which is what makes rule 3 the
+cheapest headroom on the bus.
+
+The outdoor run leaves the board on its own plug and currently carries no probe (AMB became
+LBT). Until a probe returns it would contribute its full 1.95 nF and an open end for no data,
+so it stays unplugged; that is free headroom.
+
+### 7.2 Planned end state
+
+| Change | Now | After | Saves |
+|---|---|---|---|
+| Trim probe leads, 2 ft → 6 in (rule 3) | 546 pF | 137 pF | **409 pF** |
+| Take ~7.5 ft of slack out of the trunk and tank runs | — | — | **~240 pF** |
+| Trunk and tank to CAT5e/CAT6, ~22 ft at 50 pF/m (rule 4) | 1007 pF | 335 pF | **~430 pF** |
+| Eight DS18B20 pins | 200 pF | 200 pF | 0 |
+| **Total** | **1753 pF** | **~670 pF** | **~62 %** |
+
+Trimming and de-slacking cost nothing but time and take 37 % between them, so they come first;
+the re-pull adds the remaining 25 %. Redone the same way, the outdoor run falls from 1.95 nF to
+about 870 pF, so the whole bus with outdoor restored lands near 1.57 nF, inside the 9 µs
+guaranteed window on 2.2 kΩ even without the DS2482, with room for several more probes.
+
+Two details of the re-pull. The second GND conductor of a CAT pair is the same net as the first
+and merges at the terminal: land both GND conductors of a run in **one** terminal, or a
+pass-through header spends all four GND positions on trunk-in and trunk-out with none left for
+probes. Two 23 AWG is 0.52 mm² against the ST 1,5's 1.5 mm² rating, so cross-section is never
+the constraint. Stranded takes a twin ferrule (2 × 0.25 mm² for 24 AWG, 2 × 0.34–0.5 mm² for
+23 AWG); solid goes bare into the clamp, since it does not crimp predictably. Check that the
+ferrule's insulating collar clears the terminal throat, which is the dimension that limits.
+
+### 7.3 Prove the bus
+
+"It enumerates" is not a measurement. Three signals, all in sysfs. **CRC:** every `w1_slave`
+read ends `crc=XX YES` or `NO`, and since `w1_therm` retries internally, a `NO` reaching sysfs
+is several consecutive failures, so any rate above zero is a bus with no margin. **Search
+stability:** `w1_master_slave_count` must never dip below the expected count; the ROM search is
+the most timing-critical operation on the bus and the one that failed on 2026-08-22.
+**`ext_power`:** `1` per probe; a `0` on a bus wired for external power means VCC is not
+reaching that probe.
+
+```bash
+ok=0; bad=0; miss=0
+for i in $(seq 1 40); do
+  [ "$(cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count)" -ne 8 ] && miss=$((miss+1))
+  for d in /sys/bus/w1/devices/28-*; do
+    case "$(head -1 $d/w1_slave)" in *YES*) ok=$((ok+1));; *) bad=$((bad+1));; esac
+  done
+  sleep 4
+done
+echo "crc_ok=$ok crc_fail=$bad sweeps_not_8=$miss"
+grep . /sys/bus/w1/devices/28-*/ext_power
+```
+
+Record on 2.2 kΩ, 2026-08-24: **320 reads, 0 CRC failures, 0 sweeps returning other than
+eight devices, all eight `ext_power=1` at 12-bit.** Forty clean ROM searches out of forty is
+what makes the margin in Appendix A real rather than luck. Run it again after every change to
+the bus.
 
 ## 8. Software
 
@@ -377,13 +466,18 @@ both ends of the link and on all three probe sockets, either board is a line-rep
 and the cables themselves are replaceable. Unplugging a 1-wire bus is clean — the kernel keeps
 polling, the module logs a sensor-count change and recovers when it returns.
 
-**Why a chain and not a star.** Every open-ended cable branch reflects the signal's edges
-back at a delay set by its length. Four short branches kept the echoes clear of the moment the
-master reads the line; eight put them on top of it. A chain has one line, one far end, one
-echo. This is what took the bus from four healthy sensors to zero on 2026-08-22 — the kernel
-signature is `w1_search: max_slave_count 64 reached` followed by a count of 0 (phantom devices
-from corrupted address-search bits, not 64 sensors). The failure is silent in pivac: the
-service stays `active`, only the freshness alerts report it.
+**What took the bus down on 2026-08-22, and why a chain still matters.** RC, not reflection.
+The field side was already a chain (§7.1), and at 1-wire edge rates a round trip down even
+40 m settles in a few hundred nanoseconds, far inside the sample point. What changed was
+capacitance against pull-up strength: four more probes with untrimmed leads took the line from
+3.70 nF to about 4.30 nF on a 4.7 kΩ pull-up, and the rise time crossed the point where real
+parts sample (table below). Crossing it corrupts every bit of the ROM search at once, which is
+why the failure was total rather than gradual. The kernel signature is
+`w1_search: max_slave_count 64 reached` followed by a count of 0 (phantom devices from corrupted
+address-search bits, not 64 sensors). The failure is silent in pivac: the service stays
+`active`, only the freshness alerts report it. A chain is still the rule because every branch
+and every captive probe lead is conductor, and conductor is capacitance; the argument is
+length.
 
 **Distributed blocks are a chain; clustered blocks are a star.** All ports of a lever block
 are one node, so blocks side-by-side at the Pi leave every probe lead a full-length branch.
@@ -391,23 +485,50 @@ One block *at each sensor*, trunk block to block, probe leads trimmed short — 
 chain, and more serviceable than splices.
 
 **The pull-up arithmetic, kept for diagnosis.** On `w1-gpio` the line rises through the
-pull-up alone, and the master samples ~15 µs in, leaving ~9 µs of rise budget (~1.2 RC time
-constants). Measured DATA–GND capacitance against that budget:
+pull-up alone, and two budgets apply. The master holds low about 6 µs in a write slot and the
+DS18B20 is specified to sample anywhere from 15 to 60 µs after the falling edge, so the
+*guaranteed* rise budget is about 9 µs (1.2 RC time constants to 0.7 × VCC); real parts sample
+near 30 µs, so the *operative* budget is about 24 µs. Design to 9; expect failure near 24.
+Time to 0.7 × VCC for the configurations this bus has run:
 
-| Measured | 4.7 kΩ | 2.2 kΩ |
+| Bus | C | 4.7 kΩ | 2.2 kΩ |
+|---|---|---|---|
+| Main loop, 4 probes (measured) | 1.75 nF | 9.9 µs | 4.6 µs |
+| Main loop, 8 probes | ~2.35 nF | 13.3 µs | 6.2 µs |
+| Main 4 + outdoor — ran for months to 2026-08-06 | 3.70 nF | **20.9 µs** | 9.8 µs |
+| Main 8 + outdoor — collapsed 2026-08-22 | ~4.30 nF | **24.3 µs** | 11.4 µs |
+
+The configuration that worked sat at 20.9 µs and the one that died at 24.3, either side of the
+operative budget, and the arithmetic predicts the failure to within a few percent. 2.2 kΩ
+carries the whole bus including the outdoor run at 11.4 µs, roughly 2× margin where 4.7 kΩ had
+1.15×, so the second DS2482 for the outdoor run is a fault-isolation choice rather than an
+arithmetic requirement. Only the main-loop cases clear the 9 µs guaranteed window, which is
+what §7.2 fixes. Practical ceilings at 112 pF/m, designing to 9 µs:
+
+| Pull-up | C ceiling | Total conductor |
 |---|---|---|
-| 500 pF | 2.8 µs | 1.3 µs |
-| 1.5 nF (this bus, measured) | 8.5 µs — marginal | 4.0 µs |
-| 3 nF | 17 µs — fails | 7.9 µs — marginal |
+| 4.7 kΩ | 1.6 nF | ~14 m / 47 ft |
+| 2.2 kΩ | 3.4 nF | ~30 m / 100 ft |
+| 1.5 kΩ | 5.0 nF | ~45 m / 146 ft |
+| DS2482 | not binding | 200–300 m |
 
-The DS2482's driven edge removes the row entirely — and is why the discrete pull-up comes off
+1.5 kΩ is the floor for a passive pull-up on 3.3 V: 2.2 mA stays inside the DS18B20's 4 mA
+sink, and lower eats low-level margin. "Total conductor" counts every branch and every probe
+lead, which is how a 60 ft chain can already sit at the limit. A probe adds about 25 pF, so
+fitting one changes none of this.
+
+The DS2482's driven edge removes the question entirely — and is why the discrete pull-up comes off
 (the part has its own weak plus active pull-up; an external resistor fights the active one),
 and why no series damping resistor belongs in front of it either.
 
-**Cable: pairing matters, category doesn't.** CAT5e and CAT6 both run ~50 pF/m; 1-wire at
+**Cable: pairing matters, category doesn't.** CAT5e and CAT6 are both specified to 100 Ω
+with a velocity factor near 0.67, and `C = 1/(Z₀·v)` forces both to ~50 pF/m; 1-wire at
 ~15 kbps cares only about capacitance and which conductor is DATA's neighbour. Jacketed
-3-conductor (thermostat wire style) puts DATA between VCC and GND at ~112 pF/m — 2.2× worse —
-which is what the 45.5 ft bus inventory closed on. Shielded cable trades pickup rejection for
+3-conductor (thermostat wire style) puts DATA between VCC and GND, both of which are AC ground,
+so DATA sees two grounded neighbours where a twisted pair gives it one: ~112 pF/m, 2.2× worse,
+which is what the 45.5 ft inventory in §7.1 closed on. The corollary is to leave spare
+conductors floating; a grounded conductor beside DATA is exactly what makes the present cable
+expensive. Shielded cable trades pickup rejection for
 added capacitance: plain UTP first; shielded only for intermittent CRC errors, drain grounded
 at the board end only.
 
@@ -421,8 +542,9 @@ bench rig runs 5 V throughout — correct there, wrong here.)
 (AD0 high) on the same I²C link gives the outdoor cable — the longest and most exposed on the
 system — a master of its own, so a fault out there cannot blank the mechanical-room probes.
 H2 is reserved for it; sensors from every master appear flat under `/sys/bus/w1/devices/`, so
-pivac needs nothing. Sequence it last, after the chain is proven, with spare calibrated probes
-PA4/PA5 (offsets in `docs/ds18b20-PA1-5-calibration.md`). When it returns,
+pivac needs nothing. Sequence it last, after the chain is proven, with **PA5**, the only spare
+calibrated pair — PA3 went to the tank, PA1 and PA2 to the loops, PA4 to IN and OUT (offsets in
+`docs/ds18b20-PA1-5-calibration.md`). When it returns,
 `environment.outside.temperature` gets a freshness rule under a **new UID** — its old UID sits
 permanently in `sensor-freshness.yaml`'s `deleteRules:` block and cannot be revived.
 `sentry-outdoor-divergence` needs no change.
@@ -434,5 +556,7 @@ right part. Off-the-shelf alternatives if hand-soldering the SOIC ever annoys: A
 a mechanical-room run is an antenna and the DS2482 is all that stands before the Pi.
 
 **Per-branch damping resistors** (100 Ω in each branch's DATA at a hub, Maxim AN148) are the
-mitigation for a star that cannot be re-cabled. A chain does not want them, and neither does
-the DS2482's driven edge. Recorded so the option stays a decision, not a discovery.
+mitigation for a star that cannot be re-cabled, and secondary to the pull-up even then. A chain
+does not want them, and neither does the DS2482's driven edge; on this bus they were never
+fitted, because the field side was already a chain and the pull-up was the whole fix (§7.1).
+Recorded so the option stays a decision, not a discovery.
