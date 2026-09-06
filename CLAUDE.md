@@ -148,6 +148,7 @@ All remote access goes through nginx on the Pi (`10.0.0.82`) over HTTPS. No VPN 
 |-----|---------|------|
 | `https://68lookout.dglc.com/admin/` | Signal K admin UI | nginx Basic Auth |
 | `https://68lookout.dglc.com/signalk/` | Signal K API + WebSocket | Signal K own auth |
+| `https://68lookout.dglc.com/plugins/` | Signal K plugin HTTP routes (WilhelmSK push pairing) | Signal K own auth |
 | `https://68lookout.dglc.com/grafana/` | Grafana | Grafana own login |
 | `https://68lookout.dglc.com/sprinkler/` | OpenSprinkler (`10.0.0.17:5000`) | nginx Basic Auth |
 | `https://mlb.dglc.com/` | Bowling League Tracker (Mac Mini `10.0.0.84:5001`) | Bowling app auth |
@@ -164,7 +165,7 @@ Sentry widgets use these SK paths (all under `hvac.boiler.sentry.*`):
 - `hvac.boiler.sentry.waterTemp` — °F, WaterTempGauge type
 - `hvac.boiler.sentry.gasInputValue` — integer 40–240, TextGaugeConfig type
 
-**Important — Signal K behind nginx:** The `/signalk/` location block must include `proxy_set_header X-Forwarded-Proto https` and `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`. Without these, Signal K constructs its WebSocket discovery URL as `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, causing WilhelmSK to attempt a plain WebSocket connection on port 80, which nginx redirects (301) and breaks the handshake. Signal K's "Trust Proxy" setting must also be enabled in the admin UI.
+**Important — Signal K behind nginx:** The `/signalk/` location block must include `proxy_set_header X-Forwarded-Proto https` and `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`. Without these, Signal K constructs its WebSocket discovery URL as `ws://localhost:3000/...` instead of `wss://68lookout.dglc.com/...`, causing WilhelmSK to attempt a plain WebSocket connection on port 80, which nginx redirects (301) and breaks the handshake. Signal K's "Trust Proxy" setting must also be enabled in the admin UI. nginx must also forward `/skServer/` (the admin API) and `/plugins/` (plugin routes): WilhelmSK pairs for push notifications by posting to `/plugins/push-notifications/registerDevice`, and without that block the request 404s at nginx (added 2026-09-06).
 
 **nginx reload after config changes:**
 ```bash
@@ -226,6 +227,8 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
 **Ship a rule on a metric that does not exist yet as `isPaused: true`**: under `noDataState: Alerting` it emails on every evaluation. Unpause once the metric publishes and verify against the `alert_rule` table.
 
 **Every rule is also mirrored into Signal K as a notification** by `pivac.GrafanaAlerts` (`pivac-grafana-alerts.service`), so WilhelmSK shows the same alarms the email path sends: `notifications.pivac.<rule uid with - → _>`, `normal` while quiet and `warn`/`alert`/`alarm` by `severity` label while firing, silences honoured. Grafana stays the evaluator. The whole set republishes every cycle, so a restart on either side self-heals within one cycle and a dead poller leaves every path stale together. Its Viewer token lives in the module's block of `/etc/pivac/config.yml` (see `config/config.grafana-alerts-sample.yml`).
+
+**Push to the phone** goes through the `signalk-push-notifications` plugin (id `push-notifications`, installed 2026-09-06 into `~/.signalk`, enabled with defaults in `~/.signalk/plugin-config-data/push-notifications.json`, remote push only). It pushes once per state change on any `notifications.*` path, so the poller's 30 s republish does not repeat it: a firing rule produces one push and its resolution another. Each phone pairs itself: WilhelmSK → Settings → Notifications → enable push, which posts to `/plugins/push-notifications/registerDevice` through nginx. A rule with severity `critical` (Signal K `alarm`) only bypasses the phone's silent mode if `alarmCritical` is set in the plugin config. To exercise the whole path, change the `lt` sentinel from `100` to `1000` inside the `- uid: redlink-stale` block of `/etc/grafana/provisioning/alerting/redlink-stale.yaml`, `sudo systemctl restart grafana-server`, and watch `notifications.pivac.redlink_stale` reach `warn` within about three minutes; then restore the file from the repo copy and restart again. The email path fires and resolves alongside.
 
 **Test the bridge end-to-end:**
 ```bash
