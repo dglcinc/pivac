@@ -81,7 +81,7 @@ inversion. Their pair correction is unaffected either way.
 - Calibration bath: circulating ice-water slush, packed with ice, stirred. Reference = Fluke
   Thermapen ONE held co-located with the bundled probes during the logging window.
 - Offsets are the mean of a stable window: per-probe SD 0.009–0.060 °F, bath flat within ±0.02 °F.
-- **⚠️ A log can span a setpoint change.** `soak-hot.csv` kept recording while the circulator was
+- **⚠️ A log can span a setpoint change.** `ds18b20-soak-100F-20260829.csv` kept recording while the circulator was
   raised from 100 to 144.5 °F, so its tail is a ramp, not a plateau. Select the last window whose
   halves agree rather than simply the last window; taking the tail put a +1.6 °F drift into the
   100 °F mean.
@@ -170,5 +170,15 @@ window on that pair before relying on its ΔT correction.
 - Mount on **copper at the tees, not PEX** (assessment §4.2).
 
 Raw logs and the scan sketch are archived in the session memory dir
-(`ds18b20-icepoint-soak-20260829.csv`, `ds18b20-PA-icepoint-soak7.csv`, `-soak4.csv`,
-`ds18b20-PA-scan.ino`).
+(`~/.claude/projects/-Users-david-github-pivac/memory/`, M2 only — they are not in this repo):
+
+| File | Bath | Probes | Rows | Notes |
+|---|---|---|---|---|
+| `ds18b20-PA-icepoint-soak4.csv` | ice, ~31.4 °F | 10 (PA1A–PA5B) | 101 | Run 4, 2026-08-22. No header row |
+| `ds18b20-PA-icepoint-soak7.csv` | ice, ~31.3 °F | 10 (PA1A–PA5B) | 168 | Run 7, 2026-08-22. No header row |
+| `ds18b20-icepoint-soak-20260829.csv` | ice, ~32.0 °F | 8 | 120 | 2026-08-29 10:42 |
+| `ds18b20-soak-100F-20260829.csv` | 100 → 144.2 °F | 8 | 668 | 11:53. **The tail is the ramp** — see the setpoint-change warning above |
+| `ds18b20-soak-1445F-20260829.csv` | 144.5 °F, flat | 8 | 799 | 12:26, three seconds after the ramp ended. First data row is a short write |
+| `ds18b20-PA-scan.ino` | — | — | — | The bench scan sketch that produced these logs |
+
+The `soak4` and `soak7` suffixes are **run numbers, not probe counts**.
