@@ -44,6 +44,17 @@ Every spot had slid off its LED lens onto the bright bezel below and right of it
 
 **The cycling indicators prove the fix raises the lit reading as well as lowering the dark one**, which the idle status LEDs could not show on their own. `water_temp`, `air` and `gas_input` switch on and off every cycle, so both states are observable in one capture; re-centring moved their lit/unlit separation from **0.090 → 0.394**, **0.214 → 0.516** and **0.287 → 0.470**. `water_temp` at 0.090 was itself close to misassigning display modes.
 
+**The DHW call of 2026-09-06 12:46–12:54 settled the lit side directly, and showed the old spot was measuring nothing at all.** Ten samples through a real firing (gas input 85 → 240 → 86, water 84 → 185 °F, `circAuxOn` and `dhwPriority` both set) against 89 idle samples earlier the same day:
+
+| spot | idle (89 samples, gas 0) | firing (10 samples) | idle → firing swing |
+|---|---|---|---|
+| `burner`, lens-centred | 0.794, reads lit **0/89** | 1.215, reads lit **10/10** | **+0.421** |
+| `burner`, drifted | 1.039, reads lit **12/89** | 1.052, reads lit 8/10 | **+0.012** |
+| `circ_aux`, lens-centred | — | 1.164, reads lit **10/10** | |
+| `circ_aux`, drifted | — | 1.038, reads lit **0/10** | |
+
+A swing of **+0.012** against a 1.05 threshold is the finding: the drifted spot barely moves when the LED lights, because it was looking at the bezel, which is unaffected by the LED. Its output was noise straddling the bar, not a measurement — so every `burnerOn` transition after the drift was manufactured, and `circAuxOn` would have read the DHW pump as off through the whole call. That is the 2026-07-20 symptom returning by a different route, which is worth noting: **lowering `led_ratio` to 1.05 in July was a correct fix for the IR/green-LED problem, but it also spent the margin that would have absorbed the later drift.** Once the camera moved, 1.05 sat inside the compressed band instead of below it. Re-aiming restores the span the threshold was picked against, 0.81 dark against 1.22 lit.
+
 Lens centres, measured from 160 frames: LEDs by the dark-blob centroid of each lens window (they are dark when unlit, ringed by a bright bezel); `water_temp`/`air`/`gas_input` by **temporal variance**, which finds them precisely because they cycle; `dhw_temp` by its dark lens blob, since it does not cycle. Validated against RedLink outdoor (Sentry 71 °F vs `environment.outside.thermostat.temperature` 69.0 °F) — note `environment.outside.temperature` is a stale orphan, not the live path.
 
 **Two rules follow.** Re-aim `leds:` and `indicators:` in the **same pass** as `display_warp`, never the quad alone. And the module now warns when any spot's ratio spends most of a cycle within `_MARGIN_BAND` (0.03) of its lit threshold — `_low_margin`, unit-tested on these measurements — which is the LED-side analogue of `'<mode>' was displayed but nothing decoded`, the warning that dated the 2026-08-23 quad drift. A spot sitting on its own threshold reports a state it has not measured.
