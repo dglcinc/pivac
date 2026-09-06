@@ -52,3 +52,29 @@ the guards above (median, idle ceiling, range-sanity) were band-aids over a bad 
 ### Sentry thermal is ultimately cooling-bound — this is a fanless Pi 4 (2026-07-22)
 
 the host is a **Raspberry Pi 4 Model B with no active cooling** (no OS-managed fan / cooling device), so under the multi-core RTSP-decode + CV burst it heats fast and the Pi 4's **80 °C soft-temp limit** is easy to graze. Re-tuned the Sentry block to `daemon_sleep: 30` + **`cycle_timeout: 20`** (`/etc/pivac/config.yml`; was `daemon_sleep: 15` + `cycle_timeout: 30` — the `cycle_timeout` had drifted to 30, doubling the per-cycle busy burst vs the `config.sentry-sample.yml` default of 15, which is why CPU/heat exceeded the 2026-06-27 "~69% / ~75 °C" figures). Result: CPU **~1.6 cores → ~1.25**, sustained/floor temp back to **~76 °C**, and the *continuous* throttle cleared — but **brief ~83 °C peaks during each capture burst still tap the soft-limit** (`0xe0008` flickers to `0xe0000`). This residual is **benign** (soft limit = gentle freq nudge, well under the 85 °C hard limit) and **can't be tuned away in software without degrading mode capture** — `cycle_timeout` must stay ≥ ~20 s to catch all 4 display modes (~5 s each) when the boiler is actively cycling. **The only real fix for the peaks is active cooling (add a fan).** Ambient matters too (summer boiler-room heat). Levers if needed: raise `daemon_sleep` (lowers average/floor, not peaks) or lower `cycle_timeout` toward 15 (lowers peaks, risks missing a mode). These two config values are **Pi-local only** (live `/etc/pivac/config.yml`, not in the repo).
+
+## Display hardware
+
+- **3-digit 7-segment LED display**: Shows water temp (°F), outdoor air temp (°F), gas input value (40–240 scale for Ti-200), DHW temp (°F), or error/menu codes (`ER1`–`ER6`, `ER9`, `ASO`, `ASC`, `RUN`, `LO`, `HI`, `dIF`, etc.)
+- **4 green LED indicators** (right side of display): Burner/Bruleur, Circ., Circ. Aux., Thermostat Demand — reflect live state regardless of display mode
+- **4 indicator lights** (below display): Water Temp, Air, Gas Input Value, DHW Temp — tell you which value the 3-digit display is currently showing
+- **Display cycling**: When active, display cycles through modes roughly every 5 seconds (water temp → gas input → outdoor air → DHW temp). Indicator lights identify which mode is active in any given frame.
+- **Gas Input Value scale**: 40–240 maps to BTU/hr via the Ti-200 conversion chart in the boiler manual (NTI Trinity Ti100-200 Boiler Installation and Operation Manual, pages 38–50, 61–66).
+
+## Config format
+
+Key config fields (real coordinate values live in `/etc/pivac/config.yml` on the Pi):
+
+- `rtsp_url` — RTSP stream URL with credentials
+- `cycle_timeout` — seconds to wait for full display cycle (default 15)
+- `frame_interval` — seconds between captured frames (default 2.5)
+- `brightness_threshold` — 0–255 min brightness for a lit segment/LED (default 150)
+- `display_roi` — `{x, y, w, h}` pixel rect in full camera frame (set during calibration)
+- `digit_positions` — list of 3 `{x, y, w, h}` rects relative to `display_roi` (left, middle, right digits)
+- `leds` — `{burner, circ, circ_aux, thermostat_demand}` each `{x, y}` in full frame
+- `indicators` — `{water_temp, air, gas_input, dhw_temp}` each `{x, y}` in full frame
+
+## Dependencies
+
+- `opencv-python-headless` — frame capture and image processing (headless avoids GUI deps on Pi)
+- `numpy` — already in venv

@@ -193,11 +193,14 @@ The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chille
 
 **Panel alignment:** every timeseries panel on PivacR pins `custom.axisWidth: 50` so all plot areas share a left edge — keep new panels consistent. Don't set a per-panel `axisLabel` (it renders left of the ticks and pushes that panel's plot right). Note: **state-timeline panels can't set axis/row-label width** (Grafana #85040), so boolean/status data that must line up with the numeric-axis panels should be a **timeseries with stepped lines**, not a state-timeline.
 
-**Water "net of irrigation" convention:** irrigation water flows *through* the domestic meter, so the raw `environment.water.domestic.consumption` totalizer double-counts irrigation. The "Used" stat panels and the hourly bar panel show **Domestic (net) = domestic total − irrigation** (irrigation = `INTEGRAL(environment.water.irrigation.flowRate, 1m)`), green = net domestic, yellow = irrigation. InfluxQL can't subtract across measurements in one query, so it's done with a Grafana transform chain `joinByField(Time) → calculateField(binary A−B) → organize(exclude gross)`. The two aggregates must land on the **same timestamp** to join: `SPREAD` returns the range-start time but `INTEGRAL` returns **epoch 0**, so both stat queries force one epoch-aligned bucket with `GROUP BY time(3650d) fill(0)` (hourly panels `GROUP BY time(1h)` align naturally). The flow-rate panels (18/19) intentionally still show *gross* domestic (they're rates, not totals).
 
-**ΔT panel (21, `Loop ΔT — Primary and Secondary Pairs`) plots differences:** primary `OUT − IN` and `RET − SUP` on each secondary, warm side minus cold side throughout, so all three read positive in cooling. Same `joinByField → calculateField → organize` chain as the water panels, with the Kelvin→°F conversion done per query. **The axis uses soft limits of −2 to +8 °F, never a hard min/max**, because the sign carries information (heating inverts every pair, a backwards pair reads negative without going stale, and a heating delta of 20 °F would clip). **Do not re-enable `axisCenteredZero`**; it halved the usable height. Reasoning in `docs/operational-notes.md`.
+**Water "net of irrigation":** the Used stat panels and the hourly bars show domestic − irrigation through a `joinByField → calculateField → organize` transform chain, and both aggregates must land on one timestamp (`GROUP BY time(3650d) fill(0)`); the flow-rate panels 18/19 stay gross. Details in `docs/operational-notes.md`.
 
-**Shared-y-axis gotcha (timeseries panels):** Grafana only merges two series onto a single y-axis when they share the *same explicit* `axisPlacement` value **and** the same unit grouping. A series on `axisPlacement: auto` and another forced to `left` do **not** dedupe — Grafana renders two stacked left axes, each auto-scaled independently (doubles the left margin and puts the series on different numeric scales). `auto` ≠ `left`. To co-plot close-magnitude series (e.g. the DHW panel's PSI ~64 + recirc temp ~110 °F) on one scale: set *every* series to the same explicit placement and drop differing units (make both unitless) so the axes aren't split by unit. Tradeoff: dropping the unit removes the unit suffix from that series' tooltip. (Fixed on the DHW panel in PRs #65/#66.)
+
+**ΔT panel (21)** plots warm minus cold for the primary and both secondaries on soft limits of −2 to +8 °F; never a hard min/max and never `axisCenteredZero`.
+
+
+**Shared y-axis:** two series only share one axis with the same explicit `axisPlacement` and the same unit; `auto` ≠ `left`, and close-magnitude series must both be unitless.
 
 ## Grafana Sub-path Configuration
 
@@ -217,12 +220,8 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
 - `scripts/systemd/grafana-graph-bridge.service` — runs as user `pi`, `EnvironmentFile=-/etc/pivac/graph.env`, `Restart=always`.
 - `/etc/pivac/graph.env` (mode 640, root:pi, **not** in the repo) — holds `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_SENDER_EMAIL`, `ALERT_RECIPIENT`. Same Azure AD app as `~utilityserver/github/bowling-league-tracker/.env` on the Mac Mini.
 - `grafana/provisioning/alerting/contact-points.yaml` — defines the `graph-bridge` webhook receiver (POSTs to the bridge) and a default policy that routes everything to it.
-**Rule files** (every rule routes to `graph-bridge`; thresholds, runbooks and the retired-rule evidence are in `docs/grafana-alerting-notes.md`):
-- `redlink-stale.yaml` — `redlink-stale` (30 m), `redlink-stale-fast` (10 m), `redlink-error-burst` (`consecutiveErrors > 2` for 5 m; runbook says query `lastErrorType`).
-- `sensor-freshness.yaml` — 30 m staleness on `hydronic-{in,ubt,lbt,out}`, `loop-{a,b}-{supply,return}`, `circ-temp-stale`, and `arduino-{dhw,hydronic}-psi-stale`. Kelvin paths use the never-true sentinel `value < 100`, PSI `< -1`, all `noDataState: Alerting`. Deletes `hydronic-crw-stale`, `outside-onewire-stale` and `outside-temp-divergence`.
-- `domestic-water.yaml` — `domestic-flow-continuous` (3 h with no irrigation), `domestic-flow-high` (net of irrigation > 12 gpm), `domestic-water-stale`. Irrigation NoData is replaced with 0 so a down sprinkler service cannot disarm leak alerting.
-- `sentry-boiler.yaml` — `sentry-watertemp-stale`, `sentry-cycle-stale` (both firing = reader dead; only waterTemp = the CV cannot read the digits), `sentry-outdoor-divergence`. °F paths use sentinel `< -100`.
-- `chiltrix.yaml` — `chiltrix-pump-only-flow-low` (`startupFlow` < 40 L/min for 30 m, **the** fouling alarm), `chiltrix-zero-flow` (`waterFlow` == 0 over 7 m for 3 m, guarded by `max(switchOn) > 0`) and `chiltrix-modbus-stale`. **The two flow rules cover different failure shapes and neither substitutes for the other:** `startupFlow` catches gradual fouling and is blind to a total loss of flow, because its 15 L/min floor discards a genuine zero. Deletes `chiltrix-flow-approaching-trip` and `chiltrix-run-duration-excessive`, both retired because running flow and run length are controlled outputs.
+
+**Rule files** live in `grafana/provisioning/alerting/` (`redlink-stale`, `sensor-freshness`, `domestic-water`, `sentry-boiler`, `chiltrix`). Every rule routes to `graph-bridge`; thresholds, runbooks and retired-rule evidence are in `docs/grafana-alerting-notes.md`.
 
 **Ship a rule on a metric that does not exist yet as `isPaused: true`**: under `noDataState: Alerting` it emails on every evaluation. Unpause once the metric publishes and verify against the `alert_rule` table.
 
@@ -237,7 +236,7 @@ curl -sS -X POST http://127.0.0.1:8125/alert -H 'Content-Type: application/json'
 ```
 Should return `ok` and an email arrives at `david@dglc.com`.
 
-> **⚠️ Removing an alert rule needs an explicit `deleteRules:` block — provisioning is ADDITIVE (learned 2026-08-06).** Deleting a rule from `groups: … rules:` does **not** remove it from Grafana. It keeps evaluating with `provenance=file` (so it's also uneditable/undeletable in the UI) indefinitely. Verified live: after the CRW→UBT rename, `hydronic-crw-stale`, `outside-onewire-stale` and `outside-temp-divergence` all survived the copy + `systemctl restart grafana-server` (16 rules in the `alert_rule` table when the YAML defined 7), and the two staleness rules would have emailed on **every** evaluation since their metrics no longer existed and both carry `noDataState: Alerting`. The fix is a top-level block in the same file:
+> **⚠️ Removing an alert rule needs an explicit `deleteRules:` block — provisioning is ADDITIVE (learned 2026-08-06).** Deleting a rule from `groups: … rules:` does **not** remove it from Grafana. It keeps evaluating with `provenance=file` (so it's also uneditable/undeletable in the UI) indefinitely. Evidence in `docs/grafana-alerting-notes.md`. The fix is a top-level block in the same file:
 > ```yaml
 > deleteRules:
 >   - orgId: 1
@@ -312,9 +311,11 @@ Two **Shelly Plug US Gen4** (`S4PL-00116US`, FW `1.7.99-plugusg4prod1`) on WiFi 
 | **Arduinos** | `ac:eb:e6:f4:b9:30` | `10.0.0.61` | `acebe6f4b930` | The two UNO-R4 pressure boards (.114 DHW + .219 boiler) → the `arduino-watchdog` power-cycle target |
 | **PivacPower** | `ac:eb:e6:f6:45:20` | `10.0.0.118` | `acebe6f64520` | General pivac-side mains (the Pi) |
 
-**Power-on default:** both set to `initial_state="on"` (2026-06-23) so after a mains outage the plug auto-restores power and the Pi + Arduinos boot unattended (out-of-box default was `"off"`, which would have left gear dark after a blip). Set via `POST /rpc/Switch.SetConfig {"id":0,"config":{"initial_state":"on"}}`.
 
-**Naming is 3 independent layers that don't auto-sync:** Shelly app/cloud label (rename in app only — local API can't reach it), local device name (`Sys.SetConfig {"device":{"name":…}}`), and UCG client name. All three are currently consistent on both plugs.
+**Power-on default:** both plugs run `initial_state="on"` (set 2026-06-23) so mains returning restores power unattended.
+
+
+**Naming** lives in three places that do not sync (Shelly cloud label, local device name, UCG client name); all three currently agree.
 
 **Control (local, no cloud):**
 - Power-cycle: `POST http://<ip>/rpc/Switch.Set -d '{"id":0,"on":false}'` then `…"on":true` (also usable as `GET …/rpc/Switch.Set?id=0&on=false`).
@@ -327,9 +328,10 @@ Two **Shelly Plug US Gen4** (`S4PL-00116US`, FW `1.7.99-plugusg4prod1`) on WiFi 
 
 `arduino-watchdog.timer` runs `scripts/arduino-watchdog.sh` every 5 min (`OnBootSec=5min`, then `OnUnitActiveSec=5min`). It pings the two pressure boards (10.0.0.114 DHW, 10.0.0.219 boiler/hydronic) and, if **either** is unreachable for a sustained `DOWN_THRESHOLD_S` (default **900 s / 15 min**), power-cycles the shared "Arduinos" Shelly plug (`10.0.0.61`, open local RPC) via `Switch.Set off → sleep 8 → on`, rate-limited to at most once per `CYCLE_MIN_INTERVAL_S` (default **3600 s / 1 h**). This is the self-healing counterpart to the `arduino-*-psi-stale` freshness alerts: the alerts tell you, the watchdog fixes it.
 
-**Why it exists:** the pivac provider services have `Restart=always`, but that cannot recover a board that is off WiFi — the service isn't crashing, the *board* is dark. After a power event the .219 board in particular sometimes reboots but fails to rejoin WiFi and sits stale until power-cycled (root-caused 2026-07-16: a mains blip cycled both boards + rebooted the Pi; .114 rejoined, .219 stayed dark 16h until a manual Shelly cycle). The watchdog automates exactly that manual recovery.
 
-**Design notes:** state lives in tmpfs (`/run/arduino-watchdog/`) so it resets on reboot — boards get a fresh grace period after a power event rather than being cycled on stale state. Cycling the shared plug briefly drops the *healthy* board too (recovers in seconds — accepted tradeoff). It **only** touches the Arduinos' plug (`.61`), never the Pi's own plug (PivacPower `.118`). A truly dead board (reboots but never rejoins) is cycled at most once/hour and the freshness alert emails in parallel. Tunables are env-overridable in the `.service` (`DOWN_THRESHOLD_S`, `CYCLE_MIN_INTERVAL_S`, `OFF_DWELL_S`, `PROBE_RETRIES`). Watch it with `journalctl -u arduino-watchdog -n 30` (silent on the happy path — logs only when a board is down or a cycle is issued).
+
+**Design notes:** 
+**Design notes:**  Tunables are env-overridable in the `.service` (`DOWN_THRESHOLD_S`, `CYCLE_MIN_INTERVAL_S`, `OFF_DWELL_S`, `PROBE_RETRIES`). Watch it with `journalctl -u arduino-watchdog -n 30` (silent on the happy path — logs only when a board is down or a cycle is issued).
 
 Deploy after editing the script/units:
 ```bash
@@ -361,10 +363,10 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/onewire-notes.md` | DS18B20 roster history, bus fault diagnosis, decoupled and cross-connected probes, dead-leg ΔT, precision fixes, module behaviour |
 | `docs/ds18b20-bus-topology.md` | 1-wire bus build procedure, EXT board, DS2482 migration, electrical background |
 | `docs/ds18b20-PA1-5-calibration.md` | Probe offsets, pair corrections, reproducibility |
-| `docs/sentry-cv-notes.md` | Sentry display reader: capture strategy, CV method, LED thresholds, drift recalibration, phantom digits, thermal tuning |
+| `docs/sentry-cv-notes.md` | Sentry display reader: capture strategy, CV method, LED thresholds, drift recalibration, phantom digits, thermal tuning, display hardware, config fields |
 | `docs/emporia-notes.md` | Emporia circuit history, paired-CT scaling, nested-CT corrections, panel 10/11 conventions |
-| `docs/grafana-alerting-notes.md` | Per-rule descriptions, thresholds and the evidence behind retired rules |
-| `docs/operational-notes.md` | RedLink internals, relay roster and zone map, GPIO 26, sprinkler calibration and watering rules, network, backup and dashboard history |
+| `docs/grafana-alerting-notes.md` | Per-rule descriptions, thresholds, the evidence behind retired rules, and why provisioning is additive |
+| `docs/operational-notes.md` | RedLink internals, relay roster and zone map, GPIO 26, sprinkler calibration and watering rules, Shelly plugs, watchdog design, dashboard panel transforms, network, backup history |
 | `docs/cdp-chiller-rework-plan.md` | Single-chiller conversion: relay hardware, zone → equipment map, label |
 
 ## Known Operational Behaviours (Not Bugs)
@@ -482,14 +484,6 @@ Rules only. The measurements, incident history and reasoning behind each rule ar
 
 Read the Sentry 2100 controller display on the NTI Trinity Ti-200 boiler using the Tapo C120 and emit values as Signal K deltas. The display shows boiler operating data via a 3-digit 7-segment LED, four green LED indicators, and four indicator lights.
 
-### Sentry 2100 Display Hardware
-
-- **3-digit 7-segment LED display**: Shows water temp (°F), outdoor air temp (°F), gas input value (40–240 scale for Ti-200), DHW temp (°F), or error/menu codes (`ER1`–`ER6`, `ER9`, `ASO`, `ASC`, `RUN`, `LO`, `HI`, `dIF`, etc.)
-- **4 green LED indicators** (right side of display): Burner/Bruleur, Circ., Circ. Aux., Thermostat Demand — reflect live state regardless of display mode
-- **4 indicator lights** (below display): Water Temp, Air, Gas Input Value, DHW Temp — tell you which value the 3-digit display is currently showing
-- **Display cycling**: When active, display cycles through modes roughly every 5 seconds (water temp → gas input → outdoor air → DHW temp). Indicator lights identify which mode is active in any given frame.
-- **Gas Input Value scale**: 40–240 maps to BTU/hr via the Ti-200 conversion chart in the boiler manual (NTI Trinity Ti100-200 Boiler Installation and Operation Manual, pages 38–50, 61–66).
-
 ### Operating rules
 
 The capture strategy, the computer-vision method and every incident behind these rules are in `docs/sentry-cv-notes.md`.
@@ -516,23 +510,7 @@ The capture strategy, the computer-vision method and every incident behind these
 
 Temperature values are raw °F as shown on the display. Boolean indicators are emitted as integer 0/1 (not Python bool) so that InfluxDB stores them as float and Grafana can plot them with mean() aggregation. **Important:** if you ever need to reset these measurements in InfluxDB, you must also restart Signal K after reseeding — the `signalk-to-influxdb2` plugin caches field types in memory and will re-write booleans until the process restarts.
 
-### Config Format
-
-Key config fields (real coordinate values live in `/etc/pivac/config.yml` on the Pi):
-
-- `rtsp_url` — RTSP stream URL with credentials
-- `cycle_timeout` — seconds to wait for full display cycle (default 15)
-- `frame_interval` — seconds between captured frames (default 2.5)
-- `brightness_threshold` — 0–255 min brightness for a lit segment/LED (default 150)
-- `display_roi` — `{x, y, w, h}` pixel rect in full camera frame (set during calibration)
-- `digit_positions` — list of 3 `{x, y, w, h}` rects relative to `display_roi` (left, middle, right digits)
-- `leds` — `{burner, circ, circ_aux, thermostat_demand}` each `{x, y}` in full frame
-- `indicators` — `{water_temp, air, gas_input, dhw_temp}` each `{x, y}` in full frame
-
-### Dependencies
-
-- `opencv-python-headless` — frame capture and image processing (headless avoids GUI deps on Pi)
-- `numpy` — already in venv
+Display hardware, config fields and dependencies: `docs/sentry-cv-notes.md`.
 
 ## Signal K Upgrade (if needed)
 

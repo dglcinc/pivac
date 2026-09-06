@@ -125,3 +125,35 @@ the phone, the iPad and the Mac all log into Grafana as the `admin` user, so a t
 ### Loop ΔT panel
 
 **ΔT panels plot differences, not values (panel 21, `Loop ΔT — Primary and Secondary Pairs`).** Three lines: primary `OUT − IN` across the closely spaced tees, and `RET − SUP` on each secondary loop. **Convention is warm-side minus cold-side throughout**, so all three read positive in cooling and compare directly as temperature rise across a load. InfluxQL cannot subtract across measurements, so it is the same `joinByField → calculateField → organize` chain the water and power panels use; the Kelvin→°F conversion is done **per-query** (`*9/5-459.67` as a `math` select), which leaves the transform chain as three plain subtractions with no scaling step. **The axis uses soft limits of −2 to +8 °F, never a hard min/max**, because the sign carries information: heating season inverts every pair as supply becomes the warm side, idle sits near zero on sensor noise, and a probe pair wired backwards reads negative *without ever going stale*. Soft limits are the viewing window and Grafana widens the axis when data leaves them, so all three stay visible; a hard range would clip a heating delta, which commonly runs 20 °F. **Do not re-enable `axisCenteredZero`** — forcing symmetry about zero doubled the axis against cooling deltas of 2–7 °F and put half the panel height into empty negative space, which is what made the values hard to read. Absolute temperatures stay on the Hydronic Temps panel above.
+
+## Grafana dashboard panels
+
+### Water "net of irrigation" convention
+
+**Water "net of irrigation" convention:** irrigation water flows *through* the domestic meter, so the raw `environment.water.domestic.consumption` totalizer double-counts irrigation. The "Used" stat panels and the hourly bar panel show **Domestic (net) = domestic total − irrigation** (irrigation = `INTEGRAL(environment.water.irrigation.flowRate, 1m)`), green = net domestic, yellow = irrigation. InfluxQL can't subtract across measurements in one query, so it's done with a Grafana transform chain `joinByField(Time) → calculateField(binary A−B) → organize(exclude gross)`. The two aggregates must land on the **same timestamp** to join: `SPREAD` returns the range-start time but `INTEGRAL` returns **epoch 0**, so both stat queries force one epoch-aligned bucket with `GROUP BY time(3650d) fill(0)` (hourly panels `GROUP BY time(1h)` align naturally). The flow-rate panels (18/19) intentionally still show *gross* domestic (they're rates, not totals).
+
+### ΔT panel (21)
+
+**ΔT panel (21, `Loop ΔT — Primary and Secondary Pairs`) plots differences:** primary `OUT − IN` and `RET − SUP` on each secondary, warm side minus cold side throughout, so all three read positive in cooling. Same `joinByField → calculateField → organize` chain as the water panels, with the Kelvin→°F conversion done per query. **The axis uses soft limits of −2 to +8 °F, never a hard min/max**, because the sign carries information (heating inverts every pair, a backwards pair reads negative without going stale, and a heating delta of 20 °F would clip). **Do not re-enable `axisCenteredZero`**; it halved the usable height. Reasoning in `docs/operational-notes.md`.
+
+### Shared-y-axis gotcha (timeseries panels)
+
+**Shared-y-axis gotcha (timeseries panels):** Grafana only merges two series onto a single y-axis when they share the *same explicit* `axisPlacement` value **and** the same unit grouping. A series on `axisPlacement: auto` and another forced to `left` do **not** dedupe — Grafana renders two stacked left axes, each auto-scaled independently (doubles the left margin and puts the series on different numeric scales). `auto` ≠ `left`. To co-plot close-magnitude series (e.g. the DHW panel's PSI ~64 + recirc temp ~110 °F) on one scale: set *every* series to the same explicit placement and drop differing units (make both unitless) so the axes aren't split by unit. Tradeoff: dropping the unit removes the unit suffix from that series' tooltip. (Fixed on the DHW panel in PRs #65/#66.)
+
+## Shelly plugs
+
+### Power-on default
+
+**Power-on default:** both set to `initial_state="on"` (2026-06-23) so after a mains outage the plug auto-restores power and the Pi + Arduinos boot unattended (out-of-box default was `"off"`, which would have left gear dark after a blip). Set via `POST /rpc/Switch.SetConfig {"id":0,"config":{"initial_state":"on"}}`.
+
+### Naming layers
+
+**Naming is 3 independent layers that don't auto-sync:** Shelly app/cloud label (rename in app only — local API can't reach it), local device name (`Sys.SetConfig {"device":{"name":…}}`), and UCG client name. All three are currently consistent on both plugs.
+
+### Arduino watchdog: why it exists
+
+The pivac provider services have `Restart=always`, but that cannot recover a board that is off WiFi — the service isn't crashing, the *board* is dark. After a power event the .219 board in particular sometimes reboots but fails to rejoin WiFi and sits stale until power-cycled (root-caused 2026-07-16: a mains blip cycled both boards + rebooted the Pi; .114 rejoined, .219 stayed dark 16h until a manual Shelly cycle). The watchdog automates exactly that manual recovery.
+
+### Arduino watchdog: design notes
+
+State lives in tmpfs (`/run/arduino-watchdog/`) so it resets on reboot — boards get a fresh grace period after a power event rather than being cycled on stale state. Cycling the shared plug briefly drops the *healthy* board too (recovers in seconds — accepted tradeoff). It **only** touches the Arduinos' plug (`.61`), never the Pi's own plug (PivacPower `.118`). A truly dead board (reboots but never rejoins) is cycled at most once/hour and the freshness alert emails in parallel.

@@ -45,3 +45,16 @@ Chiltrix CX75 water-side fouling alerts, group `chiltrix`, all routing to `graph
 ## Signal K mirror
 
 **Every rule is also mirrored into Signal K as a notification** by `pivac.GrafanaAlerts` (`pivac-grafana-alerts.service`, added 2026-09-02), so WilhelmSK shows the same alarms the email path sends. It polls Grafana's Prometheus-compatible rules API for the full rule set and the Alertmanager alerts API for which are firing, and publishes every rule every cycle under `notifications.pivac.<rule uid with - → _>` with state `normal` while quiet and `warn`/`alert`/`alarm` from the `severity` label (`warning`/`info`/`critical`) while firing. Grafana stays the evaluator; a silence in Grafana reads as `normal` here too. Republishing the whole set each cycle means a restart of Signal K or of the poller self-heals within one cycle, and a dead poller leaves every path stale together. The Grafana service-account token (Viewer) lives in the module's block in `/etc/pivac/config.yml`; see `config/config.grafana-alerts-sample.yml`. Push delivery to the phone would additionally need the `signalk-push-notifications` plugin paired with the app; in-app display needs nothing.
+
+## Summary by file
+
+Every rule routes to `graph-bridge`:
+- `redlink-stale.yaml` — `redlink-stale` (30 m), `redlink-stale-fast` (10 m), `redlink-error-burst` (`consecutiveErrors > 2` for 5 m; runbook says query `lastErrorType`).
+- `sensor-freshness.yaml` — 30 m staleness on `hydronic-{in,ubt,lbt,out}`, `loop-{a,b}-{supply,return}`, `circ-temp-stale`, and `arduino-{dhw,hydronic}-psi-stale`. Kelvin paths use the never-true sentinel `value < 100`, PSI `< -1`, all `noDataState: Alerting`. Deletes `hydronic-crw-stale`, `outside-onewire-stale` and `outside-temp-divergence`.
+- `domestic-water.yaml` — `domestic-flow-continuous` (3 h with no irrigation), `domestic-flow-high` (net of irrigation > 12 gpm), `domestic-water-stale`. Irrigation NoData is replaced with 0 so a down sprinkler service cannot disarm leak alerting.
+- `sentry-boiler.yaml` — `sentry-watertemp-stale`, `sentry-cycle-stale` (both firing = reader dead; only waterTemp = the CV cannot read the digits), `sentry-outdoor-divergence`. °F paths use sentinel `< -100`.
+- `chiltrix.yaml` — `chiltrix-pump-only-flow-low` (`startupFlow` < 40 L/min for 30 m, **the** fouling alarm), `chiltrix-zero-flow` (`waterFlow` == 0 over 7 m for 3 m, guarded by `max(switchOn) > 0`) and `chiltrix-modbus-stale`. **The two flow rules cover different failure shapes and neither substitutes for the other:** `startupFlow` catches gradual fouling and is blind to a total loss of flow, because its 15 L/min floor discards a genuine zero. Deletes `chiltrix-flow-approaching-trip` and `chiltrix-run-duration-excessive`, both retired because running flow and run length are controlled outputs.
+
+## Provisioning is additive (verified 2026-08-06)
+
+Verified live: after the CRW→UBT rename, `hydronic-crw-stale`, `outside-onewire-stale` and `outside-temp-divergence` all survived the copy + `systemctl restart grafana-server` (16 rules in the `alert_rule` table when the YAML defined 7), and the two staleness rules would have emailed on **every** evaluation since their metrics no longer existed and both carry `noDataState: Alerting`.
