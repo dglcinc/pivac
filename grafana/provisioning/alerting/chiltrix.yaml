@@ -383,18 +383,33 @@ groups:
             That does not make it benign: it stops cooling and it will repeat while the cause
             is present.
 
-            CHECK THE ISOLATION VALVES FIRST. On 2026-09-03 a valve left closed for a couple of
-            minutes during a glycol top-up produced exactly this — inlet 54.7 F, pump commanded
-            to 100% (raw.r248), flow 0.0, and a 16-minute lockout while the loop coasted to
-            62.2 F. Any work on the loop is the leading cause.
+            ANY WORK ON THE LOOP IS THE LEADING CAUSE, and it has two mechanisms, not one.
+            The CX65 IOM p70 names both: "If there is not enough flow in the system OR AIR IN
+            THE LINES you will get P5 and possibly P1 errors." On 2026-09-03 a valve left closed
+            for a couple of minutes during a glycol top-up produced exactly this — inlet 54.7 F,
+            pump commanded to 100% (raw.r248), flow 0.0, and a 16-minute lockout while the loop
+            coasted to 62.2 F. A top-up also introduces air, so after any fill treat a P5 as
+            air until purging rules it out, even if every valve is verified open.
 
-            1. Walk the loop isolation valves, most recently touched first.
+            1. Walk the loop isolation valves, most recently touched first, then purge air
+               (IOM p39). After a fill, do both — an open valve does not rule out an air lock.
             2. hvac.chiller.chiltrix.raw.r284 is the controller's fault/lockout register. It
                read 32 throughout that lockout and 0 for every other sample of the surrounding
                eight days. Nonzero corroborates a controller-side trip; the full encoding is
                not mapped, so treat a value other than 32 as new information and record it.
             3. Read the controller's error log for the code and timestamp BEFORE pressing
-               Clear — Clear wipes the log, which is the only durable record of the code.
+               anything. No Modbus register latches a fault code (checked: nothing in the 181
+               published addresses holds one after the event clears), and the panel log is a
+               few rows deep and a Clear erases it — so this is the ONLY chance to tie a code
+               to an event. The 2026-09-03 code was lost this way: the log read empty three
+               days later, so that event's P5 identification rests on the mechanism alone.
+               Touch ERROR on the controller home screen (IOM p55). The log lists
+               TIME / DATE / ERROR per row with Back, Clear, Error Reset and Next
+               buttons, so find the row by timestamp. "Error Reset" clears
+               the fault; "Clear" wipes the history — only ever press Clear after recording it.
+               Relevant codes (IOM p63): P5 indoor unit water flow error, P1 high pressure
+               protection, P2 low pressure, E14 system anti freeze twice, E17 AC system
+               anti freeze twice.
             4. If no valve is closed, this is the severe end of the fouling failure: pull the
                Y-strainer (see chiltrix-pump-only-flow-low) and check for an air lock.
             5. Do NOT open the autofill to recover pressure. This is a glycol loop — top up
