@@ -19,6 +19,9 @@ from pivac.Sentry import (  # noqa: E402
     _WATER_IDLE_CEILING,
     _display_threshold,
     _decode_segments,
+    _low_margin,
+    _MARGIN_BAND,
+    _MIN_SEPARATION,
 )
 
 CASES = [
@@ -87,8 +90,43 @@ DECODE_CASES = [
 ]
 
 
+# Aim check. Ratios are real measurements taken 2026-09-06 with the boiler idle:
+# the four LED spots at their then-configured coords (burner hugging the 1.05 bar
+# after two camera drifts), and the same spots re-centred on the lens.
+MARGIN_CASES = [
+    ("burner drifted onto the bezel -> flagged",
+     {"burner": [1.040, 1.045, 1.047, 1.051, 1.043]}, 1.05, ["burner"]),
+    ("all four at the lens centres -> clean",
+     {"burner":            [0.812, 0.815, 0.822],
+      "circ":              [0.790, 0.804, 0.809],
+      "circ_aux":          [0.810, 0.814, 0.828],
+      "thermostat_demand": [0.804, 0.811, 0.814]}, 1.05, []),
+    ("a genuinely lit LED is not flagged",
+     {"burner": [1.31, 1.35, 1.39]}, 1.05, []),
+    ("a minority of on-bar frames is not flagged",
+     {"circ": [0.80, 0.81, 1.045, 0.79, 0.82]}, 1.05, []),
+    ("indicator hugging its 1.15 bar -> flagged",
+     {"water_temp": [1.14, 1.152, 1.147, 1.16]}, 1.15, ["water_temp"]),
+    ("empty samples are ignored", {"burner": []}, 1.05, []),
+    # Cycling indicators: real ratios, 160 frames each, 2026-09-06. The drifted
+    # water_temp switched states correctly but on a 0.090 separation, which the
+    # majority test cannot see -- it is dark for three quarters of every cycle.
+    ("drifted water_temp, thin gap -> flagged",
+     {"water_temp": [1.049, 1.045, 1.053, 1.056, 1.179, 1.183, 1.177]},
+     1.15, ["water_temp"]),
+    ("lens-centred water_temp, wide gap -> clean",
+     {"water_temp": [0.871, 0.868, 0.874, 0.880, 1.392, 1.401, 1.388]},
+     1.15, []),
+    ("lens-centred air and gas_input -> clean",
+     {"air":        [0.893, 0.890, 1.501, 1.495],
+      "gas_input":  [0.895, 0.891, 1.450, 1.444]}, 1.15, []),
+]
+
+
 def main():
     assert _WATER_IDLE_CEILING == 185.0, _WATER_IDLE_CEILING
+    assert _MARGIN_BAND == 0.03, _MARGIN_BAND
+    assert _MIN_SEPARATION == 0.15, _MIN_SEPARATION
     assert THR == 206, THR
     failures = []
     for label, mode, value, burner, expect_ok in CASES:
@@ -108,8 +146,16 @@ def main():
         if not ok:
             failures.append(label)
 
+    for label, ratios, thr, expect_names in MARGIN_CASES:
+        got = [n for n, _ in _low_margin(ratios, thr)]
+        ok = got == expect_names
+        print(f"[{'PASS' if ok else 'FAIL'}] {label}: "
+              f"_low_margin(..., {thr}) -> {got} (want {expect_names})")
+        if not ok:
+            failures.append(label)
+
     print()
-    total = len(CASES) + len(DECODE_CASES)
+    total = len(CASES) + len(DECODE_CASES) + len(MARGIN_CASES)
     if failures:
         print(f"{len(failures)} FAILED: {failures}")
         sys.exit(1)

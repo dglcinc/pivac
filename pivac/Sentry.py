@@ -240,9 +240,9 @@ def _read_display(frame, config: dict) -> str:
 # LED / indicator detection
 # ---------------------------------------------------------------------------
 
-def _roi_is_lit(frame, coord: dict,
-                spot_radius: int = 8, bg_radius: int = 25,
-                ratio: float = 1.15) -> bool:
+def _roi_ratio(frame, coord: dict,
+               spot_radius: int = 8, bg_radius: int = 25) -> float:
+    """Spot/background brightness ratio at a coordinate, or 0.0 off-frame."""
     _, np = _require_cv()
     x, y = coord["x"], coord["y"]
     h, w = frame.shape[:2]
@@ -251,14 +251,20 @@ def _roi_is_lit(frame, coord: dict,
     sx2, sy2 = min(w, x + spot_radius), min(h, y + spot_radius)
     spot = gray[sy1:sy2, sx1:sx2]
     if spot.size == 0:
-        return False
+        return 0.0
     spot_brightness = float(np.mean(spot))
     bx1, by1 = max(0, x - bg_radius), max(0, y - bg_radius)
     bx2, by2 = min(w, x + bg_radius), min(h, y + bg_radius)
     bg_brightness = float(np.mean(gray[by1:by2, bx1:bx2]))
     if bg_brightness < 1.0:
         bg_brightness = 1.0
-    return spot_brightness >= bg_brightness * ratio
+    return spot_brightness / bg_brightness
+
+
+def _roi_is_lit(frame, coord: dict,
+                spot_radius: int = 8, bg_radius: int = 25,
+                ratio: float = 1.15) -> bool:
+    return _roi_ratio(frame, coord, spot_radius, bg_radius) >= ratio
 
 
 # Two separate lit-thresholds. The four boiler STATUS LEDs (burner/circ/circ_aux/
@@ -273,43 +279,104 @@ _DEFAULT_LED_RATIO = 1.05        # boiler status LEDs (dim green, IR)
 _DEFAULT_INDICATOR_RATIO = 1.15  # display-mode + dhw_temp indicators (bright)
 
 
-def _read_leds(frame, config: dict) -> dict:
+# A spot centred on its LED lens sits far from the lit-threshold in BOTH states
+# (measured 2026-09-06: 0.81 dark, and the equivalent re-centring lifted the lit
+# indicators from ~1.18 to ~1.39). A spot that has drifted onto the bright bezel
+# around the lens loses the dark end of that span and creeps up onto the bar,
+# where sensor noise alone flips it. `_low_margin` names any spot whose ratio
+# spends most of a cycle within `_MARGIN_BAND` of its threshold — the LED-side
+# analogue of the "nothing decoded" warning that dates a display_warp drift.
+_MARGIN_BAND = 0.03
+
+# Minimum separation between a spot's dark and lit clusters. Aimed spots clear
+# this easily (0.39-0.52 measured on the three cycling indicators); the drifted
+# water_temp indicator managed 0.09 and was one noisy frame from misassigning a
+# display mode. Only applied when a cycle actually observed both states.
+_MIN_SEPARATION = 0.15
+
+
+def _low_margin(ratios: dict, threshold: float, band: float = _MARGIN_BAND,
+                min_separation: float = _MIN_SEPARATION):
+    """Name spots whose lit/unlit decision this cycle rests on noise.
+
+    Two ways that happens. A spot that never changes state but parks on the
+    threshold (a drifted LED reading the bezel) is caught by `band`. A spot that
+    does switch, but whose two clusters nearly touch, is caught by
+    `min_separation` -- the majority test cannot see that one, because it spends
+    most of the cycle comfortably dark.
+
+    Returns [(name, detail)] with detail as the median ratio, or the observed
+    dark->lit separation when that is what tripped.
+    """
+    flagged = []
+    for name, samples in sorted(ratios.items()):
+        if not samples:
+            continue
+        near = sum(1 for r in samples if abs(r - threshold) <= band)
+        if near * 2 > len(samples):
+            flagged.append((name, "median %.3f" % statistics.median(samples)))
+            continue
+        lit = [r for r in samples if r >= threshold]
+        dark = [r for r in samples if r < threshold]
+        if lit and dark:
+            gap = min(lit) - max(dark)
+            if gap < min_separation:
+                flagged.append((name, "gap %.3f" % gap))
+    return flagged
+
+
+def _read_leds(frame, config: dict, ratios: dict = None) -> dict:
     ratio = config.get("led_ratio", _DEFAULT_LED_RATIO)
     leds = config.get("leds", {})
-    return {
-        "burnerOn":         _roi_is_lit(frame, leds["burner"],            ratio=ratio),
-        "circOn":           _roi_is_lit(frame, leds["circ"],              ratio=ratio),
-        "circAuxOn":        _roi_is_lit(frame, leds["circ_aux"],          ratio=ratio),
-        "thermostatDemand": _roi_is_lit(frame, leds["thermostat_demand"], ratio=ratio),
-    }
+    out = {}
+    for key, name in (("burner", "burnerOn"), ("circ", "circOn"),
+                      ("circ_aux", "circAuxOn"),
+                      ("thermostat_demand", "thermostatDemand")):
+        r = _roi_ratio(frame, leds[key])
+        out[name] = r >= ratio
+        if ratios is not None:
+            ratios.setdefault(key, []).append(r)
+    return out
 
 
 _DISPLAY_MODES = {"water_temp", "air", "gas_input"}
 
 
-def _read_indicators(frame, config: dict):
+def _read_indicators(frame, config: dict, ratios: dict = None):
     """Return the active display mode (water_temp/air/gas_input), or None.
 
     dhw_temp is intentionally excluded: it is a boiler-status light that stays
     lit whenever DHW priority is active, independent of what the display shows.
     Use _read_dhw_priority() to read it as a boolean.
+
+    With `ratios` given, every mode indicator is measured rather than stopping
+    at the first lit one, so the cycle-end aim check sees all of them.
     """
     ratio = config.get("indicator_ratio", _DEFAULT_INDICATOR_RATIO)
+    active = None
     for mode, coord in config.get("indicators", {}).items():
         if mode not in _DISPLAY_MODES:
             continue
-        if _roi_is_lit(frame, coord, ratio=ratio):
-            return mode
-    return None
+        if active is not None and ratios is None:
+            break
+        r = _roi_ratio(frame, coord)
+        if ratios is not None:
+            ratios.setdefault(mode, []).append(r)
+        if r >= ratio and active is None:
+            active = mode
+    return active
 
 
-def _read_dhw_priority(frame, config: dict) -> bool:
+def _read_dhw_priority(frame, config: dict, ratios: dict = None) -> bool:
     """Return True if the DHW priority indicator is lit."""
     ratio = config.get("indicator_ratio", _DEFAULT_INDICATOR_RATIO)
     coord = config.get("indicators", {}).get("dhw_temp")
     if coord is None:
         return False
-    return _roi_is_lit(frame, coord, ratio=ratio)
+    r = _roi_ratio(frame, coord)
+    if ratios is not None:
+        ratios.setdefault("dhw_temp", []).append(r)
+    return r >= ratio
 
 
 # ---------------------------------------------------------------------------
@@ -465,6 +532,8 @@ def _poll_cycle(config: dict) -> dict:
     seen_modes   = set() # modes the display was stably in, decodable or not
     led_samples  = {}    # led key -> [bool reads this cycle] (voted at cycle end)
     dhw_samples  = []    # dhw-priority bool reads this cycle (voted at cycle end)
+    led_ratios   = {}    # led key -> [raw spot/bg ratios] (aim check at cycle end)
+    ind_ratios   = {}    # indicator key -> [raw spot/bg ratios] (same)
     confirmed    = set() # modes with >= min_samples (enough to trust the median)
     error_code   = None
     last_frame   = None
@@ -480,7 +549,7 @@ def _poll_cycle(config: dict) -> dict:
                 continue
             last_frame = frame
 
-            mode  = _read_indicators(frame, config)
+            mode  = _read_indicators(frame, config, ind_ratios)
             value = _read_display(frame, config)
 
             # Track mode stability to skip transition-frame artefacts.
@@ -504,10 +573,10 @@ def _poll_cycle(config: dict) -> dict:
             # Sample the LED/indicator states on every stable frame so the cycle
             # can resolve each by majority vote (one frame's IR glare can't flip
             # the result). The same per-frame read feeds the phantom guard below.
-            frame_leds = _read_leds(frame, config)
+            frame_leds = _read_leds(frame, config, led_ratios)
             for k, v in frame_leds.items():
                 led_samples.setdefault(k, []).append(bool(v))
-            dhw_samples.append(_read_dhw_priority(frame, config))
+            dhw_samples.append(_read_dhw_priority(frame, config, ind_ratios))
 
             if mode is None:
                 code = _classify_error(value)
@@ -588,6 +657,24 @@ def _poll_cycle(config: dict) -> dict:
         dhw_priority = _read_dhw_priority(last_frame, config)
     else:
         dhw_priority = False
+
+    # A spot sitting on its own threshold reports a state it has not measured.
+    # Sustained, this means the coordinate has drifted off its LED lens onto the
+    # surrounding bezel -- re-aim `leds`/`indicators` the way `display_warp` is
+    # re-aimed, and in the same pass (they share the camera's drift).
+    for label, ratios, thr in (
+            ("leds", led_ratios, config.get("led_ratio", _DEFAULT_LED_RATIO)),
+            ("indicators", ind_ratios,
+             config.get("indicator_ratio", _DEFAULT_INDICATOR_RATIO))):
+        flagged = _low_margin(ratios, thr)
+        if flagged:
+            logger.warning(
+                "Sentry: %s %s decided this cycle on the %.2f lit-threshold by a "
+                "margin too small to be a measurement. Sustained, re-aim the %s "
+                "coordinates onto the LED lens centres",
+                label,
+                ", ".join("%s (%s)" % (n, d) for n, d in flagged),
+                thr, label)
 
     result = dict(collected)
     if error_code:
