@@ -1,5 +1,5 @@
-<svg viewBox="0 0 900 1044" role="img" aria-label="Pin destination reference for the three LTV-847 optocouplers on the RPI-BC input board, seen from the component side. Each of the sixteen pins per chip is labelled with its pin number, leg letter, matrix hole and the point it connects to. No traces are drawn." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
-<rect x="0" y="0" width="900" height="1044" fill="#ffffff"/>
+<svg viewBox="0 0 900 1094" role="img" aria-label="Pin destination reference for the three LTV-847 optocouplers on the RPI-BC input board, seen from the component side. Each of the sixteen pins per chip is labelled with its pin number, leg letter, matrix hole and the point it connects to. No traces are drawn." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<rect x="0" y="0" width="900" height="1094" fill="#ffffff"/>
 <g font-family="IBM Plex Mono, ui-monospace, monospace" fill="#1a1a1a">
 <text x="32.0" y="26" font-size="15" font-weight="700">RPi I/O board — optocoupler pin destinations, COMPONENT side (no traces)</text>
 <text x="32.0" y="43" font-size="9.5" opacity=".8">Three LTV-847 DIP-16. Chips and sockets sit on this face; nothing is wired here.  Sheet 1 of 2.</text>
@@ -323,5 +323,6 @@
 <rect x="38.0" y="1010" width="11" height="11" fill="#9AA0A6"/>
 <text x="54.0" y="1019" font-size="9.5">unused (channel built, no plug position behind it)</text>
 <text x="38.0" y="1044" font-size="9.5" font-weight="700" fill="#B03030">IC-C is notch-opposite to IC-A and IC-B. Check its notch before inserting the chip — reversing it is the likeliest assembly mistake on this board.</text>
-<text x="38.0" y="1062" font-size="9.5">Holes are the canonical component-side (column,row) on both sheets, so a hole label means the same physical hole in either view — only its screen position mirrors.</text>
+<text x="38.0" y="1062" font-size="9.5"><tspan font-weight="700">Pi nn</tspan> = physical header position (1-40).  <tspan font-weight="700">BCM nn</tspan> = the Broadcom GPIO number — the same line, and the number config.yml keys its inputs by (numbering: "bcm").</text>
+<text x="38.0" y="1080" font-size="9.5">Holes are the canonical component-side (column,row) on both sheets, so a hole label means the same physical hole in either view — only its screen position mirrors.</text>
 </g></svg>

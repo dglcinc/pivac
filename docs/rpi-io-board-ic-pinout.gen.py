@@ -145,7 +145,7 @@ def draw_view(view, base):
         b = draw_ic(n, b, view)
     return b + 34
 
-W_, H_ = 900, 1044
+W_, H_ = 900, 1094
 
 def build(view):
     global out
@@ -178,7 +178,11 @@ def build(view):
                f'fill="{POWER}">IC-C is notch-opposite to IC-A and IC-B. Check its notch before '
                f'inserting the chip — reversing it is the likeliest assembly mistake on this board.'
                f'</text>')
-    out.append(f'<text x="{ML-24}" y="{ly+5*16+28:.0f}" font-size="9.5">Holes are the canonical '
+    out.append(f'<text x="{ML-24}" y="{ly+5*16+28:.0f}" font-size="9.5"><tspan font-weight="700">'
+               f'Pi nn</tspan> = physical header position (1-40).  <tspan font-weight="700">BCM nn'
+               f'</tspan> = the Broadcom GPIO number — the same line, and the number config.yml '
+               f'keys its inputs by (numbering: "bcm").</text>')
+    out.append(f'<text x="{ML-24}" y="{ly+5*16+46:.0f}" font-size="9.5">Holes are the canonical '
                f'component-side (column,row) on both sheets, so a hole label means the same '
                f'physical hole in either view — only its screen position mirrors.</text>')
     out.append('</g></svg>')
