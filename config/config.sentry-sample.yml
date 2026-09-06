@@ -74,18 +74,23 @@ pivac.Sentry:
     - {x:   62, y:    1, w:   41, h:   73}  # tens
     - {x:  124, y:    1, w:   43, h:   73}  # units
 
-  # Centre pixel of each green LED indicator (right of display panel).
-  # Coordinates are in the original full frame.
+  # Lens centre of each green LED indicator (right of display panel).
+  # Coordinates are in the original full frame, so they drift with the camera
+  # exactly as display_warp does -- RE-AIM THEM IN THE SAME PASS AS THE QUAD.
+  # Aiming one of these at the bright bezel instead of the lens raises its dark
+  # reading onto the lit threshold, and the state it reports is then noise
+  # (burnerOn, 2026-09-06). Aimed, a dark LED reads ~0.81 against led_ratio 1.05.
   leds:
-    burner:            {x: 1355, y: 643}
-    circ:              {x: 1352, y: 669}
-    circ_aux:          {x: 1353, y: 696}
-    thermostat_demand: {x: 1350, y: 723}
+    burner:            {x: 1348, y: 634}
+    circ:              {x: 1348, y: 662}
+    circ_aux:          {x: 1346, y: 690}
+    thermostat_demand: {x: 1346, y: 716}
 
-  # Centre pixel of each display-mode indicator light (bottom of panel).
+  # Lens centre of each display-mode indicator light (bottom of panel).
   # Whichever is lit identifies what value the 3-digit display is showing.
+  # Same drift rule as leds: above.
   indicators:
-    water_temp: {x: 1156, y: 755}
-    air:        {x: 1210, y: 749}
-    gas_input:  {x: 1261, y: 744}
-    dhw_temp:   {x: 1316, y: 743}
+    water_temp: {x: 1148, y: 748}
+    air:        {x: 1204, y: 744}
+    gas_input:  {x: 1256, y: 739}
+    dhw_temp:   {x: 1310, y: 736}
