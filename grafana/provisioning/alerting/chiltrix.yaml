@@ -66,6 +66,12 @@ apiVersion: 1
 # roughly a day before the plant misbehaves noticeably. THIS LOOP CAN LOSE HALF ITS FLOW IN
 # ABOUT A WEEK - the 18-day interval from commissioning to the first blockage is NOT the prior.
 #
+# TWO FLOW RULES, TWO FAILURE SHAPES. startupFlow covers the gradual case (fouling, over
+# hours to days). It is blind to the instantaneous case — a closed valve — because the 15 L/min
+# floor that keeps the deep-idle trickle out of the plateau also discards a genuine 0.0, so a
+# total loss of flow publishes the healthiest startupFlow value there is. chiltrix-zero-flow
+# covers that. Neither substitutes for the other.
+#
 # To retire a rule from this file later, add a top-level deleteRules: block naming
 # its uid — provisioning is ADDITIVE and deleting a rule from the group does NOT
 # remove it from Grafana (see CLAUDE.md).
@@ -188,6 +194,211 @@ groups:
                premixed glycol to the 21-23 psi the loop normally holds, then vent.
             4. Permanent fix is a hydronic dirt separator with a blowdown valve. A finer
                in-line filter clogs faster than the Y does.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Zero water flow while the unit is commanded on ----
+      # THE FOULING RULE IS BLIND TO A TOTAL LOSS OF FLOW, which is what motivated this one.
+      # During the 2026-09-03 lockout startupFlow published 54.0 L/min — the HIGHEST value of
+      # that week — because the module captured the single 54.0 sample from the aborted start's
+      # pump plateau and then discarded every subsequent 0.0 as sub-floor idle trickle (the
+      # 15 L/min floor that keeps the 2-5 L/min deep-idle trickle out of the plateau). A real
+      # zero-flow fault therefore reads as the healthiest possible state. Fouling is gradual and
+      # startupFlow catches it; a closed valve is instantaneous and only this rule catches it.
+      #
+      # Zero is a distinguishable value here. P52 = 0 ("not stop") means the pump never stops
+      # while the unit is on — deep idle is a 5.7-6.9 L/min sensing trickle, and across 9,623
+      # post-cleanout samples the ONLY zero readings were the 15 during that lockout.
+      #
+      # REPLAYED OVER 12,370 MINUTES (2026-08-28 -> 09-06) the rule fires eleven times, and the
+      # ten it fires before 2026-08-29 09:00 EDT are the FOULED regime, not false positives: with
+      # the strainer clogged the idle trickle fell below the flow meter's detection floor and read
+      # a clean 0.0 between every cycle. That period is the one the alarm set was silent through.
+      # Expect this rule to fire alongside chiltrix-pump-only-flow-low during severe fouling —
+      # zero flow is the far end of the same failure, and the runbook branches on which it is.
+      # Across the seven post-cleanout days it fires exactly once: the 09-03 lockout, 16:28-16:37.
+      #
+      # The switchOn guard uses max, not last, and that detail matters: the controller switched
+      # ITSELF off (register 140 -> 0) for the last 4 minutes of the lockout, so a `last` reducer
+      # would have suppressed the alarm partway through its own event. max over the window keeps
+      # it armed through a self-shutdown while still suppressing a deliberate seasonal switch-off,
+      # where switchOn stays 0 for the whole window. (Documented winter shutdown is a breaker-off
+      # at the chiller, which takes Modbus with it and lands on chiltrix-modbus-stale instead.)
+      #
+      # 7m window + 3m for: the 2026-09-03 event ran 16:20-16:36 EDT, so the last nonzero sample
+      # leaves the window at 16:26 and the rule fires 16:29 — 7 minutes of firing before the
+      # controller released itself. A longer window would have expired with the event.
+      - uid: chiltrix-zero-flow
+        title: Chiltrix water flow is zero (pump stopped or valve closed)
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.waterFlow
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.switchOn
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: C
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: C
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B < 1) && ($D > 0)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 420
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: E
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - E
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 3m
+        annotations:
+          summary: "Chiltrix water flow has read zero for several minutes while the unit is on — check for a closed isolation valve"
+          runbook: |
+            The chiller's own pump has stopped moving water. The pump normally never stops
+            while the unit is on (P52 = 0, "not stop") — idle is a 5.7-6.9 L/min sensing
+            trickle, so a true zero means the water side is blocked or the pump is off.
+
+            The controller sees this as P5 "indoor unit water flow error" (measured flow below
+            P65) and shuts the pump down for roughly 16 minutes, then retries on its own. It is
+            self-clearing, so by the time you read the email the unit may already be running.
+            That does not make it benign: it stops cooling and it will repeat while the cause
+            is present.
+
+            CHECK THE ISOLATION VALVES FIRST. On 2026-09-03 a valve left closed for a couple of
+            minutes during a glycol top-up produced exactly this — inlet 54.7 F, pump commanded
+            to 100% (raw.r248), flow 0.0, and a 16-minute lockout while the loop coasted to
+            62.2 F. Any work on the loop is the leading cause.
+
+            1. Walk the loop isolation valves, most recently touched first.
+            2. hvac.chiller.chiltrix.raw.r284 is the controller's fault/lockout register. It
+               read 32 throughout that lockout and 0 for every other sample of the surrounding
+               eight days. Nonzero corroborates a controller-side trip; the full encoding is
+               not mapped, so treat a value other than 32 as new information and record it.
+            3. Read the controller's error log for the code and timestamp BEFORE pressing
+               Clear — Clear wipes the log, which is the only durable record of the code.
+            4. If no valve is closed, this is the severe end of the fouling failure: pull the
+               Y-strainer (see chiltrix-pump-only-flow-low) and check for an air lock.
+            5. Do NOT open the autofill to recover pressure. This is a glycol loop — top up
+               manually with premixed glycol to 21-23 psi, then vent.
         labels:
           severity: warning
           source: chiltrix

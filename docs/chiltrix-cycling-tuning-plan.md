@@ -47,20 +47,48 @@ gentler endings, not continuous modulation at arbitrarily low load.
 Make one change at a time and read the result from data already collected (§
 Verification) before the next.
 
-### 1. P95: 5 → 3 °C
+### 1. P95: 5 → 3 °C — made 2026-08-30, no measurable effect on cycling
 
 Narrows the pump-trim ΔT target. At part load the pump is then already near its
 target and has little reason to slow, so the destabilizing flow cut mostly
 disappears while automatic control and the idle trickle economy are kept. Range is
 2–8; 3 °C ≈ 5.4 °F sits above the clean part-load ΔT of ~5 °F. Fully reversible.
 
+Set on the panel around 09:45 EDT on 2026-08-30 (register 95 reads 3). **Starts/day
+has not moved.** Matched on ambient so weather is not doing the work:
+
+| Ambient | starts/day at P95 = 5 | at P95 = 3 | median run at 5 | at 3 |
+|---|---|---|---|---|
+| 55–65 °F | 33.7 | 35.7 | 10.5 min | 11.0 min |
+| 65–72 °F | 41.6 | 38.1 | 13.0 min | 17.0 min |
+| 72–80 °F | 23.6 | 32.3 | 24.0 min | 24.0 min |
+
+The comparison window before the change is only 25 h, so this is weak evidence
+rather than a refutation. Run length rose in the 65–72 °F band, which is the
+direction wanted. It is not enough to credit the change with anything, and the
+cycling reduction now rests on change 2.
+
 ### 2. Cooling target: 10 → 12 °C, then P12: 2 → 3 °C (a pair)
 
 The target raise does not by itself reduce cycle count — the band width does — but
 it moves the whole band up: stop inlet ≈ 48.2 °F, stop-moment leaving ≈ 43 °F,
-antifreeze margin 5.6 °F instead of 2.2. That restored margin is what makes the
-P12 widening safe; with P12 = 3 the stop drops back ~1.8 °F and still keeps more
-margin than today. The wider band lengthens both the pulldown and the idle rise,
+antifreeze margin 5.6 °F. That margin is what makes the P12 widening safe; with
+P12 = 3 the stop drops back ~1.8 °F and still keeps more than four degrees.
+
+**⚠️ The margin at the present 10 °C target is zero, not the 2.2 °F this plan
+originally assumed, and that makes the target raise a prerequisite rather than a
+convenience.** Measured across 2026-08-29 to 09-06: forty running minutes came in at
+or below 38.5 °F leaving water, and the minimum reached **exactly 37.40 °F** on
+09-02 15:36 — the `P59` trip itself — with 37.58 °F on 08-31 07:37, 08-31 21:57 and
+09-05 22:51. `P59` is a level-one trip and E14 needs it twice, so these are near
+misses. Widening P12 at 10 °C would push them under. The excursions all sit at the
+end of a run, at full flow (49–52 L/min) and 39–52 Hz, so they are the normal stop
+transient rather than a restriction.
+
+**Adding glycol does not substitute for this.** `P59` trips on a fixed 3 °C
+leaving-water temperature and knows nothing about concentration, so the 2026-09-03
+top-up lowered the real freeze point and left the E14 exposure unchanged. Both
+post-top-up excursions (09-04 08:59 at 38.30 °F, 09-05 22:51 at 37.58) confirm it. The wider band lengthens both the pulldown and the idle rise,
 which is the direct cycling reduction. Side benefits of the warmer target: higher
 COP (the manual's p. 65 argument), and 12 °C is the manual's own suggested
 space-cooling setpoint.
@@ -116,9 +144,10 @@ All from existing paths, no new collection needed:
   hold nearer 5 °F instead of widening toward 9.
 - **Stop/restart points** — inlet (`.inletTemp`) at the compressor edges; confirms
   where the band actually sits after a target or P12 change.
-- **Fouling alarm still armed** — `.startupFlow` clean baseline is 50.5–54 L/min;
-  none of these changes should move it, and a P51 pin makes it stricter (fixed
-  speed → tighter plateau).
+- **Fouling alarm still armed** — `.startupFlow` clean baseline is 51.7 L/min since
+  the 2026-09-03 glycol top-up (50.5–54 before it); none of these changes should
+  move it, and a P51 pin makes it stricter (fixed speed → tighter plateau). A
+  glycol addition *does* move it, so record the date of any top-up.
 - **Pump cost of a P51 pin** — idle watts on `electrical.emporia.house.chiltrix`.
 
 Panel changes are the only write path — the Modbus module is read-only by policy
