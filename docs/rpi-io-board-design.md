@@ -227,6 +227,13 @@ the board.
 | IC-B | 13 and 16 | right (col 14) | row 13 | row 16 |
 | IC-C | 18 and 21 | left (col 7) | row **21** | row **18** |
 
+**Per-pin destination sheets:** [`rpi-io-board-ic-pinout-front.svg`](rpi-io-board-ic-pinout-front.svg)
+and [`rpi-io-board-ic-pinout-back.svg`](rpi-io-board-ic-pinout-back.svg) draw all sixteen pins of
+each chip with no traces at all — pin number, leg letter, hole and the one place that pin goes.
+Print both; the back sheet is the one to work from, since every rail and wire is on the solder
+side. Figure source `rpi-io-board-ic-pinout.gen.py`, checked against the tables below by
+`tests/test_io_board_pinout.py`.
+
 Hole-by-hole, IC-A and IC-B (IC-B in brackets):
 
 | Column | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
