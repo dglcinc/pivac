@@ -151,8 +151,8 @@ return and must never touch Pi ground. That one change is the point of the board
 | CHIL | header pin 22 | **J2.1** | (10,2) |
 | BOS1 | header pin 31 | **J2.2** | (11,2) |
 | BOS2 | header pin 29 | **J2.3** | (12,2) |
-| SCALA | none (new 2026-09-07) | **J3.2** | (15,2) |
 | DEHUM | header pin 32 | **J3.1** | (14,2) |
+| SCALA | none (new 2026-09-07) | **J3.2** | (15,2) |
 | relay common(s) | header ground pins | **position 4 of the plug that group uses** (J1.4, J2.4, J3.4); one common may serve all three, since every COM is one net | (9,2) (13,2) (17,2) |
 | wall wart + | — | **J4.1** (+14 V in), landed **last** | (18,2) |
 | wall wart − | — | **J4.4** (COM) | (21,2) |
