@@ -113,9 +113,13 @@ build sits in rows 1–7 or rows 10–24, between the bands.
 
 ## 5. Placement map
 
-The placement map is deliberately **not embedded here** — print it separately from
-[`docs/ds18b20-ext-board-layout.svg`](ds18b20-ext-board-layout.svg). (Any embedded
-SVG chokes the printer and needs flattening in Acrobat first.) Figure source:
+The placement map is deliberately **not embedded here** — print it separately, as two sheets:
+[`docs/ds18b20-ext-board-layout.svg`](ds18b20-ext-board-layout.svg) is the component side and
+[`docs/ds18b20-ext-board-layout-back.svg`](ds18b20-ext-board-layout-back.svg) is the solder
+side, the board flipped left-to-right with row 1 still at the top. Work from the back sheet: every
+rail and wire is on that face, and only the three bridges of §5.3 are on the far side. Hole
+labels keep the component-side (column,row) numbering on both sheets. (Any embedded SVG chokes
+the printer and needs flattening in Acrobat first.) Figure source:
 `docs/ds18b20-ext-board-layout.gen.py`.
 
 ### 5.1 Probe sockets
