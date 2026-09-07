@@ -1,7 +1,9 @@
 # DS18B20 Bus — Build Procedure
 
-**Status:** Ready to build (EXT board + DS2482). Field-bus rules verified live on the Pi
-(`10.0.0.82`, Pi 4 Model B, kernel `6.18.34+rpt-rpi-v8`). · **Owner:** David
+**Status:** EXT board built and bench-proven on the new Pi (`new-pivac`, `10.0.0.40`): the
+DS2482 binds at the default 100 kHz I²C clock, an empty bus searches clean, and a spare probe
+on H1 reads with a stable count. Field cutover pending. Field-bus rules verified live on the
+production Pi (`10.0.0.82`, Pi 4 Model B, kernel `6.18.34+rpt-rpi-v8`). · **Owner:** David
 
 Build procedure for the 1-wire side of the system: the **RPI-BC EXT-PCB HBUS SET** (Mouser
 651-2202995) carrying the DS2482 converter, three probe sockets at the enclosure opening and
@@ -67,13 +69,12 @@ throughout, so pivac, the calibration offsets and the InfluxDB history are untou
 
 | Item | Part | Qty |
 |---|---|---|
-| 1-wire converter | **DS2482-100** (SOIC-8 on a DIP-8 adapter) | 1 |
-| IC socket | DIP-8 | 1 |
+| 1-wire converter | **DS2482-100** (SOIC-8 on a compact 8-pin adapter, soldered into the board) | 1 |
 | Probe sockets | **PTSM 0,5/3-HH-2,5-THR** print header, horizontal entry (order 1778560 black / 1815277 white) | 3 |
 | Probe plugs | **PTSM 0,5/3-P-2,5** (order 1778845) | 3 |
 | Link terminal | **PTSM 0,5/5-HH-2,5-THR** print header, horizontal entry | 1 |
 | Link plug | **PTSM 0,5/5-P-2,5** | 1 |
-| Decoupling | 100 nF ceramic | 1 |
+| Decoupling | 100 nF, ceramic or film (a 63 V polyester box is fitted) | 1 |
 | Link cable | 5-conductor, board to board — length measured at the dry-fit (the Pi-board terminal sits at its row 25, below the lower keep-out band) | 1 |
 | Wire | insulated 22 AWG solid + a scrap of bare | — |
 
@@ -167,11 +168,14 @@ Each bridge passes over the rails below its start on the component side and touc
 them. Columns 6, 10 and 12 are deliberately not socket-pin columns, so no hole carries more
 than two conductors.
 
-### 5.4 DS2482 socket
+### 5.4 DS2482 adapter
 
-DIP-8 socket at **columns 8 and 11, rows 12–15**, with the **notch facing row 11** (up, toward
-the probe sockets). Pin 1 is the top-left pin, (8,12). The SOIC-8 sits on its adapter with pin
-1 on the adapter's pin-1 mark.
+The SOIC-8 sits on a compact adapter whose eight pins are soldered straight into **columns 8
+and 11, rows 12–15**, pin 1 at the top-left hole (8,12) with the chip's dot toward row 11 (up,
+toward the probe sockets). There is no socket; the chip is soldered onto the adapter in place.
+Find the adapter's pin-1 pad with the meter, the top-side pad continuous with the VCC rail at
+(6,12), rather than trusting a printed mark: compact adapters differ in which way the rows run,
+and a chip soldered to the wrong pad is a desoldering job.
 
 | Hole | Pin | Name | Connects to |
 |---|---|---|---|
@@ -251,9 +255,8 @@ The bus is live today, so from step 3 on it is down. Do it in one sitting and ex
 
 1. **Identify the board.** Measure both end margins and mark row 1. Confirm the riser field
    and the no-hole column are on the left. Meter check: two adjacent free holes must not beep
-   (no hidden bus strips). Identify the DS2482's pins on the bench against the §5.4 table and
-   the adapter's pin-1 mark.
-2. **Dry-fit, cover on.** Place the three probe sockets at row 2, the DIP socket, and the link
+   (no hidden bus strips). Identify the DS2482's pins on the bench against the §5.4 table.
+2. **Dry-fit, cover on.** Place the three probe sockets at row 2, the adapter, and the link
    terminal without soldering. Confirm the socket bodies clear the enclosure and their entries
    line up with the short-end opening; confirm the link terminal and its plug clear the lid;
    confirm the link cable reaches the Pi board's link terminal (its row 25, below the lower
@@ -262,17 +265,21 @@ The bus is live today, so from step 3 on it is down. Do it in one sitting and ex
    VCC bridge from (6,4)** — and carry that one-row shift through the rest of the build.
 3. **Strip the old arrangement.** Unplug the trunk, remove the 2.2 kΩ pull-up, the GPIO 4 data
    wire and any series resistor.
-4. **Solder the fixed parts**, lowest first: the DIP socket (two diagonal pins, check it sits
-   flat, then the rest), the three probe sockets, the link terminal. Chip stays out.
+4. **Solder the fixed parts**, lowest first: the adapter (two diagonal pins, check it sits
+   flat, then the rest), the three probe sockets, the link terminal. Chip stays off.
 5. **Rails, then jumpers, then bridges, then wires** — §5.2, §5.3, §5.6 in that order, then
    the capacitor.
-6. **Check before the chip goes in.** Continuity from each socket's VCC pin to the chip's
-   VCC ring and to link position 1 (8,18); the same for DATA (to the chip's IO ring) and GND
+6. **Check before the chip goes on.** Continuity from each socket's VCC pin to the adapter's
+   VCC pad and to link position 1 (8,18); the same for DATA (to the adapter's IO pad) and GND
    (to link position 5, (12,18)). Then silence between every pair: VCC↔GND, VCC↔DATA,
    DATA↔GND, and every net ↔ PCTLZ (11,14) and ↔ the parked position 4 (11,18). SCL
    (8,15)↔(10,18) beeps; SDA (11,15)↔(9,18) beeps; SCL↔SDA stays silent.
-7. **Software, then chip.** Run §8's config edit and reboot with the socket still empty. Power
-   off, seat the DS2482 (notch up), power on: `i2cdetect -y 1` shows `0x18`.
+7. **Software, then chip.** Run §8's config edit and reboot with the adapter still bare. Power
+   off and solder the DS2482 onto the adapter, dot at the pin-1 pad found in step 1: flux the
+   pads, tack one corner and align all eight legs, tack the diagonal, then one leg at a time,
+   and wick any bridge. Power on and **measure 3.3 V between chip pins 1 and 3 before anything
+   else**; then `i2cdetect -y 1` shows `0x18`. A bench fan goes on the Pi's 5 V pins, never on
+   the 3.3 V rail the chip shares.
 8. **Bring the bus up.** Instantiate per §8, plug the trunk into H1, and
    `cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slave_count` reads **8**. The eight `28-*`
    names match the roster in CLAUDE.md, and Signal K values resume within one `pivac-1wire`
@@ -407,16 +414,25 @@ its `active_pullup` defaults on, no device-tree overlay ships so the device is i
 over sysfs, and the live config file is `/boot/firmware/config.txt` (`/boot/config.txt` is a
 do-not-edit stub). `/dev/i2c-20`/`21` are HDMI buses; the header bus appears as `/dev/i2c-1`.
 
-1. Edit `/boot/firmware/config.txt`: `dtparam=i2c_arm=on` (line 6), and comment out
-   `dtoverlay=w1-gpio` under `[all]` (line 52) — two masters at once makes sensor ownership
-   ambiguous. Reboot.
+1. Edit `/boot/firmware/config.txt`: `dtparam=i2c_arm=on` (line 6), and **delete** the
+   `dtoverlay=w1-gpio` line under `[all]` — two masters at once makes sensor ownership
+   ambiguous. Delete rather than comment: `raspi-config` re-enables a commented line, and on a
+   card built with cloud-init the `runcmd` block re-runs on every boot and calls it, so the
+   overlay comes back silently. On such a card, once it has done its job,
+   `sudo touch /etc/cloud/cloud-init.disabled`. Reboot and confirm with
+   `ls /sys/firmware/devicetree/base | grep onewire` (nothing) before trusting any result.
 2. `sudo apt install -y i2c-tools`, then `i2cdetect -y 1` → device at `0x18`. Nothing there
-   means AD0/AD1 aren't grounded or the chip isn't powered.
+   means AD0/AD1 aren't grounded or the chip isn't powered. **A chip that answers `i2cdetect`
+   but logs `DS2482 reset failed` on instantiation is unpowered**: leakage through the SDA/SCL
+   pull-ups is enough to acknowledge an address and nothing more. It also passes at a 10 kHz
+   clock and fails at 50 kHz, which looks like a signal-integrity fault and is not one. Measure
+   3.3 V between chip pins 1 and 3, then the link plug, then the rails, and reflow the open
+   joint. An empty 1-wire bus is not a cause: once the chip is up it reports zero slaves.
 3. Instantiate: `sudo modprobe ds2482` then
    `echo ds2482 0x18 | sudo tee /sys/bus/i2c/devices/i2c-1/new_device` — `w1_bus_master1`
    reappears backed by the bridge, same `28-*` names.
 4. Survive reboots: `echo ds2482 | sudo tee /etc/modules-load.d/ds2482.conf` and install
-   `scripts/systemd/ds2482-init.service`:
+   `scripts/systemd/ds2482-init.service` (in the repo):
 
 ```ini
 [Unit]
