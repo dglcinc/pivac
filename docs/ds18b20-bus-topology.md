@@ -423,11 +423,15 @@ do-not-edit stub). `/dev/i2c-20`/`21` are HDMI buses; the header bus appears as 
    `ls /sys/firmware/devicetree/base | grep onewire` (nothing) before trusting any result.
 2. `sudo apt install -y i2c-tools`, then `i2cdetect -y 1` → device at `0x18`. Nothing there
    means AD0/AD1 aren't grounded or the chip isn't powered. **A chip that answers `i2cdetect`
-   but logs `DS2482 reset failed` on instantiation is unpowered**: leakage through the SDA/SCL
-   pull-ups is enough to acknowledge an address and nothing more. It also passes at a 10 kHz
-   clock and fails at 50 kHz, which looks like a signal-integrity fault and is not one. Measure
-   3.3 V between chip pins 1 and 3, then the link plug, then the rails, and reflow the open
-   joint. An empty 1-wire bus is not a cause: once the chip is up it reports zero slaves.
+   but logs `DS2482 reset failed` on instantiation has VCC or ground open**: leakage through
+   the SDA/SCL pull-ups is enough to acknowledge an address and nothing more. It also passes at
+   a 10 kHz clock and fails at 50 kHz, which looks like a signal-integrity fault and is not one.
+   Measure 3.3 V between chip pins 1 and 3; a floating reading there with 3.3 V at the link plug
+   means a rail is not fed. The bench build's fault was the GND rail: link position 5 sits at
+   (12,18) *on* the rail only if the terminal is placed so that it does, and a terminal placed
+   one position over leaves the rail floating, so beep link G to the GND rail at (12,14) before
+   the chip goes on. An empty 1-wire bus is not a cause: once the chip is up it reports zero
+   slaves.
 3. Instantiate: `sudo modprobe ds2482` then
    `echo ds2482 0x18 | sudo tee /sys/bus/i2c/devices/i2c-1/new_device` — `w1_bus_master1`
    reappears backed by the bridge, same `28-*` names.
