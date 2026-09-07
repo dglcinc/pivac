@@ -19,7 +19,6 @@ No pivac install needed. Uses `pinctrl` (Trixie, Pi 4 and Pi 5) or falls back to
 Channel map is §2.1 of docs/rpi-io-board-design.md.
 """
 import argparse
-import os
 import select
 import shutil
 import subprocess
@@ -90,6 +89,8 @@ class Backend:
 
 def key_pressed():
     """Return the pending keystroke, or None (non-blocking, line-buffered)."""
+    if not sys.stdin.isatty():
+        return None
     r, _, _ = select.select([sys.stdin], [], [], 0)
     if r:
         return sys.stdin.readline().strip().lower()
@@ -131,7 +132,7 @@ def monitor(be):
                     seen.add(ch[0])
                 rows.append(fmt_row(ch, levels[ch[4]], "*" if ch[0] in seen else ""))
             active = [c[1] for c in CHANNELS if levels[c[4]] == 0]
-            os.system("clear")
+            print("\033[2J\033[H", end="")
             print(" #  name   IC   plug  pin    state  (* = seen active)")
             print("\n".join(rows))
             print(f"\nactive now: {active or 'none'}")
