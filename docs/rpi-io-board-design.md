@@ -499,11 +499,21 @@ With no ICs there is no current path, so this is safe and diagnostic:
 ### Step 8 — chips in, channel-by-channel test
 
 Fit the three chips (IC-C rotated!). Board on the bench, powered, connected to the Pi. For
-each channel, short its plug position to COM at the plug — that is a closed relay:
+each channel, short its plug position to COM at the plug — that is a closed relay, and
+`scripts/io-board-test.py` reads the result:
 
-- The LED is infrared; a **phone camera** shows it glowing through the package gap — proves
-  the field side.
-- `raspi-gpio get <bcm>` reports `level=0` — proves the whole channel.
+```bash
+sudo python3 scripts/io-board-test.py        # guided walk, one plug position at a time
+sudo python3 scripts/io-board-test.py --monitor   # live table of all eleven channels
+```
+
+It sets the eleven inputs to pull-up first (a fresh Pi OS leaves BCM 9–27 at pull-down, which
+reads every channel active with nothing connected), checks they all idle high, then reports
+PASS when the shorted position pulls its own pin low and names any other pin that dropped
+with it, which is a bridge on the LED row. Stdlib only, `pinctrl` or `raspi-gpio`, so a bare
+Lite image on a bench Pi is enough; no pivac install. The IR LED is also visible to a phone
+camera through the package gap, but in practice that has been hard to see and the pin is the
+half that matters. The first board passed all eleven this way on 2026-09-06.
 
 A channel that lights but doesn't pull the pin low has a seating/orientation problem; one that
 does neither is on the field side. Test the dark channel B·4 with clip leads: +14 V through
