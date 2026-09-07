@@ -336,7 +336,7 @@ it now becomes `UNUSED` because that input was retired. Whichever copy you edit,
 
 The trailing `6489705080` on the label is, per the manual, the Pi's MAC address. **It will be wrong
 on the new Pi** — capture the new board's `eth0` MAC during the build and update it in the same
-edit. (For reference the current Pi's `eth0` is `d8:3a:dd:b1:ad:4d`.)
+edit. The current Pi's `eth0` is `d8:3a:dd:b1:ad:4d`. The new Pi is a **Pi 4 Model B Rev 1.5**, `eth0` **`2c:cf:67:80:55:00`**, bench-booted 2026-09-06 as `new-pivac` on a fresh Trixie Lite card (DHCP gave it `10.0.0.40`; the `10.0.0.82` reservation moves to this MAC at cutover).
 
 Mechanics: `.docx` is a zip; the edit is a targeted swap in `word/document.xml` then rezip. No
 `python-docx` needed for text-only changes.
