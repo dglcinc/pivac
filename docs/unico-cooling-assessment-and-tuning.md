@@ -1,15 +1,20 @@
 # Unico Hydronic Cooling — Assessment and Tuning
 
-**Date:** 2026-08-19.
-**Status:** Assessment complete against existing instrumentation, including a logged comparison
-against the plant this one replaced. Loop A is on MEDIUM and the Taco is confirmed on HIGH.
-Remedies proposed, none built.
+**Date:** 2026-09-07.
+**Status:** Assessment complete, and the instrumentation it asked for is built: the Chiltrix Modbus
+feed (26 August), the four secondary-loop probes with gated loop ΔT (25 to 29 August), and leak
+detection (7 September). The Y-strainer was found blocked on 22 August and again on 29 August, so the
+findings are re-measured on clean flow from 23 August in [3.10](#310-measured-state-on-clean-flow-30-august-to-7-september-2026).
+Loop A is on MEDIUM and the Taco on HIGH. The return-water target is still 50 °F; the colder-target
+trial waits on `P59`, and the glycol was topped up on 3 September.
 **System:** Chiltrix CX75 air-to-water heat pump feeding Unico M2430 air handlers through a
 primary/secondary glycol loop, plus two Bosch BOVA direct-expansion zones on their own Unico air
 handlers.
 
 **Objective:** summer comfort and capacity. Efficiency and running cost are secondary. Heating is
-rarely a problem, so it is monitored and left alone.
+rarely a problem, so it is monitored and left alone; running the Chiltrix as the shoulder-season heat
+source is a separate design question, and [K.5](#k5-heating-mode-controls) collects the controls it
+would use.
 
 This document works in one direction. Section 3 establishes what the existing sensors already
 prove, section 5 explains the hydraulics behind it, section 6 gives a verdict, and section 7
@@ -37,6 +42,7 @@ advancing it lives in the appendices.
   - [3.7 Two limits on the data itself](#37-two-limits-on-the-data-itself)
   - [3.8 The previous plant is a controlled comparison](#38-the-previous-plant-is-a-controlled-comparison)
   - [3.9 One day at a colder target, cut short](#39-one-day-at-a-colder-target-cut-short)
+  - [3.10 Measured state on clean flow, 30 August to 7 September 2026](#310-measured-state-on-clean-flow-30-august-to-7-september-2026)
 - [4. Measurements that would close the gaps](#4-measurements-that-would-close-the-gaps)
   - [4.1 Free: read the pipe and the pump](#41-free-read-the-pipe-and-the-pump)
   - [4.2 The sensor package](#42-the-sensor-package)
@@ -45,7 +51,7 @@ advancing it lives in the appendices.
   - [4.5 A flow meter on the primary](#45-a-flow-meter-on-the-primary)
   - [4.6 Reading the master bedroom's fan stage](#46-reading-the-master-bedrooms-fan-stage)
 - [5. Hydraulic analysis](#5-hydraulic-analysis)
-  - [5.1 Primary flow is fixed, so primary delta-T reads house load](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)
+  - [5.1 Primary delta-T reads house load](#51-primary-delta-t-reads-house-load)
   - [5.2 What that means for the 8 to 12 degree target](#52-what-that-means-for-the-8-to-12-degree-target)
   - [5.3 Elevation adds no pump head in a closed loop](#53-elevation-adds-no-pump-head-in-a-closed-loop)
   - [5.4 What elevation does affect](#54-what-elevation-does-affect)
@@ -100,8 +106,8 @@ raises the question of whether any single coil gets its share. Three of the five
 above the mechanical room, with one coil in the attic, which raises the question of pump head. And
 the master bedroom runs its high fan stage more often than a zone with capacity in hand should.
 
-Section 5 answers all four, and the last two land in the same place. The low ΔT is what a
-fixed-flow primary reads at part load, and the design band arrives at design load. Elevation costs
+Section 5 answers all four, and the last two land in the same place. The low ΔT is what the
+primary reads at part load, and the design band arrives at design load. Elevation costs
 no pump head at all in a closed loop. The shared-circulator concern is real: the two zones sharing
 Loop A's 105 ft index circuit read humid, and the one zone with a circulator to itself over 15 ft
 reads dry. The master bedroom sits at the far end of that index circuit, and its high fan stage is
@@ -175,7 +181,7 @@ spread does not change.
 |---|---|---|---|
 | Boiler primary | Grundfos UP26-99F | HIGH | 1/6 HP |
 | Primary distribution, tank to header | Taco 0015-MSF3-IFC | HIGH, read at the switch | 1/20 HP, 18 GPM and 17 ft maximum |
-| Chiller to tank | CX75 internal circulator | n/a | On the far side of the buffer tank |
+| Chiller to tank | CX75 internal circulator | controller-modulated | On the far side of the buffer tank. 51.7 L/min in the pump-only window before a start, trimmed to 21 to 53 L/min against inlet temperature while running |
 | Loop A secondary | Grundfos UP26-99F | MEDIUM | 2 zones year-round |
 | Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
 
@@ -203,10 +209,13 @@ Grundfos figure. Section 5 tests whether that matters.
 
 ## 3. What the existing instrumentation proves
 
-The house already carries enough sensors to answer most of the question. Four DS18B20s on the
-1-wire bus give primary supply and return either side of the tees plus two buffer-tank probes.
-An Emporia CT gives Chiltrix electrical power. RedLink gives per-zone temperature, setpoint and
-humidity, and an Arduino gives hydronic loop pressure.
+The house already carries enough sensors to answer most of the question. Eight DS18B20s on the
+1-wire bus give primary supply and return either side of the tees, supply and return on each
+secondary loop, and two buffer-tank probes. The Chiltrix reports its own inlet and outlet water,
+flow, compressor speed and settings over Modbus. An Emporia CT gives Chiltrix electrical power.
+RedLink gives per-zone temperature, setpoint and humidity, and an Arduino gives hydronic loop
+pressure. Sections 3.1 to 3.9 were measured before the strainer was found blocked; 3.10 repeats
+the measurement on clean flow.
 
 ### 3.1 Measured state, 18 August 2026
 
@@ -228,8 +237,10 @@ warm evening rather than a design day. Values are conditioned on the chiller dra
 | `IN − UBT` | 0.35 °F |
 | Hydronic loop pressure, 24 h mean | 21.1 psi, range 19.4 to 22.7 |
 
-Primary ΔT binned against chiller power over 24 hours appears in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load), and it carries this
-document's central finding.
+Primary ΔT binned against chiller power over 24 hours appears in [5.1](#51-primary-delta-t-reads-house-load), and it carries this
+document's central finding. The Y-strainer was part-blocked through this window
+([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)); the same quantities on clean flow are in
+[3.10](#310-measured-state-on-clean-flow-30-august-to-7-september-2026).
 
 Zone state over the same window:
 
@@ -323,12 +334,15 @@ mask a capacity shortfall:
 | 20,000 | 5.5 minutes |
 | 12,000, one zone | 9.1 minutes |
 
-The chiller's own band sets which row applies. It cuts out at its 50 °F target and restarts 2 °C
-above it, so the working swing is **3.6 °F rather than 6**, and every figure in the table shortens to
-about six-tenths of what it shows: roughly 2 minutes at the measured mean load.
+The chiller's own band sets which row applies, and the Modbus feed measured it. The compressor
+stops with the chiller's inlet at 44.8 °F and restarts at 54.3 °F (medians over 215 starts, 30
+August to 7 September), and `UBT` swings 53.2 to 43.2 °F over the same cycle. The working swing is
+therefore **10 °F against the table's 6**, because the controller overshoots its 50 °F target by 5 °F on the
+way down before it stops, and every figure in the table lengthens by two-thirds: about 5.5 minutes
+at the measured mean load and 3.5 at design.
 
 **So the tank is an anti-cycling device rather than a reserve.** On a design-day afternoon it buys
-two minutes, which means [6.2](#62-scorecard)'s untested design-day question is about plant
+three or four minutes, which means [6.2](#62-scorecard)'s untested design-day question is about plant
 capacity and cannot be answered by tank size. Its full mixing is also what makes the lumped
 thermal-capacity correction in [4.2](#42-the-sensor-package) valid.
 
@@ -352,21 +366,21 @@ a measurement.
 
 ### 3.6 What the existing sensors cannot settle
 
-Four questions remain open, and each needs a sensor the house does not have.
+One question remains open, and it needs a wire the house does not have. Three others closed when the
+loop probes and the Modbus feed were fitted.
 
-Secondary-loop ΔT is unmeasured. `IN` and `OUT` bracket the primary side of the closely spaced
-tees, so they measure what the whole house extracts and say nothing about either loop
-individually. David's observation of low secondary ΔT comes from spot readings rather than from
-logged data.
+Secondary-loop ΔT is measured. `pivac.LoopDelta` publishes each loop's ΔT while that loop's zones
+call, and on clean flow loop A settles at 5.65 °F and loop B at 4.79
+([3.10](#310-measured-state-on-clean-flow-30-august-to-7-september-2026)).
 
-Coil entering water temperature is unmeasured, so reverse mixing at the tees cannot be confirmed
-or ruled out. If combined secondary flow exceeds primary flow, the loops pull return water
-backwards through the return tee and feed the coils water warmer than the tank
-([Appendix C](#appendix-c--primarysecondary-hydraulics)). That costs capacity in a way nothing
-downstream can distinguish from an undersized chiller.
+Coil entering water temperature is measured, and it equals the tank. Each loop's supply probe
+sits within 0.1 °F of `IN` while its pump runs, so reverse mixing at the tees is ruled out at the
+flows seen ([4.2](#42-the-sensor-package)).
 
-Flow is unmeasured anywhere. Every capacity figure in this document is derived from electrical
-power and an assumed efficiency, so it carries that assumption's error.
+Flow is measured on the chiller side and derived on the house side. Register 213 gives the
+chiller-to-tank flow, and the tank's energy balance turns that into distribution flow without a
+meter: 9 to 13 GPM, rising with the number of loops open ([4.2](#42-the-sensor-package)). Capacity
+figures no longer rest on an assumed efficiency.
 
 Fan stage is unmeasured, and Honeywell does not supply it. The master bedroom runs its high fan
 stage often enough to be noticeable, and a two-stage thermostat calls stage 2 when stage 1 fails to
@@ -403,37 +417,44 @@ David reports the master bedroom held on its low fan stage under the old plant e
 days. The logged data says why. Both eras below are binned by outdoor air, with `IN` taken only while
 the master bedroom was calling and the loop was carrying chilled water:
 
-| Outdoor | Old `IN` | New `IN` | Old duty | New duty | Old RH | New RH |
-|---|---|---|---|---|---|---|
-| 65–70 °F | 41.5 °F | 49.4 °F | 7.1 % | 11.3 % | 54.1 % | 59.0 % |
-| 70–75 | 41.3 | 49.1 | 23.2 | 26.1 | 46.0 | 56.5 |
-| 75–80 | 41.3 | 48.2 | 31.9 | 47.6 | 44.9 | 53.3 |
-| 80–85 | 41.4 | 47.4 | 46.0 | 68.5 | 42.7 | 49.0 |
-| 85–95 | 41.8 | 47.4 | 85.6 | 68.1 | 42.9 | 48.5 |
+| Outdoor | `IN` old / fouled / clean | Duty old / fouled / clean | RH old / fouled / clean |
+|---|---|---|---|
+| 65–70 °F | 41.5 / 49.4 / 48.1 °F | 7.4 / 12.7 / 15.8 % | 54.2 / 58.1 / 53.7 % |
+| 70–75 | 41.3 / 49.0 / 48.0 | 23.6 / 28.6 / 36.1 | 45.9 / 56.0 / 50.9 |
+| 75–80 | 41.3 / 48.0 / 47.2 | 31.9 / 51.0 / 56.6 | 44.9 / 52.7 / 49.5 |
+| 80–85 | 41.4 / 47.4 / 46.9 | 46.0 / 70.6 / 74.5 | 42.7 / 49.1 / 49.6 |
+| 85–95 | 41.8 / 47.4 / — | 85.6 / 69.4 / — | 42.9 / 48.6 / — |
 
-Duty and RH are the master bedroom's. Old era 1 June to 4 July, new era 30 July to 19 August,
-5-minute samples throughout.
+Duty and RH are the master bedroom's. Old era 1 June to 4 July; fouled era 30 July to 22 August,
+with the strainer restricting flow throughout ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison));
+clean era 23 August to 7 September, which never exceeded 83 °F outdoor. 5-minute samples
+throughout.
 
 **The loop runs 6 to 8 °F warmer at every outdoor condition, the master bedroom runs longer, and it
 sits 5 to 10 points more humid.** At 80 to 85 °F outdoor the zone went from 46 % of the time to
-68 %. Weather does not flatter the comparison: the new era is the milder of the two, peaking at
-90.1 °F against the old era's 98.3 °F, and its top bin holds only 235 samples, so read that last row
-lightly.
+71 %. Weather does not flatter the comparison: the new eras are the milder, peaking at 90.1 and
+83.0 °F against the old era's 98.3 °F, and the fouled era's top bin holds only 245 samples, so read
+that last row lightly.
+
+**Clean flow recovered about a third of the humidity gap and none of the runtime.** At 75 to 80 °F
+the master bedroom fell from 52.7 to 49.5 % RH, the kids room from 53.3 to 52.1, on water 0.8 °F
+colder; against the old plant the master bedroom is still 4.6 points wetter and runs 25 points more
+of the time. Duty rose on clean flow, which reads as the coil doing more latent work: droop stayed
+at zero throughout.
 
 **Neither plant is capacity-limited at these conditions.** `IN` barely moves across the outdoor range
 in either era, which is what a held target looks like; a plant running out would show `IN` climbing
 with load. The 6 to 8 °F is a setting rather than a shortfall, which is what makes it recoverable.
 
-**The setting is 50 °F of return water, and the new plant cycles too.** The Chiltrix cuts out at its
-50 °F target and does not restart until the return rises 2 °C above it, about 53.4 °F, so the loop
-runs a **50 to 53.4 °F band** rather than a steady figure. Set against the UniChillers' 38 to 48 °F,
-the new band sits entirely above the old one's midpoint and its cold end is warmer than the old
-plant's warm end.
+**The setting is 50 °F of return water, and the new plant cycles too.** Measured at the controller's
+own inlet, the compressor stops at 44.8 °F and restarts at 54.3, so the tank runs a **44.8 to
+54.3 °F band** around the target, and the house-side `IN` reads about
+1.2 °F below the controller's inlet. Set against the UniChillers' 38 to 48 °F of *leaving* water,
+the new band sits about 7 °F higher.
 
-> **The era comparison survives an uncalibrated sensor.** `IN` measures 47.4 to 49.4 °F against a
-> band the controller puts at 50 to 53.4, so the DS18B20 and the Chiltrix's own return sensor
-> disagree by two or three degrees, and neither has had matched-pair calibration
-> ([G.1](#g1-matched-pair-calibration-before-install)). It does not matter to the finding. Both eras
+> **The era comparison survives the sensor change.** `IN` was replaced by a calibrated probe on 23
+> August and the offset stepped `IN − OUT` by 0.585 °F; the Modbus feed puts `IN` 1.2 °F below the
+> Chiltrix's own inlet reading while running. Neither matters to the finding. Both eras
 > are measured by the same probe in the same place, so any offset cancels in the difference, and the
 > difference is what this section reports. It does matter when comparing `IN` against a controller
 > reading, which is why the target steps in [7.1](#71-costs-nothing) are scored on the change in
@@ -491,6 +512,43 @@ because it never got to stop.
 > the outdoor dew point rules out the obvious confounder, but this is a single day and it is not a
 > substitute for the staged trial in [8](#8-sequence) once the protection has been moved.
 
+### 3.10 Measured state on clean flow, 30 August to 7 September 2026
+
+Nine days at one-minute resolution, with the strainer clean since 29 August, the four loop probes
+correctly assigned since the 29th, and the Modbus feed supplying the chiller side. Outdoor air
+averaged 70.0 °F and peaked at 83.0, so this is shoulder-season load. Compressor edges are counted
+on register 227 with timeouts dropped.
+
+| Quantity | Value |
+|---|---|
+| Compressor starts | 215 in 9 days, 24 a day; 16 % of them with `CHIL` open |
+| Run length | median 16 min, p90 37, longest 356 |
+| Compressor duty | 47 % of the time; above 1,500 W 19 % |
+| Chiller power while running, mean and peak | 1,492 W and 3,740 W |
+| Chiller inlet at stop and at restart | 44.8 °F and 54.3 °F |
+| `UBT` at stop and at restart | 43.2 °F and 53.2 °F |
+| Chiller outlet at stop, and its minimum | 40.5 °F; 37.40 °F on 2 September, on the `P59` trip |
+| Evaporator ΔT while running | median 6.3 °F, p90 7.9 |
+| Chiller flow while running, and the pump-only plateau | 42.5 L/min median (11.2 GPM); 51.7 L/min |
+| Chiller output while running | median 29,600 BTU/hr, p90 43,600, p99 55,400 |
+| EER from Modbus output over CT input | 18.4 above 1,500 W, 16.8 above 2,500 W |
+| `IN` while running, and `OUT − IN` | 47.7 °F; 5.1 °F mean, 7.0 at p90 |
+| Distribution flow from the tank energy balance | 8.8 GPM with loop A alone, 10.8 with B alone, 13.1 with both |
+| Loop ΔT, settled, loop alone | A 5.65 °F, B 4.79 |
+| Loop supply against `IN` while flowing | A −0.07 °F median (p90 +0.11), B +0.09 (p90 +1.01) |
+| Loop A and B pumping, and both | 69 %, 14 % and 10.5 % of the time |
+
+Zone state over the clean era, 23 August to 7 September, against the fouled and old eras:
+
+| Zone | Mean RH clean / fouled / old | RH p95 clean | Cooling duty clean / fouled / old |
+|---|---|---|---|
+| Master bedroom | 52.2 / 55.1 / 48.1 % | 60 % | 26.9 / 32.9 / 23.2 % |
+| Kids room | 52.5 / 54.2 / 50.8 | 55 | 53.0 / 40.7 / 11.1 |
+| Downstairs family room | 48.0 / 49.2 / 44.6 | 51 | 13.6 / 18.5 / 10.9 |
+
+Droop stayed at zero on every zone. The loop split in [3.3](#33-humidity-is-the-marginal-axis)
+holds on clean flow: the family room alone on loop B is 4 points drier than either loop A zone.
+
 ---
 
 ## 4. Measurements that would close the gaps
@@ -518,257 +576,133 @@ or smaller than assumed.
 
 ### 4.2 The sensor package
 
-Four DS18B20s and a Modbus feed are all that need adding. Zone call state is already collected,
-and a flow meter is optional.
+Four DS18B20s and a Modbus feed were all that needed adding, and both are in. Zone call state was
+already collected, and the flow meter turned out to be unnecessary.
 
-| # | Sensor | Where | Answers |
-|---|---|---|---|
-| 1–2 | Modbus from the CX75 | Chiller entering and leaving water, plus pump speed | Chiller output and COP with the existing CT. Pump speed also settles whether the internal circulator modulates |
-| 3 | `LOOPA_SUP` DS18B20 | Loop A supply, on the copper just past its tee | Against `IN` and `UBT`, the mixing check |
-| 4 | `LOOPA_RET` DS18B20 | Loop A return, on the copper just before its tee | Loop A ΔT and capacity |
-| 5 | `LOOPB_SUP` DS18B20 | Loop B supply, same | Same for Loop B |
-| 6 | `LOOPB_RET` DS18B20 | Loop B return, same | Same for Loop B |
-| 7–9 | Already collected | `pivac.RedLink` `statenum`, charted on the Grafana stats panel | Per-zone call state and runtime. See below |
-| 10 | Flow meter, pulse output | Distribution header near `IN` | Absolute BTU/hr and system COP. Optional |
-
-#### The Modbus feed
-
-The wired controller in the utility room displays everything and stores nothing, so a separate
-Modbus master is needed to get a time series into pivac.
-
-**Bus first, before anything else.** Modbus RTU allows one master on a segment. If the existing
-controller polls the chiller, adding a second master onto the same pair produces collisions and
-can disturb the controller. Two safe routes:
-
-- **Find the dedicated BMS port.** Chiltrix documents a Modbus connection for building-management
-  integration that is separate from the wired controller's terminals. That is the clean answer if
-  this unit has one.
-- **Listen only.** Wire the adapter's receive pair and never transmit, decoding the controller's
-  polls and the chiller's replies as they pass. No collisions, and it works on any bus, at the cost
-  of writing a decoder rather than issuing reads.
-
-**Adapter.** Either a USB RS-485 adapter directly on the Pi, which sits in the same room and needs
-no new network node, or an RS-485 to Ethernet gateway presenting Modbus TCP, which matches the
-pattern the Arduino nodes already use. RS-485 carries far further than this house needs, so cable
-length does not decide it. The USB route is fewer moving parts; the gateway route keeps the Pi's
-USB free and survives a Pi swap.
-
-**Registers worth having**, in rough order of value:
-
-| Value | Use |
-|---|---|
-| Leaving water temperature | Chiller output with the flow below, and the reference for every mixing check |
-| Entering water temperature | Chiller ΔT |
-| **Water flow** | See below. Several CX models report it, and it removes the need for a flow meter |
-| Pump speed | Confirms the internal circulator's modulation, and proxies flow if flow is absent |
-| Compressor frequency | Load state, and it separates a modulating unit from a cycling one |
-| Fault and status codes | Freshness and diagnostics |
-
-**The register map is not published, and the parameters are.** Chiltrix states plainly that it
-"does not support Modbus programming or training, it's available for experienced Modbus users
-only", and no register map appears on the site. What the CX-series IOM does publish is the
-controller's C-parameter list, and those are the same values the bus carries:
-
-| Parameter | Meaning | Range | Use here |
-|---|---|---|---|
-| `C05` | AC outlet water temp | −30 to 97 °C | **Chiller leaving water** |
-| `C04` | Plate heat exchanger inlet temperature | −30 to 97 °C | **Chiller entering water** |
-| `C13` | Usage side water flow volume | 0 to 100 L/min | **Flow.** 1 L/min = 0.264 GPM |
-| `C27` | Compressor frequency | actual Hz | Load state, and modulating against cycling |
-| `C09` | Compressor current, from the main IPM | 0 to 30 A | Cross-check against the Emporia CT |
-| `C02` | Ambient temp | −30 to 97 °C | Load normalisation |
-| `C10`, `C11` | High and low pressure | bar | Refrigerant-side diagnostics |
-| `C34`–`C36` | Water pump states | 1 run, 0 stop | Run state, though not speed |
-
-**`C13` is the register that matters**, and its presence means the flow substitution in this
-section is available rather than hypothetical. Pump *speed* has no obvious C parameter, so if the
-controller displays it, it sits elsewhere in the map.
-
-**Two community register maps exist, and they contradict each other.**
-[jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus)
-publishes a Home Assistant configuration for the CX50-2, over Modbus TCP through a Waveshare
-RS-485 gateway on port 502, slave 1, holding registers.
-[gonzojive/heatpump](https://github.com/gonzojive/heatpump) publishes a Go implementation for the
-CX34. **The two assign different meanings to nearly every address**, so at most one of them
-describes the CX75 and neither may be assumed to:
-
-| Register | jasipsw, CX50-2 | gonzojive, CX34 |
-|---|---|---|
-| 202 | Water inlet temperature | Ambient temperature |
-| 203 | Water outlet temperature | Suction temperature |
-| 204 | Ambient temperature | Plate heat exchanger temperature |
-| 205 | Coil temperature | AC outlet water temperature |
-| 213 | DHW setpoint | **Water flow rate** |
-| 257 | **Flow rate** | Compressor phase current |
-| 258 | Compressor speed | Bus line voltage |
-| 261 | System pressure | Compressor total running time |
-| 281 | Compressor starts | Water inlet sensor 1 |
-
-Only the unit itself can settle which applies, which is why the scan comes before the module.
-
-**The CX50-2 map**, the closer match on model generation:
-
-| Register | Value | Type | Scale | Use |
+| # | Sensor | Where | Answers | Status |
 |---|---|---|---|---|
-| 203 | Water outlet temperature | int16 | 0.1 °C | **Chiller leaving water** |
-| 202 | Water inlet temperature | int16 | 0.1 °C | **Chiller entering water** |
-| 257 | Flow rate | uint16 | 0.1 L/min | **The flow term.** 1 L/min = 0.264 GPM |
-| 260 | Pump speed | uint16 | % | Confirms the internal circulator's modulation |
-| 258, 259 | Compressor and fan speed | uint16 | % | Load state |
-| 256 | Current power | uint16 | 1 W | **Cross-check against `electrical.emporia.house.chiltrix`** |
-| 281 | Compressor starts | uint32, word swap | | Cycling rate, which is what the buffer tank exists to limit |
-| 264 | Total run hours | uint32, word swap | | Duty accounting |
-| 243, 244 | Operating state, error code | uint16 | | Status and freshness |
-| 209 | Setpoint temperature | int16 | 0.1 °C | **Reads the target back** |
-| 214 | Antifreeze temperature | int16 | 0.1 °C | **`P59` at runtime** |
-| 261 | System pressure | uint16 | 0.1 bar | Refrigerant side |
-| 204 | Ambient temperature | int16 | 0.1 °C | Load normalisation |
-| 205, 206, 207 | Coil, discharge, suction temperature | int16 | 0.1 °C | Refrigerant-side diagnostics |
-| 213 | DHW setpoint | int16 | 0.1 °C | |
-| 285 | Defrost count | uint16 | | Heating season |
+| 1–2 | Modbus from the CX75 | Chiller inlet and outlet water, flow, compressor speed, settings | Chiller output and COP with the existing CT; the pump is confirmed modulating | Live 26 August 2026 |
+| 3 | `LOOPA_SUP` DS18B20 | Loop A supply, on the copper just past its tee | Against `IN`, the mixing check | Live 25 August, reassigned 29 August |
+| 4 | `LOOPA_RET` DS18B20 | Loop A return, on the copper just before its tee | Loop A ΔT and capacity | Live 25 August |
+| 5 | `LOOPB_SUP` DS18B20 | Loop B supply, same | Same for Loop B | Live 25 August, reassigned 29 August |
+| 6 | `LOOPB_RET` DS18B20 | Loop B return, same | Same for Loop B | Live 25 August |
+| 7–9 | Already collected | `pivac.RedLink` `statenum`, charted on the Grafana stats panel | Per-zone call state and runtime. See below | — |
+| 10 | Flow meter, pulse output | Distribution header near `IN` | Absolute BTU/hr and system COP | Superseded by the energy balance below |
 
-Four of those carry more than they look. **Register 256 reports the unit's own power**, which
-validates the Emporia CT and is validated by it, so a disagreement points at one or the other
-rather than leaving both suspect. **Register 281 counts compressor starts**, measuring short
-cycling directly against the 37-gallon tank's 2 to 9 minute ride-through
-([3.4](#34-the-buffer-tank-is-fully-mixed)). **Register 209 reads the target back**, which shows
-whether a Fahrenheit entry landed on the whole-°C value intended
-([K.3](#k3-the-parameters-that-matter)). And **register 214 exposes `P59`**, the limit that latched
-E14, without walking the parameter menu.
+#### The Modbus feed, as built
 
-**Parameter numbers may be register addresses.** In the CX34 map, register 53 is the EC water pump
-minimum speed, which is `P53` exactly. If that holds on the CX75 then `P59`, `P65` and `P109` sit
-at registers 59, 65 and 109. **One read settles it: fetch register 53 and see whether it returns
-40**, the value `P53` holds on this unit. A known-exact answer makes it a better first probe than
-any temperature. That map also carries register 225, the inner water flow switch behind a P5 alarm,
-and register 284, the live fault code.
+`pivac.ChiltrixModbus` polls the CX75 over RS-485 through an UNO R4 on the Pi's USB and publishes
+181 addresses under `hvac.chiller.chiltrix.*` about every 70 s: the confirmed set by name and the
+whole `P00`–`P139` settings block as `raw.r<addr>`. The link is `A3`/`B3` on connector `P5`, Modbus
+RTU 9600 8N1, slave 1, function 03 only, read-only by policy though 140 to 146 are writable. The
+cable shield is grounded at the Arduino end alone; floating it lost 65 % of frames under compressor
+load and none at idle. Chiltrix's own register document settled the map. It contradicts the CX50-2
+community map on every shared address and agrees with the CX34 map on the six they share, and every
+address 0 to 359 answers, so a reply proves nothing and only the document plus value cross-checks
+give meaning. Wiring, evidence and failure modes are in `docs/chiltrix-modbus.md`.
 
-**Chiltrix documents the connection parameters.** The ProtoAir gateway guide, shipped alongside the
-CX50-2 IOM in the same repository, specifies what any device on the chiller's RS-485 port must use:
+| Register | Path | Meaning |
+|---|---|---|
+| 281 | `.inletTemp` | Water going to the chiller from the tank; the target acts on this |
+| 205 | `.outletTemp` | Water leaving the chiller; `P59` watches this |
+| 213 | `.waterFlow` | Chiller-to-tank flow, L/min |
+| 227 | `.compressorHz` | Compressor frequency |
+| 256 | `.inputCurrent` | Input current, within 2 % of the Emporia CT |
+| 202 | `.ambientTemp` | Outdoor air at the unit |
+| 141, 142, 143 | `.operatingMode`, `.coolingTarget`, `.heatingTarget` | Mode, and the two targets in whole °C |
+| 284 | `raw.r284` | Fault word: 32 through the one observed lockout, 0 otherwise |
+| 0–139 | `raw.r<n>` | `P00`–`P139`; address = parameter number, verified value by value against the IOM |
 
-| Setting | Value |
-|---|---|
-| Protocol | Modbus RTU |
-| Baud, parity, data, stop | 9600, none, 8, 1 |
-| Node-ID | 1 for a single chiller, 1 to 255 where there are more |
-| Terminals | `A` = "+", `B` = "−", plus RS-485 GND |
+Derived from those: `.evaporatorDelta`, `.runDuration`, and `.startupFlow`, the pump-only plateau
+before each compressor start, which is the one flow reading comparable from run to run.
 
-Bias resistors are 510 Ω and belong at one point on the bus only. Both PDFs, and COP calculation
-templates covering the same arithmetic as [4.3](#43-flow-without-a-flow-meter), are in that
-repository; the PDFs are also filed in `~/OneDrive - DGLC/Claude/HVAC Manuals/`.
+**What it settled.** The chiller's pump is under its controller at all times. Running flow is
+trimmed against inlet temperature to hold an evaporator ΔT, so it spans 21 to 53 L/min at one
+compressor speed and is a controlled output; the pump-only plateau before
+a start is the exception, 51.7 L/min clean since the 3 September glycol top-up and 50.5 to 54
+before it. The evaporator ΔT runs 6.3 °F at the median and 7.9 at p90, against the 9 °F design figure,
+and it is widest at the end of a run. The unit's own inlet reads 1.2 °F above `IN`.
 
-> **Verify every address against the panel.** The two maps disagree, neither covers the CX75, and
-> firmware moves addresses within a family. **The CX75's P and C codes match its own controller
-> display for every value of interest here**, so the display is the reference: `C04`, `C05`, `C13`
-> and `C27` against 202, 203, 257 and 258, and `P53` against 53. Where a value reads as nonsense,
-> try the address ±1 for the 0-based and 1-based ambiguity. Use function code 3 only until the map
-> is confirmed.
-
-**If a register disagrees, the controller settles it.** Poll the block, watch which value tracks
-`C05` on the display as the chiller runs, and correct the map against the parameter list above.
-
-> **Read only.** Writing to a misidentified register can move a setpoint or a protection limit.
-> Use function codes 3 and 4 and never 6 or 16 until the map is confirmed.
-
-For reference on what a CX-series pump can drive: the CX65 publishes a maximum flow of 12.5 GPM, a
-design flow of 10.6 GPM, and 16 ft of head at 10 GPM, "leaving about 24 ft of head net of the
-unit". The chiller-to-tank run here is 12 ft of pipe, so the internal pump has far more head
-available than that circuit consumes.
-
-**If flow is in the register map, it substitutes for the flow meter.** The chiller's flow is only
-the chiller-to-tank circuit and never reaches the loops, which is the objection to raise first. It
-is used here as an energy measurement rather than a flow one. **The tank decouples flow and
-conserves energy**, so what crosses it is BTU/hr:
+**Distribution flow without a meter.** The chiller's flow is only the chiller-to-tank circuit and
+never reaches the loops, so it is used as an energy measurement. The tank decouples flow and
+conserves energy, so what crosses it is BTU/hr:
 
 ```
 Q_chiller = K × GPM_chiller × ΔT_chiller          both from Modbus
 ```
 
-When the tank is thermally steady, whatever the chiller makes is what the house takes, so
-`Q_house = Q_chiller` and the distribution flow follows from a delta already logged:
+The tank's volume is known, so no steady state is needed. A Chiltrix 37 gallon buffer on 25 %
+propylene glycol holds 317 lb of fluid at Cp 0.935, 296 BTU/°F, and about 8 BTU/°F more in the
+shell; call it **304 BTU/°F**. The tank warms when the house returns more heat than the chiller
+removes, so
 
 ```
-GPM_distribution  =  GPM_chiller × ΔT_chiller / (IN − OUT)
+Q_house = Q_chiller + 304 × d(UBT)/dt          [BTU/hr, with dUBT/dt in °F per hour]
+GPM_distribution = Q_house / (K × (OUT − IN))
 ```
 
-**That measures the Taco's flow with no meter and settles the 13 to 16 GPM question in
-[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) for the price of a register read.**
-Item 10 is then unnecessary rather than merely deferred.
+The measured 0.03 °F of stratification is what makes that valid: a single lumped temperature
+describes a fully mixed tank ([3.4](#34-the-buffer-tank-is-fully-mixed)).
 
-**Better still, the tank's volume is known, so no steady state is needed at all.** A Chiltrix 37
-gallon buffer on 25 % propylene glycol holds 317 lb of fluid at Cp 0.935, which is 296 BTU/°F, and
-about 8 BTU/°F more in the shell. Call it **304 BTU/°F**. The imbalance is then a correction rather
-than a disqualification:
+Applied at one-minute resolution to 30 August to 7 September, running minutes only, after the
+third minute of a run, with `OUT − IN` above 1.5 °F:
 
-```
-Q_house = Q_chiller − 304 × d(UBT)/dt          [BTU/hr, with dUBT/dt in °F per hour]
-```
-
-The measured 0.03 °F of stratification is what makes that valid. A single lumped temperature
-describes a fully mixed tank, and a stratified one would need a layered model
-([3.4](#34-the-buffer-tank-is-fully-mixed)).
-
-If you would rather select steady windows than differentiate a noisy series, 304 BTU/°F sets the
-bar:
-
-| `UBT` drift | Over | Implied imbalance | As a share of a 33,000 BTU/hr flow |
+| Loops pumping | Minutes | Distribution flow, median | House load, median |
 |---|---|---|---|
-| 0.2 °F | 30 min | 122 BTU/hr | 0.4 % |
-| 0.5 °F | 15 min | 608 BTU/hr | 1.8 % |
-| 1.0 °F | 15 min | 1,217 BTU/hr | 3.7 % |
-| 2.0 °F | 15 min | 2,434 BTU/hr | 7.4 % |
+| Loop A alone | 1,121 | 8.8 GPM | 25,500 BTU/hr |
+| Loop B alone | 42 | 10.8 | 26,500 |
+| Both | 337 | 13.1 | 32,700 |
+| All windows | 1,586 | 9.4, interquartile 8.1 to 11.6 | |
 
-**One degree over fifteen minutes costs under 4 %**, comparable to every other error term here, and
-it will find far more usable windows than a stricter bar. The chiller also has to be running, which
-its power series shows and which holds 46 % of the time, and both ΔTs need calibrated pairs, which
-for `IN` and `OUT` means the bench procedure in
-[G.1](#g1-matched-pair-calibration-before-install).
-
-Accuracy is better than the alternatives. The result is a ratio of two similar deltas, each near
-5 °F, so ±0.2 °F on each gives about ±6 % on the ratio and perhaps ±10 % overall with the chiller's
-own flow reading. The pump-curve estimate in
-[5.8](#58-can-the-primary-supply-both-loops-at-maximum-call) carries ±20 %, so this is the better
-number and it arrives without opening a pipe.
+Without the tank term the overall median is 10.9 GPM. The result is a ratio of two similar deltas
+near 5 °F, so ±0.2 °F on each gives about ±6 % on the ratio and perhaps ±10 % overall with the
+chiller's flow register, which quantises at about 1.15 L/min. The primary carries more water when
+more loops are open, which a fixed-speed circulator on a fixed circuit cannot do on its own
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
 
 Standby loss is the one bias worth naming. An insulated tank in a warm mechanical room gains a
 little heat, so `Q_house` computed this way runs slightly low. On a well-lagged tank it is a
-percent or two, which does not change any conclusion here.
+percent or two, which does not change any conclusion here. The same three quantities also close
+the tank's energy balance: chiller output minus house extraction is the rate the buffer is
+charging, which is the signal that tells you on a design day whether the plant is keeping ahead of
+the load.
 
-The same three quantities also close the tank's energy balance. Chiller output minus house
-extraction is the rate the buffer is charging, which is the signal that tells you on a design day
-whether the plant is keeping ahead of the load.
+#### The four loop probes, as fitted
 
-**Module.** Follow the house pattern: `pivac.Chiltrix` implementing `status(config, output)`,
-`pymodbus` or `minimalmodbus` in the venv, the register map and scaling in `config.yml` rather than
-in code, a `pivac-chiltrix.service` unit, and a freshness alert in `sensor-freshness.yaml`. Emit
-temperatures in Kelvin at `rounding: 2`, since whole-Kelvin output is what made two years of
-1-wire and RedLink history unusable for ΔT work.
+`LOOPA_SUP`, `LOOPA_RET`, `LOOPB_SUP` and `LOOPB_RET` went onto the copper at the tees on 25
+August, and `pivac.LoopDelta` publishes each loop's ΔT while that loop's zones call, with `0` for
+idle and a gap for a dead source. Fitting them taught three rules, now in `docs/onewire-notes.md`
+with their evidence.
 
-#### Mounting the four loop probes
+**A decoupled probe reports fresh, plausible, wrong data forever.** Two of the four settled at
+64 °F while the water ran 51 to 57, on clean CRCs, because a cable tug had slid the tube out from
+under its clamp while the insulation looked intact. Swing and correlation find it: a coupled probe
+moves 7 to 14 °F over a cycling window and a decoupled one 1 to 2, and two decoupled probes
+correlate with each other while neither tracks the water. Strain-relieve the cable to the pipe an inch
+or two behind the probe.
 
-**Mount on copper, not on PEX.** Copper conducts about a thousand times better than PEX, so a
-strap-on probe on copper equilibrates with the water quickly and one on PEX reads the outside of a
-tube that is thermally distant from the fluid. The header is 1½" copper and the loops transition to
-PEX further out, so **put the probes on the copper at the tees**, which is also where they measure
-the loop rather than the run.
+**Cross-connected probes show the same way.** With all four coupled, the strongest correlations
+were `LOOPA_SUP` with `LOOPB_RET` and `LOOPA_RET` with `LOOPB_SUP`: the two supply probes were on
+each other's loops. They were reassigned in config on 29 August, so every secondary ΔT before that
+date is wrong by the difference between the loops. Group by measured correlation, never by label,
+and check the sign of every pair after any install.
 
-1. Clean the copper to bright metal at the probe position, on straight pipe at least 5 diameters
-   downstream of any fitting, tee or valve.
-2. Thermal compound between the probe body and the pipe, then clamp firmly with a worm-drive clamp
-   or stainless tie. Contact pressure matters more than the amount of compound.
-3. Bury it under **at least 25 mm of insulation, extending at least 100 mm either side of the
-   probe**. The 100 mm matters because copper conducts along its length, so insulating only at the
-   probe leaves the pipe acting as a fin into the room.
-4. **Seal the insulation, including the seam and both ends.** This is a chilled loop below the room
-   dew point, so an open seam admits moist air, condenses on the pipe at the probe, and both
-   corrodes the joint and biases the reading.
-5. Route the leads **downward** away from the probe so condensate cannot wick along the cable into
-   the probe body.
+**An idle loop's ΔT is fiction.** Each secondary's probes sit in a short dead leg off the tees, and
+with the pump off the pair does not converge. Loop A's tees are the inside pair, and its supply
+probe tracks `IN` within 0.2 °F in every state, so no test on that probe can tell whether loop A is
+pumping; loop B's tees are outboard and both its probes stagnate together, 9.6 °F above `IN` when
+idle. So every loop ΔT is gated on a switch, never on a probe, and the first minute of a run is
+discarded while the probes shed the values they drifted to.
 
-Where the pipe already carries insulation, slit it, fit the probe, and reseal rather than leaving a
-gap. Skimping here is the main failure mode: an uninsulated probe reads somewhere between the water
-and the room, and the error differs between the supply and return pipes, which is the worst case
-for a ΔT.
+**What they measured** on clean flow, 30 August to 7 September: loop A's supply sits 0.07 °F
+below `IN` while pumping and loop B's 0.09 above, p90 +0.11 and +1.01, so the coils receive tank
+temperature and reverse mixing is ruled out at the flows seen, including the 10.5 % of the time
+both loops run together. Settled loop ΔT is 5.65 °F on loop A alone and 4.79 on loop B alone; with
+both pumping, 5.87 and 4.19 against a primary of 5.22. The flow-ratio method of
+[C.2](#c2-the-flow-ratio-falls-out-of-temperatures-alone) returns 1.00 for loop A and 1.03 for
+loop B, which would mean each loop alone draws the whole primary flow. Loop A's supply probe is
+already known to read the header, so the ratio is reading the header too and is not usable on
+this header; the energy balance above is the flow measurement.
 
 #### Zone call state is already collected
 
@@ -811,63 +745,37 @@ full 15.8 GPM demand case at no more than that. So the mixing question in
 cooling day, and the master bedroom's 74 % share applies over the same window rather than
 continuously.
 
-#### The flow meter is not critical
+#### The flow meter is not needed
 
-Defer it. The ΔT ratio between primary and each secondary gives relative flows from thermometers
-alone ([C.2](#c2-the-flow-ratio-falls-out-of-temperatures-alone)), and the pump-curve calculation
-brackets the absolute value to roughly ±20 %. Every live question here is answered by temperatures
-plus zone state.
-
-What a meter adds is absolute BTU/hr and system COP, which is an efficiency and accounting question
-the objective ranks second. Buy it if the ΔT-ratio results come out ambiguous, or when you want to
-compare a coil against its Unico rating table rather than against last month.
+The energy balance above gives distribution flow to about ±10 % and system COP falls out of the
+same numbers, which is what a meter would have bought. Buy one only if a coil ever has to be
+compared against its Unico rating table to a few percent.
 
 #### Calibration
 
-Calibrate each pair before installing. Bundle both probes of a pair in a stirred bath, log 15
-minutes at the production sample rate, and write the mean difference into `offsets:`
-([G.1](#g1-matched-pair-calibration-before-install)). Without it a 5 °F loop ΔT carries ±36 % of
-error, and the flow-ratio method is a ratio of two such differences. `IN` and `OUT` need the same
-treatment and have almost certainly never had it.
+All eight probes carry bench offsets in config. The four loop probes were measured at three bath
+points, ice and two sous-vide settings at 100 and 144.5 °F, and their offsets are stated at 45 °F,
+the chilled-loop operating point; the 140 °F values sit in a `config.yml` comment for heating
+season, and the pair corrections need them too because each loop spans two bench pairs. `IN`,
+`OUT`, `UBT` and `LBT` are single-point ice offsets by decision: the tank runs chilled only, and a
+pair correction moved at most 0.1 °F across 45 to 140 °F on the probes measured at three points.
+The pair ΔT-zero corrections are −0.87 °F on loop A, +0.97 on loop B and −0.585 on the primary,
+which against 2 to 6 °F deltas is 15 to 50 %, and `IN − OUT` steps by +0.585 °F on 23 August when
+they went live. The record is `docs/ds18b20-PA1-5-calibration.md`.
 
 > Fix these names once. The Signal K path becomes the InfluxDB measurement name, and four prior
 > renames each orphaned their history.
 
 ### 4.3 Flow without a flow meter
 
-Chiller output is recoverable from the Emporia CT and an efficiency assumption, and flow follows
-from output and ΔT:
-
-```
-Q       [BTU/hr]  =  EER × P_electrical [W]
-GPM     [gal/min] =  Q / (K × ΔT)                    K = 481 for 25 % propylene glycol
-```
-
-Applied across the power bands in [5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load), this returns a flow that climbs with load rather than a
-constant:
-
-| Chiller power | Primary ΔT | Assumed EER | Q, BTU/hr | Implied primary GPM |
-|---|---|---|---|---|
-| 1,102 W | 5.00 °F | 18 | 19,800 | 8.2 |
-| 1,482 W | 5.04 °F | 16 | 23,700 | 9.8 |
-| 2,040 W | 5.13 °F | 15 | 30,600 | 12.4 |
-| 2,699 W | 5.18 °F | 14 | 37,800 | 15.2 |
-| 3,283 W | 5.87 °F | 13 | 42,700 | 15.1 |
-
-The EER column falls with load because a modulating heat pump is most efficient at part load, and
-the published EER 19.6 is an IPLV figure weighted toward exactly that. The spread carries into the
-flow estimate, so read this as 8 to 15 GPM rising with output, with roughly ±30 % on any single
-row.
-
-Two things follow. Primary flow at high load sits above the roughly 10.6 GPM design figure
-published for the neighbouring CX65, which supports the regulated-ΔT reading rather than a
-starved primary. And the Taco cannot be doing that work alone. It is rated 18 GPM at zero head
-and 17 ft at zero flow, against a chiller evaporator the CX65 datasheet puts at 16 ft of drop at
-10 GPM. Something else is moving that water, which is the strongest available evidence that the
-CX75 carries its own circulator.
-
-The same arithmetic run against a secondary ΔT gives per-loop flow, which is why the four loop
-sensors return more than their cost.
+The Modbus feed replaced the estimate this section used to carry. Chiller output is now
+`K × GPM_chiller × ΔT_chiller` from registers 213, 281 and 205, and the CT turns it into an
+efficiency: EER reads 18.4 at the median above 1,500 W and 16.8
+above 2,500 W, against the published 19.6 IPLV. Chiller flow while running is 11.2 GPM at the
+median, and the Taco is not on the Chiltrix circuit: that circuit's idle draw is no higher with
+`CHIL` closed than open, 58 W against 129 W, so the Taco is metered elsewhere. Distribution flow
+comes from the tank energy balance in [4.2](#42-the-sensor-package), 8.8 to 13.1 GPM depending on
+which loops are open.
 
 ### 4.4 Air-side sensors on one air handler
 
@@ -888,7 +796,9 @@ findings in [Appendix D](#appendix-d--the-bova-direct-expansion-zones).
 
 ### 4.5 A flow meter on the primary
 
-$200 to $400 for a hydronic paddlewheel or turbine with pulse output. Because `IN` and `OUT`
+Superseded: the energy balance in [4.2](#42-the-sensor-package) put the distribution flow at 9 to
+13 GPM without a meter, and a meter would tighten that to a few percent. For the record, $200 to
+$400 for a hydronic paddlewheel or turbine with pulse output. Because `IN` and `OUT`
 bracket the tees, one meter on the primary converts every ratio in this document into an absolute
 number for every loop at once:
 
@@ -924,8 +834,8 @@ rather than one more series.
 contact for this signal. If that pair is still good, the measurement is a 24 VAC coil relay across
 Y2 and C at the air handler with its contacts on the pair, landing on a free Pi input under
 `pivac.GPIO` beside the seven already there. About $15, no firmware, no new service, and it is the
-sensing pattern the CDP relays already use. Free inputs are BCM 13, 16 and 24. Avoid BCM 26, a dead
-pad.
+sensing pattern the CDP relays already use. Free inputs with wire runs on the new Pi's I/O board are BCM 13, 16
+and 24.
 
 If the pair is open, the same signal becomes one more input on the air-handler node
 ([E.9](#e9-sensing-the-y2-call)). That is the stronger reason to build the node at the master
@@ -936,35 +846,36 @@ air and water the node would read together.
 
 ## 5. Hydraulic analysis
 
-### 5.1 Primary flow is fixed, so primary delta-T reads house load
+### 5.1 Primary delta-T reads house load
 
 The primary loop runs tank → Taco 0015-MSF3-IFC → header with closely spaced tees → tank. No
-evaporator sits in it, so the Taco faces only the header and the tank connections, perhaps 9 ft
-at 16 GPM. Against that it delivers **14 to 15 GPM**, and the head barely changes with load, so
-primary flow is effectively constant ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
-
-That makes `IN − OUT` a direct readout of what the house is extracting:
+evaporator sits in it, so the Taco faces only the header and the tank connections. The tank energy
+balance in [4.2](#42-the-sensor-package) puts its flow at 8.8 GPM with loop A alone pumping, 10.8
+with loop B alone and 13.1 with both, 9.4 at the median over every running minute from 30 August to
+7 September. So primary flow is set by which loops are open as well as by the Taco
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)), and at any one loop state it is
+constant. `IN − OUT` then reads what the house is extracting:
 
 ```
-Q_house = K × GPM_primary × (IN − OUT) = 481 × ~14.5 × ΔT
+Q_house = K × GPM_primary × (IN − OUT) = 481 × ~9.4 × ΔT
 ```
 
-| House load | Primary ΔT at 14.5 GPM |
-|---|---|
-| 51,600 BTU/hr, the CX75's full rating | 7.4 °F |
-| 40,000 | 5.7 °F |
-| 30,000, about 2.5 tons | 4.3 °F |
-| 20,000 | 2.9 °F |
+| House load | Primary ΔT at 9.4 GPM | At 13.1 GPM, both loops |
+|---|---|---|
+| 51,600 BTU/hr, the CX75's full rating | 11.4 °F | 8.2 °F |
+| 40,000 | 8.8 | 6.3 |
+| 30,000, about 2.5 tons | 6.6 | 4.8 |
+| 20,000 | 4.4 | 3.2 |
 
-The measured 5.3 °F mean therefore corresponds to roughly **3.1 tons of extraction** on an 80 °F
-evening, against a plant rated at 4.3. **The 8 to 12 °F band arrives at design load and not
-before**, which is the whole answer to the question that opened this document. Nothing is wrong,
-and nothing on the water side needs adjusting to produce it.
+The measured 5.1 °F mean while running corresponds to the 25,000 to 33,000 BTU/hr the balance
+reports, about 2 to 2.7 tons on a 70 °F average day, against a plant rated at 4.3. **The 8 to
+12 °F band arrives at design load and not before**, which is the whole answer to the question that
+opened this document. Nothing is wrong, and nothing on the water side needs adjusting to produce it.
 
 > **Two pumps, two circuits, one tank between them.** The CX75's internal circulator modulates,
-> confirmed at the controller, but it drives the chiller-to-tank circuit. The Taco drives the
-> distribution circuit at a fixed speed. The tank separates them, so a modulating pump on one side
-> does not make `IN − OUT` a regulated quantity on the other.
+> confirmed over Modbus, but it drives the chiller-to-tank circuit. The Taco drives the distribution
+> circuit at a fixed speed. The tank separates them, so a modulating pump on one side does not make
+> `IN − OUT` a regulated quantity on the other.
 >
 > Binning ΔT against chiller power does not test that, and an earlier reading of this data
 > over-claimed. Primary ΔT reflects what the coils extract; chiller power reflects what the plant
@@ -972,14 +883,15 @@ and nothing on the water side needs adjusting to produce it.
 > which is its purpose, so the two series are not expected to track at two-minute resolution. Back
 > -calculating an EER from them gives 17.5 at the mean and an impossible 28.4 in the lowest power
 > band, which is the tank discharging while the coils keep drawing. Treat chiller power as a
-> plant-side signal and `IN − OUT` as a load-side one, and compare them only over hours.
+> plant-side signal and `IN − OUT` as a load-side one, and compare them only over hours, or correct
+> for the tank as [4.2](#42-the-sensor-package) does.
 
 ### 5.2 What that means for the 8 to 12 degree target
 
-The band is a design-load figure, and this system reaches it at design load. Primary flow is fixed,
-so ΔT rises and falls with what the coils extract: 7.4 °F at the CX75's full rating and 4.3 °F at
-2.5 tons ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). The 5.3 °F measured
-on an 80 °F evening is the correct number for that evening. Balancing valves, pump taps and coil
+The band is a design-load figure, and this system reaches it at design load. At a given loop state
+primary flow is constant, so ΔT rises and falls with what the coils extract: 8 to 11 °F at the
+CX75's full rating and 5 to 7 °F at 2.5 tons ([5.1](#51-primary-delta-t-reads-house-load)). The
+5.1 °F measured across a 70 °F week is the correct number for that week. Balancing valves, pump taps and coil
 cleaning all move flow between zones or change it a little; none of them changes what the house is
 extracting.
 
@@ -987,9 +899,10 @@ extracting.
 reasons.** Lower water flow warms the average coil surface, so more of the coil rises toward the
 entering-air dewpoint and stops condensing
 ([B.6](#b6-water-flow-and-dehumidification-move-together)); humidity is already the marginal axis in
-the two Loop A bedrooms ([3.3](#33-humidity-is-the-marginal-axis)). And the primary has 0.6 GPM of
-margin over the combined secondary call, so slowing it puts the secondaries above it and mixes the
-tees backwards ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
+the two Loop A bedrooms ([3.3](#33-humidity-is-the-marginal-axis)). And the loop supply probes show
+the tees just clear of reverse mixing as they stand ([4.2](#42-the-sensor-package)), so slowing the
+primary would put the secondaries above it and mix the tees backwards
+([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
 
 The high flow the system runs today works in its favour. It holds the coils close to entering water
 temperature, which is what keeps their surfaces below the air dewpoint. What it costs is pump
@@ -1165,10 +1078,11 @@ room outright.
 > ⚠️ One ceiling bounds any further increase, and Loop A on MEDIUM now sits against it. Secondary
 > flow must stay under primary flow or the tees mix backwards
 > ([Appendix C](#appendix-c--primarysecondary-hydraulics)). Loop A on MEDIUM plus Loop B on LOW
-> draws **15.8 GPM**, against the 14.5 to 16.4 GPM the Taco delivers on HIGH
-> ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). Loop A on HIGH would add 0.6 GPM
-> and cross it. **The tap change is made and now wants checking**, which is why the four loop
-> sensors in [4.2](#42-the-sensor-package) matter more than any further speed change.
+> draws **15.8 GPM** by calculation, against a primary the energy balance puts at 13.1 GPM when
+> both loops run ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). **The tap change is
+> checked**: loop A's supply reads `IN` within 0.1 °F while it pumps, and loop B's within 0.1 at
+> the median and 1.0 °F at p90, so the coils get tank water. Loop A on HIGH would add 0.6 GPM to a
+> margin the p90 says is already thin.
 
 > What is measured and what is assumed. Coil pressure drops and coil capacities are Unico's
 > published figures. The pump curve is read off the printed SuperBrute chart and interpolated with
@@ -1194,16 +1108,21 @@ lands between 2 and 6 ft at 16 GPM. Against that the Taco's speed switch is wort
 | 5.9 ft, deliberately pessimistic | 11.8 GPM | 13.4 GPM | 14.5 GPM |
 
 Combined secondary call is 15.8 GPM. **The Taco is confirmed on HIGH**, which puts the primary at
-14.5 to 16.4 GPM depending on the fitting allowance, so it covers the secondaries in the two
-likelier cases and falls a little short only in the pessimistic one. **Reverse mixing in cooling is
-therefore unlikely rather than merely unproven**, and the loop probes remain the way to confirm
-it.
+14.5 to 16.4 GPM depending on the fitting allowance. **The energy balance reads lower and it moves
+with the loops**: 8.8 GPM with loop A alone, 10.8 with B alone, 13.1 with both
+([4.2](#42-the-sensor-package)). A circulator at fixed speed on a fixed circuit delivers one flow,
+so the secondaries are changing the head the Taco sees, which means the common pipe between the
+tees carries real resistance and the secondary pumps assist the primary through it when they run.
+That is a tee spacing that is not quite "closely spaced", and it is why the balance climbs with
+loop count. **Reverse mixing in cooling is ruled out by measurement all the same**: each loop's
+supply probe reads `IN` within 0.1 °F at the median while it pumps, and loop B's p90 of +1.0 °F
+when both loops run is the whole of the effect at the flows seen.
 
-The thermal evidence brackets the same range from the other side. A primary ΔT of 5.34 °F at
-1,903 W implies an EER of 17.5 at 13 GPM, 19.6 at 14.5 and 21.3 at 15.8. The CX75's published 19.6
-is an IPLV figure, and instantaneous part-load EER at a 47.8 °F leaving-water temperature and 80 °F
-ambient can exceed it, so none of these is excluded. **Primary flow is 13 to 16 GPM, and where it
-sits inside that band is set by the speed switch.**
+The measured EER settles what the thermal estimate used to bracket: 18.4 at the median above
+1,500 W from Modbus output over CT input, close to the published 19.6 IPLV. **Primary flow is 9 to
+13 GPM by the balance and 13 to 16 by the pump curve; the balance carries about ±10 % and the curve
+±20 %, and the loop supply temperatures say the ordering that matters, primary above secondary,
+holds at every loop state observed.**
 
 **Heating.** The boiler circuit is 13 ft of pipe including the header, so the Ti-200's exchanger is
 the whole question:
@@ -1234,8 +1153,8 @@ switch checked and two probes fitted.
 
 ### 5.9 What is still unresolved
 
-Regulated primary flow explains the primary ΔT and says nothing about either secondary loop. Three
-possibilities remain for the loops themselves, and one measurement separates them.
+The loop probes settled the question this section used to hold open. Three possibilities existed
+for the loops themselves, and one measurement separates them:
 
 | Condition | Loop supply against `IN` | Loop ΔT against primary ΔT | Consequence |
 |---|---|---|---|
@@ -1243,15 +1162,14 @@ possibilities remain for the loops themselves, and one measurement separates the
 | Secondary overpumped | equal | below | Pump energy wasted. Coil capacity and dehumidification are unharmed |
 | Reverse mixing at the tees | warmer in cooling | below | Real capacity loss, presenting as an undersized chiller |
 
-Loop supply temperature against `IN` is the discriminator, and it needs two of the four sensors in
-[4.2](#42-the-sensor-package).
-
-The evidence leans toward the first row, by a narrower margin than it did before Loop A went to
-MEDIUM. The Taco on HIGH delivers 14.5 to 16.4 GPM and the two secondaries now draw 15.8 combined
-([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)), so the ordering holds in the
-optimistic fitting case and comes within a few per cent of reversing in the others. It is
-comfortable rather than proven, and it inverts on a design day when both Loop A zone valves and
-Loop B open together.
+Loop supply against `IN` is the discriminator, and it reads equal: loop A −0.07 °F at the median
+while pumping, loop B +0.09, p90 +0.11 and +1.01 ([4.2](#42-the-sensor-package)). The first row
+holds at every loop state seen through 7 September, including the 10.5 % of the time both loops
+run. The second column cannot be read on this header, because loop A's probes sit in the inside
+tees and read the header itself, so overpumping against decoupling is left to the energy balance,
+which puts the primary at 13.1 GPM with both loops open against a calculated 15.8 GPM of secondary
+demand. A design day with both loop A zone valves and loop B open together is the one state not yet
+observed.
 
 ### 5.10 Why the master bedroom calls its high fan stage
 
@@ -1311,7 +1229,7 @@ water. Taking a 76 °F room and the 80 to 85 °F outdoor bin:
 | Era | Entering water | Air-to-water gap | Capacity against the old plant |
 |---|---|---|---|
 | Old UniChiller | 41.4 °F | 34.6 °F | 100 % |
-| Chiltrix today | 47.4 °F | 28.6 °F | **83 %** |
+| Chiltrix, clean flow | 46.9 °F | 29.1 °F | **84 %** |
 
 **A 17 % capacity loss at the same airflow is several times every distribution effect in this
 document put together**, and it applies to every coil in the house rather than to one branch. It is
@@ -1336,12 +1254,12 @@ is a stable operating point and a worse one.
 ([3.4](#34-the-buffer-tank-is-fully-mixed)), and the chiller's target sets that temperature, not the
 tank. Hydraulic separation governs flow, not temperature.
 
-Both plants cycle, and the bands are what separate them. The UniChillers ran 38 to 48 °F on a 10 °F
-differential; the Chiltrix runs 50 to 53.4 °F on a 2 °C one. The old band spent much of every cycle
-far below the room dew point, and its warm end only reached where the new band begins. The new band
-never gets there at all, which is why the narrower, better-regulated plant is the one that dries the
-house less. **Narrow is the right shape and the level is wrong**, and the level is a number in a
-menu.
+Both plants cycle, and the bands are what separate them. The UniChillers ran 38 to 48 °F of leaving
+water on a 10 °F differential; the Chiltrix runs its inlet from 54.3 down to 44.8 °F around a 50 °F
+target, with leaving water 40.5 °F at the stop and as low as 37.4. The old band spent much of every
+cycle far below the room dew point; the new one reaches that region only in the last minutes of a
+run, which is why the better-regulated plant is the one that dries the house less. **The level is
+wrong**, and the level is a number in a menu.
 
 **So the answer to whether the old operating point is reachable is yes, by setting it.** The route
 and its prerequisite are in [7.1](#71-costs-nothing), and the parameters are in
@@ -1366,10 +1284,10 @@ Six criteria, in the order the objective ranks them.
 |---|---|---|---|
 | 1 | Zones hold setpoint, on stage 1 | **Pass on temperature, unmeasured on stage** | Zero droop on all five zones over 8 h; the master bedroom's high fan stage is unlogged ([4.6](#46-reading-the-master-bedrooms-fan-stage)) |
 | 2 | Humidity near 50 % | **Fails against the plant it replaced, partly from restricted flow** | 5 to 10 points wetter than the UniChillers at every matched outdoor band ([3.8](#38-the-previous-plant-is-a-controlled-comparison)); 60 % peak in the master bedroom. A clogged strainer held the chiller above its own target through that period ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)) |
-| 3 | No loss at the tees | **Likely fine** | Needs loop supply against `IN` ([4.2](#42-the-sensor-package)) |
+| 3 | No loss at the tees | **Pass** | Loop supply equals `IN` within 0.1 °F at the median on both loops, p90 +1.0 °F on loop B ([4.2](#42-the-sensor-package)) |
 | 4 | Fair share between zones | **Suspect on Loop A** | The far coil takes 74 % of design flow against the near coil's 122 %, and it is the zone calling its high fan stage ([5.6](#56-what-the-calculation-says-about-each-coil), [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage)) |
-| 5 | Reserve at design | **Untested, on a smaller plant than before** | 4.3 tons nominal against the 5-ton UniChiller it replaced, and the Chiltrix era has not exceeded 90.1 °F outdoor |
-| 6 | Energy proportionate | **Suspect** | Primary flow reaches ~15 GPM against a ~10.6 GPM design figure ([4.3](#43-flow-without-a-flow-meter)) |
+| 5 | Reserve at design | **Untested, on a smaller plant than before** | 4.3 tons nominal against the 5-ton UniChiller it replaced; 90.1 °F is the Chiltrix era's peak and clean flow has seen 83.0. Output reached 55,400 BTU/hr at p99 with runs to 356 minutes ([3.10](#310-measured-state-on-clean-flow-30-august-to-7-september-2026)) |
+| 6 | Energy proportionate | **Pass** | Primary flow is 9 to 13 GPM by the energy balance, in line with the ~10.6 GPM design figure; EER 18.4 measured against 19.6 published ([4.3](#43-flow-without-a-flow-meter)) |
 
 ### 6.3 Conclusion
 
@@ -1392,7 +1310,7 @@ that range. How far down to go is bounded by capacity rather than by the control
 The low ΔT is what a fixed-flow primary reads at part load, and it is better left alone. At roughly
 14.5 GPM the measured 5.3 °F is about 3.1 tons of extraction against a plant rated at 4.3, so the
 design band arrives at design load
-([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)). Reaching it on a mild day
+([5.1](#51-primary-delta-t-reads-house-load)). Reaching it on a mild day
 means slowing the primary, which costs capacity and dehumidification and would put the secondaries
 above it ([5.2](#52-what-that-means-for-the-8-to-12-degree-target)). The 5 °F the system runs today
 is part of why the coils keep their surfaces below the air dewpoint. It costs pump energy, which the
@@ -1413,11 +1331,11 @@ and stage 2 makes that humidity worse for as long as it runs
 continuous capacity measure where droop gives a flat zero
 ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
-Three things remain unverified. Distribution between the two Loop A coils is unbalanced by
-construction and unmeasured, which matters most on the design day nobody has yet observed. Whether
-the tees mix backwards is unknown, which section 7 resolves for about $20. And whether that
-thermostat's own staging settings produce the high fan stage is a menu read away
-([Appendix J](#appendix-j--the-master-bedroom-thermostat)).
+Two things remain unverified. Distribution between the two Loop A coils is unbalanced by
+construction and unmeasured at the coil, which matters most on the design day nobody has yet
+observed. And whether that thermostat's own staging settings produce the high fan stage is a menu
+read away ([Appendix J](#appendix-j--the-master-bedroom-thermostat)). The tees are measured: they
+do not mix backwards ([5.9](#59-what-is-still-unresolved)).
 
 ---
 
@@ -1468,9 +1386,18 @@ replaced on 22 August, so `UBT` and `LBT` cannot be compared across that date. A
 before 18 August are truncated to whole Kelvin and read up to 1.8 °F cold, so any zone comparison
 spanning that date is invalid, which is why only days from the 18th on appear here.
 
-**Add the strainer to the maintenance list.** The scale arrives from the boiler side of a shared
-loop, so it will foul again. Reading `C13` during the one to two minute pump-only window at the
-start of a call costs nothing and catches the next restriction long before `P5` does.
+**It fouled again in six days, and the Modbus feed now watches for it.** The pump-only flow
+plateau fell from 52.9 to 35.6 L/min over eleven hours on 28 August and collapsed to 20.6; cleaning
+on the 29th took it back to 54.0 within one cycle, with flow at matched compressor speed going 18.4
+to 39.6 L/min and the evaporator ΔT 9.5 to 5.6 °F. A screen judged 30 to 50 % blocked by eye had
+cut the plateau by more than half, so judge by the metric and never by eye. `pivac.ChiltrixModbus`
+publishes that plateau as `.startupFlow`, the `chiltrix-pump-only-flow-low` rule fires below 40
+L/min, about a day ahead of a blockage on the 28 August curve, and `chiltrix-zero-flow` covers the
+total loss the plateau cannot see. The first blockage took 18 days from commissioning and the second
+six from the first cleaning; the plateau has held at 51.7 L/min since the 3 September glycol
+top-up, which stepped it down from 52.9 as higher viscosity predicts. The scale arrives from the
+boiler side of a shared loop, and the permanent fix is a hydronic dirt separator with a blowdown
+valve; a finer in-line filter clogs faster than the Y did.
 
 ## 7. Remedy ladder, cheapest first
 
@@ -1487,12 +1414,11 @@ moves air across a wet coil between calls and re-evaporates condensate back into
 room runs auto and reads just as humid, so this is not the whole of the humidity finding. It is free
 and reversible, and RH is already logged.
 
-**Check the result of the Loop A tap change rather than assuming it worked.** Loop A is on MEDIUM,
-which the calculation puts at 93 % of design flow against 82 % on LOW, and the master bedroom at
-74 % of its own against 66 % ([5.6](#56-what-the-calculation-says-about-each-coil)). More secondary
-flow than the primary supplies would feed the coils water warmer than the tank and cancel part of
-the gain ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). The four loop sensors in
-[4.2](#42-the-sensor-package) show it directly as Loop A's supply drifting above `IN`.
+**The Loop A tap change is checked.** Loop A is on MEDIUM, which the calculation puts at 93 % of
+design flow against 82 % on LOW, and the master bedroom at 74 % of its own against 66 %
+([5.6](#56-what-the-calculation-says-about-each-coil)). The loop probes show its supply at `IN`
+within 0.1 °F while it pumps, so the extra flow arrives as tank water and none of the gain is lost
+to mixing ([4.2](#42-the-sensor-package)).
 
 **Lower the commanded CFM on the kids-room air handler.** That zone carries the laundry room and
 two full baths in a small space, so it runs a large latent load on a small sensible one
@@ -1507,26 +1433,25 @@ remove moisture at its source, before it reaches a coil at all. A dryer venting 
 or a ventless one, would put the whole load on the air handler. This sits outside the hydronic
 system and is likely the highest-value fix available for that room.
 
-> **⚠️ Gated on a clean-flow baseline.** The strainer was clogged through the period this remedy was
-> sized against ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)), and clean flow has
-> already recovered part of the gap on its own. **Collect two weeks at the 50 °F target with the
-> strainer clean before moving it**, and re-measure the gap against
-> [3.8](#38-the-previous-plant-is-a-controlled-comparison) on that baseline. The target may need
-> less movement than the 6 to 8 °F figure implies, or none.
+> **Sized on a clean-flow baseline.** The strainer was clogged through the period this remedy was
+> first sized against ([6.4](#64-a-clogged-strainer-sat-underneath-the-comparison)). Two weeks at
+> the 50 °F target on clean flow re-measured the gap
+> ([3.8](#38-the-previous-plant-is-a-controlled-comparison)): clean flow recovered about 3 points
+> of RH in the master bedroom at matched outdoor conditions, and the zone still sits 4.6 points
+> wetter than under the old plant at 75 to 80 °F, on water 6 °F warmer. The target still wants
+> moving; by less than the fouled comparison implied.
 
 **Walk the Chiltrix return-water target down.** This is the largest single remedy in the document,
 and the measured gap to the plant it replaced is 6 to 8 °F
 ([3.8](#38-the-previous-plant-is-a-controlled-comparison)). **P109 is set to `1`**, so the range now
 opens to 41 °F against the 50 °F the target sits at today.
 
-**Read `C04` and `C05` before moving it.** The target governs return water and the unit makes water
-about 9 °F colder than that, so every degree off the target is a degree off the leaving temperature
-too: at today's 50 °F the leaving water is near 41 °F, and a 42 °F target would put it near 33 °F.
-**Check that figure rather than assume it.** Chiltrix's 9 °F is the design ΔT from its own sizing
-formula, `BTU = WF × ΔT × GPM`, at design flow and full load, and this plant runs at part load most
-of the time, where the real ΔT is smaller. `C04` and `C05` on the controller give the actual inlet
-and outlet and cost nothing to read. Read `IN` and `OUT` on the Pi at the same moment while you are
-there, and the same reading also calibrates the two sensor sets against each other.
+**The evaporator ΔT is measured, and it is widest where it matters.** The target governs the
+chiller's inlet and the unit makes water colder than that by its evaporator ΔT, which the Modbus
+feed reads at 6.3 °F at the median while running and 7.9 at p90. The controller overshoots the
+target on the way down and stops with the inlet at 44.8 °F, so leaving water at the stop is 40.5 °F
+at the median and reached 37.40 °F on 2 September, the `P59` trip itself
+([3.10](#310-measured-state-on-clean-flow-30-august-to-7-september-2026)).
 
 **Step to 46 °F first, and stop when the coil clears the dew point rather than aiming at a number.**
 This is gated on P59 and the glycol, per the warning below; 46 °F with P59 at its default locks the
@@ -1555,10 +1480,15 @@ against the single 5-ton UniChiller it replaced, and the measured house peak was
 80 °F evening, against a design day nobody has yet observed. Watch for `IN` rising above its target on
 hot afternoons, which is the plant running out, and stop stepping down when that appears.
 
-> **⚠️ The antifreeze protection binds long before capacity does. Proven on 21 August 2026.** A 46 °F
-> target set the night before produced **E14, "System anti freeze level one twice"**, at 19:01 on a
-> mild evening, and the chiller locked out. Freezing is not the failure mode and capacity was never
-> reached; **P59 is**.
+> **⚠️ The antifreeze protection binds long before capacity does. Proven on 21 August 2026, and
+> measured at zero margin on 2 September.** A 46 °F target set the night before produced **E14,
+> "System anti freeze level one twice"**, at 19:01 on a mild evening, and the chiller locked out.
+> Freezing is not the failure mode and capacity was never reached; **P59 is**. At the present
+> 50 °F target the leaving water sat at or below 38.5 °F for eight running minutes over nine days
+> and touched 37.40 °F once, all at the end of runs at full flow, where the evaporator ΔT widens as
+> the inlet falls to its stop point. `P59` is a level-one trip and E14 needs it twice, so those are
+> near misses at the target that has run all season. Adding glycol does not change them: `P59` trips
+> on a fixed leaving-water temperature and knows nothing about concentration.
 >
 > **P59, "AC anti-freezing temperature", defaults to 3 °C, which is 37.4 °F**, and it watches leaving
 > water. Range is −15 to 5 °C. Against a 9 °F evaporator ΔT that default puts the lowest safe return
@@ -1568,15 +1498,16 @@ hot afternoons, which is the plant running out, and stop stepping down when that
 > **The controller stores the target in whole °C, so a Fahrenheit entry lands lower than typed.**
 > This is the rounding David observed, and it is worth 1.8 °F a step:
 >
-> | Typed | Stored | Actual target | Leaving at 9 °F ΔT | Against P59 = 37.4 °F |
-> |---|---|---|---|---|
-> | 50 °F | 10 °C | 50.0 °F | 41.0 °F | 3.6 °F of margin |
-> | 48 °F | 8 °C | 46.4 °F | 37.4 °F | **exactly on the trip** |
-> | 46 °F | 7 °C | 44.6 °F | 35.6 °F | **1.8 °F below the trip** |
-> | 44 °F | 6 °C | 42.8 °F | 33.8 °F | 3.6 °F below |
+> | Typed | Stored | Actual target | Inlet at the stop | Leaving at the stop, measured ΔT | Against P59 = 37.4 °F |
+> |---|---|---|---|---|---|
+> | 50 °F | 10 °C | 50.0 °F | 44.8 °F | 40.5 °F median, 37.4 minimum | **zero at the minimum** |
+> | 48 °F | 8 °C | 46.4 °F | ~41 °F | ~37 °F | below the trip |
+> | 46 °F | 7 °C | 44.6 °F | ~39 °F | ~35 °F | locked out 21 August |
+> | 54 °F | 12 °C | 53.6 °F | ~48 °F | ~44 °F median, ~41 minimum | 3.6 °F at the minimum |
 >
 > 50 °F is exactly 10 °C, which is why it alone loses nothing to rounding. **Think in whole °C**, and
-> read the stored value back after entering one.
+> read register 142 back after entering one. The stop-point column is measured at 10 °C and shifted
+> with the target for the other rows.
 >
 > **So the order of operations matters, and it is not the one this document first gave.** P109 opens
 > the setpoint range; P59 decides when the machine protects itself; the glycol decides how far P59
@@ -1588,7 +1519,17 @@ hot afternoons, which is the plant running out, and stop stepping down when that
 > restore the target to a whole °C with margin, and expect a few minutes' delay before the compressor
 > starts on its own minimum-off timer. Use "Clear" only to wipe the error log, which is worth
 > keeping. **If E14 returns at a 50 °F target, the setpoint is no longer the explanation** — look at
-> water flow, at the charge, and at the leaving-water sensor itself.
+> water flow, at the charge, and at the leaving-water sensor itself; flow first, because the 21
+> August lockout happened on a fouled strainer.
+>
+> **The cycling plan pulls the other way, and the two reconcile by season.**
+> `docs/chiltrix-cycling-tuning-plan.md` wants the target raised to 12 °C so that `P12` can widen
+> from 2 to 3 °C against the 24 starts a day the unit makes at part load, and it names the zero
+> antifreeze margin at 10 °C as the reason the raise must come first. Cycling is a mild-day problem
+> and humidity a humid-day one, and Dynamic Humidity Control ([7.3](#73-100-to-500)) floats the
+> target between `P118` and `P117` on that split. Until it is fitted the target stays at
+> 10 °C, and the order for moving it in either direction is glycol → `P59` → target. `P95` went
+> from 5 to 3 °C on 30 August under that plan and did not change the start count.
 
 **Read the secondary main pipe size.** It swings the Loop A head estimate from about 13 ft to
 about 30 ft ([5.5](#55-friction-head-on-the-index-circuits)) and decides whether balancing or a
@@ -1601,16 +1542,18 @@ the condition none of the sampled days contained. Grafana already has the two se
 **Confirm the attic coil's automatic air vent and the expansion-tank position** relative to both
 secondary circulators ([5.4](#54-what-elevation-does-affect)). Visual checks.
 
-**Set Loop B to HIGH before heating season**, with the 25 % to 30 % glycol top-up. Loop B drives
-one coil in summer and three in winter, including both M3036 hydronic modules, and the
-calculation puts LOW at 74 % of design across them against 91 % on HIGH ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). Return it to LOW
-in spring. Set `fluid_k` to 476 on the day of the top-up and add a Grafana annotation.
+**Set Loop B to HIGH before heating season.** Loop B drives one coil in summer and three in winter,
+including both M3036 hydronic modules, and the calculation puts LOW at 74 % of design across them
+against 91 % on HIGH ([5.7](#57-choosing-the-pump-speed-and-whether-balancing-helps)). Return it
+to LOW in spring. The glycol was topped up with premixed fluid on 3 September to restore loop
+pressure; the concentration after it has not been measured with the refractometer, so `fluid_k`
+stays at 481 until it is, and the `.startupFlow` baseline stepped from 52.9 to 51.7 L/min on that
+day.
 
 ### 7.2 Under $100
 
-**Four DS18B20s on the secondary loops, about $20.** This is the highest-value purchase in the
-document. It resolves criteria 3 and 4, gives per-loop flow through the ratio method with no
-meter, and detects reverse mixing ([4.2](#42-the-sensor-package)).
+**Four DS18B20s on the secondary loops, about $20. Fitted 25 August.** They resolved criterion 3
+and ruled out reverse mixing; the ratio method turned out to read the header, so per-loop flow comes from the energy balance instead ([4.2](#42-the-sensor-package)).
 
 **A Y2 sense relay on the master bedroom, about $15.** A 24 VAC coil relay across Y2 and C, its dry
 contacts on the spare pair back to a free Pi input, and one more entry under `pivac.GPIO`. That
@@ -1618,11 +1561,10 @@ makes the zone's stage-2 runtime a logged series and answers the fourth question
 opened with ([4.6](#46-reading-the-master-bedrooms-fan-stage)). Contingent on the pair ringing out;
 if it is open, the signal goes on the air-handler node instead.
 
-**Restore leak detection, about $20.** The booster-pump leak pan lost its GPIO input when BCM 25
-was renamed from `SCALA` to `CHIL` on 11 August 2026. A room holding the boiler, buffer tank, DHW
-and the domestic water main now has no water detection. Free inputs with existing wire runs are
-BCM 13/33, 16/36 and 24/18. Avoid BCM 26, a dead pad. This has nothing to do with cooling and is
-the cheapest insurance available.
+**Leak detection is restored, 7 September.** The booster-pump pan is watched by an AquaGuard
+AG-1250E whose 24 VAC output both cuts the pump through a DLI IoT relay and closes a contact on
+BCM 23, published as `SCALA` again. The Pi sees the pan and the cut as one signal and is not in the
+cut's path.
 
 **A mechanical-room temperature and humidity sensor, about $15.** Explains the Pi's thermal
 ceiling, which sits at 76 °C with 83 °C peaks against an 80 °C soft limit, and flags chilled-pipe
@@ -1643,11 +1585,12 @@ both arrive from one sensor, so the Y2 wire stays a measurement rather than beco
 the master bedroom, which is the binding zone. Cost is the sensor plus a wiring run to the outdoor
 unit and a parameter session; the sensor price is not established here. This is the version of
 [7.1](#71-costs-nothing)'s target reduction that pays the efficiency cost only while humidity asks
-for it.
+for it, and it is also the reconciliation with the cycling plan, since the resting target `P116`
+floats up on the mild days that cause cycling. `P119` reads 0 today and `P116` 12 °C.
 
-**A flow meter on the primary, $200 to $400.** Converts every ratio in this document into
-absolute BTU/hr and yields system COP against the existing Chiltrix CT
-([4.5](#45-a-flow-meter-on-the-primary)). Buy this before any per-coil meter.
+**A flow meter on the primary, $200 to $400. Superseded.** The energy balance already gives
+distribution flow to about ±10 % and COP against the Chiltrix CT
+([4.5](#45-a-flow-meter-on-the-primary)).
 
 **A static balancing valve on the kids-room branch, roughly $60 to $120 installed. Defer this
 one.** It is the direct answer to criterion 4: as installed the kids room takes 122 % of design
@@ -1769,7 +1712,7 @@ convention, and this system is better off without it.
 
 **Do not throttle a valve to move the ΔT either.** The ΔT is held by a control loop, so throttling
 makes the pump work harder against the restriction and arrive at the same target
-([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
+([5.1](#51-primary-delta-t-reads-house-load)).
 
 **Do not raise both secondary taps at once.** Combined secondary flow above primary flow causes
 reverse mixing, which loses more than it gains
@@ -1793,15 +1736,14 @@ settles which, and it costs nothing.
 | 2 | Ring out the spare pair from the master bedroom's air handler | — | Decides step 4 |
 | 3 | Set the master bedroom's fan from circulate to auto; watch its RH for a few comparable hot days | — | Criterion 2 |
 | 4 | Y2 sense relay on the master bedroom, on that pair to a free Pi input | ~$15 | Criterion 1, and it scores every step below |
-| 5 | Measure the loop's glycol percentage, then top up 25 % to 30 % | ~$60 | Prerequisite for steps 6 and 7 |
+| 5 | Glycol: 25 % measured 10 August; topped up 3 September; re-measure the concentration | ~$60 | Prerequisite for steps 6 and 7 |
 | 6 | Lower **P59** from 3 °C with margin above the glycol's freeze point; consider raising **P53** | — | Without this, step 7 locks the chiller out on E14 |
-| 7 | **Build the Modbus feed, then step the return target down one whole °C and hold** | — | **The largest single remedy.** Criteria 1 and 2 |
+| 7 | **Step the return target down one whole °C and hold, next cooling season** | — | **The largest single remedy.** Criteria 1 and 2. The Modbus feed that watches it is built |
 | 8 | Add the design-day saturation alert; wait for one 95 °F afternoon | — | Criterion 5, and it bounds how far step 7 can go |
-| 9 | Four DS18B20s on the secondary loops | ~$20 | Criteria 3 and 4, and whether the Loop A tap change delivered |
-| 10 | Restore leak detection; add mechanical-room T/RH | ~$35 | Regression, and the Pi's thermal ceiling |
+| 9 | ~~Four DS18B20s on the secondary loops~~ fitted 25 August | ~$20 | Criterion 3 passed; the Loop A tap change delivered |
+| 10 | ~~Restore leak detection~~ done 7 September; add mechanical-room T/RH | ~$15 | The Pi's thermal ceiling |
 | 11 | Two 10K NTCs in the master bedroom's plenums | on hand | Sensible against latent, and load against shortfall |
 | 12 | Dynamic Humidity Control sensor, sited in the master bedroom | sensor + wiring | Makes step 7 automatic and seasonal rather than fixed |
-| 13 | Flow meter on the primary | $200–400 | Absolute capacity and system COP |
 | 14 | Branch balancing on Loop A, if step 9 shows maldistribution | $200–400 | Criterion 4 |
 | 15 | The air-handler node at the master bedroom | ~$300 | Per-coil attribution, and Y2 if the pair is open |
 
@@ -1812,16 +1754,14 @@ fraction is what scores every change after it.
 
 **Step 7 is the one that matters, and steps 5 and 6 are not optional preparation for it.** Lowering
 the target without lowering P59 locks the chiller out on E14, which is not a hypothetical: it
-happened on 21 August 2026 at a 46 °F target ([7.1](#71-costs-nothing)). **The target now stays at
-50 °F until the Modbus feed can watch the leaving water while it moves** — registers 202 and 203 give
-the actual part-load evaporator ΔT, which is the number that decides whether a colder target needs
-P59 touched at all, and 257 and 260 show whether the pump is falling to its P53 minimum at low
-demand, which is the mechanism behind the lockout ([4.2](#42-the-sensor-package)). Step 8 then says when to
-stop stepping down, since capacity falls with the target and this plant is smaller than the one it
-replaced. Change one step at a time so effects stay separable. Step 9 settles the distribution
-questions: it either confirms the healthy-decoupling reading in
-[5.9](#59-what-is-still-unresolved) and shows whether the Loop A tap
-change delivered, or it finds mixing or maldistribution and sends the work to step 14.
+happened on 21 August 2026 at a 46 °F target, and the Modbus feed has since measured the margin at
+the present 50 °F target as zero at the end of a run ([7.1](#71-costs-nothing)). Registers 281 and
+205 now show the leaving water while the target moves, so the trial can be watched minute by
+minute; it waits for next cooling season. Step 8 then says when to stop stepping down, since
+capacity falls with the target and this plant is smaller than the one it replaced. Change one step
+at a time so effects stay separable. Step 9 confirmed the healthy-decoupling reading in
+[5.9](#59-what-is-still-unresolved); what it could not read is distribution within loop A, which
+step 14 would settle.
 
 ---
 
@@ -1846,33 +1786,29 @@ change delivered, or it finds mixing or maldistribution and sends the work to st
 - What is the Ti-200's water-side pressure drop at design flow? It swings the boiler circuit from
   27 GPM to 21 against a 25.8 GPM winter call, which is the difference between adequate and short
   ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)).
-- What is the loop's glycol percentage, measured with a refractometer rather than assumed? P109 = 1
-  is conditioned on the fluid not freezing at −10 °C, and 25 % propylene glycol sits on that line
-  rather than inside it ([7.1](#71-costs-nothing)).
-- What is the CX75's actual evaporator ΔT at part load? Chiltrix's 9 °F is the design figure from its
-  sizing formula, and it sets how much leaving-water headroom each target step costs. `C04` and `C05`
-  on the controller answer it in one reading ([7.1](#71-costs-nothing)).
+- What is the loop's glycol percentage after the 3 September top-up? It read 25 % propylene glycol
+  by refractometer on 10 August, on the −10 °C line that P109 = 1 is conditioned on with no margin
+  inside it ([7.1](#71-costs-nothing)), and the top-up has not been re-measured.
 - Where does the CX75's capacity land at a 42 °F return target, and does Chiltrix publish the derate?
   It decides how far step 6 of the sequence can go before the plant becomes the limit.
 - Which indoor sensor does Dynamic Humidity Control take, and what does it cost
   ([K.4](#k4-dynamic-humidity-control-is-the-feedback-loop-you-would-have-built))?
 - Are there balancing valves on any branch today?
 - What is the CX75's published design flow and evaporator pressure drop? The sell sheet omits
-  both. The neighbouring CX65 publishes 10.6 GPM design and 16 ft of head at 10 GPM, which is the
-  figure section 4.3 leans on.
-- Does the Taco run continuously through a cooling call or only with the compressor, and is it
-  powered from the Chiltrix circuit and therefore already inside
-  `electrical.emporia.house.chiltrix`?
-- Does the CX75 expose Modbus RTU? It would supply entering and leaving water temperature and
-  compressor state with no plumbing work, replacing several sensors in section 4.
+  both. Measured, the unit's pump delivers 51.7 L/min (13.7 GPM) in the pump-only window and trims
+  to 21 to 53 while running.
+- How much of the common pipe between the tees is shared? The energy balance puts primary flow at
+  8.8 GPM with one loop open and 13.1 with both, which a decoupled primary would not do
+  ([5.8](#58-can-the-primary-supply-both-loops-at-maximum-call)). A photograph of the header with
+  the tee spacing measured would settle it.
 - How many hydronic zone valves are there, and does one HZ-432 drive all five? Five zones take hot
   water in winter, which is more than a single four-zone panel provides. The kitchen and great
   room may be switched separately, since their cooling comes from their own condensers.
-- In heating, does hot water come from the boiler alone, or does the Chiltrix also run as a heat
-  pump? It decides whether a heating efficiency figure is a COP against the Chiltrix CT or a
-  combustion efficiency against gas input.
-- Which glycol is in the loop, propylene or ethylene? It moves `K` by 3 %
-  ([Appendix B](#appendix-b--measurement-physics)).
+- The Taco runs on the `CHIL` relay, on any water-cooled zone's call, and it is not on the Chiltrix
+  circuit ([4.3](#43-flow-without-a-flow-meter)). Which circuit meters it?
+- Hot water comes from the boiler alone today; the Chiltrix reads mode 0 and a 50 °C heating target
+  it has never been asked to make. Whether it should carry the shoulder seasons is the question
+  [K.5](#k5-heating-mode-controls) is written for.
 
 ---
 
@@ -1881,7 +1817,7 @@ change delivered, or it finds mixing or maldistribution and sends the work to st
 ## A.1 Topology
 
 ```
-  boiler ──[Grundfos UP26-99F, HIGH]──┐                  ┌── Loop A [UP26-99F, LOW]
+  boiler ──[Grundfos UP26-99F, HIGH]──┐                  ┌── Loop A [UP26-99F, MEDIUM]
                                       ├─ PRIMARY HEADER ─┤    └─ kids (75 ft) → master BR (attic)
  chiller ──[Taco 0015-MSF3-IFC]───────┘  (closely spaced └── Loop B [UP26-99F, LOW]
             18 GPM / 17 ft max               tees)            └─ lower fam. room (15 ft)
@@ -1979,6 +1915,9 @@ to ¾" sweat connections at the cabinet.
 | `environment.inside.hvac.OUT.temperature` | Primary return, just after the tees |
 | `environment.inside.hvac.UBT.temperature` | Buffer tank, upper |
 | `environment.inside.hvac.LBT.temperature` | Buffer tank, lower |
+| `environment.inside.hvac.{LOOPA,LOOPB}_{SUP,RET}.temperature` | Secondary-loop supply and return at the tees, since 25 August 2026 |
+| `environment.inside.hvac.{primary,LOOPA,LOOPB}.deltaT` and `.flowing` | Gated loop ΔT in Kelvin: a number is a measurement, 0 is not pumping, a gap is a dead source |
+| `hvac.chiller.chiltrix.*` | Chiller inlet, outlet, flow, compressor speed, current, targets, `.startupFlow`, and every `P` parameter as `raw.r<n>` |
 | `electrical.emporia.house.chiltrix` | Chiller electrical power, W |
 | `electrical.emporia.house.bova_kitchen` | Kitchen BOVA condenser power, W |
 | `electrical.emporia.house.bova_great_room` | Great-room BOVA condenser power, W |
@@ -1989,6 +1928,7 @@ to ¾" sweat connections at the cabinet.
 | `environment.outside.thermostat.temperature` | Outdoor air |
 | `electrical.ac.switch.utility.CHIL` | Any water-cooled zone calling |
 | `electrical.ac.switch.utility.BLR` | Boiler call, used for changeover mode |
+| `electrical.ac.switch.utility.SCALA` | Booster-pump leak pan, since 7 September 2026 |
 | `hvac.boiler.sentry.*` | Boiler supply temperature, gas input, burner state |
 
 > `CHIL` is a system-wide call rather than any one zone's. It asserts when any water-cooled zone
@@ -2111,7 +2051,7 @@ from the plant and the pump.
 | Water ΔT above 15 °F with low capacity | Starved | More flow, or find the restriction |
 
 > Read that last table only against known plant output. At part load a low ΔT means nothing at
-> all ([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
+> all ([5.1](#51-primary-delta-t-reads-house-load)).
 
 ## B.6 Water flow and dehumidification move together
 
@@ -2151,8 +2091,9 @@ supplies makes up the deficit by pulling water backwards from the return tee, bl
 water into the supply. Cooling then sends warmer water to the coil and heating sends cooler.
 Capacity drops, and the usual misdiagnosis is an undersized chiller.
 
-Verification costs one comparison. Against `environment.inside.hvac.IN.temperature`, the primary
-supply already in InfluxDB:
+Verification costs one comparison, and it is made: both loop supplies read `IN` within 0.1 °F at
+the median while pumping ([4.2](#42-the-sensor-package)). Against
+`environment.inside.hvac.IN.temperature`, the primary supply already in InfluxDB:
 
 - In cooling, a loop supply warmer than `IN` by more than pipe gain means reverse mixing, with
   the secondary overdrawing relative to primary flow.
@@ -2202,9 +2143,9 @@ In summer Loop B serves only the lower family room, so whenever that zone is not
 The family room has a RedLink thermostat, `DSTRS_FAM_ROOM`, so its call state is already in
 pivac and the isolation windows can be selected from data on hand. The loop sensors confirm it
 independently. A loop with its pump off and its zone valve shut shows supply and return
-converging, both drifting toward ambient, so a loop ΔT under about 1 °F is a reliable idle flag.
-Free GPIO inputs with existing wire runs are BCM 13/33, 16/36 and 24/18 if a hard signal is ever
-wanted.
+converging only if its probes sit in flowing water; here they sit in dead legs off the tees and
+hold a plausible ΔT indefinitely, which is why `pivac.LoopDelta` gates on the zone calls and the
+`CHIL` relay and never on a probe.
 
 ## C.4 Cooling is buffered; heating runs direct
 
@@ -2556,14 +2497,12 @@ Avoid D0/D1 (Serial1), D4/D5 (CAN) and D10 to D13 (SPI). The free general-purpos
 are D2, D3, D6, D7, D8 and D9, and this design uses three.
 
 **Record both DS18B20 ROM addresses in this document during the build.** The printed tags on these
-probes are unreliable as physical identifiers, one probe having been found carrying two tags, and
-the .114 board's DS18B20 ROM exists in neither repo.
+probes are unreliable as physical identifiers, one probe having been found carrying two tags; the
+.114 board's ROM is recorded in `CLAUDE.md` for the same reason.
 
 ## E.8 Firmware contract
 
-The Arduino emits raw measurements and computes no BTUs. The DHW board's recirc-temperature sketch
-was never committed and exists only on the M2 MacBook, so reflashing that board would silently
-drop a sensor. Calibration offsets, the glycol constant `K`, and the capacity arithmetic all belong
+The Arduino emits raw measurements and computes no BTUs. Calibration offsets, the glycol constant `K`, and the capacity arithmetic all belong
 in `config.yml` and Python, where they are version-controlled and deploy with a `git pull`.
 
 The response dict matches the single-quoted pseudo-JSON convention `ArduinoSensor` parses with
@@ -2627,14 +2566,12 @@ integration belongs in Grafana, where the denominator already exists.
 
 # Appendix F — pivac integration
 
-## F.1 `pivac.ArduinoSensor` needs a `rounding:` key
+## F.1 `pivac.ArduinoSensor` carries a `rounding:` key
 
-`ArduinoSensor` hardcodes `int(round(...))` on every `type: temperature` field
-(`pivac/ArduinoSensor.py:65`), so it quantises to whole Kelvin, 1.8 °F. This project rests on ΔT
-values of 10 to 20 °F, so that destroys the measurement before it reaches Signal K.
-
-Add an optional per-input `rounding:` key defaulting to `0`, which leaves every existing input
-byte-for-byte unchanged:
+`ArduinoSensor` used to hardcode `int(round(...))` on every `type: temperature` field, quantising
+to whole Kelvin, 1.8 °F; a project resting on ΔT values of 10 to 20 °F cannot survive that. Since
+PR #121 (29 August 2026) it reads an optional per-input `rounding:` key with `OneWireTherm`'s
+semantics, read per input first and then from the module block:
 
 ```python
 digits = scfg.get("rounding", 0)
@@ -2642,9 +2579,8 @@ k = _to_kelvin(raw, scfg.get("scale", "fahrenheit"))
 kelvin = int(round(k)) if digits == 0 else round(k, digits)
 ```
 
-This mirrors `pivac.OneWireTherm` (`pivac/OneWireTherm.py:113`), which has carried the same
-per-sensor `rounding` key all along. The DHW recirc input keeps `rounding: 0` and its InfluxDB
-series stays undisturbed. New inputs use `rounding: 2`.
+This mirrors `pivac.OneWireTherm`, which has carried the same per-sensor `rounding` key all
+along. New inputs use `rounding: 2`.
 
 ## F.2 `pivac.UnicoAH` wraps `ArduinoSensor`
 
@@ -2865,7 +2801,7 @@ fouling. UA drift is a slow signal, and a month of data cannot separate it from 
 
 Condition every water-side conclusion on plant output. A ΔT figure taken without knowing whether
 the chiller was at 30 % or 100 % is uninterpretable
-([5.1](#51-primary-flow-is-fixed-so-primary-delta-t-reads-house-load)).
+([5.1](#51-primary-delta-t-reads-house-load)).
 
 ---
 
@@ -2878,11 +2814,11 @@ plant is healthy, and several of those sensors cost less and return more than th
 
 | Sensor | Where | Why |
 |---|---|---|
-| 4× DS18B20, supply and return on each secondary loop | Loop A and Loop B, at the tees | Starvation, flow ratios, mixing, loop-idle detection. The highest-value addition in this document ([4.2](#42-the-sensor-package)) |
-| 1× DS18B20, chiller leaving water | Chiller outlet | The reference that makes distribution loss absolute. The redundant `LBT` probe can be relocated here at no cost ([7.1](#71-costs-nothing)) |
+| 4× DS18B20, supply and return on each secondary loop | Loop A and Loop B, at the tees | **Fitted 25 August 2026.** Mixing ruled out, loop ΔT gated on the zone calls ([4.2](#42-the-sensor-package)) |
+| Chiller leaving water | Register 205 over Modbus | **Live 26 August 2026.** The reference that makes distribution loss absolute |
 | 1× DS18B20, boiler return | Boiler return, before the primary tee | Condensing verification. Monitor-only |
 | 1× temperature and humidity sensor | Mechanical room, away from the boiler | Standby losses, and the Pi's thermal ceiling |
-| Leak and flood detection | Pan under boiler, buffer tank, booster pump | Closes a regression |
+| Leak and flood detection | Pan under the booster pump | **Restored 7 September 2026** as `SCALA` on BCM 23, with the pump cut in hardware. The boiler and tank pans are still unwatched |
 
 Boiler return temperature is worth recording and not worth chasing. A Trinity Ti-200 condenses only
 when return water sits below the flue-gas dew point, roughly 130 °F. Above that it loses most of
@@ -2899,11 +2835,9 @@ from hypothesis into correlation. Humidity comes free with the same sensor: a me
 that runs humid in summer carries mould and corrosion risk, and flags chilled-pipe sweating from
 insulation gaps.
 
-> Leak detection was lost rather than retired. BCM 25 carried the booster-pump leak pan as `SCALA`
-> until 11 August 2026, when the input was renamed in place to `CHIL` to sense the chiller call.
-> A room holding the boiler, buffer tank, DHW, booster pump and the domestic water main now has no
-> water detection. Free GPIO inputs with existing wire runs are BCM 13/33, 16/36 and 24/18. Avoid
-> BCM 26, a permanently dead pad.
+> Leak detection was lost on 11 August 2026, when BCM 25 was renamed from `SCALA` to `CHIL`, and
+> restored on 7 September on BCM 23 with the pump cut done in hardware by the sensor itself. Free
+> GPIO inputs with wire runs on the new Pi's I/O board are BCM 13, 16 and 24.
 
 ## H.2 Tier 2
 
@@ -2924,11 +2858,13 @@ insulation gaps.
 
 ## H.4 Wiring
 
-Tier 1's DS18B20s go on the Pi's existing 1-wire bus, taking it from 4 sensors to 10, well within
-1-Wire's addressing limits. Watch total cable length and topology: prefer a daisy chain over a
-star, and consider dropping the pull-up to 2.2 to 3.3 kΩ as the bus grows, which §5 of
-`docs/circ-loop-temp-monitoring-plan.md` covers. `pivac.OneWireTherm` re-scans every cycle since
-2026-07-06, so sensors added live appear within one daemon cycle and need no restart.
+The four loop probes took the Pi's 1-wire bus from 4 sensors to 8, and the bus collapsed to zero
+the day they were added: cable capacitance against a 4.7 kΩ pull-up put the rise time past the
+DS18B20's sample window and the ROM search manufactured phantom devices to the 64 ceiling. A
+2.2 kΩ pull-up fixed it, and since the 7 September Pi cutover a DS2482 I²C master drives the bus
+with its own active pull-up and drops no reads. Any further probe goes on that bus following
+`docs/ds18b20-bus-topology.md`. `pivac.OneWireTherm` re-scans every cycle since 2026-07-06, so
+sensors added live appear within one daemon cycle and need no restart.
 
 The temperature and humidity sensor and the leak detector are not 1-Wire. RH wants I²C, so it
 belongs on an Arduino or a small dedicated node, and a leak pan is a dry contact into a spare GPIO.
@@ -3067,8 +3003,8 @@ while the master bedroom called ([3.8](#38-the-previous-plant-is-a-controlled-co
 | Capacity control | On/off | Inverter, modulating |
 | Sensed water | Leaving | **Return** |
 | Set here | 38 °F leaving | **50 °F return** |
-| Differential | 10 °F | 2 °C, restarting near 53.4 °F |
-| Delivered band | 38 to 48 °F | 50 to 53.4 °F |
+| Differential | 10 °F | 2 °C nominal; measured restart at 54.3 °F and stop at 44.8 |
+| Delivered band | 38 to 48 °F leaving | 54.3 down to 44.8 °F at the inlet, measured; leaving 40.5 °F at the stop |
 | Nominal capacity | 5 tons, one running | 4.3 tons |
 | Separation | None; pumped into the primary | Four-pipe buffer tank |
 
@@ -3166,10 +3102,38 @@ target.
 duplicate DHC with worse hardware and needs function code 6 or 16 into a register map that is
 community-sourced and untested on this model ([4.2](#42-the-sensor-package)). Keep pivac read-only.
 
-**Log C67 if DHC is enabled.** The target stops being a constant, so without it the loop temperature
-will appear to wander for no visible reason on the dashboards. Record the change in `CLAUDE.md` too:
-a second controller acting on water temperature is exactly the kind of thing that makes a system
-unexplainable to whoever looks at it next.
+**Register 142 logs the target if DHC is enabled.** The target stops being a constant, so without
+`hvac.chiller.chiltrix.coolingTarget` on the dashboards the loop temperature would appear to
+wander for no visible reason. Record the change in `CLAUDE.md` too: a second controller acting on
+water temperature is the kind of thing that makes a system unexplainable to whoever looks
+at it next.
+
+## K.5 Heating-mode controls
+
+The CX75 is a reversible heat pump rated 72,000 BTU/hr and COP 4.57 at 47 °F ambient
+([A.3](#a3-the-plant)), and today it has never heated: register 141 reads mode 0, cooling, and
+register 143 holds a 50 °C heating target it has not been asked to reach. Everything the unit
+offers for switching it into heating is collected here, read from the CX65 IOM and the live
+registers on 7 September 2026, because the shoulder-season design will need it.
+
+| Control | Where | State today | What it does |
+|---|---|---|---|
+| Operating mode | register 141, or the panel's Mode button | 0, cooling | 0 cool, 1 heat, 2 DHW, 3 cool+DHW, 4 heat+DHW. Writable, though pivac is read-only by policy |
+| Heating target | register 143, `P` menu | 50 °C | Return-water target in heating, whole °C, the counterpart of 142 |
+| `C`-`H`-`COM` dry contacts | terminals on the main board, `DIN6` = H, `DIN7` = C | jumpered as shipped | External mode select for a standard single-stage heat-pump thermostat. Option 1, N.O. relays: closing H or C selects the mode *and* runs the compressor to the tank target, and the unit stands by between calls, which Chiltrix names as a shoulder-season choice. Option 2, N.C. relays: the unit stays in its last commanded mode and maintains the tank |
+| `P111` | register 111 | 0, disabled | Enables `DIN6`/`DIN7`. Off, the relay inputs do not override the wired controller; `C63`/`C64` show the contact states either way |
+| `P42`/`P43` with `P112` | registers 42, 43, 112 | 15 °C, 23 °C, disabled | On-board auto switch-over by outdoor air: heating below `P42`, cooling above `P43`, standby between, with at least 4 °C between them. Cannot be combined with `C`-`H`-`COM` control |
+| Heating AU mode | register 145, `P48` = 45 °C max, `P49` = 0 offset | off | Weather-compensated heating curve: the target floats with outdoor air instead of sitting at 143 |
+| `P110` | register 110 | 30 Hz | Heating minimum compressor frequency; there is no cooling equivalent |
+| `P08` | register 8 | 1 | DHW disabled, so a mode change carries no DHW state with it |
+
+Two things about the plant bear on any heating design. The `CHIL` relay runs the Taco on any
+water-cooled zone's cooling call and closes a contact on the chiller that today, with `P111` at 0,
+the controller does not act on; the unit runs to its tank target on its own, which is why 16 % of
+its starts come with `CHIL` open. And in heating the primary return bypasses the buffer tank for
+the boiler loop ([C.4](#c4-cooling-is-buffered-heating-runs-direct)) only because the boiler's
+own pump is the one running; with the Taco running instead, the tank is in the circuit and the
+Chiltrix heats through it as it cools through it.
 
 ---
 
@@ -3179,7 +3143,7 @@ unexplainable to whoever looks at it next.
 - [Chiltrix CX50-1 installation and operation manual](https://www.chiltrix.com/documents/CX50-IOM-1.pdf)
 - [Chiltrix CX65-1 installation and operation manual](https://www.chiltrix.com/documents/CX65-1-IOM.pdf) — C-parameter list, head and flow figures
 - [Chiltrix VCT37C buffer tank specifications](https://www.chiltrix.com/documentation/vct37/vct37C-buffer-tank-specs.pdf)
-- [Chiltrix Modbus RTU overview](https://www.chiltrix.com/systems-design-control/modbus-rtu/)
+- [Chiltrix Modbus RTU overview](https://www.chiltrix.com/systems-design-control/modbus-rtu/), and Chiltrix's own `cx34-123&cx50-2&cx35-1 Modbus User Document.docx` in `~/OneDrive - DGLC/Claude/HVAC Manuals/`, which is the register map this document trusts
 - [jasipsw/homeassistant-chiltrix-modbus](https://github.com/jasipsw/homeassistant-chiltrix-modbus) — community register map, CX34/CX35/CX50-2
 - [gonzojive/heatpump](https://github.com/gonzojive/heatpump) and [sodabrew/chilctl](https://github.com/sodabrew/chilctl) — CX34 RS-485 tooling
 - [Unico M Series chilled water cooling module, bulletin 20-020.3.020](https://unicosystem.com/wp-content/uploads/literatures/bulletin-20-020.3.020---2019_01.pdf)
