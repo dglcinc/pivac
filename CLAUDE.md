@@ -368,6 +368,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/grafana-alerting-notes.md` | Per-rule descriptions, thresholds, the evidence behind retired rules, and why provisioning is additive |
 | `docs/operational-notes.md` | RedLink internals, relay roster and zone map, GPIO 26, sprinkler calibration and watering rules, Shelly plugs, watchdog design, dashboard panel transforms, network, backup history |
 | `docs/cdp-chiller-rework-plan.md` | Single-chiller conversion: relay hardware, zone → equipment map, label |
+| `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 
 ## Known Operational Behaviours (Not Bugs)
 

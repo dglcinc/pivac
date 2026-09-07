@@ -1,5 +1,4 @@
 # Import Libraries
-import os
 import errno
 import time
 import logging
@@ -12,9 +11,6 @@ try:
 except:
     logger.exception("Error importing RPi.GPIO! Try again using sudo.")
     raise OSError
-
-# Initialize the GPIO Pins
-os.system('modprobe w1-gpio')  # Turns on the GPIO module
 
 # set up pins - index to pin numbering in relays lists
 pins_initted = False
