@@ -1,0 +1,12 @@
+[Unit]
+Description=Instantiate the DS2482 1-Wire master on I2C
+After=sysinit.target
+Before=pivac-1wire.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'test -e /sys/bus/w1/devices/w1_bus_master1 || echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device'
+
+[Install]
+WantedBy=multi-user.target

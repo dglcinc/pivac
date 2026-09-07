@@ -30,3 +30,6 @@ test-output.txt
 # Claude Code local state
 .claude/
 .DS_Store
+
+# Word/Excel lock files
+~$*
