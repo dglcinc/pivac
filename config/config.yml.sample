@@ -42,6 +42,13 @@ pivac.GPIO:
             outname: BOS1
         12:
             outname: DEHUM
+        # AquaGuard AG-1250E leak sensor under the Scala booster pump (2026-09-07).
+        # The sensor's 24 VAC normally-open output drives a DLI IoT Power Relay
+        # (cuts the pump) and a 24 VAC relay whose contact lands on J3.2 / J3.4.
+        # 1 = water in the pan. Same measurement name as the 2025-26 leak pan on
+        # BCM 25, so the InfluxDB history continues.
+        23:
+            outname: SCALA
         # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
         # senses the Chiltrix chiller call. Rename in place, no wire moved.
         25:
