@@ -44,7 +44,8 @@ Everything in this section is done at a desk, and none of it is reversible-only-
    20 AWG at most, so it will not enter H1's plug. Either do the CAT5e re-pull from
    `docs/ds18b20-bus-topology.md` §7.2 now, or make a pigtail: three lever connectors, trunk
    conductor in one side, 6 in of 22 AWG solid out the other, into the plug. The pigtail is
-   the ten-minute route; the re-pull is the right one and can come later.
+   the ten-minute route; the re-pull is the right one and can come later. The pigtail joint is
+   where the bus went intermittent on cutover day, so the re-pull is the next job.
 
 5. **Take the DS18B20 spare (`28-0516a36816ff`) off H1 on the bench board** so the field bus
    is the only thing on it, and move both boards, the link cable and the enclosure to the
@@ -61,9 +62,9 @@ Everything in this section is done at a desk, and none of it is reversible-only-
 
 ## 1. Freeze the old Pi and take a fresh clone
 
-The weekly clone on the spare card is from Sunday 02:06 and `/etc/pivac/config.yml` was edited
-after it, so re-clone with the writers stopped. That gives a consistent copy of InfluxDB, the
-Grafana database and the config as of this minute. Run it in `tmux` so a dropped SSH session
+The weekly clone is taken live and may predate config edits, so re-clone with the writers
+stopped. That gives a consistent copy of InfluxDB, the Grafana database and the config as of
+this minute. Run it in `tmux` so a dropped SSH session
 cannot kill it.
 
 ```bash
@@ -79,13 +80,20 @@ in with its own card and everything resumes as before.
 
 ## 2. Prepare the spare card for the new hardware
 
-Still on the old Pi, with the clone finished and unmounted. Three edits the new Pi needs on its
-first boot, all made on the spare from here so nothing has to be typed blind at the panel.
+Still on the old Pi, with the clone finished and unmounted. One check and three edits the new
+Pi needs on its first boot, all made on the spare from here so nothing has to be typed blind at
+the panel.
 
 ```bash
 sudo mkdir -p /mnt/spare-boot /mnt/spare-root
 sudo mount /dev/sdb1 /mnt/spare-boot        # substitute the sdX from step 1
 sudo mount /dev/sdb2 /mnt/spare-root
+
+# (0) the root partition the kernel will look for must be this card's, not the live card's
+sudo blkid -s PTUUID -o value /dev/sdb; grep -o 'root=PARTUUID=[^ ]*' /mnt/spare-boot/cmdline.txt
+#     expect the same eight hex digits in both lines. sd-clone.sh writes this; if they differ:
+#     sudo sed -i -E "s/root=PARTUUID=[0-9a-f]{8}-02/root=PARTUUID=<blkid value>-02/" /mnt/spare-boot/cmdline.txt
+#     A mismatch boots to a kernel that waits for root forever: ACT flashes, then stops, no network.
 
 # (a) I²C on, w1-gpio overlay gone — delete the line, do not comment it (raspi-config re-enables a commented one)
 sudo sed -i -e 's/^dtparam=i2c_arm=off$/dtparam=i2c_arm=on/' -e '/^dtoverlay=w1-gpio$/d' /mnt/spare-boot/config.txt
@@ -111,14 +119,20 @@ From the Mac, before the new Pi is powered. The port forwards and every external
 
 ```bash
 KEY=$(cat ~/.config/unifi/claude-agent.key); B=https://10.0.0.1/proxy/network/api/s/default
+# release: use_fixedip alone leaves fixed_ip set and the pin below is refused
 curl -sk -X PUT -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' \
-  "$B/rest/user/6a31cc37d32f45306a8bfd73" -d '{"use_fixedip":false}'
+  "$B/rest/user/6a31cc37d32f45306a8bfd73" -d '{"use_fixedip":false,"fixed_ip":""}'
+# the old MAC is still an active station on .82 from its last lease; drop it or the pin is refused
+curl -sk -X POST -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' \
+  "$B/cmd/stamgr" -d '{"cmd":"kick-sta","mac":"d8:3a:dd:b1:ad:4d"}'
 curl -sk -X PUT -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' \
   "$B/rest/user/6a9e09b277a1135d842469bd" \
   -d '{"name":"pivac","use_fixedip":true,"fixed_ip":"10.0.0.82","network_id":"63ab8c9d277b3e032baaa609"}'
 ```
 
-Both return `"rc":"ok"`. Confirm:
+All three return `"rc":"ok"` (`api.err.FixedIpAlreadyUsedByClient` on the pin means the release
+or the kick did not take; `api.err.UnknownStation` on the kick is fine, the entry had already
+aged out). Confirm:
 
 ```bash
 curl -sk -H "X-API-KEY: $KEY" "$B/stat/user/2c:cf:67:80:55:00" | python3 -c 'import sys,json; d=json.load(sys.stdin)["data"][0]; print(d["use_fixedip"], d["fixed_ip"])'
@@ -224,12 +238,13 @@ that drops together with another when only one relay closed is the bridge the be
 out, so it would be field wiring, a common on the wrong plug. Ctrl-C, then:
 
 ```bash
-sudo systemctl start pivac-gpio
-source ~/pivac-venv/bin/activate
-python -c "import pivac.GPIO as m, json; print(json.dumps(m.status(), indent=2))"
+sudo systemctl start pivac-gpio; sleep 15
+curl -s http://127.0.0.1:3000/signalk/v1/api/vessels/self/electrical/ac/switch/utility \
+  | python3 -c 'import sys,json; print({k:v["statenum"]["value"] for k,v in json.load(sys.stdin).items()})'
 ```
 
-Exactly seven inputs: ZV, DHW, BLR, BOS2, BOS1, DEHUM, CHIL.
+Exactly seven inputs: ZV, DHW, BLR, BOS2, BOS1, DEHUM, CHIL. (`status()` cannot be called bare;
+it needs the module's config block, so read the daemon's output instead.)
 
 ## 8. 1-wire verification
 
@@ -280,19 +295,28 @@ old header wiring (the photographs from step 4), and move the reservation back:
 
 ```bash
 KEY=$(cat ~/.config/unifi/claude-agent.key); B=https://10.0.0.1/proxy/network/api/s/default
-curl -sk -X PUT -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' "$B/rest/user/6a9e09b277a1135d842469bd" -d '{"use_fixedip":false}'
+curl -sk -X PUT -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' "$B/rest/user/6a9e09b277a1135d842469bd" -d '{"use_fixedip":false,"fixed_ip":""}'
+curl -sk -X POST -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' "$B/cmd/stamgr" -d '{"cmd":"kick-sta","mac":"2c:cf:67:80:55:00"}'
 curl -sk -X PUT -H "X-API-KEY: $KEY" -H 'Content-Type: application/json' "$B/rest/user/6a31cc37d32f45306a8bfd73" -d '{"use_fixedip":true,"fixed_ip":"10.0.0.82","network_id":"63ab8c9d277b3e032baaa609"}'
 ```
+
+The wlan0 reservation (`10.0.0.130`) moves the same way between `66d627361149cc032426213b`
+(old, `d8:3a:dd:b1:ad:4e`) and `6a9e0b1677a1135d84246a04` (new, `2c:cf:67:80:55:01`).
 
 The old Pi's card is untouched by this procedure, so it boots as it did this morning; only the
 data written to the new Pi in between is lost.
 
 ## 11. Afterwards
 
-- `CLAUDE.md`: the Pi network interfaces paragraph carries the eth0 MAC; update it to
-  `2c:cf:67:80:55:00`, and note the wlan0 MAC once read from the new Pi.
-- The retired bench card (Trixie Lite, `new-pivac`) can be wiped or kept as a bench spare; the
-  weekly `sd-clone.timer` needs a card back in the USB reader on the new Pi by Sunday.
-- `nas-image-backup.timer` runs on the 1st; the image's disk identifier is tied to the card,
-  see the Backup Automation note in `CLAUDE.md` before the first run on the new card.
+- Move the wlan0 reservation too: the `redux` profile is DHCP, so `10.0.0.130` is a UCG
+  reservation on the wlan0 MAC (new Pi `2c:cf:67:80:55:01`, client `6a9e0b1677a1135d84246a04`),
+  same three calls as step 3; then `sudo nmcli connection up redux` to re-lease.
+- `CLAUDE.md`: the Pi network interfaces paragraph carries both MACs; check them against
+  `/sys/class/net/{eth0,wlan0}/address`.
+- Move the USB SD reader to the new Pi with a card in it; the weekly `sd-clone.timer` needs it
+  by Sunday 02:00. The retired bench card (Trixie Lite, `new-pivac`) can be wiped or kept as a
+  bench spare.
+- `nas-image-backup.timer` runs on the 1st. The image's MBR disk identifier must equal the new
+  card's (`blkid -s PTUUID -o value /dev/mmcblk0`): `sudo mount /mnt/nas-pi-backups && sudo
+  sfdisk --disk-id /mnt/nas-pi-backups/pivac.img 0x<id>`, then unmount. Done for `0x059be283`.
 - The rework plan's open item on the override relay label still stands.

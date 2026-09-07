@@ -78,4 +78,37 @@ T1=$(date +%s)
 ELAPSED=$((T1 - T0))
 log "rpi-clone finished — exit $RC — elapsed ${ELAPSED}s ($((ELAPSED/60))m $((ELAPSED%60))s)"
 
+# rpi-clone rewrites the clone's /etc/fstab to the target's disk identifier but
+# looks for cmdline.txt at /boot/cmdline.txt. On Bookworm the file lives at
+# /boot/firmware/cmdline.txt, so the edit is skipped silently and the clone
+# boots with root=PARTUUID=<live card>-02: the kernel loads, then waits for a
+# root partition that is not there (ACT flashes, then stops; no network).
+# Rewrite it here to the target's own identifier and refuse to call the clone
+# good unless the rewrite is verified.
+if [[ $RC -eq 0 ]]; then
+    DST_ID=$(blkid -s PTUUID -o value "/dev/$TARGET")
+    BOOT_PART=/dev/${TARGET}1
+    [[ $TARGET == *[0-9] ]] && BOOT_PART=/dev/${TARGET}p1
+    MNT=$(mktemp -d)
+    if [[ -n $DST_ID ]] && mount "$BOOT_PART" "$MNT"; then
+        if [[ -f $MNT/cmdline.txt ]]; then
+            sed -i -E "s/root=PARTUUID=[0-9a-fA-F]{8}-02/root=PARTUUID=${DST_ID}-02/" "$MNT/cmdline.txt"
+            if grep -q "root=PARTUUID=${DST_ID}-02" "$MNT/cmdline.txt"; then
+                log "cmdline.txt on $BOOT_PART: root=PARTUUID=${DST_ID}-02"
+            else
+                log "ERROR: cmdline.txt on $BOOT_PART still does not reference PARTUUID=${DST_ID}-02 — the clone will not boot"
+                RC=2
+            fi
+        else
+            log "ERROR: no cmdline.txt on $BOOT_PART — the clone will not boot"
+            RC=2
+        fi
+        umount "$MNT"
+    else
+        log "ERROR: could not read the disk identifier or mount $BOOT_PART — cmdline.txt not fixed, the clone will not boot"
+        RC=2
+    fi
+    rmdir "$MNT"
+fi
+
 exit $RC
