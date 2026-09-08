@@ -360,6 +360,8 @@ Rules live in this file; the evidence, measurements and incident history behind 
 |-----|--------|
 | `docs/chiltrix-modbus.md` | Chiltrix CX75: Modbus wiring and register map, E14 and P5 lockouts, Y-strainer fouling, why only `startupFlow` works as a fouling signal |
 | `docs/chiltrix-cycling-tuning-plan.md` | Chiltrix cycling-reduction parameter plan |
+| `docs/chiltrix-shoulder-season-heating-plan.md` | Heating from the Chiltrix in the shoulder seasons: HZ-432 dual fuel with an outdoor balance point, the `C`-`H`-`COM` relay wiring, `P111`, sequence and checks |
+| `docs/unico-cooling-assessment-and-tuning.md` | Hydronic cooling assessment: what the sensors prove, the verdict, the remedy ladder; K.5 collects the Chiltrix heating-mode controls |
 | `docs/onewire-notes.md` | DS18B20 roster history, bus fault diagnosis, decoupled and cross-connected probes, dead-leg ΔT, precision fixes, module behaviour |
 | `docs/ds18b20-bus-topology.md` | 1-wire bus build procedure, EXT board, DS2482 migration, electrical background |
 | `docs/ds18b20-PA1-5-calibration.md` | Probe offsets, pair corrections, reproducibility |
