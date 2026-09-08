@@ -194,7 +194,7 @@ The second datasource UID `bdj9fji0j5logc` (used by Relays, Temps, Stats, Chille
 **Panel alignment:** every timeseries panel on PivacR pins `custom.axisWidth: 50` so all plot areas share a left edge — keep new panels consistent. Don't set a per-panel `axisLabel` (it renders left of the ticks and pushes that panel's plot right). Note: **state-timeline panels can't set axis/row-label width** (Grafana #85040), so boolean/status data that must line up with the numeric-axis panels should be a **timeseries with stepped lines**, not a state-timeline.
 
 
-**Water "net of irrigation":** the Used stat panels and the hourly bars show domestic − irrigation through a `joinByField → calculateField → organize` transform chain, and both aggregates must land on one timestamp (`GROUP BY time(3650d) fill(0)`); the flow-rate panels 18/19 stay gross. Details in `docs/operational-notes.md`.
+**Water "net of irrigation":** the Used stat panels and the hourly bars show domestic − irrigation through a `joinByField → calculateField → organize` transform chain, and both aggregates must land on one timestamp (`GROUP BY time(3650d) fill(0)`); the flow-rate panel 18 stays gross. Details in `docs/operational-notes.md`.
 
 
 **ΔT panel (21)** plots warm minus cold for the primary and both secondaries on soft limits of −2 to +8 °F; never a hard min/max and never `axisCenteredZero`.
