@@ -127,8 +127,8 @@ rework.
 1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. That says which
    terminal the relay lands on today and whether the shipped jumpers are still fitted. Set the
    heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
-2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and set the
-   `wlyt`-independent things first: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
+2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
+   changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
 3. Wire `K_OB` per §4, land the `HPHEAT` pole on a free input, and add it under `pivac.GPIO`;
    `restart pivac-gpio` is all it needs.
 4. Set `P111` to 1. Confirm on the panel that a `Y1` call with `O/B` off reads `C64` = 1, and with
