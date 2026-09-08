@@ -29,6 +29,14 @@ an independent source at capture time -- read it from
 scores perfectly on self-consistency, so without external ground truth a search can
 converge confidently on the wrong answer. That is the trap that produced a "78 °F"
 outdoor reading in July while the truth was 69.5.
+
+The search covers ±16 px of translation and ±4 % of scale about the configured
+quad. A knock moves the display further than that (2026-09-07: 58 px left, 87 px
+up, and 14 % shorter). For such a move, first measure the lit-pixel bounding box of
+the digits (max over the frames, threshold ~235), rebase the corners onto it by
+hand, then run the search from there. Re-aim ``leds:`` and ``indicators:`` in the
+same pass: locate each lens by dark-blob centroid on the per-pixel minimum of the
+frames, within a window no wider than ±12 px seeded by eye.
 """
 import argparse
 import os
@@ -43,7 +51,9 @@ import yaml
 from pivac.Sentry import _read_display, _roi_is_lit, _SANE_RANGE  # noqa: E402
 
 # Region of the 2560x1440 frame holding digits, mode indicators and status LEDs.
-REGION = (1080, 590, 1420, 800)
+# Wide enough to hold the display at both the 2026-08-23 position (digits at
+# x 1143-1326, y 641-724) and the 2026-09-07 one (x 1089-1264, y 559-633).
+REGION = (980, 450, 1450, 800)
 VALUE_MODES = ("water_temp", "air", "gas_input")
 
 
@@ -208,7 +218,7 @@ def main():
         ap.error("--search needs --truth-air: a constant misread scores perfectly on "
                  "self-consistency, so an external reference is what separates right from stable")
 
-    coarse = [(dx, dy, s) for dx in range(-8, 9, 2) for dy in range(-8, 9, 2) for s in (0.98, 1.0, 1.02)]
+    coarse = [(dx, dy, s) for dx in range(-16, 17, 4) for dy in range(-16, 17, 4) for s in (0.96, 1.0, 1.04)]
     sample = indices[::max(1, len(indices) // 120)]
     scored = []
     for dx, dy, s in coarse:
@@ -225,6 +235,20 @@ def main():
           % (best * 100, len(plateau), dx, dy))
     if len(plateau) < 3:
         print("*** narrow optimum -- treat with suspicion, a robust fit has a broad plateau ***")
+
+    fine = []
+    for fdx in range(dx - 3, dx + 4):
+        for fdy in range(dy - 3, dy + 4):
+            f, v = evaluate(frames, modes, scfg, transform(base, fdx, fdy, 1.0), sample)
+            air = float(np.median(v["air"])) if v.get("air") else None
+            penalty = abs(air - args.truth_air) if air is not None else 99.0
+            fine.append((round(f, 4), -min(penalty, 20.0), fdx, fdy))
+    fine.sort(reverse=True)
+    plateau = [c for c in fine if c[0] >= fine[0][0] - 1e-9]
+    dx = int(round(np.mean([c[2] for c in plateau])))
+    dy = int(round(np.mean([c[3] for c in plateau])))
+    print("fine pass: clean=%.1f%% across a %d-candidate plateau; centre dx=%+d dy=%+d"
+          % (fine[0][0] * 100, len(plateau), dx, dy))
 
     winner = transform(base, dx, dy, 1.0)
     wclean, wvalues = evaluate(frames, modes, scfg, winner, indices)
