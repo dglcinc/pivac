@@ -3,7 +3,7 @@
 **Date:** 2026-09-07.
 **Status:** proposed, nothing built. The controls it relies on are read from the CX65 IOM
 (pp. 37–38, 67) and the HZ-432 installation guide (69-2198), and the live Chiltrix registers were
-read on 7 September; the physical checks in §9 have not been made.
+read on 7 September; the physical checks in §5 and §8 have not been made.
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
 
