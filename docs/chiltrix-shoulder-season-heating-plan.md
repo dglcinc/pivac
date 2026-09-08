@@ -47,7 +47,8 @@ in §1 is paid once per changeover rather than fought continuously.
 
 Three parameters go with it. `P111` must be 1, and the IOM says the relay inputs do not override
 the wired controller until it is; `C63` and `C64` on the panel show the two contact states either
-way, so the first physical check is what terminal the `CHIL` relay's contact lands on today.
+way, so the first physical check is that `C64` follows the `CHIL` relay, which lands on the cooling
+pair.
 Register 143 sets the heating target, whole °C, and 110 to 120 °F is the range to start in
 (43 to 49 °C), because the unit's own `P72` cap reads 50 °C and every degree of water above the
 room costs COP. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
@@ -96,25 +97,27 @@ The panel does all three already.
 
 ## 4. Wiring
 
-Today the HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco, close a contact on the
-chiller, and feed the Pi input on BCM 25; its `W1` drives the boiler call and the `BLR` input. The
-change adds one relay and moves one wire.
+Today the HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco, close the chiller's
+`C`-`COM` cooling contacts, and feed the Pi input on BCM 25; its `W1` drives the boiler call and
+the `BLR` input. A second pair is already run from the CDP to the chiller's `H`-`COM` heating
+contacts and is not yet driven, and the jumpers Chiltrix ships on the block are out. The change
+adds one relay and moves one wire: the `CHIL` contact's run to the cooling pair goes through the
+new relay, which steers it to the cooling pair or the heating pair.
 
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
 | `O/B` | HZ-432 equipment terminal, configured to energise in heating (B) | Energises a new SPDT relay `K_OB` |
-| `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the chiller |
-| `K_OB` normally closed | | To the chiller's `C` terminal: a `Y1` call with `O/B` off is a cooling call |
-| `K_OB` normally open | | To the chiller's `H` terminal: a `Y1` call with `O/B` on is a heating call |
+| `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the cooling pair |
+| `K_OB` normally closed | | To the existing cooling pair, `C`-`COM`: a `Y1` call with `O/B` off is a cooling call |
+| `K_OB` normally open | | To the existing heating pair, `H`-`COM`: a `Y1` call with `O/B` on is a heating call |
 | `COM` | chiller | Return for both contacts, dry, no voltage applied |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `K_OB` spare pole | | To a free Pi input on BCM 13, 16 or 24 as `HPHEAT`, so the dashboards know which source is heating |
 
 The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `K_OB`. `Y2ON` is a
 timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
-applying voltage to it, and the `CHIL` contact already meets that. The jumpers Chiltrix ships on
-the block come off when the relay contacts land.
+applying voltage to it, and the `CHIL` contact already meets that.
 
 The override relay that today bridges the chiller's contact keeps its role in cooling under
 option 1: closed, it holds the `C` call and the unit maintains the tank between zone calls, which
@@ -124,8 +127,9 @@ rework.
 
 ## 5. Sequence
 
-1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. That says which
-   terminal the relay lands on today and whether the shipped jumpers are still fitted. Set the
+1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. `C64` should
+   follow `CHIL`, since that relay lands on the cooling pair, and `C63` should stay 0 until the
+   heating pair is driven; that proves the contacts register before `P111` makes them act. Set the
    heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
@@ -167,8 +171,6 @@ roster on its own.
 
 ## 8. Open questions
 
-- Which Chiltrix terminal does the `CHIL` contact land on today, and are the shipped `C`-`H`-`COM`
-  jumpers still in place? `C63`/`C64` on the panel answer both.
 - Does the HZ-432's `O/B` terminal energise in heating or cooling as configured here, and does the
   zone side accept CONVENTIONAL thermostat type with the Prestige IAQ wiring as installed? The
   Checkout menu shows both.
