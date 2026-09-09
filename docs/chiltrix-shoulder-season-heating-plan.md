@@ -34,9 +34,10 @@ The CX75 is a reversible heat pump rated 72,000 BTU/hr and COP 4.57 at 47 °F am
 never heated here: register 141 reads mode 0 and register 143 holds a 50 °C heating target it has
 not been asked to reach. Its external-control interface is the `C`-`H`-`COM` dry-contact block on
 the main board, `DIN7` for cooling and `DIN6` for heating, enabled by `P111`. The panel shows
-`P111` enabled while register 111 reads 0, so the register's enum is inverted on this firmware,
-as `P104` is for the temperature unit; trust the panel. With the block enabled it behaves as a
-single-stage heat-pump thermostat input in one of two ways, chosen by relay type:
+`P111` enabled, and register 111 does not track it: it read 0 before, during and after a three-minute
+disabled window on 8 September 2026 with three polls inside it, so the panel is the only reference
+for this setting. With the block enabled it behaves as a single-stage heat-pump thermostat input
+in one of two ways, chosen by relay type:
 
 | Option | Relays | Behaviour |
 |---|---|---|
