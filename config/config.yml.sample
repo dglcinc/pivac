@@ -29,17 +29,28 @@ pivac.GPIO:
     #              outname : myname
     #              [sk_path: sk_pathstring]
     #              [pullmode: {pullup|pulldown}]
+    # The order here is the order the WilhelmSK Control Relays tile shows them: the
+    # SwitchBank walks the server's tree, and the server keeps the order the paths were
+    # first published. A reorder needs `restart pivac-gpio` and then `restart signalk`.
     inputs:
         17:
             outname: ZV
-        27:
-            outname: DHW
         22:
             outname: BLR
-        5:
-            outname: BOS2
+        27:
+            outname: DHW
+        # HPHEAT relay spare pole on J3.3: the HZ-432's B terminal is energised on a
+        # heat-pump heating call, so 1 = the Chiltrix is heating the house (2026-09-08).
+        24:
+            outname: HPHEAT
+        # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
+        # senses the Chiltrix chiller call. Rename in place, no wire moved.
+        25:
+            outname: CHIL
         6:
             outname: BOS1
+        5:
+            outname: BOS2
         12:
             outname: DEHUM
         # AquaGuard AG-1250E leak sensor under the Scala booster pump (2026-09-07).
@@ -49,14 +60,6 @@ pivac.GPIO:
         # BCM 25, so the InfluxDB history continues.
         23:
             outname: SCALA
-        # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
-        # senses the Chiltrix chiller call. Rename in place, no wire moved.
-        25:
-            outname: CHIL
-        # HPHEAT relay spare pole on J3.3: the HZ-432's B terminal is energised on a
-        # heat-pump heating call, so 1 = the Chiltrix is heating the house (2026-09-08).
-        24:
-            outname: HPHEAT
     # YOFF is RETIRED (2026-08-11) — not pending. There is no seasonal cutoff in
     # the CDP any more; winter shutdown is a manual breaker-off at the chiller.
     # Do NOT re-enable this or move it to BCM 19: the signal is gone, not homeless.
