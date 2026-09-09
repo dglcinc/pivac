@@ -54,9 +54,11 @@ unit does not do that, so the override relay that bridges the cooling pair is pr
 holding the `C` call; `C64` on the panel reading 1 with `CHIL` open confirms it. **That relay must
 be open before the first heating call**, or `C` and `H` close together when `B` energises. Either
 open it for the season or move it to the `K_OB` common so it follows the mode.
-Register 143 sets the heating target, whole °C, and 110 to 120 °F is the range to start in
-(43 to 49 °C), because the unit's own `P72` cap reads 50 °C and every degree of water above the
-room costs COP. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
+Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), which is where the
+unit's own `P72` caps it and the most the coils can be given, so the first heating test is
+unambiguous: a zone that cannot hold at 50 °C is a balance-point problem. Step down afterward if
+the zones hold with runtime to spare; each °C of water is worth about 2 to 3 % of COP, and the
+coils give up about 4 % of output per °C on the way down. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
 offset) floats that target with outdoor air and is worth enabling once a fixed target has run a
 few days. `P42`/`P43` auto switch-over cannot be combined with `C`-`H`-`COM` and stays off. `P08`
 reads 1, DHW disabled, so a mode change carries no DHW state with it.
@@ -142,8 +144,8 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    heating pair is driven; that proves the contacts register. The IOM's own preconditions for
    relay control (p. 38) are met or become so here: DHW is disabled at `P08`, `P112` auto
    switch-over is off, `P111` is enabled, and each mode's target is set from the controller
-   before the relays are relied on. Use the Mode button to enter heating, set the heating target
-   to 45 °C, return to cooling, and read register 143 back through
+   before the relays are relied on. Use the Mode button to enter heating, confirm the heating
+   target at 50 °C, return to cooling, and read register 143 back through
    `hvac.chiller.chiltrix.heatingTarget`. The IOM adds that the controller's schedule timers are
    unavailable under relay control, which changes nothing here.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
@@ -191,7 +193,7 @@ roster on its own.
 
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
-- What heating target do the Unico coils need to hold the house at 40 °F outdoor? 45 °C is the
-  starting guess; the loop probes and zone droop will say.
+- How far below 50 °C can the heating target go with the zones still holding at 40 °F outdoor?
+  The loop probes, zone droop and the Modbus COP against outdoor temperature will say.
 - Has the glycol been re-measured since the 3 September top-up? The concentration sets nothing in
   heating, but the record wants it.
