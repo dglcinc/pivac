@@ -107,10 +107,10 @@ new relay, which steers it to the cooling pair or the heating pair.
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
-| `O/B` | HZ-432 equipment terminal | Energises a new SPDT relay `K_OB`. The 69-2198 guide does not say whether the panel energises this terminal in heating or in cooling; Checkout steps 3 and 5 show it on a meter, and the two contacts below are assigned from that reading |
+| `O/B` | HZ-432 equipment terminal, energised in cooling (`O` convention, measured 8 September 2026: 25.6 VAC on `O/B` and on `Y1` during a zone cooling call, with the panel configured heat pump, dual fuel, conventional thermostats) | Energises a new SPDT relay `K_OB` in cooling; the relay rests in heating |
 | `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the cooling pair |
-| `K_OB`, the contact closed while `O/B` is in its cooling state | | To the existing cooling pair, `C`-`COM` |
-| `K_OB`, the contact closed while `O/B` is in its heating state | | To the existing heating pair, `H`-`COM` |
+| `K_OB` normally open, closed while `O/B` is energised | | To the existing cooling pair, `C`-`COM`: `Y1` with `O/B` on is a cooling call |
+| `K_OB` normally closed, the rest state | | To the existing heating pair, `H`-`COM`: `Y1` with `O/B` off is a heating call. A lost `O/B` wire therefore reads as heating, so a cooling call with `O/B` dead would run the chiller in heating; the mode register and `UBT` show it within minutes |
 | `COM` | chiller | Return for both contacts, dry, no voltage applied |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `K_OB` spare pole | | To a free Pi input on BCM 13, 16 or 24 as `HPHEAT`, so the dashboards know which source is heating |
@@ -137,10 +137,10 @@ rework.
    `restart pivac-gpio` is all it needs.
 4. Set `P111` to 1. Confirm on the panel that a `Y1` call with `O/B` off reads `C64` = 1, and with
    `O/B` on reads `C63` = 1.
-5. Reconfigure the HZ-432 per §3 and run its Checkout. Step 3 turns heat on and step 5 turns
-   cool on: a meter from `O/B` to `C` during each says which state is heating, and `K_OB`'s two
-   contacts are landed from that. Steps 11 to 14 show which terminals each zone thermostat
-   raises.
+5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
+   call: with the outdoor sensor reading above the balance temperature, a zone heat call should
+   put 24 VAC on `Y1` and none on `O/B` or `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
+   and none on `Y1`. Checkout steps 11 to 14 show which terminals each zone thermostat raises.
 6. Force one heating call on a mild evening and watch four things: register 141 goes to 1, the
    Taco runs on `CHIL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
    loop supply following it after the tank lag.
@@ -173,9 +173,6 @@ roster on its own.
 
 ## 8. Open questions
 
-- Does the HZ-432's equipment `O/B` terminal energise in heating or in cooling? The guide's only
-  `O`/`B` note is on the zone-thermostat side. Checkout steps 3 and 5 settle it before the relay
-  contacts are landed.
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
 - What heating target do the Unico coils need to hold the house at 40 °F outdoor? 45 °C is the
