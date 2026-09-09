@@ -126,11 +126,13 @@ The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `K_O
 timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
 applying voltage to it, and the `CHIL` contact already meets that.
 
-The override relay that today bridges the chiller's contact keeps its role in cooling under
-option 1: closed, it holds the `C` call and the unit maintains the tank between zone calls, which
-is what the plant does now with `P111` at 0. Leave it open in heating, or move it to the `K_OB`
-common so it follows the mode; either way label it, which is still outstanding from the relay
-rework.
+The override relay that bridges the cooling pair keeps its role in cooling under option 1:
+closed, it holds the `C` call and the unit maintains the tank between zone calls, which is what
+the plant does now. It must not hold `C` while `B` selects `H`, so leave it open in heating, or
+move it to the `K_OB` common so it follows the mode; either way label it, which is still
+outstanding from the relay rework. `P112`, the on-board auto switch-over, shows disabled for both
+heating and cooling on the panel and stays that way, since it cannot be combined with
+`C`-`H`-`COM` control.
 
 ## 5. Sequence
 
