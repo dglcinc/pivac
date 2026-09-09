@@ -1,9 +1,10 @@
 # Chiltrix shoulder-season heating — plan
 
 **Date:** 2026-09-07.
-**Status:** proposed, nothing built. The controls it relies on are read from the CX65 IOM
-(pp. 37–38, 67) and the HZ-432 installation guide (69-2198), and the live Chiltrix registers were
-read on 7 September; the physical checks in §5 and §8 have not been made.
+**Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
+`K_OB` relay is wired and checked, both on 8 September 2026. Still to do: the outdoor sensor,
+`P111`, the heating target, the `HPHEAT` input, and the live-call proof in §5. The controls are
+read from the CX65 IOM (pp. 37–38, 67) and the HZ-432 installation guide (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
 
@@ -67,7 +68,7 @@ find itself by observation.
 
 The HZ-432 already contains the changeover logic, and this plan uses it rather than building one.
 Configured as a heat pump system with dual-fuel operation, the panel calls the heat pump on `Y1`
-with the changeover on `O/B` for heating above an outdoor balance temperature, and calls the fossil
+with `B` energised for heating above an outdoor balance temperature, and calls the fossil
 stage on `W1/E` below it. The relevant settings, from the installation guide:
 
 | Setting | Range and default | Use here |
@@ -107,13 +108,16 @@ new relay, which steers it to the cooling pair or the heating pair.
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
-| `O/B` | HZ-432 equipment terminal, energised in cooling (`O` convention, measured 8 September 2026: 25.6 VAC on `O/B` and on `Y1` during a zone cooling call, with the panel configured heat pump, dual fuel, conventional thermostats) | Energises a new SPDT relay `K_OB` in cooling; the relay rests in heating |
+| `B` | HZ-432 equipment terminal. The panel carries separate `O` and `B` equipment terminals: `O` energises in cooling and `B` in heat-pump heating, confirmed 8 September 2026 with a zone cooling call (25.6 VAC on `Y1` and `O`, `B` dark) and the panel's Checkout heat-stage test (`B` energised) | Energises the SPDT relay `K_OB` in heating; the relay rests in cooling |
 | `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the cooling pair |
-| `K_OB` normally open, closed while `O/B` is energised | | To the existing cooling pair, `C`-`COM`: `Y1` with `O/B` on is a cooling call |
-| `K_OB` normally closed, the rest state | | To the existing heating pair, `H`-`COM`: `Y1` with `O/B` off is a heating call. A lost `O/B` wire therefore reads as heating, so a cooling call with `O/B` dead would run the chiller in heating; the mode register and `UBT` show it within minutes |
+| `K_OB` normally closed, the rest state | | To the existing cooling pair, `C`-`COM`: `Y1` without `B` is a cooling call |
+| `K_OB` normally open, closed while `B` is energised | | To the existing heating pair, `H`-`COM`: `Y1` with `B` is a heating call. A lost `B` wire reads as cooling, the safer of the two failure modes |
 | `COM` | chiller | Return for both contacts, dry, no voltage applied |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `K_OB` spare pole | | To a free Pi input on BCM 13, 16 or 24 as `HPHEAT`, so the dashboards know which source is heating |
+
+Wired and checked 8 September 2026: the relay follows `B`, and the `CHIL` contact reaches the
+cooling pair at rest and the heating pair with `B` energised.
 
 The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `K_OB`. `Y2ON` is a
 timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
@@ -133,13 +137,13 @@ rework.
    heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
-3. Wire `K_OB` per §4, land the `HPHEAT` pole on a free input, and add it under `pivac.GPIO`;
+3. `K_OB` is wired per §4. Land its `HPHEAT` pole on a free input and add it under `pivac.GPIO`;
    `restart pivac-gpio` is all it needs.
-4. Set `P111` to 1. Confirm on the panel that a `Y1` call with `O/B` off reads `C64` = 1, and with
-   `O/B` on reads `C63` = 1.
+4. Set `P111` to 1. Confirm on the Chiltrix panel that a `Y1` call with `B` off reads `C64` = 1,
+   and with `B` on reads `C63` = 1.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should
-   put 24 VAC on `Y1` and none on `O/B` or `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
+   put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
    and none on `Y1`. Checkout steps 11 to 14 show which terminals each zone thermostat raises.
 6. Force one heating call on a mild evening and watch four things: register 141 goes to 1, the
    Taco runs on `CHIL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
