@@ -25,9 +25,9 @@ through their M3036 hydronic modules. Loop B carries three coils in heating and 
 is already on the seasonal list.
 
 Two consequences follow from the geometry. The tank is a 37 gallon thermal mass at 304 BTU/°F,
-so a mode change is not instant: warming it from a 50 °F cooling target to a 110 °F heating target
-is about 18,000 BTU, roughly half an hour of Chiltrix output before the first heat call gets hot
-water. And in heating the loop-probe offsets belong to the 140 °F column in the `config.yml`
+so a mode change is not instant: moving it between the 50 °F cooling target and the 122 °F heating
+target is about 24,000 BTU, 25 to 45 minutes of Chiltrix output before the first heat call gets hot
+water; §7 prices it. And in heating the loop-probe offsets belong to the 140 °F column in the `config.yml`
 comment rather than the 45 °F values that are live, and every ΔT on the loop panel inverts sign.
 
 ## 2. The Chiltrix side
@@ -48,7 +48,7 @@ in one of two ways, chosen by relay type:
 
 Option 1 is the one that maps onto a zone call, and it is the one this plan wires. The standby
 between calls is what makes the mode change safe: nothing runs until a zone asks, and the tank lag
-in §1 is paid once per changeover rather than fought continuously.
+in §1 is paid once per changeover rather than fought continuously. §7 gives the price.
 
 Because the block is already enabled, the `CHIL` contact on the cooling pair is live today, and
 the compressor still starts with `CHIL` open on 16 % of its starts. Under option 1 a call-driven
@@ -184,14 +184,60 @@ from registers 213, 281 and 205 over the Emporia CT, with the tank term reversed
 against outdoor temperature from the first week, because that curve against gas cost is what sets
 the balance point on economics once comfort has set its floor.
 
-## 7. What this plan does not touch
+## 7. The cost of a changeover
+
+Every changeover moves the buffer tank between the two targets, and the tank does not drift far
+enough between calls to shorten the trip. Its 2" of polyurethane on about 27 ft² of shell gives a
+UA near 2 BTU/hr·°F, perhaps 4 with the fittings and primary piping, so the time constant is about
+three days and an overnight idle moves it 5 to 8 °F. The full swing is therefore paid at every
+changeover.
+
+The mass the chiller has to move is 304 BTU/°F for the tank, about 5 gallons in the exchanger and
+primary piping, and the calling secondary loop, which the first call brings into circuit: 200 ft of
+1¼" PEX holds about 9 gallons. Call it 350 to 400 BTU/°F. Cooling holds the tank between 43 and
+53 °F and heating targets 122 °F at the return.
+
+| Direction | Swing | Chiller output | Compressor time | Electricity | At 18 ¢/kWh |
+|---|---|---|---|---|---|
+| Cool → heat, 48 → 122 °F | 74 °F | 26,000 to 29,000 BTU | 30 to 45 min | 2.3 kWh (2.0 to 2.8) | 41 ¢ (36 to 50) |
+| Heat → cool, 122 → 45 °F | 77 °F | 27,000 to 30,000 BTU | 25 to 40 min | 1.6 kWh (1.4 to 1.9) | 29 ¢ (25 to 34) |
+
+The output rate assumes the inverter runs near its ceiling against a 70 °F error: cooling has
+measured 55,400 BTU/hr at p99 and 3,740 W peak, and in heating the 72,000 BTU/hr rating is at
+47 °F ambient and cooler water than 122 °F, so 40,000 to 55,000 BTU/hr is the working range,
+stretched by defrost below about 45 °F outdoor. Heating at 122 °F loses 2 to 3 % of COP per °C
+above the rating point, which puts the COP near 3.0 against the rated 4.57. Cooling is priced at
+the measured EER of 16.8 above 2,500 W, and the first part of a pull-down runs better than that
+because warm return water raises evaporator capacity.
+
+A shoulder day that heats in the morning and cools in the afternoon pays both, about 3.9 kWh or
+70 ¢. The chiller averaged about 17 kWh a day, $3.06, over the clean cooling week (1,492 W mean
+running at 47 % duty), so two changeovers a day cost a quarter of a summer day's chiller
+electricity on days whose own load is small. The HZ-432's 30 minute changeover delay is the only
+thing rationing this. If the record shows changeovers on most shoulder days, widen the deadband or
+lengthen the delay on the panel, or hold one mode for the day.
+
+The first call feels the pull-down. Under option 1 the zone fan runs throughout, and a coil's output
+scales with the water-to-air difference, so in heating it delivers nothing until the water passes
+room temperature, about 10 minutes in, and about half its 122 °F output once the water reaches
+100 °F, around 20 minutes in. Going to cooling the coil is useful within a few minutes because the
+tank passes 70 °F early on the way down.
+
+Two things would change these numbers. The heating target is assumed to be a return-water target
+like register 142; step 1 of §5 reads register 143 back. Pulling 122 °F glycol through the
+evaporator on the first cooling call may trip a high-inlet limit in the cooling logic, and neither
+the IOM notes here nor the Modbus record shows one, so watch `r284` and `operatingMode` on the
+first heat-to-cool changeover. The heating COP and the pull-down rate are estimates until the first
+week's energy balance in §6 replaces them.
+
+## 8. What this plan does not touch
 
 The boiler, its pump and the Sentry path. The BOVA condensers, which cool their two zones and take
 no part in heating. The buffer tank and the glycol loop, which run at 110 to 120 °F on 25 %
 propylene glycol without complaint. The `.wlyt` layouts, since the SwitchBank enumerates the relay
 roster on its own.
 
-## 8. Open questions
+## 9. Open questions
 
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
