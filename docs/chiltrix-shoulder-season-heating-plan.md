@@ -139,8 +139,13 @@ heating and cooling on the panel and stays that way, since it cannot be combined
 
 1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. `C64` should
    follow `CHIL`, since that relay lands on the cooling pair, and `C63` should stay 0 until the
-   heating pair is driven; that proves the contacts register. Set the
-   heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
+   heating pair is driven; that proves the contacts register. The IOM's own preconditions for
+   relay control (p. 38) are met or become so here: DHW is disabled at `P08`, `P112` auto
+   switch-over is off, `P111` is enabled, and each mode's target is set from the controller
+   before the relays are relied on. Use the Mode button to enter heating, set the heating target
+   to 45 °C, return to cooling, and read register 143 back through
+   `hvac.chiller.chiltrix.heatingTarget`. The IOM adds that the controller's schedule timers are
+   unavailable under relay control, which changes nothing here.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
 3. `K_OB` is wired per §4. Land its `HPHEAT` pole on a free input and add it under `pivac.GPIO`;
