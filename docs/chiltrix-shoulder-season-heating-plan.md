@@ -3,7 +3,7 @@
 **Date:** 2026-09-07.
 **Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
 `K_OB` relay is wired and checked, both on 8 September 2026. Still to do: the outdoor sensor,
-`P111`, the heating target, the `HPHEAT` input, and the live-call proof in §5. The controls are
+the override relay's position, the heating target, the `HPHEAT` input, and the live-call proof in §5. The controls are
 read from the CX65 IOM (pp. 37–38, 67) and the HZ-432 installation guide (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
@@ -33,9 +33,10 @@ comment rather than the 45 °F values that are live, and every ΔT on the loop p
 The CX75 is a reversible heat pump rated 72,000 BTU/hr and COP 4.57 at 47 °F ambient, and it has
 never heated here: register 141 reads mode 0 and register 143 holds a 50 °C heating target it has
 not been asked to reach. Its external-control interface is the `C`-`H`-`COM` dry-contact block on
-the main board, `DIN7` for cooling and `DIN6` for heating, enabled by `P111`, which reads 0 today.
-With `P111` at 1 the block behaves as a single-stage heat-pump thermostat input in one of two
-ways, chosen by relay type:
+the main board, `DIN7` for cooling and `DIN6` for heating, enabled by `P111`. The panel shows
+`P111` enabled while register 111 reads 0, so the register's enum is inverted on this firmware,
+as `P104` is for the temperature unit; trust the panel. With the block enabled it behaves as a
+single-stage heat-pump thermostat input in one of two ways, chosen by relay type:
 
 | Option | Relays | Behaviour |
 |---|---|---|
@@ -46,10 +47,12 @@ Option 1 is the one that maps onto a zone call, and it is the one this plan wire
 between calls is what makes the mode change safe: nothing runs until a zone asks, and the tank lag
 in §1 is paid once per changeover rather than fought continuously.
 
-Three parameters go with it. `P111` must be 1, and the IOM says the relay inputs do not override
-the wired controller until it is; `C63` and `C64` on the panel show the two contact states either
-way, so the first physical check is that `C64` follows the `CHIL` relay, which lands on the cooling
-pair.
+Because the block is already enabled, the `CHIL` contact on the cooling pair is live today, and
+the compressor still starts with `CHIL` open on 16 % of its starts. Under option 1 a call-driven
+unit does not do that, so the override relay that bridges the cooling pair is presumably closed and
+holding the `C` call; `C64` on the panel reading 1 with `CHIL` open confirms it. **That relay must
+be open before the first heating call**, or `C` and `H` close together when `B` energises. Either
+open it for the season or move it to the `K_OB` common so it follows the mode.
 Register 143 sets the heating target, whole °C, and 110 to 120 °F is the range to start in
 (43 to 49 °C), because the unit's own `P72` cap reads 50 °C and every degree of water above the
 room costs COP. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
@@ -133,14 +136,15 @@ rework.
 
 1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. `C64` should
    follow `CHIL`, since that relay lands on the cooling pair, and `C63` should stay 0 until the
-   heating pair is driven; that proves the contacts register before `P111` makes them act. Set the
+   heating pair is driven; that proves the contacts register. Set the
    heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
 3. `K_OB` is wired per §4. Land its `HPHEAT` pole on a free input and add it under `pivac.GPIO`;
    `restart pivac-gpio` is all it needs.
-4. Set `P111` to 1. Confirm on the Chiltrix panel that a `Y1` call with `B` off reads `C64` = 1,
-   and with `B` on reads `C63` = 1.
+4. Open the override relay, or move it to the `K_OB` common. Confirm on the Chiltrix panel that
+   `C64` is 0 with no call, 1 on a `Y1` call with `B` off, and that `C63` is 1 on a `Y1` call with
+   `B` on.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should
    put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`

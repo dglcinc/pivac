@@ -3121,16 +3121,16 @@ registers on 7 September 2026, because the shoulder-season design will need it.
 | Operating mode | register 141, or the panel's Mode button | 0, cooling | 0 cool, 1 heat, 2 DHW, 3 cool+DHW, 4 heat+DHW. Writable, though pivac is read-only by policy |
 | Heating target | register 143, `P` menu | 50 °C | Return-water target in heating, whole °C, the counterpart of 142 |
 | `C`-`H`-`COM` dry contacts | terminals on the main board, `DIN6` = H, `DIN7` = C | jumpered as shipped | External mode select for a standard single-stage heat-pump thermostat. Option 1, N.O. relays: closing H or C selects the mode *and* runs the compressor to the tank target, and the unit stands by between calls, which Chiltrix names as a shoulder-season choice. Option 2, N.C. relays: the unit stays in its last commanded mode and maintains the tank |
-| `P111` | register 111 | 0, disabled | Enables `DIN6`/`DIN7`. Off, the relay inputs do not override the wired controller; `C63`/`C64` show the contact states either way |
+| `P111` | register 111 | enabled on the panel; the register reads 0, so its enum is inverted on this firmware like `P104`'s | Enables `DIN6`/`DIN7`; `C63`/`C64` show the contact states |
 | `P42`/`P43` with `P112` | registers 42, 43, 112 | 15 °C, 23 °C, disabled | On-board auto switch-over by outdoor air: heating below `P42`, cooling above `P43`, standby between, with at least 4 °C between them. Cannot be combined with `C`-`H`-`COM` control |
 | Heating AU mode | register 145, `P48` = 45 °C max, `P49` = 0 offset | off | Weather-compensated heating curve: the target floats with outdoor air instead of sitting at 143 |
 | `P110` | register 110 | 30 Hz | Heating minimum compressor frequency; there is no cooling equivalent |
 | `P08` | register 8 | 1 | DHW disabled, so a mode change carries no DHW state with it |
 
 Two things about the plant bear on any heating design. The `CHIL` relay runs the Taco on any
-water-cooled zone's cooling call and closes a contact on the chiller that today, with `P111` at 0,
-the controller does not act on; the unit runs to its tank target on its own, which is why 16 % of
-its starts come with `CHIL` open. And in heating the primary return bypasses the buffer tank for
+water-cooled zone's cooling call and closes the chiller's `C` contact, which is live because
+`P111` is enabled; the unit nevertheless starts with `CHIL` open on 16 % of its starts, which is
+the override relay holding the `C` call so the tank is maintained between zone calls. And in heating the primary return bypasses the buffer tank for
 the boiler loop ([C.4](#c4-cooling-is-buffered-heating-runs-direct)) only because the boiler's
 own pump is the one running; with the Taco running instead, the tank is in the circuit and the
 Chiltrix heats through it as it cools through it.
