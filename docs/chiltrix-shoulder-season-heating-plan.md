@@ -25,9 +25,9 @@ through their M3036 hydronic modules. Loop B carries three coils in heating and 
 is already on the seasonal list.
 
 Two consequences follow from the geometry. The tank is a 37 gallon thermal mass at 304 BTU/°F,
-so a mode change is not instant: warming it from a 50 °F cooling target to a 110 °F heating target
-is about 18,000 BTU, roughly half an hour of Chiltrix output before the first heat call gets hot
-water. And in heating the loop-probe offsets belong to the 140 °F column in the `config.yml`
+so a mode change is not instant: moving it between the 50 °F cooling target and the 122 °F heating
+target is about 24,000 BTU, 25 to 45 minutes of Chiltrix output before the first heat call gets hot
+water; §7 prices it. And in heating the loop-probe offsets belong to the 140 °F column in the `config.yml`
 comment rather than the 45 °F values that are live, and every ΔT on the loop panel inverts sign.
 
 ## 2. The Chiltrix side
@@ -48,7 +48,7 @@ in one of two ways, chosen by relay type:
 
 Option 1 is the one that maps onto a zone call, and it is the one this plan wires. The standby
 between calls is what makes the mode change safe: nothing runs until a zone asks, and the tank lag
-in §1 is paid once per changeover rather than fought continuously.
+in §1 is paid once per changeover rather than fought continuously. §7 gives the price.
 
 Because the block is already enabled, the `CHIL` contact on the cooling pair is live today, and
 the compressor still starts with `CHIL` open on 16 % of its starts. Under option 1 a call-driven
@@ -87,7 +87,7 @@ stage on `W1/E` below it. The relevant settings, from the installation guide:
 | Dual-fuel heat stages | 1 / 2 | 1, the boiler |
 | Zone thermostat type, per zone | HTPUMP-O, HTPUMP-B, CONVENTIONAL | CONVENTIONAL: the Prestige IAQ zones are wired as heat/cool thermostats and the panel does the changeover |
 | Dual fuel changeover | OT / OT+MULTISTG | OT+MULTISTG: by outdoor temperature, and a second-stage heat call also switches to the boiler for at least an hour |
-| OT balance temperature | 0 to 50 °F, default 30 | Start at 40 °F and move it on evidence |
+| OT balance temperature | 0 to 50 °F, default 30 | Start at 40 °F and move it on capacity evidence; at $1.93 a therm the chiller is the cheaper source down to about 35 °F (§8) |
 | Changeover delay | 15 to 180 min, default 30 | 30 |
 | Auto changeover delay | 15 / 20 / 30 min | 30, the arbitration when one zone calls heat and another cool in the same hour |
 | Emergency Heat | button on the panel | Forces the boiler regardless of outdoor temperature |
@@ -181,17 +181,120 @@ cooling-only and do not apply.
 
 A heating COP falls out of the same energy balance the assessment uses in cooling: chiller output
 from registers 213, 281 and 205 over the Emporia CT, with the tank term reversed in sign. Log it
-against outdoor temperature from the first week, because that curve against gas cost is what sets
-the balance point on economics once comfort has set its floor.
+against outdoor temperature from the first week; §8 holds the estimate it replaces, and at today's
+prices only capacity and comfort set the balance point.
 
-## 7. What this plan does not touch
+## 7. The cost of a changeover
+
+Every changeover moves the buffer tank between the two targets, and the tank does not drift far
+enough between calls to shorten the trip. Its 2" of polyurethane on about 27 ft² of shell gives a
+UA near 2 BTU/hr·°F, perhaps 4 with the fittings and primary piping, so the time constant is about
+three days and an overnight idle moves it 5 to 8 °F. The full swing is therefore paid at every
+changeover.
+
+The mass the chiller has to move is 304 BTU/°F for the tank, about 5 gallons in the exchanger and
+primary piping, and the calling secondary loop, which the first call brings into circuit: 200 ft of
+1¼" PEX holds about 9 gallons. Call it 350 to 400 BTU/°F. Cooling holds the tank between 43 and
+53 °F and heating targets 122 °F at the return.
+
+| Direction | Swing | Chiller output | Compressor time | Electricity | At 18 ¢/kWh |
+|---|---|---|---|---|---|
+| Cool → heat, 48 → 122 °F | 74 °F | 26,000 to 29,000 BTU | 30 to 45 min | 2.3 kWh (2.0 to 2.8) | 41 ¢ (36 to 50) |
+| Heat → cool, 122 → 45 °F | 77 °F | 27,000 to 30,000 BTU | 25 to 40 min | 1.6 kWh (1.4 to 1.9) | 29 ¢ (25 to 34) |
+
+The output rate assumes the inverter runs near its ceiling against a 70 °F error: cooling has
+measured 55,400 BTU/hr at p99 and 3,740 W peak, and in heating the 72,000 BTU/hr rating is at
+47 °F ambient and cooler water than 122 °F, so 40,000 to 55,000 BTU/hr is the working range,
+stretched by defrost below about 45 °F outdoor. Heating at 122 °F loses 2 to 3 % of COP per °C
+above the rating point, which puts the COP near 3.0 against the rated 4.57. Cooling is priced at
+the measured EER of 16.8 above 2,500 W, and the first part of a pull-down runs better than that
+because warm return water raises evaporator capacity.
+
+A shoulder day that heats in the morning and cools in the afternoon pays both, about 3.9 kWh or
+70 ¢. The chiller averaged about 17 kWh a day, $3.06, over the clean cooling week (1,492 W mean
+running at 47 % duty), so two changeovers a day cost a quarter of a summer day's chiller
+electricity on days whose own load is small. The HZ-432's 30 minute changeover delay is the only
+thing rationing this. If the record shows changeovers on most shoulder days, widen the deadband or
+lengthen the delay on the panel, or hold one mode for the day.
+
+The first call feels the pull-down. Under option 1 the zone fan runs throughout, and a coil's output
+scales with the water-to-air difference, so in heating it delivers nothing until the water passes
+room temperature, about 10 minutes in, and about half its 122 °F output once the water reaches
+100 °F, around 20 minutes in. Going to cooling the coil is useful within a few minutes because the
+tank passes 70 °F early on the way down.
+
+Two things would change these numbers. The heating target is assumed to be a return-water target
+like register 142; step 1 of §5 reads register 143 back. Pulling 122 °F glycol through the
+evaporator on the first cooling call may trip a high-inlet limit in the cooling logic, and neither
+the IOM notes here nor the Modbus record shows one, so watch `r284` and `operatingMode` on the
+first heat-to-cool changeover. The heating COP and the pull-down rate are estimates until the first
+week's energy balance in §6 replaces them.
+
+## 8. Chiller or boiler: the price of heat
+
+At $1.93 a therm and 18 ¢/kWh the Chiltrix heats the house for less than the boiler on every
+shoulder day, and the margin only closes near 35 °F outdoor. The balance temperature is therefore a
+capacity and comfort setting; price does not argue for handing mild days to the boiler.
+
+The boiler side is measured. The Sentry record from 1 April to 20 May 2026 covers a full shoulder
+season with every zone on the boiler. Integrating the gas input value through the manual's Ti200
+conversion chart (page 48: a display of 40 is 25 kBTU/h in, 48 is 40, 65 is 65, 90 is 105, 240 is
+199) at native sample resolution, with DHW-priority minutes excluded, gives a daily space-heating
+input that tracks the RedLink outdoor mean:
+
+```
+gas input, kBTU/day = 1884 − 28.9 × T(°F)      38 days, residual sd 78, zero at 65 °F
+```
+
+Firing hours from the gas value and from the status word agree within 0.2 h on most days. The
+boiler ran at minimum fire most of the time (median display 50, about 42 kBTU/h in), started 20 to
+57 times a day with median runs of 9 to 11 minutes, and supplied 128 to 135 °F water on mild days
+and 140 to 150 °F below 46 °F. DHW took a further 1.5 to 2.5 therms a day and stays on the boiler
+in either mode, so the boiler never goes cold and its standby loss is sunk. The script is
+`scripts/boiler-heat-by-outdoor.py`.
+
+The comparison takes boiler efficiency at 90 % (AFUE 93.5, condensing returns at minimum fire, a
+few points lost to cycling), boiler electricity as the UP26-99F at 197 W over the call hours plus
+about 80 W of fan and controls while firing, and the chiller's COP at 122 °F water from the 4.57
+rating at 47 °F with §2's 2 to 3 % per °C derate. The chiller column includes the Taco 0015 at
+90 W. Delivered heat is the same in both columns.
+
+| Outdoor | Heat delivered | Boiler gas | Boiler cost | Chiller COP | Chiller kWh | Chiller cost | Saving | Break-even gas |
+|---|---|---|---|---|---|---|---|---|
+| 55 °F | 265 kBTU | 2.95 therms | $5.94 | 3.3 | 24.0 | $4.32 | $1.62 | $1.38/therm |
+| 50 °F | 395 | 4.39 | $8.85 | 3.1 | 38.1 | $6.86 | $1.99 | $1.48 |
+| 45 °F | 526 | 5.84 | $11.77 | 2.9 | 54.2 | $9.76 | $2.01 | $1.59 |
+| 40 °F | 655 | 7.28 | $14.68 | 2.7 | 72.4 | $13.03 | $1.65 | $1.70 |
+| 35 °F | 786 | 8.73 | $17.60 | 2.4 | 97.6 | $17.57 | $0.03 | $1.93 |
+
+Per 100 kBTU delivered the boiler costs 1.11 × P + $0.10 and the chiller $5.28 ÷ COP + $0.04, so
+the break-even gas price is $4.76 ÷ COP − $0.05 and, at $1.93, the chiller wins at any COP above
+2.4. The saving is about $2 a day through the 40 to 55 °F band, and a 46 °F day costs about $10 on
+the chiller against $12 on gas; either is three to four times a summer cooling day.
+
+Three things move the chiller's column. The heating target is the lever: each °C below 50 °C is
+worth 2 to 3 % of COP, so the 45 °C that heating AU mode settles at on a mild day raises COP by
+10 to 15 % and widens the saving. A day that both heats and cools adds the 70 ¢ changeover from
+§7, which takes a third of the saving on such a day. And a 40 °F day averages 27 kBTU/h with peaks
+near twice that, close to what the CX75 delivers at that ambient through coils giving 70 % of
+their rating, so below about 40 °F capacity decides before price does. The plan's 40 °F starting
+balance temperature stands; the fortnight in §5 step 7 tests capacity, and the price would only
+argue for lowering it further.
+
+The gas side carries about ±10 % from reading the chart and the weather scatter above. The chiller
+side rests on an estimated COP, ±20 % until the first heating week's energy balance in §6 replaces
+it; the boiler efficiency band of 87 to 92 % moves the break-even by about 5 ¢. The chiller at a
+122 °F target also runs the air handlers about 40 % longer than 140 °F boiler water does, a few
+cents per 100 kBTU that is not in the table.
+
+## 9. What this plan does not touch
 
 The boiler, its pump and the Sentry path. The BOVA condensers, which cool their two zones and take
 no part in heating. The buffer tank and the glycol loop, which run at 110 to 120 °F on 25 %
 propylene glycol without complaint. The `.wlyt` layouts, since the SwitchBank enumerates the relay
 roster on its own.
 
-## 8. Open questions
+## 10. Open questions
 
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
