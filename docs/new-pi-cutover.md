@@ -196,7 +196,8 @@ After landing, before power, three meter checks on the plugs (plugs inserted, bo
    data wire, and the 3.3 V and ground taps that fed the trunk. The DS2482 supplies power and
    pull-up itself; an external pull-up fights it.
 3. Terminate the trunk (or its pigtail from step 0) in a 3-position PTSM plug, **VCC · DATA ·
-   GND left to right** matching the socket's V/D/G pins, and plug it into **H1**. H2 and H3 stay
+   GND left to right** matching the socket's V/D/G pins (which reads GND · DATA · VCC from the
+   front once the board is mounted solder side out), and plug it into **H1**. H2 and H3 stay
    empty; the outdoor run stays unplugged until it carries a probe.
 4. Insert the spare card, connect Ethernet and the Pi's power lead, and turn the `PivacPower`
    Shelly back on.

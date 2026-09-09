@@ -96,7 +96,7 @@ seasonal-cutoff function it performed no longer exists as a CDP interlock (§3, 
 | 8 | UNUSED | 16 | 36 | **freed** — pull wire at header + relay |
 | 9 | DEHUM | 12 | 32 | unchanged |
 | 10 | **CHIL** | 25 | 22 | **rename only** (was SCALA, 2026-08-11) — now senses the chiller call; leak-pan signal dropped |
-| 11 | UNUSED | 24 | 18 | **freed** — the old BOS1 input, superseded by row 5 |
+| 11 | **HPHEAT** | 24 | 18 | freed 2026-08-02, then taken 2026-09-08 by the `HPHEAT` relay's spare pole (I/O board J3.3): the HZ-432's `B` energised, a heat-pump heating call |
 | 12 | UNUSED | 23 | 16 | unchanged — remains a true spare, still unwired |
 
 **Net effect:** 7 active inputs (ZV, DHW, BLR, BOS2, BOS1, DEHUM, **CHIL**). Spares: BCM 13/33,

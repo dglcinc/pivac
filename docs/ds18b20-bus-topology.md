@@ -134,6 +134,10 @@ edge**, so the plugs go in through the short-end opening:
 | **H2** | (7,2) | (8,2) | (9,2) | spare — the outdoor run when it is restored |
 | **H3** | (12,2) | (13,2) | (14,2) | spare / bench tap |
 
+Mounted, the board hangs vertically below the Pi with its solder side out, so from the front the
+three plugs read **GND · DATA · VCC left to right**: the same V/D/G pin order, seen from behind.
+The label carries that front-view order.
+
 The bodies overhang the row-1 edge, which is what puts the plug entries at the opening. **Check
 that overhang against the enclosure at the step-2 dry-fit before soldering anything** — it is
 the one dimension this layout cannot settle from the drawing.
