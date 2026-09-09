@@ -556,7 +556,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Temperature rise across each load while that loop is pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Three values, three meanings: a number is a live measurement, 0 means the loop is not running (or is within the first minute of a run, still charging), and a GAP means a source is stale or pivac.LoopDelta is down. Zero is a convention, never a measured zero — with a pump off the two probes sit in a dead leg and hold a plausible positive ΔT indefinitely (loop A reads +3.6 °F stopped against +5.0 running), so an ungated series is mostly fiction. Gated on the CHIL relay narrowed by each secondary's zone calls. Source is Kelvin and ΔT is a difference, so the conversion is *9/5 with NO offset — do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 °F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
+      "description": "Temperature rise across each load while that loop is pumping, always warm-side minus cold-side: the primary's OUT minus IN across the closely spaced tees, and each secondary's return minus supply. Three values, three meanings: a number is a live measurement, 0 means the loop is not running (or is within the first minute of a run, still charging), and a GAP means a source is stale or pivac.LoopDelta is down. Zero is a convention, never a measured zero \u2014 with a pump off the two probes sit in a dead leg and hold a plausible positive \u0394T indefinitely (loop A reads +3.6 \u00b0F stopped against +5.0 running), so an ungated series is mostly fiction. Gated on the CHIL relay narrowed by each secondary's zone calls. Source is Kelvin and \u0394T is a difference, so the conversion is *9/5 with NO offset \u2014 do not copy the *9/5-459.67 used for absolute temperatures. The axis keeps soft limits of -2 to +8 \u00b0F, never a hard range: the sign carries information, since heating inverts every pair and a backwards probe pair reads negative without ever going stale.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -618,7 +618,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Primary ΔT — whole house"
+              "options": "Primary \u0394T \u2014 whole house"
             },
             "properties": [
               {
@@ -633,7 +633,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop A ΔT — kids / master bedroom"
+              "options": "Loop A \u0394T \u2014 kids / master bedroom"
             },
             "properties": [
               {
@@ -648,7 +648,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Loop B ΔT — family / kitchen / great room"
+              "options": "Loop B \u0394T \u2014 family / kitchen / great room"
             },
             "properties": [
               {
@@ -728,7 +728,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Primary ΔT — whole house"
+          "alias": "Primary \u0394T \u2014 whole house"
         },
         {
           "datasource": {
@@ -776,7 +776,7 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop A ΔT — kids / master bedroom"
+          "alias": "Loop A \u0394T \u2014 kids / master bedroom"
         },
         {
           "datasource": {
@@ -824,10 +824,10 @@
           ],
           "tags": [],
           "hide": false,
-          "alias": "Loop B ΔT — family / kitchen / great room"
+          "alias": "Loop B \u0394T \u2014 family / kitchen / great room"
         }
       ],
-      "title": "Loop ΔT — Primary and Secondary Pairs",
+      "title": "Loop \u0394T \u2014 Primary and Secondary Pairs",
       "type": "timeseries"
     },
     {
@@ -1663,6 +1663,25 @@
                 "value": "CHIL"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.ac.switch.utility.HPHEAT.statenum.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "HPHEAT"
+              }
+            ]
           }
         ]
       },
@@ -1960,6 +1979,53 @@
           ],
           "tags": [],
           "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.ac.switch.utility.HPHEAT.statenum",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "H",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " +.11"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
         }
       ],
       "title": "Relays",
@@ -2227,7 +2293,7 @@
         "type": "influxdb",
         "uid": "bdxaqnfllu5fkf"
       },
-      "description": "Boiler status — coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
+      "description": "Boiler status \u2014 coloured step line HIGH = that signal is on (see legend). Slight vertical offsets keep simultaneously-on signals visible.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2730,7 +2796,7 @@
           "tags": []
         }
       ],
-      "title": "Potable DHW Loop — Pressure & Recirc Temp",
+      "title": "Potable DHW Loop \u2014 Pressure & Recirc Temp",
       "type": "timeseries"
     },
     {
@@ -4001,7 +4067,7 @@
     {
       "type": "row",
       "collapsed": false,
-      "title": "Water — Domestic & Irrigation",
+      "title": "Water \u2014 Domestic & Irrigation",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4113,7 +4179,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used — selected range",
+      "title": "Used \u2014 selected range",
       "type": "stat",
       "transformations": [
         {
@@ -4253,7 +4319,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used — last 24h",
+      "title": "Used \u2014 last 24h",
       "type": "stat",
       "timeFrom": "24h",
       "transformations": [
@@ -4394,7 +4460,7 @@
           "resultFormat": "time_series"
         }
       ],
-      "title": "Used — last 7d",
+      "title": "Used \u2014 last 7d",
       "type": "stat",
       "timeFrom": "7d",
       "transformations": [
@@ -4594,7 +4660,7 @@
           "tags": []
         }
       ],
-      "title": "Flow rate (gal/min) — Domestic vs Irrigation",
+      "title": "Flow rate (gal/min) \u2014 Domestic vs Irrigation",
       "type": "timeseries"
     },
     {
@@ -4768,7 +4834,7 @@
         }
       ],
       "timeFrom": "7d",
-      "title": "Water consumption by hour — last 7 days",
+      "title": "Water consumption by hour \u2014 last 7 days",
       "type": "timeseries"
     }
   ],

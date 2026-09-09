@@ -2,8 +2,10 @@
 
 **Date:** 2026-09-07.
 **Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
-`K_OB` relay is wired and checked, both on 8 September 2026. Still to do: the outdoor sensor,
-the override relay's position, the heating target, the `HPHEAT` input, and the live-call proof in §5. The controls are
+`HPHEAT` relay is wired, proven in the panel's test mode and monitored on the Pi under the same
+name, all on 8 September
+2026. Still to do: the factory outdoor sensor, the override relay's position, the heating target
+confirmed at 50 °C, and the live-call proof in §5. The controls are
 read from the CX65 IOM (pp. 37–38, 67) and the HZ-432 installation guide (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
@@ -53,7 +55,7 @@ the compressor still starts with `CHIL` open on 16 % of its starts. Under option
 unit does not do that, so the override relay that bridges the cooling pair is presumably closed and
 holding the `C` call; `C64` on the panel reading 1 with `CHIL` open confirms it. **That relay must
 be open before the first heating call**, or `C` and `H` close together when `B` energises. Either
-open it for the season or move it to the `K_OB` common so it follows the mode.
+open it for the season or move it to the `HPHEAT` common so it follows the mode.
 Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), which is where the
 unit's own `P72` caps it and the most the coils can be given, so the first heating test is
 unambiguous: a zone that cannot hold at 50 °C is a balance-point problem. Step down afterward if
@@ -114,25 +116,25 @@ new relay, which steers it to the cooling pair or the heating pair.
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
-| `B` | HZ-432 equipment terminal. The panel carries separate `O` and `B` equipment terminals: `O` energises in cooling and `B` in heat-pump heating, confirmed 8 September 2026 with a zone cooling call (25.6 VAC on `Y1` and `O`, `B` dark) and the panel's Checkout heat-stage test (`B` energised) | Energises the SPDT relay `K_OB` in heating; the relay rests in cooling |
-| `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the cooling pair |
-| `K_OB` normally closed, the rest state | | To the existing cooling pair, `C`-`COM`: `Y1` without `B` is a cooling call |
-| `K_OB` normally open, closed while `B` is energised | | To the existing heating pair, `H`-`COM`: `Y1` with `B` is a heating call. A lost `B` wire reads as cooling, the safer of the two failure modes |
+| `B` | HZ-432 equipment terminal. The panel carries separate `O` and `B` equipment terminals: `O` energises in cooling and `B` in heat-pump heating, confirmed 8 September 2026 with a zone cooling call (25.6 VAC on `Y1` and `O`, `B` dark) and the panel's Checkout heat-stage test (`B` energised) | Energises the SPDT relay `HPHEAT` in heating; the relay rests in cooling |
+| `CHIL` dry contact, common | existing pole | Goes to `HPHEAT` common instead of straight to the cooling pair |
+| `HPHEAT` normally closed, the rest state | | To the existing cooling pair, `C`-`COM`: `Y1` without `B` is a cooling call |
+| `HPHEAT` normally open, closed while `B` is energised | | To the existing heating pair, `H`-`COM`: `Y1` with `B` is a heating call. A lost `B` wire reads as cooling, the safer of the two failure modes |
 | `COM` | chiller | Return for both contacts, dry, no voltage applied |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
-| `K_OB` spare pole | | To a free Pi input on BCM 13, 16 or 24 as `HPHEAT`, so the dashboards know which source is heating |
+| `HPHEAT` spare pole | | To J3.3 on the I/O board, BCM 24, as `HPHEAT`, so the dashboards know which source is heating |
 
 Wired and checked 8 September 2026: the relay follows `B`, and the `CHIL` contact reaches the
 cooling pair at rest and the heating pair with `B` energised.
 
-The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `K_OB`. `Y2ON` is a
+The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `HPHEAT`. `Y2ON` is a
 timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
 applying voltage to it, and the `CHIL` contact already meets that.
 
 The override relay that bridges the cooling pair keeps its role in cooling under option 1:
 closed, it holds the `C` call and the unit maintains the tank between zone calls, which is what
 the plant does now. It must not hold `C` while `B` selects `H`, so leave it open in heating, or
-move it to the `K_OB` common so it follows the mode; either way label it, which is still
+move it to the `HPHEAT` common so it follows the mode; either way label it, which is still
 outstanding from the relay rework. `P112`, the on-board auto switch-over, shows disabled for both
 heating and cooling on the panel and stays that way, since it cannot be combined with
 `C`-`H`-`COM` control.
@@ -150,9 +152,9 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    unavailable under relay control, which changes nothing here.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
-3. `K_OB` is wired per §4. Land its `HPHEAT` pole on a free input and add it under `pivac.GPIO`;
-   `restart pivac-gpio` is all it needs.
-4. Open the override relay, or move it to the `K_OB` common. Confirm on the Chiltrix panel that
+3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its `HPHEAT` pole is on J3.3,
+   BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
+4. Open the override relay, or move it to the `HPHEAT` common. Confirm on the Chiltrix panel that
    `C64` is 0 with no call, 1 on a `Y1` call with `B` off, and that `C63` is 1 on a `Y1` call with
    `B` on.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
