@@ -29,9 +29,9 @@ pivac.GPIO:
     #              outname : myname
     #              [sk_path: sk_pathstring]
     #              [pullmode: {pullup|pulldown}]
-    # The order here is the order the WilhelmSK Control Relays tile shows them: the
-    # SwitchBank walks the server's tree, and the server keeps the order the paths were
-    # first published. A reorder needs `restart pivac-gpio` and then `restart signalk`.
+    # Listed in the order the WilhelmSK Control Relays tile shows them, for readability.
+    # The tile itself sorts on `order` metadata seeded in ~/.signalk/baseDeltas.json on
+    # the Pi (see CLAUDE.md, Relays and GPIO); a new relay needs an entry there too.
     inputs:
         17:
             outname: ZV
