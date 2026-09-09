@@ -1,9 +1,10 @@
 # Chiltrix shoulder-season heating — plan
 
 **Date:** 2026-09-07.
-**Status:** proposed, nothing built. The controls it relies on are read from the CX65 IOM
-(pp. 37–38, 67) and the HZ-432 installation guide (69-2198), and the live Chiltrix registers were
-read on 7 September; the physical checks in §5 and §8 have not been made.
+**Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
+`K_OB` relay is wired and checked, both on 8 September 2026. Still to do: the outdoor sensor,
+the override relay's position, the heating target, the `HPHEAT` input, and the live-call proof in §5. The controls are
+read from the CX65 IOM (pp. 37–38, 67) and the HZ-432 installation guide (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
 
@@ -32,9 +33,11 @@ comment rather than the 45 °F values that are live, and every ΔT on the loop p
 The CX75 is a reversible heat pump rated 72,000 BTU/hr and COP 4.57 at 47 °F ambient, and it has
 never heated here: register 141 reads mode 0 and register 143 holds a 50 °C heating target it has
 not been asked to reach. Its external-control interface is the `C`-`H`-`COM` dry-contact block on
-the main board, `DIN7` for cooling and `DIN6` for heating, enabled by `P111`, which reads 0 today.
-With `P111` at 1 the block behaves as a single-stage heat-pump thermostat input in one of two
-ways, chosen by relay type:
+the main board, `DIN7` for cooling and `DIN6` for heating, enabled by `P111`. The panel shows
+`P111` enabled, and register 111 does not track it: it read 0 before, during and after a three-minute
+disabled window on 8 September 2026 with three polls inside it, so the panel is the only reference
+for this setting. With the block enabled it behaves as a single-stage heat-pump thermostat input
+in one of two ways, chosen by relay type:
 
 | Option | Relays | Behaviour |
 |---|---|---|
@@ -45,13 +48,17 @@ Option 1 is the one that maps onto a zone call, and it is the one this plan wire
 between calls is what makes the mode change safe: nothing runs until a zone asks, and the tank lag
 in §1 is paid once per changeover rather than fought continuously.
 
-Three parameters go with it. `P111` must be 1, and the IOM says the relay inputs do not override
-the wired controller until it is; `C63` and `C64` on the panel show the two contact states either
-way, so the first physical check is that `C64` follows the `CHIL` relay, which lands on the cooling
-pair.
-Register 143 sets the heating target, whole °C, and 110 to 120 °F is the range to start in
-(43 to 49 °C), because the unit's own `P72` cap reads 50 °C and every degree of water above the
-room costs COP. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
+Because the block is already enabled, the `CHIL` contact on the cooling pair is live today, and
+the compressor still starts with `CHIL` open on 16 % of its starts. Under option 1 a call-driven
+unit does not do that, so the override relay that bridges the cooling pair is presumably closed and
+holding the `C` call; `C64` on the panel reading 1 with `CHIL` open confirms it. **That relay must
+be open before the first heating call**, or `C` and `H` close together when `B` energises. Either
+open it for the season or move it to the `K_OB` common so it follows the mode.
+Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), which is where the
+unit's own `P72` caps it and the most the coils can be given, so the first heating test is
+unambiguous: a zone that cannot hold at 50 °C is a balance-point problem. Step down afterward if
+the zones hold with runtime to spare; each °C of water is worth about 2 to 3 % of COP, and the
+coils give up about 4 % of output per °C on the way down. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
 offset) floats that target with outdoor air and is worth enabling once a fixed target has run a
 few days. `P42`/`P43` auto switch-over cannot be combined with `C`-`H`-`COM` and stays off. `P08`
 reads 1, DHW disabled, so a mode change carries no DHW state with it.
@@ -67,7 +74,7 @@ find itself by observation.
 
 The HZ-432 already contains the changeover logic, and this plan uses it rather than building one.
 Configured as a heat pump system with dual-fuel operation, the panel calls the heat pump on `Y1`
-with the changeover on `O/B` for heating above an outdoor balance temperature, and calls the fossil
+with `B` energised for heating above an outdoor balance temperature, and calls the fossil
 stage on `W1/E` below it. The relevant settings, from the installation guide:
 
 | Setting | Range and default | Use here |
@@ -107,40 +114,51 @@ new relay, which steers it to the cooling pair or the heating pair.
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
-| `O/B` | HZ-432 equipment terminal | Energises a new SPDT relay `K_OB`. The 69-2198 guide does not say whether the panel energises this terminal in heating or in cooling; Checkout steps 3 and 5 show it on a meter, and the two contacts below are assigned from that reading |
+| `B` | HZ-432 equipment terminal. The panel carries separate `O` and `B` equipment terminals: `O` energises in cooling and `B` in heat-pump heating, confirmed 8 September 2026 with a zone cooling call (25.6 VAC on `Y1` and `O`, `B` dark) and the panel's Checkout heat-stage test (`B` energised) | Energises the SPDT relay `K_OB` in heating; the relay rests in cooling |
 | `CHIL` dry contact, common | existing pole | Goes to `K_OB` common instead of straight to the cooling pair |
-| `K_OB`, the contact closed while `O/B` is in its cooling state | | To the existing cooling pair, `C`-`COM` |
-| `K_OB`, the contact closed while `O/B` is in its heating state | | To the existing heating pair, `H`-`COM` |
+| `K_OB` normally closed, the rest state | | To the existing cooling pair, `C`-`COM`: `Y1` without `B` is a cooling call |
+| `K_OB` normally open, closed while `B` is energised | | To the existing heating pair, `H`-`COM`: `Y1` with `B` is a heating call. A lost `B` wire reads as cooling, the safer of the two failure modes |
 | `COM` | chiller | Return for both contacts, dry, no voltage applied |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `K_OB` spare pole | | To a free Pi input on BCM 13, 16 or 24 as `HPHEAT`, so the dashboards know which source is heating |
+
+Wired and checked 8 September 2026: the relay follows `B`, and the `CHIL` contact reaches the
+cooling pair at rest and the heating pair with `B` energised.
 
 The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `K_OB`. `Y2ON` is a
 timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
 applying voltage to it, and the `CHIL` contact already meets that.
 
-The override relay that today bridges the chiller's contact keeps its role in cooling under
-option 1: closed, it holds the `C` call and the unit maintains the tank between zone calls, which
-is what the plant does now with `P111` at 0. Leave it open in heating, or move it to the `K_OB`
-common so it follows the mode; either way label it, which is still outstanding from the relay
-rework.
+The override relay that bridges the cooling pair keeps its role in cooling under option 1:
+closed, it holds the `C` call and the unit maintains the tank between zone calls, which is what
+the plant does now. It must not hold `C` while `B` selects `H`, so leave it open in heating, or
+move it to the `K_OB` common so it follows the mode; either way label it, which is still
+outstanding from the relay rework. `P112`, the on-board auto switch-over, shows disabled for both
+heating and cooling on the panel and stays that way, since it cannot be combined with
+`C`-`H`-`COM` control.
 
 ## 5. Sequence
 
 1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. `C64` should
    follow `CHIL`, since that relay lands on the cooling pair, and `C63` should stay 0 until the
-   heating pair is driven; that proves the contacts register before `P111` makes them act. Set the
-   heating target to 45 °C and read register 143 back through `hvac.chiller.chiltrix.heatingTarget`.
+   heating pair is driven; that proves the contacts register. The IOM's own preconditions for
+   relay control (p. 38) are met or become so here: DHW is disabled at `P08`, `P112` auto
+   switch-over is off, `P111` is enabled, and each mode's target is set from the controller
+   before the relays are relied on. Use the Mode button to enter heating, confirm the heating
+   target at 50 °C, return to cooling, and read register 143 back through
+   `hvac.chiller.chiltrix.heatingTarget`. The IOM adds that the controller's schedule timers are
+   unavailable under relay control, which changes nothing here.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
-3. Wire `K_OB` per §4, land the `HPHEAT` pole on a free input, and add it under `pivac.GPIO`;
+3. `K_OB` is wired per §4. Land its `HPHEAT` pole on a free input and add it under `pivac.GPIO`;
    `restart pivac-gpio` is all it needs.
-4. Set `P111` to 1. Confirm on the panel that a `Y1` call with `O/B` off reads `C64` = 1, and with
-   `O/B` on reads `C63` = 1.
-5. Reconfigure the HZ-432 per §3 and run its Checkout. Step 3 turns heat on and step 5 turns
-   cool on: a meter from `O/B` to `C` during each says which state is heating, and `K_OB`'s two
-   contacts are landed from that. Steps 11 to 14 show which terminals each zone thermostat
-   raises.
+4. Open the override relay, or move it to the `K_OB` common. Confirm on the Chiltrix panel that
+   `C64` is 0 with no call, 1 on a `Y1` call with `B` off, and that `C63` is 1 on a `Y1` call with
+   `B` on.
+5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
+   call: with the outdoor sensor reading above the balance temperature, a zone heat call should
+   put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
+   and none on `Y1`. Checkout steps 11 to 14 show which terminals each zone thermostat raises.
 6. Force one heating call on a mild evening and watch four things: register 141 goes to 1, the
    Taco runs on `CHIL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
    loop supply following it after the tank lag.
@@ -173,12 +191,9 @@ roster on its own.
 
 ## 8. Open questions
 
-- Does the HZ-432's equipment `O/B` terminal energise in heating or in cooling? The guide's only
-  `O`/`B` note is on the zone-thermostat side. Checkout steps 3 and 5 settle it before the relay
-  contacts are landed.
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
-- What heating target do the Unico coils need to hold the house at 40 °F outdoor? 45 °C is the
-  starting guess; the loop probes and zone droop will say.
+- How far below 50 °C can the heating target go with the zones still holding at 40 °F outdoor?
+  The loop probes, zone droop and the Modbus COP against outdoor temperature will say.
 - Has the glycol been re-measured since the 3 September top-up? The concentration sets nothing in
   heating, but the record wants it.
