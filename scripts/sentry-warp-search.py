@@ -289,7 +289,11 @@ def write_eyecheck(frames, modes, scfg, base, winner, path):
         for corners, colour in ((base, (0, 0, 255)), (winner, (0, 255, 0))):
             pts = np.array([[int(round(c["x"])), int(round(c["y"]))] for c in corners], np.int32)
             cv2.polylines(vis, [pts], True, colour, 1)
-        crop = cv2.resize(vis[40:150, 40:270], None, fx=3, fy=3, interpolation=cv2.INTER_NEAREST)
+        xs = [c["x"] for c in base + winner]
+        ys = [c["y"] for c in base + winner]
+        x0, x1 = max(0, int(min(xs)) - 30), int(max(xs)) + 30
+        y0, y1 = max(0, int(min(ys)) - 30), int(max(ys)) + 30
+        crop = cv2.resize(vis[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_NEAREST)
         old = _read_display(frame, dict(scfg, display_warp=dict(scfg["display_warp"], corners=base)))
         new = _read_display(frame, dict(scfg, display_warp=dict(scfg["display_warp"], corners=winner)))
         cv2.putText(crop, "%s  red/old=%s  green/new=%s" % (mode, old or "-", new or "-"),
