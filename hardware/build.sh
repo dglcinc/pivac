@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 PY=~/Applications/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3
 CLI=~/Applications/KiCad.app/Contents/MacOS/kicad-cli
 $PY gen-boards.py "$@"
+rm -f pivac.kicad_sym; python3 gen-schematics.py; $PY bom.py
 for b in ${*:-int ext}; do
   $PY route.py $b-board/$b-board.kicad_pcb 200
   $CLI pcb drc --output $b-board/$b-board-drc.json --format json --severity-error $b-board/$b-board.kicad_pcb
