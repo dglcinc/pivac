@@ -36,7 +36,7 @@ move.
 | Drawing | 00914691/00 (`phoenix contact pcb.pdf`) | 00913308/02 (`pxc_2202995_01_02_…_2D.pdf`) |
 | Outline | 85 ±0.3 × 59 ±0.3 mm | 85 ±0.3 × 38.5 ±0.3 mm |
 | Thickness | 1.6 ±0.2 mm | 1.6 ±0.2 mm |
-| Grid | 23 × 30 holes, 2.54 mm, ⌀1.0 mm | 14 × 32 holes, 2.54 mm, ⌀1.0 mm |
+| Grid | 23 × 30 holes, 2.54 mm, ⌀1.0 mm, ⌀1.6 mm pads | 14 × 33 holes, 2.54 mm, ⌀1.0 mm, ⌀1.6 mm pads |
 | Fixed connectors | PSTD 0,65X0,65/40-2,54 (Pi header, terminal area A); 4 × PTSM 0,5/4-HH-2,5-THR (terminal area B) | PSTD 0,65X0,65/18-3IS-2,54 (power riser, terminal area A) |
 | Restricted areas | upper band, lower band, vertical strip with bulges (housing contact, solder side) | upper band rows 8–9, lower band rows 25–26 |
 | Circuit | 11 optocoupler channels, +14 V rail with 1N4007, 5-way link terminal | DS2482-100, 100 nF, three PTSM 3-way probe sockets, PTSM 5-way link header |
@@ -44,7 +44,8 @@ move.
 | Joints | about 110 | about 25 |
 
 Both drawings are in `~/OneDrive - DGLC/Claude/HVAC Manuals/` and both are marked *simplified
-representation*, which is why §3 asks for the STEP models.
+representation*. The STEP models in `hardware/vendor/` are the authority; Appendix A holds the
+geometry read from them.
 
 ## 3. Design inputs
 
@@ -62,7 +63,7 @@ serve, and what each is for:
 
 | Item | Format | Why this one |
 |---|---|---|
-| The two boards, 2202994 and 2202995 | **STEP** (`.stp`), the only CAD format Phoenix offers for them | Text-based solid model. Every hole is a cylinder, so the hole centres, the outline and the connector positions read to the hundredth of a millimetre from the file itself, either by a script over the STEP entities or through FreeCAD to DXF for import onto `Edge.Cuts`. The restricted areas are drawing hatching, not geometry, so they come from the PDF at its 2:1 scale, checked against the built board and the housing STEP. |
+| The two boards, 2202994 and 2202995 | **STEP AP214** (`.stp`), the only CAD format Phoenix offers for them; in `hardware/vendor/` | Text-based solid model. Every hole is a cylinder and the restricted areas are a 0.02 mm solid on the solder face, so the outline, hole centres, connector positions and keep-outs all read to the hundredth of a millimetre. `hardware/step-geometry.py` extracts them in the build docs' frame; Appendix A is its output. |
 | PTSM 0,5/4-HH-2,5-THR, PTSM 0,5/3-HH-2,5-THR, PTSM 0,5/5-HH-2,5-THR, PSTD 0,65X0,65/40-2,54 | **ECAD → KiCad** (`.kicad_sym` + `.kicad_mod`), from the Ultra Librarian or SamacSys link on the product page | Native symbol and footprint; nothing to transcribe. Stock KiCad carries Phoenix MC, MSTB and SPT families but not PTSM. |
 | The same connectors, and the RPI-BC 107,6 housing halves | **STEP** (`.stp`) | 3D bodies for the fit check in the KiCad 3D viewer: connector height against the cover, plug entry against the housing opening. |
 | PSTD 0,65X0,65/18-3IS-2,54 (EXT riser) | STEP only | The riser is unused by this build; its position is needed only so the new EXT board clears it. |
@@ -155,8 +156,8 @@ DS2482-100, passives from Digi-Key or Mouser. One order covers three boards of e
 | Step | Who | Output | Effort |
 |---|---|---|---|
 | 1. Fetch the STEP and KiCad files per §3.1 into `hardware/vendor/` | David | vendor files in the repo | an evening |
-| 2. Measure the header and plug centres on the built INT board with calipers, as a check on the STEP | David | four numbers in this document | 15 min |
-| 3. KiCad project per board: outline and holes from the STEP, restricted areas from the PDF, connectors placed, schematic from the master map, BOM | Claude | `hardware/int-board/`, `hardware/ext-board/` | a day |
+| 2. Count the EXT board's rows and check the INT board's column 3 against Appendix A | David | two answers in §7 | 10 min |
+| 3. KiCad project per board: outline, holes and restricted areas from Appendix A, connectors placed, schematic from the master map, BOM | Claude | `hardware/int-board/`, `hardware/ext-board/` | a day |
 | 4. Layout and DRC; 3D fit check against the housing STEP | Claude, David reviews | Gerbers, drill files, assembly drawing, BOM CSV | half a day |
 | 5. Order boards and parts | David | three of each board | 2 weeks elapsed |
 | 6. Populate one of each; electrical check per `rpi-io-board-design.md` steps 7–8; DS2482 bench check per `ds18b20-bus-topology.md` §8 on the spare Pi | David | one proven pair | an evening |
@@ -168,6 +169,15 @@ the running system.
 
 ## 7. Open questions
 
+- The EXT model has 33 rows of holes, with row 1 sitting 1.16 mm from its edge and row 33
+  2.56 mm from the other; `docs/ds18b20-bus-topology.md` counts 32. The band rows agree with the
+  model when row 1 is the close-edge row, so the doc is short one row at the far end. Confirm
+  by counting on the board.
+- The INT model has no holes in column 3, rows 1–21, where `docs/rpi-io-board-design.md` §4.2
+  places an access pad for every even header pin. Either the model omits the fan-out pads or the
+  pads are surface features; the build used column 4 for the wired even pins, so nothing in
+  service depends on it. Check the board.
+
 - Should the INT board also carry the second DS2482 footprint, so a single-board variant is
   possible later, or is the two-board rule firm? The design docs argue for two; this plan keeps
   two.
@@ -177,3 +187,43 @@ the running system.
   guides alone, or by the header and riser as well. The STEP of the housing answers this; if the
   card guides alone retain them, the outline tolerance matters and OSH Park's routing tolerance
   should be checked against ±0.3 mm.
+
+## Appendix A — geometry from the Phoenix STEP models
+
+Output of `hardware/step-geometry.py` over `hardware/vendor/*.stp`, in the build docs' frame:
+column 1 left, row 1 top, component side toward the viewer, origin at the board's top-left
+corner, y increasing downward as in KiCad. The INT model is mirrored in x relative to this frame
+(doc column = 24 − model column); the EXT model is not. Both models put the solder face at
+z = 0, the component face at z = 1.6, and the restricted areas as a 0.02 mm solid on the solder
+face, which is where the housing ribs bear on the board.
+
+### A.1 INT board, 59 × 85 mm
+
+| Feature | Position |
+|---|---|
+| Grid column c | x = 1.56 + (c − 1) × 2.54, c = 1…23 (1.56 to 57.44) |
+| Grid row r | y = 8.78 + (r − 1) × 2.54, r = 1…30 (8.78 to 82.44) |
+| Grid holes absent | columns 1–3 rows 1–21; column 1 rows 27–30; column 2 row 30; row 1 columns 4–21; column 22 row 30 |
+| Pi header, 2 × 20 | columns at x = 2.23 and 4.77; rows at y = 8.37 + (k − 1) × 2.54, k = 1…20 (8.37 to 56.63). Pin 1 is the top pad of the x = 4.77 column. The header sits 0.67 mm right of and 0.41 mm above grid columns 1–2 rows 1–20. |
+| PTSM plug pins, 16 | y = 6.95; ⌀1.1 hole, ⌀1.95 pad; positions at 2.5 mm pitch in four groups 11.7 mm apart: J1 x = 9.35, 11.85, 14.35, 16.85; J2 21.05…28.55; J3 32.75…40.25; J4 44.45…51.95 |
+| Upper restricted band | y 18.11–22.31, x 12.99–59.00 (grid rows 5–6 from column 6) |
+| Lower restricted band | y 61.29–65.49, x 6.64–59.00 (grid rows 22–23 from column 3) |
+| Vertical restricted strip | x 48.85–50.75, y 22.31–61.29 (grid column 20, rows 6–22), with ⌀3.26 bulges centred at (49.80, 26.91), (49.80, 37.83), (49.80, 45.77) and (49.80, 56.69) |
+
+The restricted solid is relieved around every grid pad inside it (⌀1.6 clearances), so the
+pads exist there and the housing bears between them; a pin tail in one still fouls the rib.
+
+### A.2 EXT board, 38.5 × 85 mm
+
+| Feature | Position |
+|---|---|
+| Grid column c | x = 2.49 + (c − 1) × 2.54, c = 1…14 (2.49 to 35.51) |
+| Grid row r | y = 1.16 + (r − 1) × 2.54, r = 1…33 (1.16 to 82.44) |
+| Grid holes absent | column 1 rows 1, 11, 12, 22, 23, 33; column 2 rows 11, 12, 22, 23; column 3 rows 11–23; column 13 rows 1 and 33 |
+| Riser pin field | grid columns 1–2, rows 13–21 (the 18 positions of the PSTD 0,65X0,65/18-3IS-2,54), with pre-wired traces to columns 4–5 |
+| Upper restricted band | y 18.11–22.31, full width (grid rows 8–9) |
+| Lower restricted band | y 61.29–65.49, full width (grid rows 25–26) |
+
+The two bands sit at the same y on both boards, so the housing ribs are one pair of features
+that both boards must clear; a new board of either outline keeps them at these positions.
+
