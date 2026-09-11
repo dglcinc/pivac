@@ -159,7 +159,7 @@ DS2482-100, passives from Digi-Key or Mouser. One order covers three boards of e
 |---|---|---|---|
 | 1. Fetch the STEP and KiCad files per §3.1 into `hardware/vendor/` | David | vendor files in the repo | an evening |
 | 2. Count the EXT board's rows and check the INT board's column 3 against Appendix A | David | two answers in §7 | 10 min |
-| 3. KiCad board per design: outline, holes and restricted areas from Appendix A, connectors placed, nets from the master map, routed — done; the schematic sheet and BOM export follow | Claude | `hardware/int-board/`, `hardware/ext-board/` | done |
+| 3. KiCad board, schematic and BOM per design: outline, holes and restricted areas from Appendix A, connectors placed, nets from the master map, routed; schematic from the same tables with ERC and a netlist match against the board | Claude | `hardware/int-board/`, `hardware/ext-board/`, `hardware/build.sh` | done |
 | 4. Review the renders; 3D fit check against the housing STEP; Gerbers | Claude, David reviews | Gerbers, drill files, assembly drawing, BOM CSV | half a day |
 | 5. Order boards and parts | David | three of each board | 2 weeks elapsed |
 | 6. Populate one of each; electrical check per `rpi-io-board-design.md` steps 7–8; DS2482 bench check per `ds18b20-bus-topology.md` §8 on the spare Pi | David | one proven pair | an evening |
