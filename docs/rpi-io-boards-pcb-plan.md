@@ -145,6 +145,19 @@ and 5 V back to the header pins. An off-board 24 VAC-to-USB-C adapter is the zer
 alternative and keeps the Pi's own input protection. Until one is chosen the Pi keeps its
 USB-C supply; nothing else in the design depends on it.
 
+**Parts that exist.** No maker sells an isolated 24 VAC-in, 5 V-out supply; the low-voltage AC
+input is the rare part. Three routes were found (2026-09-11):
+
+| Part | Input | Output | Isolated | Price | Verdict |
+|---|---|---|---|---|---|
+| Mean Well DDR-15L-5 | 18–75 VDC | 5 V 3 A, trims 4.5–5.5 V | 4 kV | about $16, Digi-Key | The pick. DIN rail, 17.5 mm wide. Needs a rectifier ahead of it: a 2 A bridge and 1000 µF 50 V, either on a DIN terminal or the INT board's own bridge with its capacitor enlarged. |
+| PowerStream PST-AC24DC5 | 10–28 VAC | 5 V 5 A | no | $29.75 | Takes 24 VAC directly, but its output negative sits a diode drop from the transformer common, and so would the Pi's ground and `COM`; the isolation the board exists for is lost. |
+| sCharge ACDC-24V-5V-3A | 16–28 VAC | 5 V 3 A on USB-C | not stated, assume no | €21, EU shop | Same objection, and no US stock. |
+
+With the DDR-15L-5, feed the Pi through a USB-C cable with bare ends into the converter's
+output terminals, trimmed to 5.15 V for cable drop, so the Pi keeps its own input protection;
+the board's `J7` power link is the alternative for feeding the header pins directly.
+
 ## 5. Fabrication
 
 | Vendor | Bare boards, both designs | Assembly | Turnaround | Notes |
