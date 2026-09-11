@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards on Fabricated PCBs — Plan
 
-**Status:** Draft under refinement. · **Owner:** David
+**Status:** First complete draft of both boards generated, routed and DRC-clean (`hardware/`). Open questions in §7 gate the order. · **Owner:** David
 
 Plan for replacing the two hand-wired Phoenix Contact perfboards in the RPI-BC 107,6 housing
 with fabricated printed circuit boards of the same outline, carrying the same circuits. The
@@ -15,9 +15,10 @@ in an hour replaces two 600-line hand-wiring procedures.
 
 **In scope.** Two KiCad designs, one per board, with the outlines, thicknesses and restricted
 areas of the Phoenix drawings, so they drop into the housing in place of the perfboards. The
-same circuits, the same BCM pins, the same PTSM plugs at the same positions, and the same 5-way
-link cable between the boards, so every field wire and the link cable move across by unplugging
-and replugging. Footprints, unpopulated, for the additions already planned in the design docs.
+same BCM pins, the same PTSM plugs at the same positions, and a 5-way link between the boards
+on a PTSM 0,5/5 header at each end, so every field wire and the link cable move across by
+unplugging and replugging. The sense supply comes from the panel's 24 VAC instead of the 14 V
+wall wart. Copper does all the wiring; the link cable is the only wire left. Footprints, unpopulated, for the additions already planned in the design docs.
 A prototyping field of plated holes on each board so a bodge is still possible. Fabrication by
 a board house; assembly by hand.
 
@@ -83,57 +84,65 @@ are fine in git at this count.
 
 ## 4. Layout
 
+`hardware/gen-boards.py` places every part and assigns every net; `hardware/route.py` routes
+with Freerouting; `hardware/build.sh` runs both, the DRC and the renders. The renders
+(`hardware/*-board/*-top.png`, `*-bottom.png`) are the quickest review.
+
 ### 4.1 INT board
 
-Everything the perfboard fixes stays fixed: the Pi header at terminal area A, the four PTSM
-plugs at terminal area B in the order J1 · J2 · J3 · J4, position 4 of each plug as COM, and
-the +14 V entry at J4.1. The three optocouplers sit between the plugs and the header as they do
-now. With copper doing the routing there are no rails, stubs, bridges or keep-out crossings to
-plan; the solder-side restricted areas still apply to pin tails and vias, so the parts sit
-between the bands as before and traces cross the bands on the inner face of the board where the
-housing does not touch.
+Fixed by the housing: the four PTSM plugs at the Phoenix pin positions along the top edge,
+entry facing the edge; the Pi socket on the solder side at the header position. The three
+LTV-847 sockets sit in a column at x 10.5–28 between the housing bands, one per row, and each
+row's four LED resistors stand beside its socket. The 24 VAC section is in the bottom field:
+four 1N4007 flat as the bridge, a ⌀10 mm 220 µF capacitor, and the two link headers at the
+bottom edge with their entries facing it. The PTC fuse, the MOV position and three test points
+(VS, COM, GND) are on the right-hand strip past the housing's vertical rib; the spare channel
+outputs and a 9 × 4 prototyping field fill the rest of the bottom right.
 
-Bring every one of the 40 header pins to a labelled pad, as the Phoenix board does. The
-unassigned GPIOs (16, 18, 20, 21), the SPI block (7–11), the serial console (14, 15) and the
-ID EEPROM pair (0, 1) are then reachable without a wire to the socket. GPIO 26 gets a pad and a
-silkscreen mark that it is dead on this Pi.
+**Header breakout.** A shadow column of pads 2.54 mm inside the header's inner column gives one
+labelled pad per header row: SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND,
+GND, GPIO20, GPIO21 (rows 1–2 sit under the J1 body and rows 16 and 18 have no free pin). The
+outer-column grounds are tied by a pre-routed bus along the board edge, since the router cannot
+pass tracks through the column; header pins 9, 25 and 39 (also GND) are left unconnected, as
+are the serial console, the ID EEPROM pair and the channel pins already used.
 
-Provisions, placed but not populated:
+**24 VAC supply.** J4.1 is 24 VAC hot and J4.2 24 VAC common, through a 0.1 A PTC and into a
+full-wave bridge; the DC negative is `COM`, the sense return on position 4 of every plug, and
+it never meets Pi ground. At 25.9 VAC the rail is about 35 V, so the LED resistors are 12 kΩ
+1/4 W: 2.8 mA per channel, the same current the 14 V build ran, 0.1 W per resistor. The bridge
+carries at most 12 × 2.8 mA. A MOV position across the AC input is placed but not fitted.
+J4.3 remains the tenth channel (`SP-D`); channels 11 and 12 end on pads (`J8`) with `COM`.
 
-- **Twelfth channel.** IC-B channel 4 is wired to a plug position and a GPIO pad (GPIO 16) so a
-  fifth plug or a re-assignment is a solder job.
-- **24 VAC supply.** DB107 bridge and 100 µF/50 V capacitor at the J4 entry, in series with the
-  1N4007 position, so the rectified-panel-supply upgrade in Appendix A is two parts and twelve
-  resistor swaps. The resistor footprints take 1/2 W bodies.
-- **Prototyping field.** A block of plated 2.54 mm holes, at least 6 × 8, in the free area below
-  the lower band, with a 3V3 and a GND pad beside it. This is what keeps the board repairable in
-  the field.
-- **Test points.** COM, +14 V and Pi GND on labelled pads for the meter.
+**Channel map.** J1: ZV, DHW, BLR. J2: CHIL, BOS1, BOS2. J3: DEHUM, SCALA, HPHEAT. J4: 24 VAC,
+24 VAC, SP-D. BCM pins are unchanged from the build doc, so nothing downstream moves.
 
 ### 4.2 EXT board
 
-The DS2482 sits directly on the board in SOIC-8, no adapter. The three probe sockets stay at the
-short-end opening and the 5-way link header at its present end, so the link cable and the CAT6
-trunk plug in unchanged. The riser field is left clear.
+The three PTSM 3-way probe sockets at row 2 with their entries over the row-1 edge, as built.
+U1 (DS2482-100, 0x18) and its 100 nF sit under the sockets; a second DS2482 (U2, 0x19) with
+its own decoupling is placed but not fitted in the mid field, and a three-pad solder jumper
+`JP2` sends H3's DATA either to the shared bus (default) or to U2. `JP1` bridges GPIO4 to DATA
+and `R1` (2k2, not fitted) is the pull-up, together the `w1-gpio` rollback. The 5-way link
+header is at row 18 with its entry from the row-19 side, as built. The lower field is an
+11 × 6 prototyping grid with VCC, DATA and GND pads beside it; the riser field is a rule area
+with no pads.
 
-Provisions, placed but not populated:
+### 4.3 Powering the Pi from the 24 VAC bus
 
-- **Second DS2482 at 0x19** with its own probe socket, for the outdoor run
-  (`docs/ds18b20-bus-topology.md` Appendix A). The AD0/AD1 straps are solder jumpers so either
-  chip can take either address.
-- **Rollback pull-up.** A 0805 footprint between DATA and VCC and a solder jumper from GPIO 4
-  (link position 4) to DATA, so the `w1-gpio` fallback is two solder joints instead of a rewire.
-- **Prototyping field**, smaller, in the lower field.
-
-### 4.3 Decisions to make in the schematic
-
-- The 5-way link on the INT board is a 2.54 mm screw-terminal header today and a PTSM 5-way on
-  the EXT board. Making both ends PTSM 0,5/5 puts one plug type on the whole assembly and one
-  spare in the drawer.
-- The optocouplers stay socketed. A socket is the only part on the INT board that needs
-  attention beyond a through-hole joint, and it keeps the chip-swap fault path.
-- Silkscreen carries the channel names, plug numbers, position 1 of the link header, the COM
-  warning and the board revision. The label generator stays as it is.
+Feasible, with four conditions. The converter must be isolated: a non-isolated buck would tie
+the Pi's ground to the bridge negative, which is `COM`, and the optocoupler isolation would be
+gone. The rectified bus peaks near 37 V, so the converter must be a 4:1 part rated 18–75 V
+(9–36 V parts sit on the limit); the Murata UEI15-050-Q48 and Traco TEN 15-4811WIN classes fit,
+at 1" × 1" or 1" × 0.8" and about $40–60. The panel transformer must have the VA to spare: a
+headless Pi 4 with the Arduino on USB draws 5–8 W, about 10 VA at the transformer, on top of
+the thermostats, zone valves and relays already on it; a 40 VA transformer may not. And the
+`PivacPower` Shelly plug loses its purpose, since the Pi would no longer be on a mains cord to
+cycle remotely. Neither board has room for a 1" × 1" footprint without moving the EXT link
+header or reworking the INT bottom field, so the provision in this draft is the unfitted
+4-way power link `J7` (VS, COM, +5V, GND), which carries raw DC out to a converter and 5 V
+back to the header pins. An off-board 24 VAC-to-USB-C adapter is the zero-design alternative
+and keeps the Pi's own input protection. Decide after the transformer's VA rating and spare
+load are known.
 
 ## 5. Fabrication
 
@@ -157,8 +166,8 @@ DS2482-100, passives from Digi-Key or Mouser. One order covers three boards of e
 |---|---|---|---|
 | 1. Fetch the STEP and KiCad files per §3.1 into `hardware/vendor/` | David | vendor files in the repo | an evening |
 | 2. Count the EXT board's rows and check the INT board's column 3 against Appendix A | David | two answers in §7 | 10 min |
-| 3. KiCad project per board: outline, holes and restricted areas from Appendix A, connectors placed, schematic from the master map, BOM | Claude | `hardware/int-board/`, `hardware/ext-board/` | a day |
-| 4. Layout and DRC; 3D fit check against the housing STEP | Claude, David reviews | Gerbers, drill files, assembly drawing, BOM CSV | half a day |
+| 3. KiCad board per design: outline, holes and restricted areas from Appendix A, connectors placed, nets from the master map, routed — done; the schematic sheet and BOM export follow | Claude | `hardware/int-board/`, `hardware/ext-board/` | done |
+| 4. Review the renders; 3D fit check against the housing STEP; Gerbers | Claude, David reviews | Gerbers, drill files, assembly drawing, BOM CSV | half a day |
 | 5. Order boards and parts | David | three of each board | 2 weeks elapsed |
 | 6. Populate one of each; electrical check per `rpi-io-board-design.md` steps 7–8; DS2482 bench check per `ds18b20-bus-topology.md` §8 on the spare Pi | David | one proven pair | an evening |
 | 7. Swap in the housing: pull plugs, exchange boards, replug; confirm every channel and all eight probes in Signal K | David | production on fabricated boards | 30 min, one restart of `pivac-gpio` and `pivac-1wire` |
@@ -168,6 +177,24 @@ Steps 3 and 4 need the files from step 1; step 2 is independent. Nothing in step
 the running system.
 
 ## 7. Open questions
+
+- **Header pin 1 and socket side, to check with the meter before ordering.** The board file
+  numbers the socket as `docs/rpi-io-board-design.md` §4.2 records it: pin 1 at the top of the
+  inner column, pin 2 at the top of the outer column, pin 3 below pin 1, socket on the solder
+  side. A socket mounted on the underside and seen through the board should show the Pi's own
+  pattern, and the Pi's pattern has pin 3 on the other side of pin 1 from where the doc puts it.
+  One of the two is wrong. On the built board, component side up, plugs away: which face carries
+  the socket, and is the 3V3 pad at the top or the bottom of the inner column?
+- **Link plug clearance.** The INT link header is at the bottom edge with its entry facing the
+  edge (the Pi's USB end); the EXT link is where the build put it. Whether a PTSM plug can be
+  fitted and removed at either place inside the housing needs the housing STEP or a trial with a
+  plug on the built boards.
+- **Component height.** The tallest parts are the ⌀10 capacitor (12.5 mm) and the DIP sockets
+  with chips (about 8 mm). The clearance between the INT board's component side and the cover
+  is unmeasured.
+- **Transformer VA** rating and present load, which decide §4.3.
+- **`msp430g2121.pdf`** arrived in the manuals folder without a note; its intended role in this
+  design is unknown.
 
 - The EXT model has 33 rows of holes, with row 1 sitting 1.16 mm from its edge and row 33
   2.56 mm from the other; `docs/ds18b20-bus-topology.md` counts 32. The band rows agree with the
