@@ -1,0 +1,13 @@
+qty,value,footprint,references,fitted
+1,220u 50V,CP_Radial_D10.0mm_P5.00mm,C1,yes
+4,1N4007,D_DO-41_SOD81_P10.16mm_Horizontal,D1 D2 D3 D4,yes
+1,PTC 0.1A,PTC_Radial_P5.08,F1,yes
+4,"PTSM 0,5/4-HH-2,5-THR",PTSM_0.5_4-HH-2.5-THR,J1 J2 J3 J4,yes
+1,Pi 40-pin socket,PiHeader_2x20_Socket_Bottom,J5,yes
+1,"PTSM 0,5/5-HH-2,5-THR",PTSM_0.5_5-HH-2.5-THR,J6,yes
+1,"PTSM 0,5/4-HH-2,5-THR",PTSM_0.5_4-HH-2.5-THR,J7,no
+1,SP-C SP-E COM,Pads_1x3,J8,yes
+1,GPIO breakout,Shadow_1x20,J9,yes
+12,12k 1/4W,R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12,yes
+1,MOV 39V,MOV_Radial_P5.0,RV1,no
+3,LTV-847,DIP-16_W7.62mm_Socket,U1 U2 U3,yes

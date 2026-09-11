@@ -127,36 +127,15 @@ header is at row 18 with its entry from the row-19 side, as built. The lower fie
 11 × 6 prototyping grid with VCC, DATA and GND pads beside it; the riser field is a rule area
 with no pads.
 
-### 4.3 Powering the Pi from the 24 VAC bus
+### 4.3 Pi power
 
-Feasible, with four conditions. The converter must be isolated: a non-isolated buck would tie
-the Pi's ground to the bridge negative, which is `COM`, and the optocoupler isolation would be
-gone. The rectified bus peaks near 37 V, so the converter must be a 4:1 part rated 18–75 V
-(9–36 V parts sit on the limit); the Murata UEI15-050-Q48 and Traco TEN 15-4811WIN classes fit,
-at 1" × 1" or 1" × 0.8" and about $40–60. The panel transformer must have the VA to spare: a
-headless Pi 4 with the Arduino on USB draws 5–8 W, about 10 VA at the transformer, on top of
-the thermostats, zone valves and relays already on it; a 40 VA transformer may not. And the
-`PivacPower` Shelly plug loses its purpose, since the Pi would no longer be on a mains cord to
-cycle remotely. The transformers are 75 VA, so
-the budget is not the obstacle. Neither board has room for a 1" × 1" footprint without moving
-the EXT link header or reworking the INT bottom field, so the provision in this draft is the
-unfitted 4-way power link `J7` (VS, COM, +5V, GND), which carries raw DC out to a converter
-and 5 V back to the header pins. An off-board 24 VAC-to-USB-C adapter is the zero-design
-alternative and keeps the Pi's own input protection. Until one is chosen the Pi keeps its
-USB-C supply; nothing else in the design depends on it.
-
-**Parts that exist.** No maker sells an isolated 24 VAC-in, 5 V-out supply; the low-voltage AC
-input is the rare part. Three routes were found (2026-09-11):
-
-| Part | Input | Output | Isolated | Price | Verdict |
-|---|---|---|---|---|---|
-| Mean Well DDR-15L-5 | 18–75 VDC | 5 V 3 A, trims 4.5–5.5 V | 4 kV | about $16, Digi-Key | The pick. DIN rail, 17.5 mm wide. Needs a rectifier ahead of it: a 2 A bridge and 1000 µF 50 V, either on a DIN terminal or the INT board's own bridge with its capacitor enlarged. |
-| PowerStream PST-AC24DC5 | 10–28 VAC | 5 V 5 A | no | $29.75 | Takes 24 VAC directly, but its output negative sits a diode drop from the transformer common, and so would the Pi's ground and `COM`; the isolation the board exists for is lost. |
-| sCharge ACDC-24V-5V-3A | 16–28 VAC | 5 V 3 A on USB-C | not stated, assume no | €21, EU shop | Same objection, and no US stock. |
-
-With the DDR-15L-5, feed the Pi through a USB-C cable with bare ends into the converter's
-output terminals, trimmed to 5.15 V for cable drop, so the Pi keeps its own input protection;
-the board's `J7` power link is the alternative for feeding the header pins directly.
+The Pi stays on its USB-C wall adapter through the `PivacPower` Shelly plug (decided
+2026-09-11). No isolated 24 VAC-to-5 V supply exists as a single part; the two-part route is a
+rectifier feeding a Mean Well DDR-15L-5 (18–75 VDC in, 5 V 3 A, 4 kV isolation, DIN rail,
+about $16), and the single-part routes (PowerStream PST-AC24DC5, sCharge ACDC-24V-5V-3A) are
+not isolated and would put the Pi's ground a diode drop from the transformer common. The INT
+board keeps the unfitted 4-way power link `J7` (VS, COM, +5V, GND) so the two-part route can be
+added later with a 470 µF capacitor and a 1 A PTC in place of the 220 µF and 0.1 A parts.
 
 ## 5. Fabrication
 
