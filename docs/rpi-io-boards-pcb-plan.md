@@ -44,7 +44,7 @@ move.
 | Joints | about 110 | about 25 |
 
 Both drawings are in `~/OneDrive - DGLC/Claude/HVAC Manuals/` and both are marked *simplified
-representation*, which is why §4 asks for the DXF.
+representation*, which is why §3 asks for the STEP models.
 
 ## 3. Design inputs
 
@@ -62,10 +62,10 @@ serve, and what each is for:
 
 | Item | Format | Why this one |
 |---|---|---|
-| Board drawings 00914691 and 00913308 | **DXF** (2D) | Text-based vector geometry. The outline, hole grid, restricted areas and connector positions can be read to the hundredth of a millimetre and imported straight onto `Edge.Cuts` and a keep-out layer. The PDF is a raster to the tooling here, so positions would otherwise be scaled by eye off a 2:1 A3 sheet. |
+| The two boards, 2202994 and 2202995 | **STEP** (`.stp`), the only CAD format Phoenix offers for them | Text-based solid model. Every hole is a cylinder, so the hole centres, the outline and the connector positions read to the hundredth of a millimetre from the file itself, either by a script over the STEP entities or through FreeCAD to DXF for import onto `Edge.Cuts`. The restricted areas are drawing hatching, not geometry, so they come from the PDF at its 2:1 scale, checked against the built board and the housing STEP. |
 | PTSM 0,5/4-HH-2,5-THR, PTSM 0,5/3-HH-2,5-THR, PTSM 0,5/5-HH-2,5-THR, PSTD 0,65X0,65/40-2,54 | **ECAD → KiCad** (`.kicad_sym` + `.kicad_mod`), from the Ultra Librarian or SamacSys link on the product page | Native symbol and footprint; nothing to transcribe. Stock KiCad carries Phoenix MC, MSTB and SPT families but not PTSM. |
 | The same connectors, and the RPI-BC 107,6 housing halves | **STEP** (`.stp`) | 3D bodies for the fit check in the KiCad 3D viewer: connector height against the cover, plug entry against the housing opening. |
-| PSTD 0,65X0,65/18-3IS-2,54 (EXT riser) | DXF or STEP only | The riser is unused by this build; its position is needed only so the new EXT board clears it. |
+| PSTD 0,65X0,65/18-3IS-2,54 (EXT riser) | STEP only | The riser is unused by this build; its position is needed only so the new EXT board clears it. |
 
 Put the files in `hardware/vendor/` in this repo. STEP files run to a few megabytes each and
 are fine in git at this count.
@@ -154,9 +154,9 @@ DS2482-100, passives from Digi-Key or Mouser. One order covers three boards of e
 
 | Step | Who | Output | Effort |
 |---|---|---|---|
-| 1. Fetch the DXF, KiCad and STEP files per §3.1 into `hardware/vendor/` | David | vendor files in the repo | an evening |
-| 2. Measure the header and plug centres on the built INT board with calipers, as a check on the DXF | David | four numbers in this document | 15 min |
-| 3. KiCad project per board: outline and restricted areas from DXF, connectors placed, schematic from the master map, BOM | Claude | `hardware/int-board/`, `hardware/ext-board/` | a day |
+| 1. Fetch the STEP and KiCad files per §3.1 into `hardware/vendor/` | David | vendor files in the repo | an evening |
+| 2. Measure the header and plug centres on the built INT board with calipers, as a check on the STEP | David | four numbers in this document | 15 min |
+| 3. KiCad project per board: outline and holes from the STEP, restricted areas from the PDF, connectors placed, schematic from the master map, BOM | Claude | `hardware/int-board/`, `hardware/ext-board/` | a day |
 | 4. Layout and DRC; 3D fit check against the housing STEP | Claude, David reviews | Gerbers, drill files, assembly drawing, BOM CSV | half a day |
 | 5. Order boards and parts | David | three of each board | 2 weeks elapsed |
 | 6. Populate one of each; electrical check per `rpi-io-board-design.md` steps 7–8; DS2482 bench check per `ds18b20-bus-topology.md` §8 on the spare Pi | David | one proven pair | an evening |
