@@ -137,12 +137,13 @@ at 1" × 1" or 1" × 0.8" and about $40–60. The panel transformer must have th
 headless Pi 4 with the Arduino on USB draws 5–8 W, about 10 VA at the transformer, on top of
 the thermostats, zone valves and relays already on it; a 40 VA transformer may not. And the
 `PivacPower` Shelly plug loses its purpose, since the Pi would no longer be on a mains cord to
-cycle remotely. Neither board has room for a 1" × 1" footprint without moving the EXT link
-header or reworking the INT bottom field, so the provision in this draft is the unfitted
-4-way power link `J7` (VS, COM, +5V, GND), which carries raw DC out to a converter and 5 V
-back to the header pins. An off-board 24 VAC-to-USB-C adapter is the zero-design alternative
-and keeps the Pi's own input protection. Decide after the transformer's VA rating and spare
-load are known.
+cycle remotely. The transformers are 75 VA, so
+the budget is not the obstacle. Neither board has room for a 1" × 1" footprint without moving
+the EXT link header or reworking the INT bottom field, so the provision in this draft is the
+unfitted 4-way power link `J7` (VS, COM, +5V, GND), which carries raw DC out to a converter
+and 5 V back to the header pins. An off-board 24 VAC-to-USB-C adapter is the zero-design
+alternative and keeps the Pi's own input protection. Until one is chosen the Pi keeps its
+USB-C supply; nothing else in the design depends on it.
 
 ## 5. Fabrication
 
@@ -178,23 +179,18 @@ the running system.
 
 ## 7. Open questions
 
-- **Header pin 1 and socket side, to check with the meter before ordering.** The board file
-  numbers the socket as `docs/rpi-io-board-design.md` §4.2 records it: pin 1 at the top of the
-  inner column, pin 2 at the top of the outer column, pin 3 below pin 1, socket on the solder
-  side. A socket mounted on the underside and seen through the board should show the Pi's own
-  pattern, and the Pi's pattern has pin 3 on the other side of pin 1 from where the doc puts it.
-  One of the two is wrong. On the built board, component side up, plugs away: which face carries
-  the socket, and is the 3V3 pad at the top or the bottom of the inner column?
-- **Link plug clearance.** The INT link header is at the bottom edge with its entry facing the
-  edge (the Pi's USB end); the EXT link is where the build put it. Whether a PTSM plug can be
-  fitted and removed at either place inside the housing needs the housing STEP or a trial with a
-  plug on the built boards.
+- **Header numbering: verified.** On the built board, component side up, plugs away, pin 1 is
+  the top-right pad of the socket (David, 2026-09-11), which is how the board file numbers it.
+- **Link plug clearance.** The EXT link is where the build put it, with the same PTSM plug, so
+  that end is proven. The INT link header is new: at the bottom edge with its entry facing the
+  edge, the Pi's USB end. The DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its
+  five parts out side by side rather than assembled, so it does not answer this; a trial with a
+  spare PTSM plug held at that spot on the built board does.
 - **Component height.** The tallest parts are the ⌀10 capacitor (12.5 mm) and the DIP sockets
   with chips (about 8 mm). The clearance between the INT board's component side and the cover
   is unmeasured.
-- **Transformer VA** rating and present load, which decide §4.3.
-- **`msp430g2121.pdf`** arrived in the manuals folder without a note; its intended role in this
-  design is unknown.
+- **Transformer.** 75 VA units; David will pick one with 10 VA to spare if the Pi is to be
+  powered from the bus.
 
 - The EXT model has 33 rows of holes, with row 1 sitting 1.16 mm from its edge and row 33
   2.56 mm from the other; `docs/ds18b20-bus-topology.md` counts 32. The band rows agree with the
