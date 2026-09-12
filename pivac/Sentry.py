@@ -219,7 +219,13 @@ def _read_digit(digit_roi, threshold: float) -> str:
     return _decode_segments(brightness, threshold)
 
 
-def _read_display(frame, config: dict) -> str:
+def _display_segments(frame, config: dict):
+    """Warp the display and measure every segment of every digit.
+
+    Returns ``(threshold, segments)`` where ``segments`` is one ``{a..g: value}``
+    dict per configured digit position. Decoding and the per-cycle separation
+    metric both work from this one measurement, so the metric costs nothing
+    extra per frame."""
     _, np = _require_cv()
     display_crop = _get_display_crop(frame, config)
     factor = config.get("digit_threshold_factor", 0.65)
@@ -228,12 +234,42 @@ def _read_display(frame, config: dict) -> str:
     bg = float(np.percentile(gray_disp, bg_pct))
     hi = float(np.percentile(gray_disp, 99))   # 99th, not max: ignore a hot pixel
     threshold = _display_threshold(bg, hi, factor)
-    result = ""
+    segments = []
     for pos in config["digit_positions"]:
         digit_crop = display_crop[pos["y"]:pos["y"] + pos["h"],
                                   pos["x"]:pos["x"] + pos["w"]]
-        result += _read_digit(digit_crop, threshold)
-    return result.strip()
+        segments.append({seg: _segment_brightness(digit_crop, seg) for seg in _SEGMENTS})
+    return threshold, segments
+
+
+def _decode_display(segments, threshold: float) -> str:
+    return "".join(_decode_segments(s, threshold) for s in segments).strip()
+
+
+def _read_display(frame, config: dict) -> str:
+    threshold, segments = _display_segments(frame, config)
+    return _decode_display(segments, threshold)
+
+
+def _percentile(values, q: float) -> float:
+    """Nearest-rank percentile on a plain list, so the metric helper stays
+    numpy-free for the dependency-free tests."""
+    ordered = sorted(values)
+    return float(ordered[int(round(q * (len(ordered) - 1)))])
+
+
+def _segment_margin(lit, unlit):
+    """Separation between the lit and unlit segment populations, in grey levels:
+    the 1st percentile of segments read as lit minus the 99th percentile of
+    those read as unlit. This is the number a calibration is judged on. A quad
+    that decodes 100 % clean can still sit on a knife edge -- on 2026-09-09 one
+    scored 100 % on the digits shown that night and read ~10 here, then read
+    every 6 as an 8 once the outdoor temperature reached the 60s; a sound quad
+    reads 40 or more. ``None`` when either population is empty (no frame with a
+    display mode this cycle)."""
+    if not lit or not unlit:
+        return None
+    return round(_percentile(lit, 0.01) - _percentile(unlit, 0.99), 1)
 
 
 # ---------------------------------------------------------------------------
@@ -534,6 +570,8 @@ def _poll_cycle(config: dict) -> dict:
     dhw_samples  = []    # dhw-priority bool reads this cycle (voted at cycle end)
     led_ratios   = {}    # led key -> [raw spot/bg ratios] (aim check at cycle end)
     ind_ratios   = {}    # indicator key -> [raw spot/bg ratios] (same)
+    seg_lit      = []    # segment brightness read as lit, stable mode frames
+    seg_unlit    = []    # segment brightness read as unlit, same frames
     confirmed    = set() # modes with >= min_samples (enough to trust the median)
     error_code   = None
     last_frame   = None
@@ -550,7 +588,8 @@ def _poll_cycle(config: dict) -> dict:
             last_frame = frame
 
             mode  = _read_indicators(frame, config, ind_ratios)
-            value = _read_display(frame, config)
+            threshold, segments = _display_segments(frame, config)
+            value = _decode_display(segments, threshold)
 
             # Track mode stability to skip transition-frame artefacts.
             if mode == prev_mode:
@@ -566,6 +605,11 @@ def _poll_cycle(config: dict) -> dict:
             # drifted warp quad starve water_temp unnoticed (2026-07-28).
             if mode is not None and stable_count >= mode_stable_min:
                 seen_modes.add(mode)
+                # Every segment of every digit, split by the side of the bar it
+                # fell on, feeds the cycle's separation metric (decodeMargin).
+                for digit in segments:
+                    for b in digit.values():
+                        (seg_lit if b >= threshold else seg_unlit).append(b)
 
             if "?" in value or stable_count < mode_stable_min:
                 continue
@@ -623,10 +667,13 @@ def _poll_cycle(config: dict) -> dict:
         samples[mode] = []
 
     collected = {}
+    misses = 0
     for mode, vals in samples.items():
         if len(vals) >= min_samples:
             collected[mode] = str(int(round(statistics.median(vals))))
-        elif vals:
+            continue
+        misses += 1
+        if vals:
             logger.warning("Sentry: '%s' only %d plausible read(s) this cycle (%s); "
                            "skipping", mode, len(vals), vals)
         else:
@@ -681,6 +728,8 @@ def _poll_cycle(config: dict) -> dict:
         result["error_code"] = error_code
     result["leds"] = leds
     result["dhw_priority"] = dhw_priority
+    result["decode_misses"] = misses
+    result["decode_margin"] = _segment_margin(seg_lit, seg_unlit)
 
     return result
 
@@ -779,6 +828,22 @@ def status(config={}, output="default"):
 
     for led_key, sk_path in _LED_SK.items():
         val = int(raw["leds"].get(led_key, False))
+        if output == "signalk":
+            sk_add_value(sk_source, sk_path, val)
+        else:
+            result[sk_path] = val
+        logger.debug("Sentry: %s = %s", sk_path, val)
+
+    # Reader health, published every cycle so a drifting calibration shows on a
+    # chart and can alert (sentry-decode-margin) before any value goes wrong.
+    # decodeMargin: lit/unlit segment separation in grey levels (see
+    # _segment_margin); decodeMisses: modes shown this cycle but not decoded.
+    health = {
+        "hvac.boiler.sentry.decodeMisses": int(raw.get("decode_misses", 0)),
+    }
+    if raw.get("decode_margin") is not None:
+        health["hvac.boiler.sentry.decodeMargin"] = float(raw["decode_margin"])
+    for sk_path, val in health.items():
         if output == "signalk":
             sk_add_value(sk_source, sk_path, val)
         else:

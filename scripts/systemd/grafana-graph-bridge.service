@@ -7,6 +7,11 @@ Wants=network-online.target
 Type=simple
 User=pi
 EnvironmentFile=-/etc/pivac/graph.env
+# A firing alert labelled source=sentry also triggers a capture-and-evaluate of
+# the boiler-display calibration, emailed as a follow-up with the eyecheck image.
+# Set SENTRY_EYECHECK_CMD= (empty) to disable; the defaults are in the script.
+Environment=SENTRY_EYECHECK_PNG=/tmp/sentry-eyecheck.png
+Environment=SENTRY_EYECHECK_MIN_INTERVAL_S=1800
 ExecStart=/home/pi/pivac-venv/bin/python3 /home/pi/github/pivac/scripts/grafana_graph_bridge.py
 Restart=always
 RestartSec=10
