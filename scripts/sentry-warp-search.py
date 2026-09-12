@@ -48,7 +48,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import numpy as np
 import yaml
 
-from pivac.Sentry import _read_display, _roi_is_lit, _SANE_RANGE  # noqa: E402
+from pivac.Sentry import (_read_display, _display_segments, _decode_display,  # noqa: E402
+                          _segment_margin, _roi_is_lit, _SANE_RANGE)
 
 # Region of the 2560x1440 frame holding digits, mode indicators and status LEDs.
 # Wide enough to hold the display at both the 2026-08-23 position (digits at
@@ -122,12 +123,21 @@ def mode_of(frame, scfg):
 
 
 def evaluate(frames, modes, scfg, corners, indices):
-    """Fraction of frames decoding to an in-range number, plus per-mode values."""
+    """Fraction of frames decoding to an in-range number, per-mode values, and the
+    lit/unlit separation (pivac.Sentry._segment_margin) over the same frames. A
+    quad is judged on the margin as much as on the clean rate: the 2026-09-09 quad
+    was 100 % clean on the digits shown that night and read about 10 here, then
+    read every 6 as an 8 once the outdoor temperature reached the 60s. Sound
+    calibrations read 40 or more, and should do so on every +/-1 px neighbour."""
     trial = dict(scfg)
     trial["display_warp"] = dict(scfg["display_warp"], corners=corners)
-    good, values = 0, {}
+    good, values, lit, unlit = 0, {}, [], []
     for i in indices:
-        text = _read_display(frames[i], trial)
+        threshold, segments = _display_segments(frames[i], trial)
+        for digit in segments:
+            for b in digit.values():
+                (lit if b >= threshold else unlit).append(b)
+        text = _decode_display(segments, threshold)
         if not text or "?" in text:
             continue
         try:
@@ -139,11 +149,13 @@ def evaluate(frames, modes, scfg, corners, indices):
             continue
         good += 1
         values.setdefault(modes[i], []).append(value)
-    return good / max(len(indices), 1), values
+    return good / max(len(indices), 1), values, _segment_margin(lit, unlit)
 
 
-def report(label, clean, values, modes, indices):
-    print("\n%s  clean=%.1f%% of %d frames" % (label, clean * 100, len(indices)))
+def report(label, clean, values, modes, indices, margin=None):
+    print("\n%s  clean=%.1f%% of %d frames  margin=%s" % (
+        label, clean * 100, len(indices),
+        "n/a" if margin is None else "%.0f (%s)" % (margin, "sound" if margin >= 40 else "KNIFE EDGE" if margin < 20 else "thin")))
     for mode in VALUE_MODES:
         seen = sum(1 for i in indices if modes[i] == mode)
         got = values.get(mode)
@@ -183,7 +195,9 @@ def main():
     ap.add_argument("--search", action="store_true")
     ap.add_argument("--truth-air", type=float, metavar="DEGF",
                     help="independent outdoor temperature in F at capture time; required for --search")
-    ap.add_argument("--eyecheck", metavar="PATH", help="write a gamma-compressed PNG of both quads")
+    ap.add_argument("--eyecheck", metavar="PATH",
+                    help="write a gamma-compressed PNG of the quad(s): the current one alone "
+                         "without --search, current (red) and winner (green) with it")
     ap.add_argument("--apply", action="store_true", help="write the winning corners to config.yml")
     args = ap.parse_args()
 
@@ -209,10 +223,12 @@ def main():
         sys.exit("no mode-bearing frames; is the display cycling?")
 
     base = scfg["display_warp"]["corners"]
-    clean, values = evaluate(frames, modes, scfg, base, indices)
-    report("CURRENT quad", clean, values, modes, indices)
+    clean, values, margin = evaluate(frames, modes, scfg, base, indices)
+    report("CURRENT quad", clean, values, modes, indices, margin)
 
     if not args.search:
+        if args.eyecheck:
+            write_eyecheck(frames, modes, scfg, base, None, args.eyecheck)
         return
     if args.truth_air is None:
         ap.error("--search needs --truth-air: a constant misread scores perfectly on "
@@ -222,15 +238,15 @@ def main():
     sample = indices[::max(1, len(indices) // 120)]
     scored = []
     for dx, dy, s in coarse:
-        f, v = evaluate(frames, modes, scfg, transform(base, dx, dy, s), sample)
+        f, v, m = evaluate(frames, modes, scfg, transform(base, dx, dy, s), sample)
         air = float(np.median(v["air"])) if v.get("air") else None
         penalty = abs(air - args.truth_air) if air is not None else 99.0
-        scored.append((round(f, 4), -min(penalty, 20.0), dx, dy, s))
+        scored.append((round(f, 4), -min(penalty, 20.0), m if m is not None else -99.0, dx, dy, s))
     scored.sort(reverse=True)
     best = scored[0][0]
     plateau = [c for c in scored if c[0] >= best - 1e-9]
-    dx = int(round(np.mean([c[2] for c in plateau])))
-    dy = int(round(np.mean([c[3] for c in plateau])))
+    dx = int(round(np.mean([c[3] for c in plateau])))
+    dy = int(round(np.mean([c[4] for c in plateau])))
     print("\nbest clean=%.1f%% across a %d-candidate plateau; centre dx=%+d dy=%+d"
           % (best * 100, len(plateau), dx, dy))
     if len(plateau) < 3:
@@ -239,28 +255,28 @@ def main():
     fine = []
     for fdx in range(dx - 3, dx + 4):
         for fdy in range(dy - 3, dy + 4):
-            f, v = evaluate(frames, modes, scfg, transform(base, fdx, fdy, 1.0), sample)
+            f, v, m = evaluate(frames, modes, scfg, transform(base, fdx, fdy, 1.0), sample)
             air = float(np.median(v["air"])) if v.get("air") else None
             penalty = abs(air - args.truth_air) if air is not None else 99.0
-            fine.append((round(f, 4), -min(penalty, 20.0), fdx, fdy))
+            fine.append((round(f, 4), -min(penalty, 20.0), m if m is not None else -99.0, fdx, fdy))
     fine.sort(reverse=True)
     plateau = [c for c in fine if c[0] >= fine[0][0] - 1e-9]
-    dx = int(round(np.mean([c[2] for c in plateau])))
-    dy = int(round(np.mean([c[3] for c in plateau])))
+    dx = int(round(np.mean([c[3] for c in plateau])))
+    dy = int(round(np.mean([c[4] for c in plateau])))
     print("fine pass: clean=%.1f%% across a %d-candidate plateau; centre dx=%+d dy=%+d"
           % (fine[0][0] * 100, len(plateau), dx, dy))
 
     winner = transform(base, dx, dy, 1.0)
-    wclean, wvalues = evaluate(frames, modes, scfg, winner, indices)
-    report("WINNER quad", wclean, wvalues, modes, indices)
+    wclean, wvalues, wmargin = evaluate(frames, modes, scfg, winner, indices)
+    report("WINNER quad", wclean, wvalues, modes, indices, wmargin)
 
     air = float(np.median(wvalues["air"])) if wvalues.get("air") else None
     if air is not None:
         gap = abs(air - args.truth_air)
         print("\nground truth: air median %.1f F vs reference %.1f F -> %.1f F apart (%s)"
               % (air, args.truth_air, gap, "within the 1-4 F baseline" if gap <= 5 else "*** TOO FAR, do not apply ***"))
-    if wclean <= clean:
-        print("\nno improvement over the current quad; not recommending a change")
+    if wclean < clean or (wclean == clean and (wmargin or -99) <= (margin or -99)):
+        print("\nno improvement over the current quad in clean rate or margin; not recommending a change")
         return
 
     absolute = [{"x": c["x"] + ox, "y": c["y"] + oy} for c in winner]
@@ -286,21 +302,25 @@ def write_eyecheck(frames, modes, scfg, base, winner, path):
         frame = frames[idx]
         vis = cv2.cvtColor((np.clip((frame.astype(float) - 120) / 130.0, 0, 1) ** 0.45 * 255).astype(np.uint8),
                            cv2.COLOR_GRAY2BGR)
-        for corners, colour in ((base, (0, 0, 255)), (winner, (0, 255, 0))):
+        quads = [(base, (0, 0, 255))] + ([(winner, (0, 255, 0))] if winner else [])
+        for corners, colour in quads:
             pts = np.array([[int(round(c["x"])), int(round(c["y"]))] for c in corners], np.int32)
             cv2.polylines(vis, [pts], True, colour, 1)
-        xs = [c["x"] for c in base + winner]
-        ys = [c["y"] for c in base + winner]
+        xs = [c["x"] for q, _ in quads for c in q]
+        ys = [c["y"] for q, _ in quads for c in q]
         x0, x1 = max(0, int(min(xs)) - 30), int(max(xs)) + 30
         y0, y1 = max(0, int(min(ys)) - 30), int(max(ys)) + 30
         crop = cv2.resize(vis[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_NEAREST)
         old = _read_display(frame, dict(scfg, display_warp=dict(scfg["display_warp"], corners=base)))
-        new = _read_display(frame, dict(scfg, display_warp=dict(scfg["display_warp"], corners=winner)))
-        cv2.putText(crop, "%s  red/old=%s  green/new=%s" % (mode, old or "-", new or "-"),
-                    (6, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 1)
+        if winner:
+            new = _read_display(frame, dict(scfg, display_warp=dict(scfg["display_warp"], corners=winner)))
+            label = "%s  red/old=%s  green/new=%s" % (mode, old or "-", new or "-")
+        else:
+            label = "%s  live quad reads %s" % (mode, old or "-")
+        cv2.putText(crop, label, (6, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 1)
         panels.append(crop)
     cv2.imwrite(path, np.vstack(panels))
-    print("wrote %s -- READ IT before applying; the display's real digits are the final check" % path)
+    print("wrote %s -- the display's real digits are the final check" % path)
 
 
 if __name__ == "__main__":
