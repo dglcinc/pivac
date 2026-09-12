@@ -300,6 +300,23 @@ def radial_2pin(board, name, pitch, dia, drill=1.0, size=1.8):
     return fp
 
 
+def radial_flat(board, name, pitch, dia, thick, drill=1.0, size=1.8):
+    """A radial disc (PTC, MOV) laid flat on the board with its leads bent 90 degrees: pads
+    at the pitch, the disc extending toward -y from a 1 mm lead bend. Height on the board is
+    the disc thickness plus the bend, about thick + 1.5 mm, against the 8 mm cover limit."""
+    fp = pcbnew.FOOTPRINT(board.board)
+    fp.SetFPID(pcbnew.LIB_ID("pivac", name))
+    _pad(fp, 1, -pitch / 2, 0, size, drill, pcbnew.PAD_SHAPE_ROUNDRECT)
+    _pad(fp, 2, pitch / 2, 0, size, drill)
+    _fp_rect(fp, -dia / 2, -dia - 1.0, dia / 2, -1.0, pcbnew.F_SilkS)
+    _fp_rect(fp, -dia / 2, -dia - 1.0, dia / 2, -1.0, pcbnew.F_Fab, 0.1)
+    _fp_rect(fp, -dia / 2 - 0.25, -dia - 1.25, dia / 2 + 0.25, 1.2, pcbnew.F_CrtYd, 0.05)
+    _fp_text(fp, "flat, %.0f mm high" % (thick + 1.5), 0, -dia / 2 - 1.0, pcbnew.F_Fab, 0.6)
+    fp.Reference().SetPosition(mm(0, -dia - 2.2))
+    fp.Value().SetPosition(mm(0, 2.4))
+    return fp
+
+
 def pi_header(board):
     """2 x 20 socket pads, 2.54 mm, numbered as the Pi header is seen through the board from the
     component side: odd pins in the inner column (+x), even pins in the outer column (-x), pin 1
@@ -416,8 +433,17 @@ def build_int():
     for i, (ref, x, y) in enumerate([("D1", 37.58, 67.0), ("D2", 37.58, 70.2), ("D3", 50.58, 67.0), ("D4", 50.58, 70.2)]):
         B.lib(ref, "Diode_THT", "D_DO-41_SOD81_P10.16mm_Horizontal", x - 5.08, y, 0, value="1N4007")
     # --- bulk capacitor, PTC, MOV, test points
-    B.lib("C1", "Capacitor_THT", "CP_Radial_D10.0mm_P5.00mm", 19.0, 70.0, 0, value="220u 50V")
-    custom.append(B.place("F1", radial_2pin(B, "PTC_Radial_P5.08", 5.08, 7.5), 55.0, 26.0, 90, value="PTC 0.1A"))
+    # --- reservoir capacitor: axial, lying flat, along the left of the bottom field. The
+    # cover clears a DIP socket with its chip (about 8 mm, proven on the built board) and
+    # nothing fitted on the component side may stand taller: a 6.5 x 18 axial is 6.9 mm.
+    # 100 uF holds the 35 V rail's ripple to 2.8 V at the 34 mA the twelve LEDs draw. The
+    # footprint's origin is pad 1; pad 2 is 25 mm along +x, between the bridge and the edge.
+    B.lib("C1", "Capacitor_THT", "CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal", 8.5, 75.5, 0, value="100u 63V axial")
+    x2, y2 = B.pad_xy("C1", 2)
+    if abs(x2 - 33.5) > 0.01 or abs(y2 - 75.5) > 0.01:
+        raise SystemExit(f"C1 pad 2 at {x2:.2f},{y2:.2f}, wanted 33.5,75.5")
+    # --- PTC lying flat above the link slot; the disc points away from the slot
+    custom.append(B.place("F1", radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1), 55.0, 27.5, 0, value="PTC 0.1A 60V"))
     # --- link headers on the right edge, inside the housing's slot (rows 9-23, y 29.1-64.7):
     # the enclosure leaves no clearance at the bottom edge (David, 2026-09-12). The pin row
     # sits 6.3 mm inside the edge, 0.65 mm outboard of the top-edge plugs' 6.95, so the pads
@@ -435,13 +461,15 @@ def build_int():
                              f"courtyard x {pcbnew.ToMM(bb.GetLeft()):.1f}-{pcbnew.ToMM(bb.GetRight()):.1f} "
                              f"y {pcbnew.ToMM(bb.GetTop()):.1f}-{pcbnew.ToMM(bb.GetBottom()):.1f}")
     # --- MOV position, test points and the spare channel outputs in the bottom-left field
-    custom.append(B.place("RV1", radial_2pin(B, "MOV_Radial_P5.0", 5.0, 7.0), 10.0, 79.0, 0, value="MOV 39V", dnp=True))
-    for ref, x, val in (("TP1", 16.5, "VS"), ("TP2", 19.5, "COM"), ("TP3", 22.5, "GND")):
-        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 79.0, 0, value=val))
-    custom.append(B.place("J8", pad_array(B, "Pads_1x3", 1, 3), 27.5, 76.5, 0, value="SP-C SP-E COM"))
+    # MOV position (not fitted) flat under J4 beside the PTC, disc toward +y, on the AC
+    # input where its nets already run
+    custom.append(B.place("RV1", radial_flat(B, "MOV_Radial_P5.0_Flat", 5.0, 7.0, 3.0), 50.0, 10.5, 180, value="MOV 39V", dnp=True))
+    for ref, x, val in (("TP1", 17.5, "VS"), ("TP2", 20.5, "COM"), ("TP3", 23.5, "GND")):
+        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 82.5, 0, value=val))
+    custom.append(B.place("J8", pad_array(B, "Pads_1x3", 1, 3), 57.6, 75.0, 0, value="SP-C SP-E COM"))
     # --- GPIO breakout (2 x 6 under the header) and prototyping field, bottom right
     custom.append(B.place("J9", shadow_column(B, BREAKOUT), BREAKOUT_X, 8.37, 0, value="GPIO breakout"))
-    custom.append(B.place("PF1", pad_array(B, "Proto_9x4", 9, 4, square_first=False), 34.0, 74.5, 0, value="proto"))
+    custom.append(B.place("PF1", pad_array(B, "Proto_8x4", 8, 4, square_first=False), 37.0, 74.5, 0, value="proto"))
 
     # ---------------------------------------------------------------- nets
     # header; the five outer-column grounds are tied by a pre-routed bus along the board edge,

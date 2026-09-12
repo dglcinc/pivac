@@ -94,7 +94,10 @@ Fixed by the housing: the four PTSM plugs at the Phoenix pin positions along the
 entry facing the edge; the Pi socket on the solder side at the header position. The three
 LTV-847 sockets sit in a column at x 10.5–28 between the housing bands, one per row, and each
 row's four LED resistors stand beside its socket. The 24 VAC section is in the bottom field:
-four 1N4007 flat as the bridge and a ⌀10 mm 220 µF capacitor. The two link headers are on the
+four 1N4007 flat as the bridge. The 100 µF reservoir capacitor is an axial part lying flat in the
+strip between the plugs and U1, and the PTC disc lies flat on the right-hand strip above the
+link slot; nothing fitted on the component side stands taller than a DIP socket with its chip
+(Appendix A.3). The two link headers are on the
 right-hand edge with their entries facing it, inside the housing's slot: the enclosure leaves no
 clearance around the board except the opening that matches the four top-edge plugs and a slot on
 the right-hand side, rows 9–23 (y 29.1–64.7), the height of a PTSM socket (David, 2026-09-12).
@@ -114,7 +117,8 @@ are the serial console, the ID EEPROM pair and the channel pins already used.
 full-wave bridge; the DC negative is `COM`, the sense return on position 4 of every plug, and
 it never meets Pi ground. At 25.9 VAC the rail is about 35 V, so the LED resistors are 12 kΩ
 1/4 W: 2.8 mA per channel, the same current the 14 V build ran, 0.1 W per resistor. The bridge
-carries at most 12 × 2.8 mA. A MOV position across the AC input is placed but not fitted.
+carries at most 12 × 2.8 mA, and 100 µF holds that load's ripple to 2.8 V at 120 Hz; 20 µF
+would keep the valley above 20 V, so the value is not critical. A MOV position across the AC input is placed but not fitted.
 J4.3 remains the tenth channel (`SP-D`); channels 11 and 12 end on pads (`J8`) with `COM`.
 
 **Channel map.** J1: ZV, DHW, BLR. J2: CHIL, BOS1, BOS2. J3: DEHUM, SCALA, HPHEAT. J4: 24 VAC,
@@ -139,7 +143,7 @@ rectifier feeding a Mean Well DDR-15L-5 (18–75 VDC in, 5 V 3 A, 4 kV isolation
 about $16), and the single-part routes (PowerStream PST-AC24DC5, sCharge ACDC-24V-5V-3A) are
 not isolated and would put the Pi's ground a diode drop from the transformer common. The INT
 board keeps the unfitted 4-way power link `J7` (VS, COM, +5V, GND) so the two-part route can be
-added later with a 470 µF capacitor and a 1 A PTC in place of the 220 µF and 0.1 A parts.
+added later with a larger capacitor and a 1 A PTC in place of the 100 µF and 0.1 A parts.
 
 ## 5. Fabrication
 
@@ -181,9 +185,9 @@ the running system.
   plug, so that end is proven. The INT link headers are in the housing's right-hand slot (§4.1);
   the DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its five parts out side by side
   rather than assembled, so the slot's extent comes from the housing itself.
-- **Component height.** The tallest parts are the ⌀10 capacitor (12.5 mm) and the DIP sockets
-  with chips (about 8 mm). The clearance between the INT board's component side and the cover
-  is unmeasured.
+- **Component height: bounded.** The cover's inner depth is unmeasured, but the built board
+  proves it clears a DIP socket with its chip, about 8 mm, and every fitted part on the
+  fabricated boards is held to that (Appendix A.3). The 12.5 mm radial capacitor is gone.
 - **Transformer.** 75 VA units; David will pick one with 10 VA to spare if the Pi is to be
   powered from the bus.
 
@@ -230,6 +234,39 @@ face, which is where the housing ribs bear on the board.
 
 The restricted solid is relieved around every grid pad inside it (⌀1.6 clearances), so the
 pads exist there and the housing bears between them; a pin tail in one still fouls the rib.
+
+### A.3 The Raspberry Pi 4B under the INT board
+
+The Pi mounts component side down, facing the INT board's solder side, on a socket stack that
+holds the boards 16 mm apart on the INT side plus 2 mm on the Pi side (David, 2026-09-12).
+Positions below are from the Pi 4 Model B mechanical drawing (Raspberry Pi document
+RP-008343): the header's pin 1 is 3.5 mm from the Pi's long edge and 8.37 mm from its short
+edge, which is where the INT board's socket puts it, so **INT x = the Pi's short-edge
+coordinate and INT y = the Pi's long-edge coordinate**, pin 1 end at y = 8.37. Heights `Z` are
+above the Pi's component face; the room left on the INT solder side is 16 − Z.
+
+| Pi feature | Z (mm) | INT x (mm) | INT y (mm) | Room on the INT solder side |
+|---|---|---|---|---|
+| USB stacks (two) | 16.0 | 1.5–16.5 and 19.5–34.5 | 68–85 | none: pin tails flush, no solder-side part |
+| Ethernet jack | 13.5 | 39–52 | 66–85 | 2.5 |
+| PoE header | 8.5 | 2–7 | 57–61 | 7.5 |
+| Audio jack | 6.0 | 50–59 | 50.5–56.5 | 10 |
+| CSI camera connector | 5.5 | 33–56 | 45–49 | 10.5 |
+| DSI display connector | 5.5 | 12–36 | 7.5–11.5 | 10.5 |
+| USB-C power | 3.2 | 47–59 | 7–15 | 12.8 |
+| micro-HDMI (two) | 3.0 | 48–59 | 22.5–29.5 and 36–43 | 13 |
+| SoC, memory, wireless | 2.4 | anywhere else | | 13.6 |
+
+The housing's restricted bands (A.1) are a separate constraint on the same face. Nothing on
+the fabricated INT board sits on the solder side but the socket, so the Pi constrains only the
+pin tails, and the rule from the built board stands: trim every joint under the USB stacks
+flush.
+
+The **component side faces the cover**, and its limit is the cover's inner depth, unmeasured
+but proven on the built board for a DIP socket with its chip, about 8 mm. Every fitted part
+on the component side is held to that: the reservoir capacitor is an axial part lying flat
+(⌀6.5 × 18, 6.9 mm), the PTC disc lies flat (7.4 mm disc, 3.1 mm thick, about 4.6 mm on the
+board), the PTSM headers are 7.5 mm, the resistors and diodes lie flat.
 
 ### A.2 EXT board, 38.5 × 85 mm
 

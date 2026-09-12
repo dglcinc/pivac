@@ -21,15 +21,24 @@ Gerbers and drill files are exported and zipped per board. The plan behind the d
 ![INT board, component side](../hardware/int-board/int-board-top.png)
 
 Eleven sense inputs on J1 to J3 through three LTV-847 optocouplers with 12 kΩ series resistors
-(2.8 mA at about 35 V peak); the 24 VAC sense supply on J4.1/J4.2 (PTC, four 1N4007, 220 µF,
+(2.8 mA at about 35 V peak); the 24 VAC sense supply on J4.1/J4.2 (PTC, four 1N4007, 100 µF,
 MOV position not fitted); the 5-way link to the EXT board J6 and the unfitted 4-way power link
 J7, both on the right-hand edge inside the housing's slot with their entries facing the edge;
-a shadow column J9 breaking out the free header pins; the MOV position, three test points and
-the spare channel pads J8 in the bottom-left field; a prototyping field bottom right. COM is
-the sense return and is never Pi ground. Header pins 1, 9, 25 and 39 are left open on the
-board; the Pi ties each to its twin.
+a shadow column J9 breaking out the free header pins; the reservoir capacitor lying flat along
+the bottom-left with three test points below it; the spare channel pads J8 at the right edge
+below J7; a prototyping field bottom right. COM is the sense return and is never Pi ground.
+Header pins 1, 9, 25 and 39 are left open on the board; the Pi ties each to its twin.
 
-**Fitted parts:** C1 220 µF 50 V ⌀10 mm; D1–D4 1N4007; F1 PTC 0.1 A; J1–J4 PTSM 0,5/4-HH-2,5-THR;
+**Height.** The component side faces the cover, whose inner depth is unmeasured but proven
+on the built board for a DIP socket with its chip, about 8 mm. Nothing fitted stands taller:
+the capacitor is an axial part lying flat (⌀6.5 × 18 mm, 6.9 mm high; the ⌀8 × 18 variant is
+8.5 mm and also fits the footprint), the PTC disc lies flat (7.4 mm disc, 3.1 mm thick), the
+PTSM headers are 7.5 mm, the resistors and diodes lie flat. The solder side faces the Pi
+(`rpi-io-boards-pcb-plan.md` Appendix A.3 maps the Pi's connectors onto the board); nothing
+sits there but the socket, and every joint under the Pi's USB stacks is trimmed flush.
+
+**Fitted parts:** C1 100 µF 63 V axial, Vishay 021 ASM ⌀6.5 × 18 (or MAL202138101E3, ⌀8 × 18);
+D1–D4 1N4007; F1 PTC 0.1 A 60 V, Littelfuse 60R010XU; J1–J4 PTSM 0,5/4-HH-2,5-THR;
 J5 2 × 20 socket on the solder side; J6 PTSM 0,5/5-HH-2,5-THR; R1–R12 12 kΩ 1/4 W; U1–U3 LTV-847
 in DIP-16 sockets. **Placed, not fitted:** J7 PTSM 0,5/4-HH-2,5-THR; RV1 MOV 39 V.
 
@@ -53,9 +62,9 @@ solder jumpers; U1 DS2482-100 SOIC-8. **Placed, not fitted:** C2 100 nF; R1 2.2 
    y 30.9–45.1 and J7's 47.65–59.35, both with their pin row 6.3 mm inside the edge and the
    entry face 0.9 mm inside it. Hold a PTSM plug at those spots on the built board with the
    cover on.
-2. **Capacitor height against the cover.** C1 is ⌀10 mm and 12.5 mm tall, the tallest part on
-   the INT board; the DIP sockets with chips are about 8 mm. The clearance from the INT
-   board's component side to the cover is unmeasured.
+2. **Nothing on the component side stands taller than a DIP socket with its chip**, which the
+   built board proved against the cover. If the cover's inner depth is ever measured, record
+   it in the plan; no part here depends on it being more than 8 mm.
 3. **Two model-versus-doc discrepancies**, neither of which affects the fabricated boards,
    which follow the Phoenix models: the EXT model has 33 hole rows where
    `ds18b20-bus-topology.md` counts 32, and the INT model has no holes in column 3 rows 1–21
