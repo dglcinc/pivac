@@ -94,10 +94,14 @@ Fixed by the housing: the four PTSM plugs at the Phoenix pin positions along the
 entry facing the edge; the Pi socket on the solder side at the header position. The three
 LTV-847 sockets sit in a column at x 10.5–28 between the housing bands, one per row, and each
 row's four LED resistors stand beside its socket. The 24 VAC section is in the bottom field:
-four 1N4007 flat as the bridge, a ⌀10 mm 220 µF capacitor, and the two link headers at the
-bottom edge with their entries facing it. The PTC fuse, the MOV position and three test points
-(VS, COM, GND) are on the right-hand strip past the housing's vertical rib; the spare channel
-outputs and a 9 × 4 prototyping field fill the rest of the bottom right.
+four 1N4007 flat as the bridge and a ⌀10 mm 220 µF capacitor. The two link headers are on the
+right-hand edge with their entries facing it, inside the housing's slot: the enclosure leaves no
+clearance around the board except the opening that matches the four top-edge plugs and a slot on
+the right-hand side, rows 9–23 (y 29.1–64.7), the height of a PTSM socket (David, 2026-09-12).
+Their pin row sits 6.95 mm inside the edge, as the top-edge plugs' does; J6 is centred at
+y 38.0 and J7 at 53.5. The PTC fuse stays on the right-hand strip above the slot; the MOV
+position, three test points (VS, COM, GND) and the spare channel outputs sit in the bottom-left
+field, and a 9 × 4 prototyping field fills the bottom right.
 
 **Header breakout.** A shadow column of pads 2.54 mm inside the header's inner column gives one
 labelled pad per header row: SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND,
@@ -173,11 +177,10 @@ the running system.
 
 - **Header numbering: verified.** On the built board, component side up, plugs away, pin 1 is
   the top-right pad of the socket (David, 2026-09-11), which is how the board file numbers it.
-- **Link plug clearance.** The EXT link is where the build put it, with the same PTSM plug, so
-  that end is proven. The INT link header is new: at the bottom edge with its entry facing the
-  edge, the Pi's USB end. The DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its
-  five parts out side by side rather than assembled, so it does not answer this; a trial with a
-  spare PTSM plug held at that spot on the built board does.
+- **Link plug clearance: settled.** The EXT link is where the build put it, with the same PTSM
+  plug, so that end is proven. The INT link headers are in the housing's right-hand slot (§4.1);
+  the DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its five parts out side by side
+  rather than assembled, so the slot's extent comes from the housing itself.
 - **Component height.** The tallest parts are the ⌀10 capacitor (12.5 mm) and the DIP sockets
   with chips (about 8 mm). The clearance between the INT board's component side and the cover
   is unmeasured.

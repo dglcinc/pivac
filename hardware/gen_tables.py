@@ -12,7 +12,9 @@ CHANNELS = [
 PI_GND = (6, 14, 20, 30, 34)       # the outer-column grounds; 9, 25 and 39 stay unconnected
 GND_BUS_X = 0.75                   # pre-routed ground bus along the board edge, F.Cu
 PI_5V = (2, 4)
-PI_3V3 = (1, 17)
+PI_3V3 = (17,)                     # pin 1 (also 3V3) stays unconnected like the spare grounds: the
+                                   # header column blocks a track between 1 and 17, and the router
+                                   # otherwise reaches the link from pin 1 and strands 17's breakout
 # Shadow column: one breakout pad per header row, 2.54 mm right of the inner column, carrying
 # that row's odd pin where it is free, otherwise a nearby even pin. (label, Pi pin) per row 1-20;
 # None leaves the row without a pad.

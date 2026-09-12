@@ -349,7 +349,7 @@ def save_pretty(fps):
 
 
 # --------------------------------------------------------------------------- INT board
-from gen_tables import CHANNELS, PI_GND, PI_5V, PI_3V3, BREAKOUT, BREAKOUT_X, PLUG_X, PLUG_Y  # noqa: E402
+from gen_tables import CHANNELS, PI_GND, PI_5V, PI_3V3, BREAKOUT, BREAKOUT_X, PLUG_X, PLUG_Y, GND_BUS_X  # noqa: E402
 
 
 def build_int():
@@ -362,6 +362,11 @@ def build_int():
     B.rect_keepout(12.99, BANDS_Y[0][0], 59.0, BANDS_Y[0][1], name="housing rib upper")
     B.rect_keepout(6.64, BANDS_Y[1][0], 59.0, BANDS_Y[1][1], name="housing rib lower")
     B.rect_keepout(48.85, 22.31, 50.75, 61.29, name="housing strip col 20")
+    # no vias within 0.8 mm of the outline on either layer: the DSN carries no edge clearance,
+    # and the router put a COM via 0.28 mm from the edge against the 0.3 mm rule
+    for x0, y0, x1, y1 in ((0, 0, 0.8, 85), (58.2, 0, 59, 85), (0, 0, 59, 0.8), (0, 84.2, 59, 85)):
+        B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name="edge via keepout",
+                       pads=False, footprints=False, tracks=False, vias=True, pour=False)
     for yb in (26.91, 37.83, 45.77, 56.69):
         B.rect_keepout(49.8 - 1.63, yb - 1.63, 49.8 + 1.63, yb + 1.63, name="housing bulge")
     # the riser/edge region left of x 6.64 below the header is free; the Pi header itself sits
@@ -413,14 +418,27 @@ def build_int():
     # --- bulk capacitor, PTC, MOV, test points
     B.lib("C1", "Capacitor_THT", "CP_Radial_D10.0mm_P5.00mm", 19.0, 70.0, 0, value="220u 50V")
     custom.append(B.place("F1", radial_2pin(B, "PTC_Radial_P5.08", 5.08, 7.5), 55.0, 26.0, 90, value="PTC 0.1A"))
-    custom.append(B.place("RV1", radial_2pin(B, "MOV_Radial_P5.0", 5.0, 7.0), 55.0, 34.5, 90, value="MOV 39V", dnp=True))
-    for ref, y, val in (("TP1", 41.0, "VS"), ("TP2", 44.0, "COM"), ("TP3", 47.0, "GND")):
-        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), 55.0, y, 0, value=val))
-    # spare channel outputs SP-C, SP-E and COM on a 1x3 pad row
-    custom.append(B.place("J8", pad_array(B, "Pads_1x3", 1, 3), 55.0, 52.5, 0, value="SP-C SP-E COM"))
-    # --- link headers: signal link (fitted) and power link (not fitted), entry toward the bottom edge
-    custom.append(B.place("J6", ptsm_hh(B, 5), 13.0, 78.0, 180, value="PTSM 0,5/5-HH-2,5-THR"))
-    custom.append(B.place("J7", ptsm_hh(B, 4), 26.2, 78.0, 180, value="PTSM 0,5/4-HH-2,5-THR", dnp=True))
+    # --- link headers on the right edge, inside the housing's slot (rows 9-23, y 29.1-64.7):
+    # the enclosure leaves no clearance at the bottom edge (David, 2026-09-12). The pin row
+    # sits 6.3 mm inside the edge, 0.65 mm outboard of the top-edge plugs' 6.95, so the pads
+    # clear the rib's bulges at x 49.8 (edge 51.43) by 0.2 mm; the entry face is then 0.9 mm
+    # inside the edge. The entry faces +x.
+    LINK_X = 59.0 - 6.3
+    for ref, n, y, val, dnp in (("J6", 5, 38.0, "PTSM 0,5/5-HH-2,5-THR", False),
+                                ("J7", 4, 53.5, "PTSM 0,5/4-HH-2,5-THR", True)):
+        fp = ptsm_hh(B, n)
+        custom.append(B.place(ref, fp, LINK_X, y, 270, value=val, dnp=dnp))
+        bb = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
+        if pcbnew.ToMM(bb.GetRight()) <= LINK_X + 5 or pcbnew.ToMM(bb.GetLeft()) < 49.5 \
+                or pcbnew.ToMM(bb.GetTop()) < 29.1 or pcbnew.ToMM(bb.GetBottom()) > 64.7:
+            raise SystemExit(f"{ref} entry does not face the right edge inside the slot: "
+                             f"courtyard x {pcbnew.ToMM(bb.GetLeft()):.1f}-{pcbnew.ToMM(bb.GetRight()):.1f} "
+                             f"y {pcbnew.ToMM(bb.GetTop()):.1f}-{pcbnew.ToMM(bb.GetBottom()):.1f}")
+    # --- MOV position, test points and the spare channel outputs in the bottom-left field
+    custom.append(B.place("RV1", radial_2pin(B, "MOV_Radial_P5.0", 5.0, 7.0), 10.0, 79.0, 0, value="MOV 39V", dnp=True))
+    for ref, x, val in (("TP1", 16.5, "VS"), ("TP2", 19.5, "COM"), ("TP3", 22.5, "GND")):
+        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 79.0, 0, value=val))
+    custom.append(B.place("J8", pad_array(B, "Pads_1x3", 1, 3), 27.5, 76.5, 0, value="SP-C SP-E COM"))
     # --- GPIO breakout (2 x 6 under the header) and prototyping field, bottom right
     custom.append(B.place("J9", shadow_column(B, BREAKOUT), BREAKOUT_X, 8.37, 0, value="GPIO breakout"))
     custom.append(B.place("PF1", pad_array(B, "Proto_9x4", 9, 4, square_first=False), 34.0, 74.5, 0, value="proto"))
@@ -503,8 +521,8 @@ def build_int():
     B.text("pivac INT rev A -- 24 VAC in on J4.1/J4.2 -- COM is the sense return, never Pi GND",
            31.0, 63.4, size=0.8)
     B.text("Pi GND", 7.6, 59.5, size=0.8, rot=90)
-    B.text("LINK 3V3 SDA SCL G4 GND", 13.0, 79.6, size=0.8, layer="B.SilkS")
-    B.text("PWR VS COM 5V GND", 27.5, 79.6, size=0.8, layer="B.SilkS")
+    B.text("LINK 3V3 SDA SCL G4 GND", 59.0 - PLUG_Y - 1.6, 38.0, size=0.8, rot=90, layer="B.SilkS")
+    B.text("PWR VS COM 5V GND", 59.0 - PLUG_Y - 1.6, 53.5, size=0.8, rot=90, layer="B.SilkS")
     B.text("1", 3.5, 6.5, size=0.8)
     B.text("2", 1.0, 6.5, size=0.8)
     B.text("39", 3.5, 58.5, size=0.8)
