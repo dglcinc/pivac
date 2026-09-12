@@ -126,16 +126,25 @@ def _get_display_crop(frame, config: dict):
 # ---------------------------------------------------------------------------
 
 # Fractional coords: (x_start, y_start, width, height) relative to digit crop.
-# 'a' is narrowed to the centre of the top bar to avoid brightness spillover
-# from the tops of the adjacent b (upper-right) and f (upper-left) verticals.
+# Every rectangle samples the middle of its segment and keeps clear of the
+# neighbours' ends: under IR a lit bar blooms 2-3 px past its own outline, and
+# a rectangle that reaches into that bloom reads an unlit segment as lit once
+# the quad drifts a pixel or two. The verticals start at 14 % and stop at 42 %
+# (58-86 % below), away from the a, g and d bars; the bars keep to the middle
+# 40 % of the cell, away from the verticals' ends. Measured 2026-09-12 on three
+# 600-frame captures (cold and hot display, digits 0 1 2 4 5 6 7 8 9): the old
+# verticals at y 0.07-0.45 put b inside the top bar's bloom and read every 6 as
+# an 8 on the 09-09 quad, and lit/unlit separation was 8-19 grey levels on
+# whichever quad suited one thermal state; these rectangles give 62-70 on the
+# same quad across all three captures and 38 or more on every +/-1 px neighbour.
 _SEGMENT_RECTS = {
-    "a": (0.25, 0.00, 0.50, 0.12),  # top horizontal (centre only)
-    "b": (0.80, 0.07, 0.15, 0.38),  # upper right vertical
-    "c": (0.80, 0.55, 0.15, 0.38),  # lower right vertical
-    "d": (0.15, 0.88, 0.70, 0.12),  # bottom horizontal
-    "e": (0.05, 0.55, 0.15, 0.38),  # lower left vertical
-    "f": (0.05, 0.07, 0.15, 0.38),  # upper left vertical
-    "g": (0.15, 0.44, 0.70, 0.12),  # middle horizontal
+    "a": (0.30, 0.02, 0.40, 0.10),  # top horizontal (centre only)
+    "b": (0.80, 0.14, 0.15, 0.28),  # upper right vertical
+    "c": (0.80, 0.58, 0.15, 0.28),  # lower right vertical
+    "d": (0.30, 0.88, 0.40, 0.10),  # bottom horizontal (centre only)
+    "e": (0.05, 0.58, 0.15, 0.28),  # lower left vertical
+    "f": (0.05, 0.14, 0.15, 0.28),  # upper left vertical
+    "g": (0.30, 0.45, 0.40, 0.10),  # middle horizontal (centre only)
 }
 
 # Bit order: a=bit6(MSB) … g=bit0(LSB)
