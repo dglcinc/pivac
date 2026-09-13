@@ -94,3 +94,20 @@ pivac.Sentry:
     air:        {x: 1204, y: 744}
     gas_input:  {x: 1256, y: 739}
     dhw_temp:   {x: 1310, y: 736}
+
+  # Camera-creep tracking. The reader matches the fixed structure of the panel
+  # (bezel, labels, lens holes; digits masked) against a reference it saves the
+  # first time the calibration reads sound (decodeMargin >= min_margin, no
+  # misses), and moves display_warp, leds and indicators by the measured shift
+  # on the next cycle. Editing any of those coordinates resets the reference,
+  # so a manual recalibration always wins. A move beyond max_shift or a match
+  # under min_score is held and logged: that is a knock or a day/night flip and
+  # needs scripts/sentry-warp-search.py. state_dir must be writable by the
+  # service user (sudo mkdir -p /var/lib/pivac && sudo chown pi:pi /var/lib/pivac).
+  # Published: hvac.boiler.sentry.registrationX/Y (px) and registrationScore.
+  registration:
+    enabled: true
+    state_dir: /var/lib/pivac
+    max_shift: 15
+    min_score: 0.6
+    min_margin: 40
