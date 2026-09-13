@@ -129,7 +129,7 @@ Both checks are done; the boards can be ordered.
 ## The order
 
 Bare boards from OSH Park, three of each, hand assembled: two-layer, 1.6 mm, 1 oz copper,
-HASL. Upload the Gerber zips, or the `.kicad_pcb` files, which OSH Park also accepts.
+HASL. Ordered 2026-09-12 from the Gerber zips. Upload the Gerber zips, or the `.kicad_pcb` files, which OSH Park also accepts.
 
 | | Area | Price for three | Turnaround |
 |---|---|---|---|

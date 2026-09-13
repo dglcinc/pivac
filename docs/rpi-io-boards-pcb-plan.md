@@ -183,7 +183,7 @@ DS2482-100, passives from Digi-Key or Mouser. One order covers three boards of e
 | 2. Count the EXT board's rows and check the INT board's column 3 against Appendix A | David | two answers in §7 | 10 min |
 | 3. KiCad board, schematic and BOM per design: outline, holes and restricted areas from Appendix A, connectors placed, nets from the master map, routed; schematic from the same tables with ERC and a netlist match against the board | Claude | `hardware/int-board/`, `hardware/ext-board/`, `hardware/build.sh` | done |
 | 4. Gerbers and drill files (`hardware/*-board/gerbers/`, zipped per board; DRC clean under `kicad-cli` 10.0.6); renders and schematics on a review page; the fit check is the two physical checks in §7, since the housing STEP is not an assembly | Claude, David reviews | done except David's review and checks | half a day |
-| 5. Order boards and parts | David | three of each board | 2 weeks elapsed |
+| 5. Order boards and parts | David | three of each board, ordered from OSH Park 2026-09-12 from the Gerber zips; parts per `rpi-io-boards-parts.md` | 2 weeks elapsed |
 | 6. Populate one of each; electrical check per `rpi-io-board-design.md` steps 7–8; DS2482 bench check per `ds18b20-bus-topology.md` §8 on the spare Pi | David | one proven pair | an evening |
 | 7. Swap in the housing: pull plugs, exchange boards, replug; confirm every channel and all eight probes in Signal K | David | production on fabricated boards | 30 min, one restart of `pivac-gpio` and `pivac-1wire` |
 | 8. Documentation: build docs become schematic, BOM and assembly notes; hole-by-hole sections retire; `docs/new-pi-cutover.md` and CLAUDE.md point at the KiCad files | Claude | PR | half a day |
