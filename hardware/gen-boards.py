@@ -137,6 +137,7 @@ class Board:
         t.SetWidth(FromMM(width))
         t.SetLayer(LAYERS[layer])
         t.SetNet(self.net(netname))
+        t.SetLocked(True)   # exported to the router as fixed wiring, never re-routed or trimmed
         self.board.Add(t)
         return t
 
@@ -454,22 +455,25 @@ def build_int():
     c1.Reference().SetPosition(mm(44.6, 43.4)); c1.Reference().SetTextAngleDegrees(0)
     c1.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
     # --- PTC lying flat above the link slot; the disc points away from the slot
-    custom.append(B.place("F1", radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1), 55.0, 28.1, 0, value="PTC 0.1A 60V"))
-    # --- link headers on the right edge, inside the housing's slot (rows 9-23, y 29.1-64.7):
-    # the enclosure leaves no clearance at the bottom edge (David, 2026-09-12). The pin row
+    f1 = radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1)
+    custom.append(B.place("F1", f1, 55.0, 25.5, 0, value="PTC 0.1A 60V"))
+    f1.Reference().SetPosition(mm(50.6, 21.0)); f1.Reference().SetTextAngleDegrees(90)
+    # --- link headers on the right edge, inside the housing's slot, measured on the housing
+    # at y 26-59 from the board's top edge (David, 2026-09-12; two 4-way headers with their
+    # pins in the third hole column from the edge fit it with a row between). The pin row
     # sits 6.0 mm inside the edge, 0.95 mm outboard of the top-edge plugs' 6.95, so the pads
     # clear the rib's bulges at x 49.8 (edge 51.43) by 0.5 mm and the header's courtyard
     # clears the capacitor's; the entry face is then 0.6 mm inside the edge. The entry faces +x.
     LINK_X = 59.0 - 6.0
-    for ref, n, y, val, dnp in (("J6", 5, 38.0, "PTSM 0,5/5-HH-2,5-THR", False),
-                                ("J7", 4, 53.5, "PTSM 0,5/4-HH-2,5-THR", True)):
+    for ref, n, y, val, dnp in (("J6", 5, 34.5, "PTSM 0,5/5-HH-2,5-THR", False),
+                                ("J7", 4, 50.5, "PTSM 0,5/4-HH-2,5-THR", True)):
         fp = ptsm_hh(B, n)
         custom.append(B.place(ref, fp, LINK_X, y, 270, value=val, dnp=dnp))
         # reference on the rib strip beside the header, below the capacitor for J6
         fp.Reference().SetPosition(mm(LINK_X - 3.3, y + (6.0 if ref == "J6" else 0.0))); fp.Reference().SetTextAngleDegrees(90)
         bb = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
         if pcbnew.ToMM(bb.GetRight()) <= LINK_X + 5 or pcbnew.ToMM(bb.GetLeft()) < 49.5 \
-                or pcbnew.ToMM(bb.GetTop()) < 29.1 or pcbnew.ToMM(bb.GetBottom()) > 64.7:
+                or pcbnew.ToMM(bb.GetTop()) < 26.0 or pcbnew.ToMM(bb.GetBottom()) > 59.0:
             raise SystemExit(f"{ref} entry does not face the right edge inside the slot: "
                              f"courtyard x {pcbnew.ToMM(bb.GetLeft()):.1f}-{pcbnew.ToMM(bb.GetRight()):.1f} "
                              f"y {pcbnew.ToMM(bb.GetTop()):.1f}-{pcbnew.ToMM(bb.GetBottom()):.1f}")
@@ -564,8 +568,8 @@ def build_int():
            31.0, 63.4, size=0.8)
     B.text("Pi GND", 7.6, 59.5, size=0.8, rot=90)
     B.text("no parts here: the Pi's USB stacks sit under this field", 18.0, 73.0, size=0.8)
-    B.text("LINK 3V3 SDA SCL G4 GND", LINK_X - 1.6, 38.0, size=0.8, rot=90, layer="B.SilkS")
-    B.text("PWR VS COM 5V GND", LINK_X - 1.6, 53.5, size=0.8, rot=90, layer="B.SilkS")
+    B.text("LINK 3V3 SDA SCL G4 GND", LINK_X - 1.6, 34.5, size=0.8, rot=90, layer="B.SilkS")
+    B.text("PWR VS COM 5V GND", LINK_X - 1.6, 50.5, size=0.8, rot=90, layer="B.SilkS")
     B.text("1", 3.5, 6.5, size=0.8)
     B.text("2", 1.0, 6.5, size=0.8)
     B.text("39", 3.5, 58.5, size=0.8)

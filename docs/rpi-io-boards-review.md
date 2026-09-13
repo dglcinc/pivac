@@ -108,11 +108,13 @@ solder jumpers; U1 DS2482-100 SOIC-8. **Placed, not fitted:** C2 100 nF; R1 2.2 
 
 ## Checks before ordering
 
-1. **The INT link headers against the housing slot.** The slot on the right-hand side runs
-   rows 9–23 (y 29.1–64.7 in the board frame) at the height of a PTSM socket. J6's body spans
-   y 30.9–45.1 and J7's 47.65–59.35, both with their pin row 6.0 mm inside the edge and the
-   entry face 0.6 mm inside it. Hold a PTSM plug at those spots on the built board with the
-   cover on.
+Both checks are done; the boards can be ordered.
+
+1. **The INT link headers against the housing slot: done.** The slot on the right-hand side
+   runs y 26–59 from the board's top edge, measured on the housing, and two 4-way headers with
+   their pins in the third hole column from the edge and a row between fit it on the built
+   board (2026-09-12). J6's body spans y 27.4–41.6 and J7's 44.65–56.35, pin row 6.0 mm inside
+   the edge, entry face 0.6 mm inside it.
 2. **Nothing on the component side stands taller than a DIP socket with its chip**, which the
    built board proved against the cover. If the cover's inner depth is ever measured, record
    it in the plan; no part here depends on it being more than 8 mm.

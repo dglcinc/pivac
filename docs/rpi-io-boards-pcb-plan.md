@@ -105,11 +105,15 @@ pin tail there meets a USB shell (Appendix A.3); the prototyping field is gone. 
 headers are on the
 right-hand edge with their entries facing it, inside the housing's slot: the enclosure leaves no
 clearance around the board except the opening that matches the four top-edge plugs and a slot on
-the right-hand side, rows 9–23 (y 29.1–64.7), the height of a PTSM socket (David, 2026-09-12).
+the right-hand side at y 26–59 from the board's top edge, the height of a PTSM socket, measured
+on the housing (David, 2026-09-12); two 4-way headers with their pins in the third hole column
+from the edge and a row between them fit it on the built board.
 Their pin row sits 6.0 mm inside the edge, 0.95 mm outboard of the top-edge plugs' 6.95, so the
 pads clear the housing rib's bulges and the headers clear the capacitor; the entry face is
-0.6 mm inside the edge. J6 is centred at y 38.0 and J7 at 53.5. The three test points (VS, COM,
-GND) and the spare channel outputs sit below the diode column, past the Pi's USB stacks.
+0.6 mm inside the edge. J6 is centred at y 34.5 (body 27.4–41.6) and J7 at 50.5 (44.65–56.35),
+with 1.4 mm to the slot's top, 3 mm between them and 2.65 mm to its bottom. The three test
+points (VS, COM, GND) and the spare channel outputs sit below the diode column, past the Pi's
+USB stacks.
 
 **Header breakout.** A shadow column of pads 2.54 mm inside the header's inner column gives one
 labelled pad per header row: SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND,
@@ -187,8 +191,9 @@ the running system.
 - **Header numbering: verified.** On the built board, component side up, plugs away, pin 1 is
   the top-right pad of the socket (David, 2026-09-11), which is how the board file numbers it.
 - **Link plug clearance: settled.** The EXT link is where the build put it, with the same PTSM
-  plug, so that end is proven. The INT link headers are in the housing's right-hand slot (§4.1);
-  the DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its five parts out side by side
+  plug, so that end is proven. The INT link headers are in the housing's right-hand slot (§4.1),
+  measured at y 26–59 on the housing and tried with two 4-way headers on the built board; the
+  DEV-KIT STEP (`hardware/vendor/pxc_2202874_…_3D.stp`) lays its five parts out side by side
   rather than assembled, so the slot's extent comes from the housing itself.
 - **Component height: bounded.** The cover's inner depth is unmeasured, but the built board
   proves it clears a DIP socket with its chip, about 8 mm, and every fitted part on the
