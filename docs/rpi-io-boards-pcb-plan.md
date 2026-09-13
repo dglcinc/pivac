@@ -94,9 +94,11 @@ Fixed by the housing: the four PTSM plugs at the Phoenix pin positions along the
 entry facing the edge; the Pi socket on the solder side at the header position. The three
 LTV-847 sockets sit in a column at x 10.5–28 between the housing bands, one per row, and each
 row's four LED resistors stand beside its socket. The 24 VAC section is in the bottom field:
-four 1N4007 flat as the bridge, in one column at the right of the bottom field. The 100 µF
+four 1N4007 flat as the bridge, in one column at the right of the bottom field. There is no MOV
+position: the strip beside the capacitor holds the PTC and the J4 pin labels, and a clamp on a
+class 2 transformer's 24 VAC is a nicety. The 100 µF
 reservoir capacitor is an axial part lying flat, standing between J4 and the link slot to the
-right of the resistor columns, with the PTC disc and the MOV position lying flat beside it;
+right of the resistor columns, with the PTC disc lying flat beside it;
 nothing fitted on the component side stands taller than a DIP socket with its chip (Appendix
 A.3). The bottom field under the Pi's USB stacks carries no through-hole part at all, since a
 pin tail there meets a USB shell (Appendix A.3); the prototyping field is gone. The two link
@@ -121,7 +123,7 @@ full-wave bridge; the DC negative is `COM`, the sense return on position 4 of ev
 it never meets Pi ground. At 25.9 VAC the rail is about 35 V, so the LED resistors are 12 kΩ
 1/4 W: 2.8 mA per channel, the same current the 14 V build ran, 0.1 W per resistor. The bridge
 carries at most 12 × 2.8 mA, and 100 µF holds that load's ripple to 2.8 V at 120 Hz; 20 µF
-would keep the valley above 20 V, so the value is not critical. A MOV position across the AC input is placed but not fitted.
+would keep the valley above 20 V, so the value is not critical.
 J4.3 remains the tenth channel (`SP-D`); channels 11 and 12 end on pads (`J8`) with `COM`.
 
 **Channel map.** J1: ZV, DHW, BLR. J2: CHIL, BOS1, BOS2. J3: DEHUM, SCALA, HPHEAT. J4: 24 VAC,

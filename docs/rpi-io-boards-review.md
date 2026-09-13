@@ -14,18 +14,27 @@ Gerbers and drill files are exported and zipped per board. The plan behind the d
 | Gerbers | `hardware/int-board/int-board-gerbers.zip` | `hardware/ext-board/ext-board-gerbers.zip` |
 | BOM | `hardware/int-board/int-board-bom.csv` | `hardware/ext-board/ext-board-bom.csv` |
 | Renders | `hardware/int-board/int-board-{top,bottom}.png` | `hardware/ext-board/ext-board-{top,bottom}.png` |
+| Copper plots | `hardware/int-board/int-board-copper-{front,back}.svg` | `hardware/ext-board/ext-board-copper-{front,back}.svg` |
 | Schematic drawing | `hardware/int-board/int-board-schematic.svg` | `hardware/ext-board/ext-board-schematic.svg` |
 
 ## INT board: relay inputs, 24 VAC sense supply, Pi header
 
 ![INT board, component side](../hardware/int-board/int-board-top.png)
 
+![INT board, solder side](../hardware/int-board/int-board-bottom.png)
+
+The copper plots are the view to check traces on: front copper with the front silkscreen, and
+back copper mirrored, so both read as if looking at that face of the board.
+
+![INT board, front copper](../hardware/int-board/int-board-copper-front.svg)
+
+![INT board, back copper, mirrored](../hardware/int-board/int-board-copper-back.svg)
+
 Eleven sense inputs on J1 to J3 through three LTV-847 optocouplers with 12 kΩ series resistors
-(2.8 mA at about 35 V peak); the 24 VAC sense supply on J4.1/J4.2 (PTC, four 1N4007, 100 µF,
-MOV position not fitted); the 5-way link to the EXT board J6 and the unfitted 4-way power link
+(2.8 mA at about 35 V peak); the 24 VAC sense supply on J4.1/J4.2 (PTC, four 1N4007, 100 µF); the 5-way link to the EXT board J6 and the unfitted 4-way power link
 J7, both on the right-hand edge inside the housing's slot with their entries facing the edge;
 a shadow column J9 breaking out the free header pins; the reservoir capacitor standing between
-J4 and J6 with the PTC and the MOV position beside it; the bridge diodes in one column at the
+J4 and J6 with the PTC beside it; the bridge diodes in one column at the
 bottom right with the test points and the spare channel pads J8 below them. The bottom-left
 field is empty on purpose: it lies over the Pi's USB stacks, where a pin tail meets a USB shell.
 COM is the sense return and is never Pi ground. Header pins 1, 9, 25 and 39 are left open on
@@ -55,17 +64,22 @@ the Ethernet jack are trimmed flush.
 | D1–D4 | 1N4007 | Full-wave bridge from the 24 VAC on J4.1/J4.2 to the VS rail and COM. |
 | C1 | 100 µF 63 V axial, flat | Reservoir on the VS rail; holds the ripple to 2.8 V. |
 | F1 | PTC 0.1 A 60 V, flat | Resettable fuse in the 24 VAC feed. |
-| RV1 | MOV 39 V, flat, not fitted | Surge clamp across the 24 VAC input, if ever wanted. |
 | TP1–TP3 | test pads | VS, COM and Pi GND for a meter. |
 
 **Fitted parts:** C1 100 µF 63 V axial, Vishay 021 ASM ⌀6.5 × 18 (or MAL202138101E3, ⌀8 × 18);
 D1–D4 1N4007; F1 PTC 0.1 A 60 V, Littelfuse 60R010XU; J1–J4 PTSM 0,5/4-HH-2,5-THR;
 J5 2 × 20 socket on the solder side; J6 PTSM 0,5/5-HH-2,5-THR; R1–R12 12 kΩ 1/4 W; U1–U3 LTV-847
-in DIP-16 sockets. **Placed, not fitted:** J7 PTSM 0,5/4-HH-2,5-THR; RV1 MOV 39 V.
+in DIP-16 sockets. **Placed, not fitted:** J7 PTSM 0,5/4-HH-2,5-THR.
 
 ## EXT board: DS2482 1-wire master and probe headers
 
 ![EXT board, component side](../hardware/ext-board/ext-board-top.png)
+
+![EXT board, solder side](../hardware/ext-board/ext-board-bottom.png)
+
+![EXT board, front copper](../hardware/ext-board/ext-board-copper-front.svg)
+
+![EXT board, back copper, mirrored](../hardware/ext-board/ext-board-copper-back.svg)
 
 The trunk header H1 (VCC · DATA · GND), two spare headers H2 and H3, the DS2482-100 at 0x18
 with its 100 nF, a second DS2482 at 0x19 (U2, not fitted) selectable for H3 by the solder

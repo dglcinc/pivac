@@ -427,14 +427,19 @@ def build_int():
     for k, yc in ic_y.items():
         for i in range(4):
             n += 1
-            B.lib(f"R{n}", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal",
-                  res_x[i], yc - 5.08, 270, value="12k 1/4W")
+            r = B.lib(f"R{n}", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal",
+                      res_x[i], yc - 5.08, 270, value="12k 1/4W")
+            # reference on the body, along it: the columns sit 3.3 mm apart and leave no room beside
+            r.Reference().SetPosition(mm(res_x[i], yc - 5.08)); r.Reference().SetTextAngleDegrees(90)
+            r.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
     # --- rectifier: four 1N4007 flat, 2 x 2, bottom field
     # --- rectifier: four 1N4007 flat in one column at the right of the bottom field, past the
     # Pi's USB stacks (solder side, no room) and mostly past its Ethernet jack (2.5 mm)
     for i, (ref, x, y) in enumerate([("D3", 50.58, 67.0), ("D4", 50.58, 70.2), ("D1", 50.58, 73.4), ("D2", 50.58, 76.6)]):
-        B.lib(ref, "Diode_THT", "D_DO-41_SOD81_P10.16mm_Horizontal", x - 5.08, y, 0, value="1N4007")
-    # --- bulk capacitor, PTC, MOV, test points
+        d = B.lib(ref, "Diode_THT", "D_DO-41_SOD81_P10.16mm_Horizontal", x - 5.08, y, 0, value="1N4007")
+        d.Reference().SetPosition(mm(57.7, y)); d.Reference().SetTextAngleDegrees(0)
+        d.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
+    # --- reservoir capacitor and PTC
     # --- reservoir capacitor: axial, lying flat, standing in the strip between J4 and J6,
     # right of the resistor columns and left of the housing rib. The cover clears a DIP
     # socket with its chip (about 8 mm, proven on the built board) and nothing fitted on the
@@ -442,10 +447,12 @@ def build_int():
     # rail's ripple to 2.8 V at the 34 mA the twelve LEDs draw. The footprint's origin is
     # pad 1; pad 2 is 25 mm along +y. The bottom field under the Pi's USB stacks carries no
     # through-hole part at all (David, 2026-09-12): a pin tail there meets a USB shell.
-    B.lib("C1", "Capacitor_THT", "CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal", 46.8, 11.1, 270, value="100u 63V axial")
+    c1 = B.lib("C1", "Capacitor_THT", "CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal", 46.8, 16.5, 270, value="100u 63V axial")
     x2, y2 = B.pad_xy("C1", 2)
-    if abs(x2 - 46.8) > 0.01 or abs(y2 - 36.1) > 0.01:
-        raise SystemExit(f"C1 pad 2 at {x2:.2f},{y2:.2f}, wanted 46.8,36.1")
+    if abs(x2 - 46.8) > 0.01 or abs(y2 - 41.5) > 0.01:
+        raise SystemExit(f"C1 pad 2 at {x2:.2f},{y2:.2f}, wanted 46.8,41.5")
+    c1.Reference().SetPosition(mm(44.6, 43.4)); c1.Reference().SetTextAngleDegrees(0)
+    c1.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
     # --- PTC lying flat above the link slot; the disc points away from the slot
     custom.append(B.place("F1", radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1), 55.0, 28.1, 0, value="PTC 0.1A 60V"))
     # --- link headers on the right edge, inside the housing's slot (rows 9-23, y 29.1-64.7):
@@ -458,16 +465,15 @@ def build_int():
                                 ("J7", 4, 53.5, "PTSM 0,5/4-HH-2,5-THR", True)):
         fp = ptsm_hh(B, n)
         custom.append(B.place(ref, fp, LINK_X, y, 270, value=val, dnp=dnp))
+        # reference on the rib strip beside the header, below the capacitor for J6
+        fp.Reference().SetPosition(mm(LINK_X - 3.3, y + (6.0 if ref == "J6" else 0.0))); fp.Reference().SetTextAngleDegrees(90)
         bb = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
         if pcbnew.ToMM(bb.GetRight()) <= LINK_X + 5 or pcbnew.ToMM(bb.GetLeft()) < 49.5 \
                 or pcbnew.ToMM(bb.GetTop()) < 29.1 or pcbnew.ToMM(bb.GetBottom()) > 64.7:
             raise SystemExit(f"{ref} entry does not face the right edge inside the slot: "
                              f"courtyard x {pcbnew.ToMM(bb.GetLeft()):.1f}-{pcbnew.ToMM(bb.GetRight()):.1f} "
                              f"y {pcbnew.ToMM(bb.GetTop()):.1f}-{pcbnew.ToMM(bb.GetBottom()):.1f}")
-    # --- MOV position, test points and the spare channel outputs in the bottom-left field
-    # MOV position (not fitted) flat under J4 above the PTC, disc toward +y, on the AC
-    # input where its nets already run
-    custom.append(B.place("RV1", radial_flat(B, "MOV_Radial_P5.0_Flat", 5.0, 7.0, 3.0), 55.0, 10.85, 180, value="MOV 39V", dnp=True))
+    # --- test points and the spare channel outputs below the diode column
     for ref, x, val in (("TP1", 40.0, "VS"), ("TP2", 43.0, "COM"), ("TP3", 46.0, "GND")):
         custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 81.0, 0, value=val))
     custom.append(B.place("J8", pad_array(B, "Pads_3x1", 3, 1), 49.5, 82.0, 0, value="SP-C SP-E COM"))
@@ -508,13 +514,11 @@ def build_int():
     B.connect("J8", 1, "S_SP-C")
     B.connect("J8", 2, "S_SP-E")
     B.connect("J8", 3, "COM")
-    # 24 VAC in on J4.1 (R) and J4.2 (C), PTC in the R leg, MOV across, full-wave bridge
+    # 24 VAC in on J4.1 (R) and J4.2 (C), PTC in the R leg, full-wave bridge
     B.connect("J4", 1, "ACR")
     B.connect("J4", 2, "ACC")
     B.connect("F1", 1, "ACR")
     B.connect("F1", 2, "ACF")
-    B.connect("RV1", 1, "ACF")
-    B.connect("RV1", 2, "ACC")
     # D_DO-41 footprint: pad 1 = cathode, pad 2 = anode
     B.connect("D1", 2, "ACF"); B.connect("D1", 1, "VS")
     B.connect("D2", 2, "ACC"); B.connect("D2", 1, "VS")
@@ -538,11 +542,18 @@ def build_int():
         B.connect("J9", i, netname)
         B.connect("J5", pin, netname)
         B.text(label, BREAKOUT_X + 1.35, 8.37 + (i - 1) * PITCH, size=0.8, rot=90)
+    # GPIO8, header pin 24 in the outer column to its breakout pad on row 14, must thread the
+    # column twice through 0.84 mm gaps; the router manages it only sometimes, so it is laid
+    # by hand: down between the columns, across between pins 25 and 27, then onto the pad.
+    x24, y24 = B.pad_xy("J5", 24); x14, y14 = B.pad_xy("J9", 14)
+    B.track("GPIO8", x24, y24, 3.5, y24 + 1.27, width=0.25)
+    B.track("GPIO8", 3.5, y24 + 1.27, 3.5, y14 - 1.27, width=0.25)
+    B.track("GPIO8", 3.5, y14 - 1.27, x14, y14 - 1.27, width=0.25)
+    B.track("GPIO8", x14, y14 - 1.27, x14, y14, width=0.25)
 
     # ---------------------------------------------------------------- silkscreen
     for j, xc in PLUG_X.items():
-        names = [c[0] for c in CHANNELS if c[1] == j]
-        B.text(j, xc, 13.2, size=0.8, bold=True)
+        B.text(j, 53.5 if j == "J4" else xc, 15.7, size=0.8, bold=True)
     for name, plug, pos, bcm, pin in CHANNELS:
         if plug:
             B.text(name, PLUG_X[plug] + (pos - 2.5) * 2.5, 12.2, size=0.8, rot=90)
@@ -552,6 +563,7 @@ def build_int():
     B.text("pivac INT rev A -- 24 VAC in on J4.1/J4.2 -- COM is the sense return, never Pi GND",
            31.0, 63.4, size=0.8)
     B.text("Pi GND", 7.6, 59.5, size=0.8, rot=90)
+    B.text("no parts here: the Pi's USB stacks sit under this field", 18.0, 73.0, size=0.8)
     B.text("LINK 3V3 SDA SCL G4 GND", LINK_X - 1.6, 38.0, size=0.8, rot=90, layer="B.SilkS")
     B.text("PWR VS COM 5V GND", LINK_X - 1.6, 53.5, size=0.8, rot=90, layer="B.SilkS")
     B.text("1", 3.5, 6.5, size=0.8)
@@ -582,7 +594,8 @@ def build_ext():
         custom.append(B.place(ref, ptsm_hh(B, 3), xc, 3.7, 0, value="PTSM 0,5/3-HH-2,5-THR"))
     # DS2482 x2 (U2 not fitted), decoupling, rollback pull-up (not fitted), solder jumpers
     B.lib("U1", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 11.0, 12.5, 0, value="DS2482-100")
-    B.lib("C1", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 20.5, 11.0, 0, value="100n")
+    ec1 = B.lib("C1", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 20.5, 11.0, 0, value="100n")
+    ec1.Reference().SetPosition(mm(20.5, 13.6))   # below the part, clear of the "H2 spare" label
     B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 30.0, 30.0, 0, value="DS2482-100 (0x19)", dnp=True)
     B.lib("C2", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 30.0, 37.5, 0, value="100n", dnp=True)
     B.lib("R1", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", 22.0, 16.3, 0,

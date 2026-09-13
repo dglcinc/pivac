@@ -225,9 +225,8 @@ def build_int():
     S.place("Connector_Generic:Conn_01x03", "J8", "spare ch pads", 220, 240, {1: "S_SP-C", 2: "S_SP-E", 3: "COM"}, footprint="pivac:Pads_3x1")
 
     # supply
-    S.text("24 VAC sense supply: PTC, MOV (not fitted), full-wave bridge, 100 uF; VS is about 35 V DC, COM its return; C1 and F1 lie flat, nothing on the component side stands over 8 mm", 250, 225, 1.6)
+    S.text("24 VAC sense supply: PTC, full-wave bridge, 100 uF; VS is about 35 V DC, COM its return; C1 and F1 lie flat, nothing on the component side stands over 8 mm", 250, 225, 1.6)
     S.place("Device:Fuse", "F1", "PTC 0.1A 60V", 270, 245, {1: "ACR", 2: "ACF"}, footprint="pivac:PTC_Radial_P5.08_Flat")
-    S.place("Device:Varistor", "RV1", "MOV 39V", 295, 245, {1: "ACF", 2: "ACC"}, footprint="pivac:MOV_Radial_P5.0_Flat", dnp=True)
     for ref, a, kk, x in (("D1", "ACF", "VS", 320), ("D2", "ACC", "VS", 340), ("D3", "COM", "ACF", 360), ("D4", "COM", "ACC", 380)):
         S.place("Device:D", ref, "1N4007", x, 245, {2: a, 1: kk}, footprint="Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
     S.place("Device:C_Polarized", "C1", "100u 63V axial", 400, 245, {1: "VS", 2: "COM"}, footprint="Capacitor_THT:CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal")
