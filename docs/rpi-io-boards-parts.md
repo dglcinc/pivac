@@ -15,7 +15,7 @@ re-checked for stock; the Amazon entries are searches, not verified listings.
 | J7 | not fitted | | 0 | | |
 | J5 | Phoenix PSTD 0,65X0,65/40-2,54, order no. 2202992 | 2 × 20 socket strip for the Raspberry Pi GPIO, the tall one made for the RPI-BC housing; one comes in the INT-PCB SET 2202994 | 1 / 3 | [Phoenix page](https://www.phoenixcontact.com/en-us/products/pin-strip-pstd-065x06540-254-2202992); [Newark 83Y6974](https://www.newark.com/phoenix-contact/pstd-0-65x0-65-40-2-54/socket-strip-raspberry-pi/dp/83Y6974); Mouser 651-2202992 | [search](https://www.amazon.com/s?k=Phoenix+Contact+2202992) |
 | U1–U3 | Lite-On LTV-847 | 4-channel transistor-output optocoupler, DIP-16 | 3 / 9 | [LTV-847](https://www.digikey.com/en/products/detail/lite-on-inc/LTV-847/385840) | [10-pack](https://www.amazon.com/LTV-847-Optocoupler-Channel-Output-16-Pin/dp/B005T7HEPI) |
-| U1–U3 sockets | DIP-16 socket, 0.3 in row spacing | 16-pin dual-wipe IC socket, through-hole, e.g. CNC Tech 243-16-1-03 or On Shore ED16DT | 3 / 9 | [243-16-1-03](https://www.digikey.com/en/products/detail/cnc-tech/243-16-1-03/3441570) | [search](https://www.amazon.com/s?k=DIP-16+IC+socket) |
+| U1–U3 sockets | Adam Tech ICS-316-T | 16-pin dual-wipe IC socket, 0.3 in row spacing, tin, through-hole, low profile (ordered 2026-09-12; any 0.3 in dual-wipe DIP-16 socket such as CNC Tech 243-16-1-03 or TE 1-2199298-4 substitutes) | 3 / 9 | [ICS-316-T](https://www.digikey.com/en/products/detail/adam-tech/ICS-316-T/9832862); [Mouser 737-ICS-316-T](https://www.mouser.com/ProductDetail/Adam-Tech/ICS-316-T?qs=FG09h9tFCuCi8dqaVVM22Q%3D%3D) | [search](https://www.amazon.com/s?k=DIP-16+IC+socket) |
 | R1–R12 | 12 kΩ, 1/4 W, 5 % carbon film, axial | e.g. Stackpole CF14JT12K0 | 12 / 36 | [CF14JT12K0](https://www.digikey.com/en/products/detail/stackpole-electronics-inc/CF14JT12K0/1830377) | [search](https://www.amazon.com/s?k=12k+ohm+1%2F4W+resistor) |
 | D1–D4 | 1N4007 | 1 A 1000 V rectifier, DO-41 axial, any maker | 4 / 12 | [1N4007-T](https://www.digikey.com/en/products/detail/diodes-incorporated/1N4007-T/607) | [search](https://www.amazon.com/s?k=1N4007+diode) |
 | C1 | Vishay 021 ASM 100 µF 63 V axial, MAL202138101E3 | axial aluminium electrolytic, ⌀8 × 18 mm; the ⌀6.5 × 18 variant of the same series also fits | 1 / 3 | [021 ASM series](https://digikey.com/en/datasheets/vishay-bc-components/vishay-bc-components-021asm); search Digi-Key for MAL202138101E3 | [MAL202138101E3](https://www.amazon.com/VISHAY-BC-COMPONENTS-MAL202138101E3/dp/B00HKJ8SDK) |
@@ -35,6 +35,16 @@ re-checked for stock; the Amazon entries are searches, not verified listings.
 | probe plugs | Phoenix PTSM 0,5/ 3-P-2,5, order no. 1778845 | 3-position push-in plug; the built board's three move over, buy spares only | 0 / 6 spare | [1778845](https://www.digikey.com/en/products/detail/phoenix-contact/1778845/2625557) | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778845) |
 
 Solder jumpers JP1 and JP2 and the pads J8, J2, TP1–TP3 are copper on the board; nothing to buy.
+
+## Order placed
+
+Ordered from Mouser on 2026-09-12 (cart in `Cart_Sep12_0937PM.pdf`): every part above at the
+three-board quantity, in the white PTSM variants (headers 1814867 and 1814870, 5-way plug
+1704858), with Ohmite OK1235E-R52 resistors, Diotec 1N4007 diodes and a KEMET SMR5104J50J01L4
+film capacitor for EXT C1. Exceptions: five 4-way headers, one INT board plus a spare; no
+3-way headers or plugs, which are on hand. The order also carried twenty ST 1,5-QUATTRO
+blocks (3031186) with ten D-ST 2,5-QUATTRO end covers (3030514) and ten ATP-ST 4-QUATTRO
+partition plates (3030815) for the panel.
 
 ## Notes
 
