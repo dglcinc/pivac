@@ -457,7 +457,7 @@ def build_int():
     # --- PTC lying flat above the link slot; the disc points away from the slot
     f1 = radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1)
     custom.append(B.place("F1", f1, 55.0, 25.5, 0, value="PTC 0.1A 60V"))
-    f1.Reference().SetPosition(mm(50.6, 21.0)); f1.Reference().SetTextAngleDegrees(90)
+    f1.Reference().SetPosition(mm(56.8, 15.7)); f1.Reference().SetTextAngleDegrees(0)
     # --- link headers on the right edge, inside the housing's slot, measured on the housing
     # at y 26-59 from the board's top edge (David, 2026-09-12; two 4-way headers with their
     # pins in the third hole column from the edge fit it with a row between). The pin row
@@ -557,7 +557,7 @@ def build_int():
 
     # ---------------------------------------------------------------- silkscreen
     for j, xc in PLUG_X.items():
-        B.text(j, 53.5 if j == "J4" else xc, 15.7, size=0.8, bold=True)
+        B.text(j, 52.2 if j == "J4" else xc, 15.7, size=0.8, bold=True)
     for name, plug, pos, bcm, pin in CHANNELS:
         if plug:
             B.text(name, PLUG_X[plug] + (pos - 2.5) * 2.5, 12.2, size=0.8, rot=90)
