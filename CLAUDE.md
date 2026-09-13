@@ -370,6 +370,9 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/grafana-alerting-notes.md` | Per-rule descriptions, thresholds, the evidence behind retired rules, and why provisioning is additive |
 | `docs/operational-notes.md` | RedLink internals, relay roster and zone map, GPIO 26, sprinkler calibration and watering rules, Shelly plugs, watchdog design, dashboard panel transforms, network, backup history |
 | `docs/cdp-chiller-rework-plan.md` | Single-chiller conversion: relay hardware, zone → equipment map, label |
+| `docs/rpi-io-boards-pcb-plan.md` | Fabricated PCB replacements for the two Phoenix perfboards: dimensions, files to fetch, layout provisions, vendor choice, work plan; Appendix A.3 maps the Pi 4B's connectors under the INT board |
+| `docs/rpi-io-boards-review.md` | The rev A boards as ordered: both faces and copper of each, what every reference designator is for, the checks done, how to order from OSH Park |
+| `docs/rpi-io-boards-parts.md` | Parts to buy for the rev A boards, with maker part numbers, search descriptions, quantities and distributor links |
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 
 ## Known Operational Behaviours (Not Bugs)
