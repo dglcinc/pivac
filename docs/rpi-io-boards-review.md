@@ -136,8 +136,17 @@ HASL. Upload the Gerber zips, or the `.kicad_pcb` files, which OSH Park also acc
 | INT | 7.8 in² | about $39 at $5/in² | 9–12 days (5 business days at $10/in²) |
 | EXT | 5.1 in² | about $26 | same |
 
-Parts from Digi-Key or Mouser per the BOM CSVs: PTSM headers and plugs, the PSTD header,
-LTV-847, DS2482-100 and passives. One order covers three boards of each.
+Parts from Digi-Key or Mouser per `rpi-io-boards-parts.md`, which lists every reference with
+the maker's part number, a description to search on, quantities for one and for three boards,
+and distributor links. One order covers three boards of each.
+
+**Ordering the boards.** OSH Park's importer runs KiCad 9, and these are KiCad 10 files, so
+upload the Gerber zips, not the `.kicad_pcb` files: at oshpark.com, sign in, upload
+`int-board-gerbers.zip`, check the layer previews it renders (top and bottom copper, mask and
+silkscreen, drills, a 59 × 85 mm outline), keep the 2-layer service and the minimum quantity of
+three, add to cart, then repeat with `ext-board-gerbers.zip` (38.5 × 85 mm). Checkout; shipping
+in the US is free and the boards arrive in about 9–12 days, or 5 business days at twice the
+price with the Super Swift option.
 
 After the boards arrive: populate one of each, run the electrical check per
 `rpi-io-board-design.md` steps 7–8 and the DS2482 bench check per `ds18b20-bus-topology.md`
