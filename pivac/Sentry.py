@@ -35,6 +35,9 @@ Optional config keys:
                         Default 1.15.
     digit_threshold_factor  Threshold = mean + factor*(max-mean) per digit (default: 0.50)
     daemon_sleep        Seconds between poll cycles (framework key; recommend >= 30)
+    registration        Camera-creep tracking (see "Registration" below). Keys:
+                        enabled (True), state_dir (/var/lib/pivac), max_shift (15 px),
+                        min_score (0.6), min_margin (40)
 
 Signal K paths emitted:
     hvac.boiler.sentry.waterTemp        °F as shown on display (when water_temp indicator lit)
@@ -48,8 +51,29 @@ Signal K paths emitted:
     hvac.boiler.sentry.circOn           bool
     hvac.boiler.sentry.circAuxOn        bool
     hvac.boiler.sentry.thermostatDemand bool
+    hvac.boiler.sentry.registrationX    px, camera creep applied to the quad this cycle
+    hvac.boiler.sentry.registrationY    px, same, vertical
+    hvac.boiler.sentry.registrationScore  0-1 match against the reference structure
+
+Registration
+    The camera mount creeps a few pixels whenever the boiler room is disturbed,
+    and every creep so far has needed a manual recalibration of display_warp,
+    leds and indicators. The module now measures the creep itself. Each cycle
+    it keeps the per-pixel minimum of the frames over a region around the
+    display, which leaves the fixed structure (bezel, printed labels, lens
+    holes) and removes most of the lit digits, masks the digit area, and
+    matches it against a reference structure saved the first time the
+    calibration read sound (decodeMargin >= min_margin, no misses). The
+    measured translation, the median of the last few cycles, is applied to the
+    quad corners and every lens coordinate on the next cycle. A change to the
+    configured corners or lens coordinates resets the reference, so a manual
+    recalibration stays the authority. A shift beyond max_shift, or a match
+    under min_score, is not applied and is logged: that is a knock or a
+    day/night flip, and needs the manual procedure.
 """
 
+import hashlib
+import json
 import logging
 import os
 import statistics
@@ -543,6 +567,261 @@ def _reading_sane(mode: str, value_str: str, burner_on=None,
 # Polling loop — shared by status() and the __main__ block
 # ---------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# Registration: track camera creep and re-derive the quad and lens spots
+# ---------------------------------------------------------------------------
+
+_REG_DEFAULTS = {
+    "enabled": True,
+    "state_dir": "/var/lib/pivac",   # reference structure + last shift
+    "max_shift": 15,                 # px; beyond this it is a knock, not creep
+    "min_score": 0.6,                # normalised correlation floor for a match
+    "min_margin": 40,                # decodeMargin needed to capture a reference
+    "history": 3,                    # cycles in the median that becomes the shift
+    "pad": 60,                       # region margin around quad + lenses, px
+    "border": 24,                    # template inset = search range, px
+    "blur_sigma": 6,                 # high-pass radius for the structure image
+    "mask_pad": 8,                   # digit-area mask grown by this, px
+}
+
+_REG_FILE = "sentry-registration.npz"
+
+# Module state: one camera, one reference, persists across cycles in the daemon.
+_REG = {"key": None, "ref": None, "mask": None, "region": None,
+        "shift": (0.0, 0.0), "history": [], "score": None,
+        "path": None, "warned": set()}
+
+
+def _np_minimum(a, b):
+    _, np = _require_cv()
+    return np.minimum(a, b, out=a)
+
+
+def _reg_cfg(config: dict) -> dict:
+    return dict(_REG_DEFAULTS, **(config.get("registration") or {}))
+
+
+def _calibration_key(config: dict) -> str:
+    """Fingerprint of the calibrated coordinates. Any edit to them resets the
+    reference, so a manual recalibration always wins over the tracker."""
+    warp = config["display_warp"]
+    payload = {
+        "corners": [[c["x"], c["y"]] for c in warp["corners"]],
+        "dst": [warp["dst_w"], warp["dst_h"]],
+        "leds": {k: [v["x"], v["y"]] for k, v in config.get("leds", {}).items()},
+        "indicators": {k: [v["x"], v["y"]]
+                       for k, v in config.get("indicators", {}).items()},
+    }
+    return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def _registration_region(config: dict, frame_shape, pad: int):
+    """(x0, y0, x1, y1) around the quad and every lens, clamped to the frame."""
+    xs, ys = [], []
+    for c in config["display_warp"]["corners"]:
+        xs.append(c["x"]); ys.append(c["y"])
+    for key in ("leds", "indicators"):
+        for v in config.get(key, {}).values():
+            xs.append(v["x"]); ys.append(v["y"])
+    h, w = frame_shape[:2]
+    return (max(0, int(min(xs)) - pad), max(0, int(min(ys)) - pad),
+            min(w, int(max(xs)) + pad), min(h, int(max(ys)) + pad))
+
+
+def _structure(acc_min, sigma: float):
+    """High-passed per-pixel minimum: the fixed structure of the panel."""
+    cv2, np = _require_cv()
+    m = acc_min.astype(np.float32)
+    return m - cv2.GaussianBlur(m, (0, 0), sigma)
+
+
+def _digit_mask(shape, corners, region, pad: int):
+    """255 everywhere except the digit area (the quad grown by ``pad``), in
+    region coordinates, so the match ignores whatever the display shows."""
+    cv2, np = _require_cv()
+    x0, y0 = region[0], region[1]
+    mask = np.full(shape, 255, np.uint8)
+    pts = np.array([[c["x"] - x0, c["y"] - y0] for c in corners], np.int32)
+    cv2.fillConvexPoly(mask, pts, 0)
+    k = 2 * pad + 1
+    return cv2.erode(mask, np.ones((k, k), np.uint8))
+
+
+def _register(ref, cur, mask, border: int):
+    """Translation (dx, dy, score) that moves the reference structure onto the
+    current one: masked normalised cross-correlation of the reference, inset by
+    ``border`` on every side, slid across the current image, with a parabolic
+    sub-pixel refinement at the peak. Measured on a 300-frame capture
+    (2026-09-13): synthetic shifts to +/-15 px recovered exactly, sub-pixel to
+    0.05 px, and an air-only reference against water-only frames read 0.02 px,
+    so the digit content does not steer it. Beyond the search range the score
+    falls to about 0.35."""
+    cv2, np = _require_cv()
+    t = ref[border:-border, border:-border]
+    tm = mask[border:-border, border:-border]
+    r = cv2.matchTemplate(cur, t, cv2.TM_CCOEFF_NORMED, mask=tm)
+    r = np.nan_to_num(r, nan=-1.0)
+    py, px = np.unravel_index(int(r.argmax()), r.shape)
+    score = float(r[py, px])
+
+    def refine(a, b, c):
+        d = a - 2 * b + c
+        return 0.0 if d == 0 else float(0.5 * (a - c) / d)
+
+    sx = refine(r[py, px - 1], r[py, px], r[py, px + 1]) if 0 < px < r.shape[1] - 1 else 0.0
+    sy = refine(r[py - 1, px], r[py, px], r[py + 1, px]) if 0 < py < r.shape[0] - 1 else 0.0
+    return float(px - border + sx), float(py - border + sy), score
+
+
+def _effective_config(config: dict, shift) -> dict:
+    """The configured coordinates moved by the current registration shift:
+    corners as floats (the warp takes them), lens spots rounded (they index)."""
+    dx, dy = shift
+    if not dx and not dy:
+        return config
+    out = dict(config)
+    warp = dict(config["display_warp"])
+    warp["corners"] = [{"x": c["x"] + dx, "y": c["y"] + dy} for c in warp["corners"]]
+    out["display_warp"] = warp
+    rx, ry = int(round(dx)), int(round(dy))
+    for key in ("leds", "indicators"):
+        if key in config:
+            out[key] = {k: {"x": v["x"] + rx, "y": v["y"] + ry}
+                        for k, v in config[key].items()}
+    return out
+
+
+def _reg_path(reg: dict) -> str:
+    return os.path.join(reg["state_dir"], _REG_FILE)
+
+
+def _reg_warn_once(tag: str, msg: str, *args):
+    if tag not in _REG["warned"]:
+        _REG["warned"].add(tag)
+        logger.warning(msg, *args)
+
+
+def _reg_clear_warn(tag: str):
+    _REG["warned"].discard(tag)
+
+
+def _reg_prepare(config: dict, reg: dict):
+    """Called at the start of a cycle: bind the module state to the current
+    calibration, loading a saved reference and last shift for it if any."""
+    key = _calibration_key(config)
+    if key == _REG["key"]:
+        return
+    _REG.update(key=key, ref=None, mask=None, region=None,
+                shift=(0.0, 0.0), history=[], score=None, path=_reg_path(reg))
+    _REG["warned"].clear()
+    try:
+        _, np = _require_cv()
+        with np.load(_REG["path"], allow_pickle=False) as z:
+            if str(z["key"]) == key:
+                _REG.update(ref=z["ref"], mask=z["mask"],
+                            region=tuple(int(v) for v in z["region"]),
+                            shift=(float(z["shift"][0]), float(z["shift"][1])))
+                _REG["history"] = [_REG["shift"]] if any(_REG["shift"]) else []
+                logger.info("Sentry: registration reference loaded, shift (%+.1f, %+.1f) px",
+                            *_REG["shift"])
+            else:
+                logger.info("Sentry: calibration changed; registration reference reset")
+    except FileNotFoundError:
+        pass
+    except Exception as exc:  # a corrupt file is not worth a dead reader
+        logger.warning("Sentry: registration state unreadable (%s); starting fresh", exc)
+
+
+def _reg_persist(created: float):
+    _, np = _require_cv()
+    path = _REG["path"]
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        tmp = path + ".tmp"
+        with open(tmp, "wb") as fh:
+            np.savez(fh, key=np.array(_REG["key"]), ref=_REG["ref"], mask=_REG["mask"],
+                     region=np.array(_REG["region"]), shift=np.array(_REG["shift"]),
+                     created=np.array(created))
+        os.replace(tmp, path)
+        _reg_clear_warn("persist")
+    except OSError as exc:
+        _reg_warn_once("persist", "Sentry: cannot write registration state to %s (%s); "
+                       "tracking continues in memory only until restart", path, exc)
+
+
+def _reg_update(config: dict, reg: dict, acc_min, margin, misses: int):
+    """End of cycle: capture the reference if there is none and the calibration
+    read sound, else measure the creep and fold it into the applied shift.
+    Returns (dx, dy, score) as applied for the next cycle."""
+    if acc_min is None:
+        return _REG["shift"] + (_REG["score"],)
+    _, np = _require_cv()
+    cur = _structure(acc_min, reg["blur_sigma"])
+
+    if _REG["ref"] is None:
+        if margin is not None and margin >= reg["min_margin"] and misses == 0:
+            _REG["ref"] = cur
+            _REG["mask"] = _digit_mask(cur.shape, config["display_warp"]["corners"],
+                                       _REG["region"], reg["mask_pad"])
+            _REG["shift"], _REG["history"], _REG["score"] = (0.0, 0.0), [], 1.0
+            _reg_persist(time.time())
+            logger.warning("Sentry: registration reference captured for calibration %s "
+                           "(margin %.0f); camera creep is tracked from here", _REG["key"], margin)
+        return _REG["shift"] + (_REG["score"],)
+
+    if cur.shape != _REG["ref"].shape:
+        _reg_warn_once("shape", "Sentry: frame size changed; registration reference reset")
+        _REG.update(ref=None, mask=None, shift=(0.0, 0.0), history=[], score=None)
+        return _REG["shift"] + (None,)
+
+    dx, dy, score = _register(_REG["ref"], cur, _REG["mask"], reg["border"])
+    _REG["score"] = score
+    if score < reg["min_score"]:
+        _reg_warn_once("score", "Sentry: registration match %.2f is under %.2f; holding the "
+                       "last shift (%+.1f, %+.1f). Sustained, the view has changed more than "
+                       "a creep: check the day/night lock, then recalibrate",
+                       score, reg["min_score"], *_REG["shift"])
+        return _REG["shift"] + (score,)
+    _reg_clear_warn("score")
+    if max(abs(dx), abs(dy)) > reg["max_shift"]:
+        _reg_warn_once("range", "Sentry: registration measured a %+.1f, %+.1f px move, beyond "
+                       "max_shift %d; holding (%+.1f, %+.1f). That is a knock: recalibrate "
+                       "display_warp, leds and indicators", dx, dy, reg["max_shift"], *_REG["shift"])
+        return _REG["shift"] + (score,)
+    _reg_clear_warn("range")
+
+    hist = _REG["history"][-(reg["history"] - 1):] + [(dx, dy)] if reg["history"] > 1 else [(dx, dy)]
+    _REG["history"] = hist
+    new = (statistics.median(h[0] for h in hist), statistics.median(h[1] for h in hist))
+    old = _REG["shift"]
+    _REG["shift"] = new
+    if (round(new[0]), round(new[1])) != (round(old[0]), round(old[1])):
+        logger.warning("Sentry: registration shift now (%+.1f, %+.1f) px, score %.2f "
+                       "(was %+.1f, %+.1f); quad and lens spots follow", new[0], new[1],
+                       score, old[0], old[1])
+        _reg_persist(time.time())
+    return _REG["shift"] + (score,)
+
+
+def registration_shift(config: dict):
+    """(dx, dy) saved for this calibration, or (0, 0). For tools that need the
+    quad the reader is using now rather than the one in config.yml."""
+    reg = _reg_cfg(config)
+    try:
+        _, np = _require_cv()
+        with np.load(_reg_path(reg), allow_pickle=False) as z:
+            if str(z["key"]) == _calibration_key(config):
+                return float(z["shift"][0]), float(z["shift"][1])
+    except Exception:
+        pass
+    return 0.0, 0.0
+
+
+# ---------------------------------------------------------------------------
+# Poll cycle
+# ---------------------------------------------------------------------------
+
 def _poll_cycle(config: dict) -> dict:
     """
     Open the RTSP stream, collect one stable reading per display mode plus LED
@@ -565,6 +844,15 @@ def _poll_cycle(config: dict) -> dict:
     mode_stable_min  = config.get("mode_stable_frames", 3)
     min_samples      = config.get("min_samples", 3)
     idle_ceiling     = config.get("water_idle_ceiling", _WATER_IDLE_CEILING)
+
+    # Registration: decode this cycle with the coordinates moved by the creep
+    # measured so far, and accumulate the structure image for the next measure.
+    reg = _reg_cfg(config)
+    base = config
+    if reg["enabled"] and "display_warp" in config:
+        _reg_prepare(config, reg)
+        config = _effective_config(base, _REG["shift"])
+    acc_min = None
 
     cap = _open_stream(rtsp_url)
     logger.debug("Sentry: connected to RTSP stream, polling for up to %ds", cycle_timeout)
@@ -595,6 +883,13 @@ def _poll_cycle(config: dict) -> dict:
             if not ret or frame is None:
                 continue
             last_frame = frame
+
+            if reg["enabled"] and "display_warp" in base:
+                if _REG["region"] is None:
+                    _REG["region"] = _registration_region(base, frame.shape, reg["pad"])
+                x0, y0, x1, y1 = _REG["region"]
+                sub = _to_gray(frame)[y0:y1, x0:x1]
+                acc_min = sub.copy() if acc_min is None else _np_minimum(acc_min, sub)
 
             mode  = _read_indicators(frame, config, ind_ratios)
             threshold, segments = _display_segments(frame, config)
@@ -740,6 +1035,10 @@ def _poll_cycle(config: dict) -> dict:
     result["decode_misses"] = misses
     result["decode_margin"] = _segment_margin(seg_lit, seg_unlit)
 
+    if reg["enabled"] and "display_warp" in base:
+        dx, dy, score = _reg_update(base, reg, acc_min, result["decode_margin"], misses)
+        result["registration"] = {"dx": dx, "dy": dy, "score": score}
+
     return result
 
 
@@ -852,6 +1151,14 @@ def status(config={}, output="default"):
     }
     if raw.get("decode_margin") is not None:
         health["hvac.boiler.sentry.decodeMargin"] = float(raw["decode_margin"])
+    # registrationX/Y: the camera creep (px) the quad and lens spots were moved
+    # by this cycle; registrationScore: the match behind it (1.0 = reference).
+    if raw.get("registration"):
+        r = raw["registration"]
+        health["hvac.boiler.sentry.registrationX"] = round(float(r["dx"]), 2)
+        health["hvac.boiler.sentry.registrationY"] = round(float(r["dy"]), 2)
+        if r.get("score") is not None:
+            health["hvac.boiler.sentry.registrationScore"] = round(float(r["score"]), 3)
     for sk_path, val in health.items():
         if output == "signalk":
             sk_add_value(sk_source, sk_path, val)
