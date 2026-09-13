@@ -590,8 +590,10 @@ def build_ext():
         B.rect_keepout(0, y0, 38.5, y1, name="housing rib")
         B.line(0, y0, 38.5, y0, "B.SilkS", 0.1)
         B.line(0, y1, 38.5, y1, "B.SilkS", 0.1)
-    # riser field: keep pads out of the power riser's terminal area (cols 1-5, rows 11-23)
-    B.rect_keepout(0, 25.0, 13.6, 58.5, layers=("F.Cu", "B.Cu"), name="power riser field")
+    # riser field: the power riser is not used, and the housing comes close to the board only
+    # in a small region at the lower end of its hole field (David, 2026-09-12), so the keepout
+    # covers columns 1-3 over rows 11-23 and leaves columns 4-5 free for the link header
+    B.rect_keepout(0, 25.0, 8.0, 58.5, layers=("F.Cu", "B.Cu"), name="power riser field")
 
     # probe sockets H1..H3 at row 2, entry toward the row-1 edge
     for ref, xc in (("H1", 7.57), ("H2", 20.27), ("H3", 32.97)):
@@ -601,13 +603,16 @@ def build_ext():
     ec1 = B.lib("C1", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 20.5, 11.0, 0, value="100n")
     ec1.Reference().SetPosition(mm(20.5, 13.6))   # below the part, clear of the "H2 spare" label
     B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 30.0, 30.0, 0, value="DS2482-100 (0x19)", dnp=True)
-    B.lib("C2", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 30.0, 37.5, 0, value="100n", dnp=True)
+    ec2 = B.lib("C2", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 18.5, 34.0, 0, value="100n", dnp=True)
+    ec2.Reference().SetPosition(mm(18.5, 36.6))   # below the part, clear of JP2's marker
     B.lib("R1", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", 22.0, 16.3, 0,
           value="2k2 rollback", dnp=True)
     B.lib("JP1", "Jumper", "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm", 34.5, 14.5, 90, value="GPIO4->DATA")
     B.lib("JP2", "Jumper", "SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm", 22.0, 29.0, 0, value="H3: bus/U2")
-    # link header at row 18, entry from the row-19 side (+y), as built
-    custom.append(B.place("J1", ptsm_hh(B, 5), 25.35, 44.34, 180, value="PTSM 0,5/5-HH-2,5-THR"))
+    # link header at row 18, entry from the row-19 side (+y), moved against the riser field so
+    # the right of the board stays clear where the housing opening to the INT board is: the
+    # PTSM plugs come in and out through that opening (David, 2026-09-12)
+    custom.append(B.place("J1", ptsm_hh(B, 5), 15.6, 44.34, 180, value="PTSM 0,5/5-HH-2,5-THR"))
     # prototyping field, lower field
     custom.append(B.place("PF1", pad_array(B, "Proto_11x6", 11, 6, square_first=False), 5.3, 68.0, 0, value="proto"))
     custom.append(B.place("J2", pad_array(B, "Pads_1x3", 1, 3), 35.5, 68.0, 0, value="VCC DATA GND"))
@@ -639,7 +644,8 @@ def build_ext():
     B.text("H3 spare/0x19", 32.97, 9.0, size=0.8)
     B.text("V D G", 7.57, 7.2, size=0.8)
     B.text("pivac EXT rev A", 19.25, 24.0, size=0.8)
-    B.text("LINK 1=3V3 2=SDA 3=SCL 4=GPIO4 5=GND", 19.25, 51.0, size=0.8)
+    B.text("LINK 1=3V3 2=SDA 3=SCL 4=GPIO4 5=GND", 15.6, 51.5, size=0.8)
+    B.text("plug access: keep clear", 30.5, 44.0, size=0.8, rot=90)
     B.text("power riser field - keep clear", 6.8, 41.0, size=0.8, rot=90)
     B.save()
     save_pretty(custom)

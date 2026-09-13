@@ -84,8 +84,10 @@ in DIP-16 sockets. **Placed, not fitted:** J7 PTSM 0,5/4-HH-2,5-THR.
 The trunk header H1 (VCC · DATA · GND), two spare headers H2 and H3, the DS2482-100 at 0x18
 with its 100 nF, a second DS2482 at 0x19 (U2, not fitted) selectable for H3 by the solder
 jumper JP2, the rollback jumper JP1 with its 2.2 kΩ pull-up (not fitted) to run the bus from
-GPIO 4 again, the 5-way link J1 (3V3 · SDA · SCL · GPIO4 · GND), a prototyping field, and the
-socket and link positions where the built board has them.
+GPIO 4 again, the 5-way link J1 (3V3 · SDA · SCL · GPIO4 · GND) at the built board's row but
+moved against the riser field so the right of the board stays clear where the housing opens to
+the INT board and the PTSM plugs pass through, a prototyping field, and the probe sockets where
+the built board has them.
 
 ### What each reference is
 

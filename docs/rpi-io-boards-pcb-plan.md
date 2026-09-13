@@ -140,9 +140,14 @@ U1 (DS2482-100, 0x18) and its 100 nF sit under the sockets; a second DS2482 (U2,
 its own decoupling is placed but not fitted in the mid field, and a three-pad solder jumper
 `JP2` sends H3's DATA either to the shared bus (default) or to U2. `JP1` bridges GPIO4 to DATA
 and `R1` (2k2, not fitted) is the pull-up, together the `w1-gpio` rollback. The 5-way link
-header is at row 18 with its entry from the row-19 side, as built. The lower field is an
-11 × 6 prototyping grid with VCC, DATA and GND pads beside it; the riser field is a rule area
-with no pads.
+header is at row 18 with its entry from the row-19 side, as built, but moved against the riser
+field (body x 8.5–22.7): the housing's opening to the INT board, the one the INT link headers sit
+beside, falls on the right of the EXT board at that height, and the PTSM plugs come in and out
+through it, so the right half of that band stays clear and says so on the silkscreen (David,
+2026-09-12). The power riser is not used, and the housing comes close to the board only in a
+small region at the lower end of its hole field, so the riser rule area covers columns 1–3 of
+rows 11–23 and nothing else. U2's decoupling C2 sits beside JP2. The lower field is an 11 × 6
+prototyping grid with VCC, DATA and GND pads beside it.
 
 ### 4.3 Pi power
 
