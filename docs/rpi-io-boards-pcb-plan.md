@@ -94,17 +94,20 @@ Fixed by the housing: the four PTSM plugs at the Phoenix pin positions along the
 entry facing the edge; the Pi socket on the solder side at the header position. The three
 LTV-847 sockets sit in a column at x 10.5–28 between the housing bands, one per row, and each
 row's four LED resistors stand beside its socket. The 24 VAC section is in the bottom field:
-four 1N4007 flat as the bridge. The 100 µF reservoir capacitor is an axial part lying flat in the
-strip between the plugs and U1, and the PTC disc lies flat on the right-hand strip above the
-link slot; nothing fitted on the component side stands taller than a DIP socket with its chip
-(Appendix A.3). The two link headers are on the
+four 1N4007 flat as the bridge, in one column at the right of the bottom field. The 100 µF
+reservoir capacitor is an axial part lying flat, standing between J4 and the link slot to the
+right of the resistor columns, with the PTC disc and the MOV position lying flat beside it;
+nothing fitted on the component side stands taller than a DIP socket with its chip (Appendix
+A.3). The bottom field under the Pi's USB stacks carries no through-hole part at all, since a
+pin tail there meets a USB shell (Appendix A.3); the prototyping field is gone. The two link
+headers are on the
 right-hand edge with their entries facing it, inside the housing's slot: the enclosure leaves no
 clearance around the board except the opening that matches the four top-edge plugs and a slot on
 the right-hand side, rows 9–23 (y 29.1–64.7), the height of a PTSM socket (David, 2026-09-12).
-Their pin row sits 6.95 mm inside the edge, as the top-edge plugs' does; J6 is centred at
-y 38.0 and J7 at 53.5. The PTC fuse stays on the right-hand strip above the slot; the MOV
-position, three test points (VS, COM, GND) and the spare channel outputs sit in the bottom-left
-field, and a 9 × 4 prototyping field fills the bottom right.
+Their pin row sits 6.0 mm inside the edge, 0.95 mm outboard of the top-edge plugs' 6.95, so the
+pads clear the housing rib's bulges and the headers clear the capacitor; the entry face is
+0.6 mm inside the edge. J6 is centred at y 38.0 and J7 at 53.5. The three test points (VS, COM,
+GND) and the spare channel outputs sit below the diode column, past the Pi's USB stacks.
 
 **Header breakout.** A shadow column of pads 2.54 mm inside the header's inner column gives one
 labelled pad per header row: SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND,
@@ -258,9 +261,11 @@ above the Pi's component face; the room left on the INT solder side is 16 − Z.
 | SoC, memory, wireless | 2.4 | anywhere else | | 13.6 |
 
 The housing's restricted bands (A.1) are a separate constraint on the same face. Nothing on
-the fabricated INT board sits on the solder side but the socket, so the Pi constrains only the
-pin tails, and the rule from the built board stands: trim every joint under the USB stacks
-flush.
+the fabricated INT board sits on the solder side but the socket, so the Pi constrains the pin
+tails, and under the USB stacks even a flush joint is a risk: the shells are Pi ground and the
+rectifier's nets are 35 V above COM. No through-hole part sits in x 1.5–34.5, y 66–85; the
+diode column, test points and spare pads sit past x 40 under the Ethernet jack's 2.5 mm, with
+every joint there trimmed flush.
 
 The **component side faces the cover**, and its limit is the cover's inner depth, unmeasured
 but proven on the built board for a DIP socket with its chip, about 8 mm. Every fitted part

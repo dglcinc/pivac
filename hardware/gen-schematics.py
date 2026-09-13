@@ -222,7 +222,7 @@ def build_int():
         if j == "J4":
             nets[1], nets[2] = "ACR", "ACC"
         S.place("Connector_Generic:Conn_01x04", j, "PTSM 0,5/4-HH", 40 + i * 45, 240, nets, footprint="pivac:PTSM_0.5_4-HH-2.5-THR")
-    S.place("Connector_Generic:Conn_01x03", "J8", "spare ch pads", 220, 240, {1: "S_SP-C", 2: "S_SP-E", 3: "COM"}, footprint="pivac:Pads_1x3")
+    S.place("Connector_Generic:Conn_01x03", "J8", "spare ch pads", 220, 240, {1: "S_SP-C", 2: "S_SP-E", 3: "COM"}, footprint="pivac:Pads_3x1")
 
     # supply
     S.text("24 VAC sense supply: PTC, MOV (not fitted), full-wave bridge, 100 uF; VS is about 35 V DC, COM its return; C1 and F1 lie flat, nothing on the component side stands over 8 mm", 250, 225, 1.6)

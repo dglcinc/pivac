@@ -422,7 +422,7 @@ def build_int():
         else:
             raise SystemExit("could not orient the DIP")
     # --- LED resistors, vertical, five columns right of the ICs, three rows
-    res_x = [32.0, 36.0, 40.0, 44.0]
+    res_x = [31.7, 35.0, 38.25, 41.5]   # 3.3 mm pitch leaves the strip right of R4 for C1
     n = 0
     for k, yc in ic_y.items():
         for i in range(4):
@@ -430,26 +430,30 @@ def build_int():
             B.lib(f"R{n}", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal",
                   res_x[i], yc - 5.08, 270, value="12k 1/4W")
     # --- rectifier: four 1N4007 flat, 2 x 2, bottom field
-    for i, (ref, x, y) in enumerate([("D1", 37.58, 67.0), ("D2", 37.58, 70.2), ("D3", 50.58, 67.0), ("D4", 50.58, 70.2)]):
+    # --- rectifier: four 1N4007 flat in one column at the right of the bottom field, past the
+    # Pi's USB stacks (solder side, no room) and mostly past its Ethernet jack (2.5 mm)
+    for i, (ref, x, y) in enumerate([("D3", 50.58, 67.0), ("D4", 50.58, 70.2), ("D1", 50.58, 73.4), ("D2", 50.58, 76.6)]):
         B.lib(ref, "Diode_THT", "D_DO-41_SOD81_P10.16mm_Horizontal", x - 5.08, y, 0, value="1N4007")
     # --- bulk capacitor, PTC, MOV, test points
-    # --- reservoir capacitor: axial, lying flat, along the left of the bottom field. The
-    # cover clears a DIP socket with its chip (about 8 mm, proven on the built board) and
-    # nothing fitted on the component side may stand taller: a 6.5 x 18 axial is 6.9 mm.
-    # 100 uF holds the 35 V rail's ripple to 2.8 V at the 34 mA the twelve LEDs draw. The
-    # footprint's origin is pad 1; pad 2 is 25 mm along +x, between the bridge and the edge.
-    B.lib("C1", "Capacitor_THT", "CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal", 8.5, 75.5, 0, value="100u 63V axial")
+    # --- reservoir capacitor: axial, lying flat, standing in the strip between J4 and J6,
+    # right of the resistor columns and left of the housing rib. The cover clears a DIP
+    # socket with its chip (about 8 mm, proven on the built board) and nothing fitted on the
+    # component side may stand taller: a 6.5 x 18 axial is 6.9 mm. 100 uF holds the 35 V
+    # rail's ripple to 2.8 V at the 34 mA the twelve LEDs draw. The footprint's origin is
+    # pad 1; pad 2 is 25 mm along +y. The bottom field under the Pi's USB stacks carries no
+    # through-hole part at all (David, 2026-09-12): a pin tail there meets a USB shell.
+    B.lib("C1", "Capacitor_THT", "CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal", 46.8, 11.1, 270, value="100u 63V axial")
     x2, y2 = B.pad_xy("C1", 2)
-    if abs(x2 - 33.5) > 0.01 or abs(y2 - 75.5) > 0.01:
-        raise SystemExit(f"C1 pad 2 at {x2:.2f},{y2:.2f}, wanted 33.5,75.5")
+    if abs(x2 - 46.8) > 0.01 or abs(y2 - 36.1) > 0.01:
+        raise SystemExit(f"C1 pad 2 at {x2:.2f},{y2:.2f}, wanted 46.8,36.1")
     # --- PTC lying flat above the link slot; the disc points away from the slot
-    custom.append(B.place("F1", radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1), 55.0, 27.5, 0, value="PTC 0.1A 60V"))
+    custom.append(B.place("F1", radial_flat(B, "PTC_Radial_P5.08_Flat", 5.08, 7.4, 3.1), 55.0, 28.1, 0, value="PTC 0.1A 60V"))
     # --- link headers on the right edge, inside the housing's slot (rows 9-23, y 29.1-64.7):
     # the enclosure leaves no clearance at the bottom edge (David, 2026-09-12). The pin row
-    # sits 6.3 mm inside the edge, 0.65 mm outboard of the top-edge plugs' 6.95, so the pads
-    # clear the rib's bulges at x 49.8 (edge 51.43) by 0.2 mm; the entry face is then 0.9 mm
-    # inside the edge. The entry faces +x.
-    LINK_X = 59.0 - 6.3
+    # sits 6.0 mm inside the edge, 0.95 mm outboard of the top-edge plugs' 6.95, so the pads
+    # clear the rib's bulges at x 49.8 (edge 51.43) by 0.5 mm and the header's courtyard
+    # clears the capacitor's; the entry face is then 0.6 mm inside the edge. The entry faces +x.
+    LINK_X = 59.0 - 6.0
     for ref, n, y, val, dnp in (("J6", 5, 38.0, "PTSM 0,5/5-HH-2,5-THR", False),
                                 ("J7", 4, 53.5, "PTSM 0,5/4-HH-2,5-THR", True)):
         fp = ptsm_hh(B, n)
@@ -461,15 +465,14 @@ def build_int():
                              f"courtyard x {pcbnew.ToMM(bb.GetLeft()):.1f}-{pcbnew.ToMM(bb.GetRight()):.1f} "
                              f"y {pcbnew.ToMM(bb.GetTop()):.1f}-{pcbnew.ToMM(bb.GetBottom()):.1f}")
     # --- MOV position, test points and the spare channel outputs in the bottom-left field
-    # MOV position (not fitted) flat under J4 beside the PTC, disc toward +y, on the AC
+    # MOV position (not fitted) flat under J4 above the PTC, disc toward +y, on the AC
     # input where its nets already run
-    custom.append(B.place("RV1", radial_flat(B, "MOV_Radial_P5.0_Flat", 5.0, 7.0, 3.0), 50.0, 10.5, 180, value="MOV 39V", dnp=True))
-    for ref, x, val in (("TP1", 17.5, "VS"), ("TP2", 20.5, "COM"), ("TP3", 23.5, "GND")):
-        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 82.5, 0, value=val))
-    custom.append(B.place("J8", pad_array(B, "Pads_1x3", 1, 3), 57.6, 75.0, 0, value="SP-C SP-E COM"))
+    custom.append(B.place("RV1", radial_flat(B, "MOV_Radial_P5.0_Flat", 5.0, 7.0, 3.0), 55.0, 10.85, 180, value="MOV 39V", dnp=True))
+    for ref, x, val in (("TP1", 40.0, "VS"), ("TP2", 43.0, "COM"), ("TP3", 46.0, "GND")):
+        custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 81.0, 0, value=val))
+    custom.append(B.place("J8", pad_array(B, "Pads_3x1", 3, 1), 49.5, 82.0, 0, value="SP-C SP-E COM"))
     # --- GPIO breakout (2 x 6 under the header) and prototyping field, bottom right
     custom.append(B.place("J9", shadow_column(B, BREAKOUT), BREAKOUT_X, 8.37, 0, value="GPIO breakout"))
-    custom.append(B.place("PF1", pad_array(B, "Proto_8x4", 8, 4, square_first=False), 37.0, 74.5, 0, value="proto"))
 
     # ---------------------------------------------------------------- nets
     # header; the five outer-column grounds are tied by a pre-routed bus along the board edge,
@@ -549,8 +552,8 @@ def build_int():
     B.text("pivac INT rev A -- 24 VAC in on J4.1/J4.2 -- COM is the sense return, never Pi GND",
            31.0, 63.4, size=0.8)
     B.text("Pi GND", 7.6, 59.5, size=0.8, rot=90)
-    B.text("LINK 3V3 SDA SCL G4 GND", 59.0 - PLUG_Y - 1.6, 38.0, size=0.8, rot=90, layer="B.SilkS")
-    B.text("PWR VS COM 5V GND", 59.0 - PLUG_Y - 1.6, 53.5, size=0.8, rot=90, layer="B.SilkS")
+    B.text("LINK 3V3 SDA SCL G4 GND", LINK_X - 1.6, 38.0, size=0.8, rot=90, layer="B.SilkS")
+    B.text("PWR VS COM 5V GND", LINK_X - 1.6, 53.5, size=0.8, rot=90, layer="B.SilkS")
     B.text("1", 3.5, 6.5, size=0.8)
     B.text("2", 1.0, 6.5, size=0.8)
     B.text("39", 3.5, 58.5, size=0.8)

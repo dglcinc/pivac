@@ -24,10 +24,12 @@ Eleven sense inputs on J1 to J3 through three LTV-847 optocouplers with 12 kΩ s
 (2.8 mA at about 35 V peak); the 24 VAC sense supply on J4.1/J4.2 (PTC, four 1N4007, 100 µF,
 MOV position not fitted); the 5-way link to the EXT board J6 and the unfitted 4-way power link
 J7, both on the right-hand edge inside the housing's slot with their entries facing the edge;
-a shadow column J9 breaking out the free header pins; the reservoir capacitor lying flat along
-the bottom-left with three test points below it; the spare channel pads J8 at the right edge
-below J7; a prototyping field bottom right. COM is the sense return and is never Pi ground.
-Header pins 1, 9, 25 and 39 are left open on the board; the Pi ties each to its twin.
+a shadow column J9 breaking out the free header pins; the reservoir capacitor standing between
+J4 and J6 with the PTC and the MOV position beside it; the bridge diodes in one column at the
+bottom right with the test points and the spare channel pads J8 below them. The bottom-left
+field is empty on purpose: it lies over the Pi's USB stacks, where a pin tail meets a USB shell.
+COM is the sense return and is never Pi ground. Header pins 1, 9, 25 and 39 are left open on
+the board; the Pi ties each to its twin.
 
 **Height.** The component side faces the cover, whose inner depth is unmeasured but proven
 on the built board for a DIP socket with its chip, about 8 mm. Nothing fitted stands taller:
@@ -35,7 +37,26 @@ the capacitor is an axial part lying flat (⌀6.5 × 18 mm, 6.9 mm high; the ⌀
 8.5 mm and also fits the footprint), the PTC disc lies flat (7.4 mm disc, 3.1 mm thick), the
 PTSM headers are 7.5 mm, the resistors and diodes lie flat. The solder side faces the Pi
 (`rpi-io-boards-pcb-plan.md` Appendix A.3 maps the Pi's connectors onto the board); nothing
-sits there but the socket, and every joint under the Pi's USB stacks is trimmed flush.
+sits there but the socket, no through-hole part sits under the USB stacks, and the joints under
+the Ethernet jack are trimmed flush.
+
+### What each reference is
+
+| Ref | Part | Purpose |
+|---|---|---|
+| J1–J4 | PTSM 0,5/4 plugs, top edge | Field wiring. J1: ZV, DHW, BLR, COM. J2: CHIL, BOS1, BOS2, COM. J3: DEHUM, SCALA, HPHEAT, COM. J4: 24 VAC, 24 VAC, SP-D, COM. |
+| J5 | 2 × 20 socket, solder side | The Pi's GPIO header. |
+| J6 | PTSM 0,5/5, right edge | Link to the EXT board: 3V3, SDA, SCL, GPIO4, GND. |
+| J7 | PTSM 0,5/4, right edge, not fitted | Power link for a later bus-powered Pi: VS, COM, +5V, GND. |
+| J8 | three pads, bottom right | Spare channels SP-C and SP-E with COM, for wires. |
+| J9 | shadow column beside the header | One labelled pad per free header pin (SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND, GND, GPIO20, GPIO21). |
+| U1–U3 | LTV-847 in DIP-16 sockets | Four optocoupler channels each: U1 for J1's three and CHIL, U2 for BOS1, BOS2, DEHUM, SCALA, U3 for HPHEAT, SP-D, SP-C, SP-E. |
+| R1–R12 | 12 kΩ 1/4 W | LED series resistor for each channel, 2.8 mA from the 35 V rail; R1–R4 beside U1, R5–R8 beside U2, R9–R12 beside U3. |
+| D1–D4 | 1N4007 | Full-wave bridge from the 24 VAC on J4.1/J4.2 to the VS rail and COM. |
+| C1 | 100 µF 63 V axial, flat | Reservoir on the VS rail; holds the ripple to 2.8 V. |
+| F1 | PTC 0.1 A 60 V, flat | Resettable fuse in the 24 VAC feed. |
+| RV1 | MOV 39 V, flat, not fitted | Surge clamp across the 24 VAC input, if ever wanted. |
+| TP1–TP3 | test pads | VS, COM and Pi GND for a meter. |
 
 **Fitted parts:** C1 100 µF 63 V axial, Vishay 021 ASM ⌀6.5 × 18 (or MAL202138101E3, ⌀8 × 18);
 D1–D4 1N4007; F1 PTC 0.1 A 60 V, Littelfuse 60R010XU; J1–J4 PTSM 0,5/4-HH-2,5-THR;
@@ -52,6 +73,22 @@ jumper JP2, the rollback jumper JP1 with its 2.2 kΩ pull-up (not fitted) to run
 GPIO 4 again, the 5-way link J1 (3V3 · SDA · SCL · GPIO4 · GND), a prototyping field, and the
 socket and link positions where the built board has them.
 
+### What each reference is
+
+| Ref | Part | Purpose |
+|---|---|---|
+| H1 | PTSM 0,5/3, top edge | The 1-wire trunk: VCC, DATA, GND. |
+| H2 | PTSM 0,5/3, top edge | Spare probe header on the same bus. |
+| H3 | PTSM 0,5/3, top edge | Spare probe header, on the bus or on U2 by JP2. |
+| J1 | PTSM 0,5/5 | Link from the INT board: 3V3, SDA, SCL, GPIO4, GND. |
+| J2 | three pads | VCC, DATA, GND of the bus, for wires or a scope. |
+| U1 | DS2482-100 at 0x18 | The I²C 1-wire master that drives the bus. |
+| U2 | DS2482-100 at 0x19, not fitted | A second master for a second bus on H3. |
+| C1, C2 | 100 nF | Supply decoupling for U1 and U2 (C2 not fitted). |
+| JP1 | solder jumper | Joins GPIO4 to DATA to run the bus from the Pi's own 1-wire again. |
+| JP2 | three-way solder jumper | Puts H3 on the bus or on U2. |
+| R1 | 2.2 kΩ, not fitted | DATA pull-up for the GPIO4 rollback; the DS2482 supplies its own. |
+
 **Fitted parts:** C1 100 nF; H1–H3 PTSM 0,5/3-HH-2,5-THR; J1 PTSM 0,5/5-HH-2,5-THR; JP1, JP2
 solder jumpers; U1 DS2482-100 SOIC-8. **Placed, not fitted:** C2 100 nF; R1 2.2 kΩ; U2 DS2482-100.
 
@@ -59,8 +96,8 @@ solder jumpers; U1 DS2482-100 SOIC-8. **Placed, not fitted:** C2 100 nF; R1 2.2 
 
 1. **The INT link headers against the housing slot.** The slot on the right-hand side runs
    rows 9–23 (y 29.1–64.7 in the board frame) at the height of a PTSM socket. J6's body spans
-   y 30.9–45.1 and J7's 47.65–59.35, both with their pin row 6.3 mm inside the edge and the
-   entry face 0.9 mm inside it. Hold a PTSM plug at those spots on the built board with the
+   y 30.9–45.1 and J7's 47.65–59.35, both with their pin row 6.0 mm inside the edge and the
+   entry face 0.6 mm inside it. Hold a PTSM plug at those spots on the built board with the
    cover on.
 2. **Nothing on the component side stands taller than a DIP socket with its chip**, which the
    built board proved against the cover. If the cover's inner depth is ever measured, record
