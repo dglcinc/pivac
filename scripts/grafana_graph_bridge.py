@@ -9,12 +9,27 @@ Reads credentials from environment (set via systemd EnvironmentFile=):
 
 Pattern lifted directly from bowling-league-tracker/check_health.py — same
 Azure AD app/secret works for both.
+
+Sentry eyecheck: when a firing alert carries the label `source: sentry`, the
+bridge also runs the boiler-display reader's check script (a short RTSP
+capture evaluated against the live calibration, no search) and sends a
+second email with its report and the eyecheck image, so the display and the
+quad can be judged from the phone. SENTRY_EYECHECK_CMD overrides the command
+(empty disables it); SENTRY_EYECHECK_PNG is where the command writes the
+image. At most one run per SENTRY_EYECHECK_MIN_INTERVAL_S (default 1800) so a
+flapping rule cannot keep the camera busy. The fix stays manual: a search
+cannot tell a stable misread from a right answer.
 """
 
+import base64
 import json
 import logging
 import os
+import shlex
+import subprocess
 import sys
+import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -22,6 +37,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 LISTEN_HOST = '127.0.0.1'
 LISTEN_PORT = 8125
+
+SENTRY_EYECHECK_PNG = os.environ.get('SENTRY_EYECHECK_PNG', '/tmp/sentry-eyecheck.png')
+SENTRY_EYECHECK_CMD = os.environ.get(
+    'SENTRY_EYECHECK_CMD',
+    '/home/pi/pivac-venv/bin/python /home/pi/github/pivac/scripts/sentry-warp-search.py '
+    '--capture 300 --eyecheck ' + SENTRY_EYECHECK_PNG)
+SENTRY_EYECHECK_MIN_INTERVAL_S = int(os.environ.get('SENTRY_EYECHECK_MIN_INTERVAL_S', '1800'))
 
 logger = logging.getLogger('grafana-graph-bridge')
 
@@ -41,7 +63,9 @@ def _graph_token(tenant_id, client_id, client_secret):
         return json.loads(r.read())['access_token']
 
 
-def _send_email(subject, html_body):
+def _send_email(subject, html_body, attachments=()):
+    """attachments: (name, content_type, bytes) triples. Each is attached and
+    also usable inline as <img src="cid:NAME">."""
     tenant_id     = os.environ['GRAPH_TENANT_ID']
     client_id     = os.environ['GRAPH_CLIENT_ID']
     client_secret = os.environ['GRAPH_CLIENT_SECRET']
@@ -49,14 +73,21 @@ def _send_email(subject, html_body):
     recipient     = os.environ.get('ALERT_RECIPIENT', sender)
 
     token = _graph_token(tenant_id, client_id, client_secret)
-    payload = json.dumps({
-        'message': {
-            'subject': subject,
-            'body':    {'contentType': 'HTML', 'content': html_body},
-            'toRecipients': [{'emailAddress': {'address': recipient}}],
-        },
-        'saveToSentItems': True,
-    }).encode()
+    message = {
+        'subject': subject,
+        'body':    {'contentType': 'HTML', 'content': html_body},
+        'toRecipients': [{'emailAddress': {'address': recipient}}],
+    }
+    if attachments:
+        message['attachments'] = [{
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            'name':         name,
+            'contentType':  content_type,
+            'contentId':    name,
+            'isInline':     True,
+            'contentBytes': base64.b64encode(data).decode(),
+        } for name, content_type, data in attachments]
+    payload = json.dumps({'message': message, 'saveToSentItems': True}).encode()
     req = urllib.request.Request(
         f'https://graph.microsoft.com/v1.0/users/{sender}/sendMail',
         data=payload,
@@ -98,6 +129,62 @@ def _format_alert(payload):
     return subject, html
 
 
+def _sentry_alerts(payload):
+    """Names of the firing alerts in this webhook that belong to the Sentry reader."""
+    return [a.get('labels', {}).get('alertname', '?') for a in payload.get('alerts', [])
+            if a.get('status') == 'firing' and a.get('labels', {}).get('source') == 'sentry']
+
+
+_eyecheck_lock = threading.Lock()
+_eyecheck_last = 0.0
+
+
+def _run_sentry_eyecheck(alertnames):
+    """Capture from the boiler camera, evaluate the live calibration, and email
+    the report with the eyecheck image. Runs on its own thread after the alert
+    email has gone out, so a slow capture never delays or fails the webhook."""
+    global _eyecheck_last
+    with _eyecheck_lock:
+        if time.time() - _eyecheck_last < SENTRY_EYECHECK_MIN_INTERVAL_S:
+            logger.info('sentry eyecheck skipped, last run %.0fs ago', time.time() - _eyecheck_last)
+            return
+        _eyecheck_last = time.time()
+        try:
+            os.unlink(SENTRY_EYECHECK_PNG)
+        except FileNotFoundError:
+            pass
+        try:
+            proc = subprocess.run(shlex.split(SENTRY_EYECHECK_CMD), capture_output=True,
+                                  text=True, timeout=300)
+            report = (proc.stdout + proc.stderr).strip()
+            if proc.returncode != 0:
+                report = f'exit {proc.returncode}\n{report}'
+        except Exception as e:  # timeout, missing interpreter, ...
+            report = f'eyecheck did not run: {e}'
+        attachments = []
+        try:
+            with open(SENTRY_EYECHECK_PNG, 'rb') as fh:
+                attachments.append(('eyecheck.png', 'image/png', fh.read()))
+        except OSError:
+            pass
+        html = (
+            f'<p>Triggered by: {", ".join(alertnames)}</p>'
+            + (f'<p><img src="cid:eyecheck.png" alt="eyecheck"></p>' if attachments
+               else '<p><em>no eyecheck image was written</em></p>')
+            + f'<pre>{report[:6000]}</pre>'
+            + '<p><small>Green boxes are the segment rectangles under the live quad; the '
+              'line above each panel is what the reader decodes from that frame. '
+              '"margin" is the lit/unlit separation in grey levels: 40 or more is sound, '
+              'under 20 is a calibration on a knife edge.</small></p>'
+        )
+        try:
+            _send_email('[Sentry eyecheck] ' + ', '.join(alertnames), html, attachments)
+            logger.info('sent sentry eyecheck (%d bytes image)',
+                        len(attachments[0][2]) if attachments else 0)
+        except Exception:
+            logger.exception('sentry eyecheck email failed')
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path != '/alert':
@@ -126,6 +213,12 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(502)
             self.end_headers()
             self.wfile.write(f'graph error: {e}'.encode())
+            return
+
+        sentry = _sentry_alerts(payload)
+        if sentry and SENTRY_EYECHECK_CMD:
+            threading.Thread(target=_run_sentry_eyecheck, args=(sentry,),
+                             name='sentry-eyecheck', daemon=True).start()
 
     def log_message(self, fmt, *args):
         logger.info('%s - %s', self.client_address[0], fmt % args)

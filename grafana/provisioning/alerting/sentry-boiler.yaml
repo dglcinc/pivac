@@ -428,3 +428,115 @@ groups:
         isPaused: false
         notification_settings:
           receiver: graph-bridge
+
+      # ---------------------------------------------------------------------
+      # 4. Calibration health, from the reader itself. decodeMargin is the
+      #    separation between the segments read as lit and those read as unlit,
+      #    in grey levels, published every cycle. A quad can decode 100 % clean
+      #    on the digits it happens to see and still sit on a knife edge: the
+      #    2026-09-09 quad read about 10 here from the moment it went live and
+      #    started reading every 6 as an 8 two days later, when the outdoor
+      #    temperature reached the 60s. A sound calibration reads 40 or more.
+      #    This fires on the margin itself, so it catches a drift before any
+      #    value goes wrong and two days before sentry-outdoor-divergence did.
+      #    noDataState is OK: sentry-cycle-stale covers a dead reader.
+      # ---------------------------------------------------------------------
+      - uid: sentry-decode-margin
+        title: Sentry display reader calibration on a knife edge (decodeMargin < 20)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.boiler.sentry.decodeMargin
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 20
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "Sentry display reader's lit/unlit segment separation has averaged under 20 grey levels for an hour (hvac.boiler.sentry.decodeMargin) — the display_warp quad is on a knife edge and digits will start misreading"
+          runbook: |
+            The reader measures every segment of every digit each cycle and
+            publishes the gap between the dimmest segment it read as lit and the
+            brightest it read as unlit. Sound calibrations read 40-60; the quad
+            that read every 6 as an 8 in September 2026 read about 10.
+            1. The bridge has emailed an eyecheck (subject "[Sentry eyecheck]")
+               with a fresh capture and the decode under the live quad; read it.
+            2. Confirm the camera is still locked to Night/IR (colour deltas
+               0.00 in the eyecheck report). A day/night flip is a different fix.
+            3. Recalibrate display_warp.corners per CLAUDE.md, scoring candidates
+               on this margin across their +/-1 px neighbours, never on the clean
+               rate alone; then re-aim leds/indicators in the same pass.
+        labels:
+          severity: warning
+          source: sentry
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge

@@ -22,6 +22,8 @@ from pivac.Sentry import (  # noqa: E402
     _low_margin,
     _MARGIN_BAND,
     _MIN_SEPARATION,
+    _segment_margin,
+    _decode_display,
 )
 
 CASES = [
@@ -123,6 +125,36 @@ MARGIN_CASES = [
 ]
 
 
+# Per-cycle separation metric (decodeMargin). Populations are real per-segment
+# brightnesses from 2026-09-12: the 2026-09-09 quad decoded "68" and "88" on
+# alternate frames because the tens digit's unlit b segment sat at 202-221
+# against a 209 bar; the replacement quad put it at 173-190.
+KNIFE_EDGE_UNLIT = [164, 170, 181, 190, 199, 202, 205, 208]
+KNIFE_EDGE_LIT   = [209, 212, 215, 217, 255, 255, 255, 255]
+SOUND_UNLIT      = [160, 167, 175, 182, 186, 189, 190, 195]
+SOUND_LIT        = [243, 250, 254, 255, 255, 255, 255, 255]
+
+SEGMENT_MARGIN_CASES = [
+    # (label, lit, unlit, expected)
+    ("09-09 quad: 6 reads 8 on alternate frames -> margin 1", KNIFE_EDGE_LIT, KNIFE_EDGE_UNLIT, 1.0),
+    ("09-12 quad: clear gap -> margin ~48", SOUND_LIT, SOUND_UNLIT, 48.0),
+    ("no lit population (no mode frames) -> None", [], SOUND_UNLIT, None),
+    ("no unlit population -> None", SOUND_LIT, [], None),
+]
+
+# _decode_display joins the per-digit decodes and strips the blank hundreds.
+DECODE_DISPLAY_CASES = [
+    ("blank hundreds, 6, 8 -> '68'",
+     [{"a": 133, "b": 159, "c": 179, "d": 148, "e": 150, "f": 160, "g": 161},
+      {"a": 255, "b": 192, "c": 255, "d": 255, "e": 255, "f": 255, "g": 255},
+      {"a": 255, "b": 255, "c": 255, "d": 255, "e": 255, "f": 255, "g": 255}], "68"),
+    ("b on the bar reads the 6 as an 8 -> '88'",
+     [{"a": 133, "b": 159, "c": 179, "d": 148, "e": 150, "f": 160, "g": 161},
+      {"a": 255, "b": 206, "c": 255, "d": 255, "e": 255, "f": 255, "g": 255},
+      {"a": 255, "b": 255, "c": 255, "d": 255, "e": 255, "f": 255, "g": 255}], "88"),
+]
+
+
 def main():
     assert _WATER_IDLE_CEILING == 185.0, _WATER_IDLE_CEILING
     assert _MARGIN_BAND == 0.03, _MARGIN_BAND
@@ -154,8 +186,23 @@ def main():
         if not ok:
             failures.append(label)
 
+    for label, lit, unlit, expect in SEGMENT_MARGIN_CASES:
+        got = _segment_margin(lit, unlit)
+        ok = got == expect
+        print(f"[{'PASS' if ok else 'FAIL'}] {label}: _segment_margin -> {got} (want {expect})")
+        if not ok:
+            failures.append(label)
+
+    for label, segments, expect in DECODE_DISPLAY_CASES:
+        got = _decode_display(segments, THR)
+        ok = got == expect
+        print(f"[{'PASS' if ok else 'FAIL'}] {label}: _decode_display -> {got!r} (want {expect!r})")
+        if not ok:
+            failures.append(label)
+
     print()
-    total = len(CASES) + len(DECODE_CASES) + len(MARGIN_CASES)
+    total = (len(CASES) + len(DECODE_CASES) + len(MARGIN_CASES)
+             + len(SEGMENT_MARGIN_CASES) + len(DECODE_DISPLAY_CASES))
     if failures:
         print(f"{len(failures)} FAILED: {failures}")
         sys.exit(1)
