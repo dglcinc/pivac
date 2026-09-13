@@ -49,7 +49,8 @@ import numpy as np
 import yaml
 
 from pivac.Sentry import (_read_display, _display_segments, _decode_display,  # noqa: E402
-                          _segment_margin, _roi_is_lit, _SANE_RANGE)
+                          _segment_margin, _roi_is_lit, _SANE_RANGE,
+                          registration_shift, _effective_config)
 
 # Region of the 2560x1440 frame holding digits, mode indicators and status LEDs.
 # Wide enough to hold the display at both the 2026-08-23 position (digits at
@@ -59,9 +60,21 @@ VALUE_MODES = ("water_temp", "air", "gas_input")
 
 
 def load_config(path=None):
+    """The Sentry block, with the reader's own creep correction folded into the
+    coordinates. pivac.Sentry tracks the camera's drift each cycle and moves the
+    quad and lens spots by a saved shift, so the corners in config.yml are the
+    calibration and the corners in use are those plus the shift. Searching from
+    the corrected quad keeps CURRENT honest; --apply writes absolute corners,
+    which changes the calibration key and resets the tracker's reference."""
     path = path or os.environ.get("PIVAC_CFG") or "/etc/pivac/config.yml"
     with open(path) as fh:
-        return yaml.safe_load(fh)["pivac.Sentry"], path
+        cfg = yaml.safe_load(fh)["pivac.Sentry"]
+    dx, dy = registration_shift(cfg)
+    if dx or dy:
+        print("registration shift in effect: (%+.1f, %+.1f) px; evaluating the corrected quad"
+              % (dx, dy))
+        cfg = _effective_config(cfg, (dx, dy))
+    return cfg, path
 
 
 def shift(cfg, ox, oy):
