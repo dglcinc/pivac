@@ -294,14 +294,50 @@ it; the boiler efficiency band of 87 to 92 % moves the break-even by about 5 ¢.
 122 °F target also runs the air handlers about 40 % longer than 140 °F boiler water does, a few
 cents per 100 kBTU that is not in the table.
 
-## 9. What this plan does not touch
+## 9. Winter: taking the chiller out of service, and spring return
+
+Below the balance point the panel sends every heat call to the boiler and the chiller sees only the
+cool contact, because the `HPHEAT` relay selects cool on its normally closed pair and heat when
+energised and there is no off signal. Powered and in cool mode through the winter, the unit
+re-chills the tank whenever it drifts past the restart point, a short cooling run every few days at
+whatever the ambient is. Cooling with 0 °F condenser air drives the evaporator far colder than
+summer, and the likely outcome is an E14 lockout, which needs a breaker cycle anyway. The energy at
+stake is small: measured in summer, runs with no primary call cost 0.14 kWh a day, and the tank
+holds its temperature with the Taco off. The reason to shut down is the compressor, not the bill.
+
+When the forecast holds below 40 °F for good, three settings together:
+
+1. Breaker off at the chiller.
+2. HZ-432 to boiler-only: balance temperature to 50 °F or the Emergency Heat button (§3). The panel
+   cannot tell that the heat pump is dead, and a January day above 40 °F would otherwise call it
+   and heat nothing.
+3. The four hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
+   raise a cool call. With the chiller off a cool call harms nothing, but it runs the Taco against
+   a tank that has drifted to room temperature.
+
+Spring is the reverse in the same order: breaker on at least 24 hours before the first call so the
+crankcase heater has done its work, balance temperature back to 40 °F, thermostats back to Cool or
+Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. Check the loop pressure, the glycol
+reading and the first run's `startupFlow` against 51.7 L/min.
+
+Glycol at 30 % covers the powered-down unit: freeze point about 8 °F and burst protection well below
+0 °F, so the five gallons in the outdoor exchanger may slush on the coldest night without harm. At
+25 % the freeze point is 14 °F, which is why the top-up to 30 % belongs before the shutdown.
+
+The tank cannot cover the boiler during a long DHW call. Below the balance point nothing routes it to
+the house: the tank is in circuit only on a heat-pump call, so holding it at 110 to 120 °F all winter
+would cost 0.3 to 0.6 kWh a day in standing loss and deliver nothing to a zone while the boiler is on
+DHW priority. The Ti-200's DHW priority time limit is the setting for that: the Sentry alternates
+back to space heating when it expires, and shortening it bounds the drop.
+
+## 10. What this plan does not touch
 
 The boiler, its pump and the Sentry path. The BOVA condensers, which cool their two zones and take
 no part in heating. The buffer tank and the glycol loop, which run at 110 to 120 °F on 25 %
 propylene glycol without complaint. The `.wlyt` layouts, since the SwitchBank enumerates the relay
 roster on its own.
 
-## 10. Open questions
+## 11. Open questions
 
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
