@@ -42,12 +42,22 @@ There is no cooling minimum-frequency parameter (P110 is heating-only), so the
 modulation floor is fixed hardware. The achievable win is longer cycles with
 gentler endings, not continuous modulation at arbitrarily low load.
 
+The start ramp is fixed as well. Averaged over the 146 runs of 12 minutes or
+less between 2026-08-28 and 09-13, the compressor reaches 42 Hz in its first
+minute and 50–52 Hz by minutes 2–3 whatever the load, then unwinds 44, 39, 33,
+29, 22, 15 Hz as the inlet falls to the stop point. Night runs (22:00–07:00)
+last a median 11 min with 36 min idle gaps; daytime runs last 26 min with 20 min
+gaps. The night pattern is a full-speed pull-down through the 9.5 °F band
+followed by a long idle rise, so the band width (change 2) is the only setting
+that can lengthen those runs. Through 2026-09-13 the target still reads 10 °C
+and P12 still reads 2; starts run 21–29 a day with median runs of 10–20 min.
+
 ## The changes, in order
 
 Make one change at a time and read the result from data already collected (§
 Verification) before the next.
 
-### 1. P95: 5 → 3 °C — made 2026-08-30, no measurable effect on cycling
+### 1. P95: 5 → 3 °C — made 2026-08-30; no effect on cycling, a 2 °F gain in antifreeze margin
 
 Narrows the pump-trim ΔT target. At part load the pump is then already near its
 target and has little reason to slow, so the destabilizing flow cut mostly
@@ -65,8 +75,25 @@ has not moved.** Matched on ambient so weather is not doing the work:
 
 The comparison window before the change is only 25 h, so this is weak evidence
 rather than a refutation. Run length rose in the 65–72 °F band, which is the
-direction wanted. It is not enough to credit the change with anything, and the
-cycling reduction now rests on change 2.
+direction wanted. It is not enough to credit the change with any cycling
+reduction, which now rests on change 2.
+
+What the change did move is the leaving-water floor at low speed, measured over
+the 4,580 running minutes at 26 Hz and below through 2026-09-13 against the 492
+before it:
+
+| ≤ 26 Hz | P95 = 5 | P95 = 3 |
+|---|---|---|
+| flow, 10th percentile | 21.8 L/min | 24.1 L/min |
+| evaporator ΔT, median | 5.9 °F | 5.2 °F |
+| outlet, 5th percentile | 38.2 °F | 40.5 °F |
+| outlet, minimum | 36.7 °F | 39.9 °F |
+
+Before the change the pump trimmed flow down at the compressor floor and the
+leaving water followed the ΔT toward the P59 trip; the twelve near misses of
+08-28 and 08-29 all happened at a steady 25 Hz. Since the change the steady
+floor sits at 40.3–40.6 °F, 3 °F above the trip, and every near miss has come
+from the end-of-run surge described under change 2.
 
 ### 2. Cooling target: 10 → 12 °C, then P12: 2 → 3 °C (a pair)
 
@@ -82,8 +109,16 @@ or below 38.5 °F leaving water, and the minimum reached **exactly 37.40 °F** o
 09-02 15:36 — the `P59` trip itself — with 37.58 °F on 08-31 07:37, 08-31 21:57 and
 09-05 22:51. `P59` is a level-one trip and E14 needs it twice, so these are near
 misses. Widening P12 at 10 °C would push them under. The excursions all sit at the
-end of a run, at full flow (49–52 L/min) and 39–52 Hz, so they are the normal stop
-transient rather than a restriction.
+end of a run, and since P95 = 3 they all share one shape: the run is idling at
+25 Hz with the inlet within a degree of the stop point, the inlet ticks up a few
+tenths as a zone opens, the compressor jumps to 47–60 Hz for one to three
+minutes, and the unit stops. Of 358 runs through 2026-09-13, the 18 that ended
+with a surge of 8 Hz or more (5 %) had outlet minima of 37.2–39.0 °F; the other
+340 averaged 40.4 °F with a spread of 0.9. The deepest, 37.22 °F (2.9 °C) on
+09-08 09:37, sat under the P59 level for one sample and register 284 stayed 0,
+so the trip needs persistence. Steady operation at the 10 °C target therefore
+carries a 3 °F margin and the surge is the whole exposure; flow is 49–52 L/min
+throughout, so a restriction plays no part.
 
 **Adding glycol does not substitute for this.** `P59` trips on a fixed 3 °C
 leaving-water temperature and knows nothing about concentration, so the 2026-09-03

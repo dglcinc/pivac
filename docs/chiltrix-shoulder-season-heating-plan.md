@@ -230,6 +230,13 @@ the IOM notes here nor the Modbus record shows one, so watch `r284` and `operati
 first heat-to-cool changeover. The heating COP and the pull-down rate are estimates until the first
 week's energy balance in §6 replaces them.
 
+The first measured changeover, on 2026-09-08 at 70 °F ambient, ran a partial swing: 14 minutes of
+heating at 55–60 Hz and 0.45 kWh moved the return from 51 to 77.5 °F with the supply at 86 °F, about
+85 kBTU/h from 3.2 kW, above the 40,000 to 55,000 BTU/hr working range assumed above because the
+water was still cool. The trip back from 77.7 to 44.6 °F took 36 minutes and 1.13 kWh, 0.034 kWh
+per °F of swing against the 0.021 in the table, with zones calling throughout, so the table's
+cooling figure is a floor until a changeover is measured with the zones quiet.
+
 ## 8. Chiller or boiler: the price of heat
 
 At $1.93 a therm and 18 ¢/kWh the Chiltrix heats the house for less than the boiler on every
