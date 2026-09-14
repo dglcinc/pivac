@@ -49,8 +49,8 @@ minute and 50–52 Hz by minutes 2–3 whatever the load, then unwinds 44, 39, 3
 last a median 11 min with 36 min idle gaps; daytime runs last 26 min with 20 min
 gaps. The night pattern is a full-speed pull-down through the 9.5 °F band
 followed by a long idle rise, so the band width (change 2) is the only setting
-that can lengthen those runs. Through 2026-09-13 the target still reads 10 °C
-and P12 still reads 2; starts run 21–29 a day with median runs of 10–20 min.
+that can lengthen those runs. At the 10 °C target through 2026-09-13,
+starts ran 21–29 a day with median runs of 10–20 min.
 
 ## The changes, in order
 
@@ -96,6 +96,11 @@ floor sits at 40.3–40.6 °F, 3 °F above the trip, and every near miss has com
 from the end-of-run surge described under change 2.
 
 ### 2. Cooling target: 10 → 12 °C, then P12: 2 → 3 °C (a pair)
+
+The target went to 12 °C at 17:00 EDT on 2026-09-14, entered as 54 °F on the panel and stored as
+12 (register 142 read back 285.15 K). P12 stays at 2 until two days of data confirm the band at
+about 48 °F stop and 58 °F restart and an outlet minimum near 41 °F; starts a day should not move
+until P12 does.
 
 The target raise does not by itself reduce cycle count — the band width does — but
 it moves the whole band up: stop inlet ≈ 48.2 °F, stop-moment leaving ≈ 43 °F,
