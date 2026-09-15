@@ -298,31 +298,60 @@ cents per 100 kBTU that is not in the table.
 
 Below the balance point the panel sends every heat call to the boiler and the chiller sees only the
 cool contact, because the `HPHEAT` relay selects cool on its normally closed pair and heat when
-energised and there is no off signal. Powered and in cool mode through the winter, the unit
+energised and there is no off signal. Enabled and in cool mode through the winter, the unit
 re-chills the tank whenever it drifts past the restart point, a short cooling run every few days at
 whatever the ambient is. Cooling with 0 °F condenser air drives the evaporator far colder than
-summer, and the likely outcome is an E14 lockout, which needs a breaker cycle anyway. The energy at
+summer, and the likely outcome is an E14 lockout, which needs a breaker cycle to clear. The energy at
 stake is small: measured in summer, runs with no primary call cost 0.14 kWh a day, and the tank
-holds its temperature with the Taco off. The reason to shut down is the compressor, not the bill.
+holds its temperature with the Taco off. The reason to stop it is the compressor, not the bill.
+
+Neither controller can do this on outdoor temperature. The HZ-432's advanced configuration (guide
+69-2198, Table 5) holds two outdoor settings: the OT balance temperature, which moves a dual-fuel
+heat call to the boiler, and the OT lockout temperature, which locks out second and third heating
+stages and applies only to conventional and heat pump panels. Nothing in it blocks a cool call. The
+Chiltrix has an outdoor-temperature standby (`P112` with `P42` and `P43`), and the IOM says it
+cannot be used with `C`-`H`-`COM` relay control, which is how this plant is wired; `P58`, the
+ambient floor that disables the compressor, defaults to −27 °C and protects against nothing above
+−17 °F.
+
+The unit stays powered and the controller goes to off. The IOM gives this as the procedure for
+relay-control wiring: "to turn the system off, you would select off at the thermostat and then also
+use the Chiltrix controller to stop the heat pump." In off the unit ignores the `C` and `H`
+contacts, keeps whatever standby protection it runs on its own power (the IOM lists `C17` "Freeze
+Protection" as a status independent of mode and treats standby as a normal powered state; it does
+not name a crankcase heater, and an inverter compressor warms its windings at standby either way),
+and holds the off state through a mains outage because `P00` power-down recovery is on. Modbus
+reads are function 03 and continue, so register 140 reads 0 all winter, ambient and water
+temperatures keep logging, any freeze-protection pump or compressor run shows in the record, and
+the `chiltrix-*` freshness alerts stay quiet. Breaker off would leave every
+`hvac.chiller.chiltrix.*` path stale and the rules firing until paused, and the IOM's only
+low-ambient advice is glycol.
 
 When the forecast holds below 40 °F for good, three settings together:
 
-1. Breaker off at the chiller.
+1. Chiltrix controller to off on the HMI. The breaker stays on. Confirm through
+   `hvac.chiller.chiltrix.switchOn` reading 0.
 2. HZ-432 to boiler-only: balance temperature to 50 °F or the Emergency Heat button (§3). The panel
-   cannot tell that the heat pump is dead, and a January day above 40 °F would otherwise call it
+   cannot tell that the heat pump is stopped, and a January day above 40 °F would otherwise call it
    and heat nothing.
 3. The four hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
    raise a cool call. With the chiller off a cool call harms nothing, but it runs the Taco against
    a tank that has drifted to room temperature.
 
-Spring is the reverse in the same order: breaker on at least 24 hours before the first call so the
-crankcase heater has done its work, balance temperature back to 40 °F, thermostats back to Cool or
-Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. Check the loop pressure, the glycol
+Spring is the reverse in the same order: controller back on, balance temperature back to 40 °F,
+thermostats back to Cool or Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. No
+warm-up wait is needed because the unit never lost power. Check the loop pressure, the glycol
 reading and the first run's `startupFlow` against 51.7 L/min.
 
-Glycol at 30 % covers the powered-down unit: freeze point about 8 °F and burst protection well below
-0 °F, so the five gallons in the outdoor exchanger may slush on the coldest night without harm. At
-25 % the freeze point is 14 °F, which is why the top-up to 30 % belongs before the shutdown.
+Glycol at 30 % covers the outdoor exchanger whatever the controller does: freeze point about 8 °F
+and burst protection well below 0 °F, so the five gallons outdoors may slush on the coldest night
+without harm. At 25 % the freeze point is 14 °F, which is why the top-up to 30 % belongs before the
+first hard frost.
+
+Two things the manuals leave open. Whether standby freeze protection runs the pump or the
+compressor at low water temperature will show in the first cold week's Modbus log. Whether `P10`
+"Cooling Validation" set to invalid would also block the `C` contact with the controller on is
+untested, and the off route needs neither answer.
 
 The tank cannot cover the boiler during a long DHW call. Below the balance point nothing routes it to
 the house: the tank is in circuit only on a heat-pump call, so holding it at 110 to 120 °F all winter
