@@ -122,9 +122,9 @@
   </g>
   <g transform="translate(640,675)" font-size="12">
     <text x="0" y="0" font-weight="bold" font-size="13">What the Chiltrix reads (IOM p. 40)</text>
-    <text x="0" y="18">No call, both closed: keeps its last mode, maintains the tank</text>
-    <text x="0" y="38">B energised, HPHEAT opens C, H alone: heating</text>
-    <text x="0" y="58">O energised, HPCOOL opens H, C alone: cooling</text>
+    <text x="0" y="18">Panel in neither mode, both closed: keeps its last mode, maintains the tank</text>
+    <text x="0" y="38">B held (panel in heating mode), HPHEAT opens C, H alone: heating</text>
+    <text x="0" y="58">O held (panel in cooling mode), HPCOOL opens H, C alone: cooling</text>
     <text x="0" y="78">B and O together, both open: standby (the panel never does this)</text>
     <text x="0" y="106" fill="#555">Lost O lead: never told to cool. Lost B lead: never told to heat.</text>
     <text x="0" y="124" fill="#555">Poles 3 and 4 (3·7·11, 4·8·12) are spare on both relays.</text>

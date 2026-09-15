@@ -422,8 +422,8 @@ groups:
           receiver: graph-bridge
 
       # ---- Cooling mode in cold weather: a stale cool call the plant cannot clear ----
-      # Under option 2 relay control (both C-H-COM contacts closed at rest, since 2026-09-14)
-      # the controller keeps whatever mode the last call gave it. A cooling call raised by
+      # Under option 2 relay control (since 2026-09-14) the HZ-432 holds O or B by mode, so
+      # the controller keeps whatever mode the last call gave the panel. A cooling call raised by
       # solar gain on a thermostat left on Auto, or a cold snap arriving after the last cool
       # call, leaves the unit maintaining the tank at 12 C with sub-40 F condenser air. The
       # evaporator runs far colder than in summer, P59 trips on leaving water, and the second
@@ -631,7 +631,7 @@ groups:
             clear — only a breaker cycle does.
 
             1. Find the cool call. A hydronic thermostat on Auto with solar gain is the usual
-               source; the Relays panel shows HPCOOL = 1 while the panel calls cooling. Set the
+               source; the Relays panel shows HPCOOL = 1 while the panel is in cooling mode. Set the
                four hydronic thermostats to Heat, never Auto, for the heating season.
             2. Give the unit a heating call, or switch the controller off on the HMI. With the
                forecast holding below 40 F the winter procedure applies: controller off on the

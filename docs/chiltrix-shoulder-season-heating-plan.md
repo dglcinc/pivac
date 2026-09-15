@@ -49,10 +49,14 @@ in one of two ways, chosen by relay type:
 
 The block has four states, drawn on IOM p. 40: both contacts open is standby, `C` alone is
 cooling, `H` alone is heating, and both closed hands the mode to the wired controller. Option 2
-rests in that last state and a call opens the opposite contact, so a heating call leaves `H` alone
-and a cooling call leaves `C` alone. When the call ends both contacts close again and the
-controller holds the mode it was just given, maintaining the tank on its `P12` band until the
-other call arrives. This plan wires option 2. Under option 1 a satisfied heat call drops the unit
+is two normally closed relays, one per contact, each opened by the thermostat's call for the
+other mode. On this plant the relays are driven by the HZ-432's `O` and `B`, which are
+changeover-valve outputs: the panel holds `O` for as long as it is in cooling mode and `B` for as
+long as it is in heating mode, call or no call, to spare a reversing valve the wear of cycling.
+So the chiller sees `C` alone throughout cooling mode and `H` alone throughout heating mode, the
+panel does the latching, and both contacts are closed only when the panel is in neither mode,
+where the controller keeps its last mode. Either way the unit holds the mode of the last call and
+maintains the tank on its `P12` band until the panel changes mode. This plan wires option 2. Under option 1 a satisfied heat call drops the unit
 to standby and the tank coasts, which is tolerable, but a single relay driven by `B` can only ever
 show the chiller one contact closed, and with `C` on its resting pole every satisfied heat call
 commands cooling: the 8 September test ended with the unit back in mode 0 within a minute and 36
@@ -120,20 +124,22 @@ normally closed pole holds the chiller's `C`-`COM` closed and opens it while `B`
 and, since 14 September 2026, its `O` drives `HPCOOL`, whose normally closed pole holds `H`-`COM`
 closed and opens it while `O` is energised. The two pairs from the chiller are two pairs,
 `C`-`COM` on `HPHEAT`'s pole 1 and `H`-`COM` on `HPCOOL`'s, both `COM` conductors on the block's
-one `COM` terminal. The jumpers Chiltrix ships on the block are out and `P111` is enabled. At
-rest both contacts are closed.
+one `COM` terminal. The jumpers Chiltrix ships on the block are out and `P111` is enabled. The
+panel holds `O` through cooling mode and `B` through heating mode (confirmed 14 September 2026:
+`HPCOOL` read 1 without a break through calls and idle while `CHIL` cycled), so one contact stays
+open for as long as the panel is in a mode, and both are closed only when it is in neither.
 
 | Signal | Source | Does |
 |---|---|---|
 | `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling. `CHIL` no longer touches the chiller |
-| `B` | HZ-432 equipment terminal, energised in heat-pump heating (25.6 VAC on `Y1` and `O` with `B` dark on a cooling call, `B` energised in the panel's Checkout heat-stage test, 8 September 2026) | Energises `HPHEAT`; its normally closed pole opens `C`-`COM`, leaving `H` alone: heating |
-| `O` | HZ-432 equipment terminal, energised in cooling | Energises `HPCOOL`; its normally closed pole opens `H`-`COM`, leaving `C` alone: cooling |
-| neither | | Both contacts closed: the controller keeps the mode it was last given and maintains the tank |
+| `B` | HZ-432 equipment terminal, held for as long as the panel is in heating mode (25.6 VAC on `Y1` and `O` with `B` dark on a cooling call, `B` energised in the panel's Checkout heat-stage test, 8 September 2026) | Energises `HPHEAT`; its normally closed pole opens `C`-`COM`, leaving `H` alone: heating |
+| `O` | HZ-432 equipment terminal, held for as long as the panel is in cooling mode (1 without a break on `HPCOOL` through calls and idle, 14 September 2026) | Energises `HPCOOL`; its normally closed pole opens `H`-`COM`, leaving `C` alone: cooling |
+| neither | The panel in neither mode, as after a power-up before any call | Both contacts closed: the controller keeps the mode it last held and maintains the tank |
 | both | Only if the panel raised `B` and `O` together, which it does not | Both contacts open: standby. Harmless |
 | `COM` | chiller | Return for each contact, dry, no voltage applied; each pair carries its own `COM` conductor to its relay's pole 1 common |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
-| `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel calls heat-pump heating |
-| `HPCOOL` spare pole | | The `SP-C` channel, J4.2 on the perfboard, BCM 13, as `HPCOOL`: 1 while the panel calls cooling. On the rev A board `SP-C` ends on the J8 pads, so at the swap the wire goes to J4.3 `SP-D` and the config pin to 19 |
+| `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel is in heat-pump heating mode |
+| `HPCOOL` spare pole | | The `SP-C` channel, J4.2 on the perfboard, BCM 13, as `HPCOOL`: 1 while the panel is in cooling mode, so all summer. On the rev A board `SP-C` ends on the J8 pads, so at the swap the wire goes to J4.3 `SP-D` and the config pin to 19 |
 
 A lost `O` lead leaves the chiller in its last mode and never commands cooling; a lost `B` lead
 never commands heating. Neither runs anything it should not. `HPHEAT` was fitted and proven
@@ -186,10 +192,10 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
 4. `HPCOOL` is fitted per §4 (14 September 2026), `13: outname: HPCOOL` is in the GPIO block of
    `/etc/pivac/config.yml`, its `order` is 5 in `~/.signalk/baseDeltas.json`, and it publishes as
-   `electrical.ac.switch.utility.HPCOOL`. Still to confirm on the panel: `C63` and `C64` both read
-   1 with no call, a zone cooling call drops `C63` to 0 with `HPCOOL` at 1, and the Checkout
-   heat-stage test drops `C64` to 0 with `HPHEAT` at 1. After each call ends, both must return to
-   1 and register 141 must keep the mode the call set.
+   `electrical.ac.switch.utility.HPCOOL`, reading 1 for as long as the panel is in cooling mode.
+   Still to confirm on the panel: in cooling mode `C64` reads 1 and `C63` 0, with or without a
+   call; the first heat call swaps them, `HPCOOL` drops to 0 and `HPHEAT` rises to 1, and they
+   stay swapped after the call ends with register 141 holding 1.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should
    put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
