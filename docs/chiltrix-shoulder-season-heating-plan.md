@@ -369,7 +369,10 @@ When the forecast holds below 40 °F for good, three settings together:
    and heat nothing.
 3. The four hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
    raise a cool call. With the chiller off a cool call harms nothing, but it runs the Taco against
-   a tank that has drifted to room temperature.
+   a tank that has drifted to room temperature. Under option 2 a cool call that slips through
+   leaves the unit in cooling mode, and `chiltrix-cooling-cold` emails and raises a Signal K
+   notification once it has sat enabled in cooling with its own ambient under 40 °F for 30
+   minutes; the remedy is a heating call or the HMI off.
 
 Spring is the reverse in the same order: controller back on, balance temperature back to 40 °F,
 thermostats back to Cool or Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. No

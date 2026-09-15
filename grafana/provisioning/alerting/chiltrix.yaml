@@ -226,8 +226,8 @@ groups:
       # ITSELF off (register 140 -> 0) for the last 4 minutes of the lockout, so a `last` reducer
       # would have suppressed the alarm partway through its own event. max over the window keeps
       # it armed through a self-shutdown while still suppressing a deliberate seasonal switch-off,
-      # where switchOn stays 0 for the whole window. (Documented winter shutdown is a breaker-off
-      # at the chiller, which takes Modbus with it and lands on chiltrix-modbus-stale instead.)
+      # where switchOn stays 0 for the whole window. (The documented winter state is controller
+      # off on the HMI with the breaker on, so switchOn reads 0 and Modbus keeps publishing.)
       #
       # 7m window + 3m for: the 2026-09-03 event ran 16:20-16:36 EDT, so the last nonzero sample
       # leaves the window at 16:26 and the rule fires 16:29 — 7 minutes of firing before the
@@ -414,6 +414,235 @@ groups:
                Y-strainer (see chiltrix-pump-only-flow-low) and check for an air lock.
             5. Do NOT open the autofill to recover pressure. This is a glycol loop — top up
                manually with premixed glycol to 21-23 psi, then vent.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Cooling mode in cold weather: a stale cool call the plant cannot clear ----
+      # Under option 2 relay control (both C-H-COM contacts closed at rest, since 2026-09-14)
+      # the controller keeps whatever mode the last call gave it. A cooling call raised by
+      # solar gain on a thermostat left on Auto, or a cold snap arriving after the last cool
+      # call, leaves the unit maintaining the tank at 12 C with sub-40 F condenser air. The
+      # evaporator runs far colder than in summer, P59 trips on leaving water, and the second
+      # trip is E14, which needs a breaker cycle. Nothing on the HZ-432 or the CX can clear a
+      # cool call on outdoor temperature (P58 is -27 C; P42/P43 switch-over is unusable with
+      # C-H-COM), so this rule is the only automatic notice.
+      #
+      # Signals are the chiller's own: register 141 mode (0 = cooling), register 202 ambient
+      # (Kelvin), register 140 switchOn. 40 F = 277.59 K matches the HZ-432 balance point,
+      # below which the panel never asks the heat pump for anything. Means over 30 minutes
+      # ride out register glitches; switchOn uses max so a self-shutdown mid-fault stays
+      # armed while a deliberate HMI off (the documented winter state) silences it within
+      # the window. Fires on the risk state itself — mode cooling and enabled in cold air —
+      # so it lands before the compressor's next run, which is the point.
+      - uid: chiltrix-cooling-cold
+        title: Chiltrix in cooling mode with outdoor air below 40 F
+        condition: H
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.operatingMode
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.ambientTemp
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: C
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: C
+              reducer: mean
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.switchOn
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: E
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: E
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B < 0.5) && ($D < 277.59) && ($F > 0)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: H
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: G
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: H
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - G
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 30m
+        annotations:
+          summary: "Chiltrix is enabled in cooling mode with outdoor air below 40 F — a stale cool call; put it in heating or switch it off before P59 trips E14"
+          runbook: |
+            The controller holds the mode of the last call (option 2, both C-H-COM contacts
+            closed at rest) and is maintaining the tank at 12 C with condenser air under 40 F.
+            Left alone it runs the evaporator toward the P59 antifreeze trip (3 C leaving water),
+            and the second trip locks the unit out on E14, which the Error reset button does not
+            clear — only a breaker cycle does.
+
+            1. Find the cool call. A hydronic thermostat on Auto with solar gain is the usual
+               source; the Relays panel shows HPCOOL = 1 while the panel calls cooling. Set the
+               four hydronic thermostats to Heat, never Auto, for the heating season.
+            2. Give the unit a heating call, or switch the controller off on the HMI. With the
+               forecast holding below 40 F the winter procedure applies: controller off on the
+               HMI with the breaker on, HZ-432 balance temperature to 50 F or Emergency Heat,
+               thermostats on Heat (docs/chiltrix-shoulder-season-heating-plan.md section 9).
+            3. Check hvac.chiller.chiltrix.raw.r284 for a nonzero value and read the panel's
+               error log before pressing anything: a P59 level-one trip may already be logged.
+               If E14 has latched, breaker off for a minute, then on; expect a few minutes
+               before the compressor restarts on its own minimum-off timer.
+            4. Confirm afterwards: operatingMode reads 1 (or switchOn 0), and this rule clears
+               within its 30-minute window.
         labels:
           severity: warning
           source: chiltrix
