@@ -26,7 +26,7 @@ ROWS = [
     ("J3.3  HPHEAT",    "(24,18)"),
     ("J3.4  24V COM",   None),
     ("J4.1  +14V IN",   None),
-    ("J4.2  SP-C",      "(13,33)"),
+    ("J4.2  HPCOOL",    "(13,33)"),
     ("J4.3  SP-D",      "(19,35)"),
     ("J4.4  24V COM",   None),
     None,

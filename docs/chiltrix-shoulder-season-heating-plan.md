@@ -4,9 +4,9 @@
 **Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
 `HPHEAT` relay is wired, proven in the panel's test mode and monitored on the Pi under the same
 name, all on 8 September
-2026. Still to do: the `HPCOOL` relay and the `H` lead move that complete the option 2 wiring in
-§4, the factory outdoor sensor, the heating target confirmed at 50 °C, and the live-call proof in
-§5. The controls are read from the CX65 IOM (pp. 37–41, 67) and the HZ-432 installation guide
+2026, and `HPCOOL` fitted on 14 September with the `H`-`COM` pair moved to it, so the block now
+runs as option 2. Still to do: the factory outdoor sensor, the heating target confirmed at 50 °C,
+and the live-call proof in §5. The controls are read from the CX65 IOM (pp. 37–41, 67) and the HZ-432 installation guide
 (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
@@ -114,16 +114,14 @@ The panel does all three already.
 
 ## 4. Wiring
 
-Today the HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco and feed the Pi input on
-BCM 25; its `W1` drives the boiler call and the `BLR` input; and its `B` drives `HPHEAT`, whose
-normally closed pole holds the chiller's `C`-`COM` closed at rest and whose normally open pole
-closes `H`-`COM` while `B` is energised. The jumpers Chiltrix ships on the block are out and
-`P111` is enabled. The change to option 2 adds one relay, `HPCOOL`, driven by the panel's `O`
-terminal, and moves one pair: the chiller's `H`-`COM` pair leaves `HPHEAT` (its `H` conductor
-from the normally open pole) and lands on `HPCOOL`'s pole 1, `H` on the normally closed contact
-and its `COM` conductor on the common. The two pairs from the chiller stay two pairs, `C`-`COM`
-on `HPHEAT` and `H`-`COM` on `HPCOOL`, both `COM` conductors on the block's one `COM` terminal.
-At rest both contacts are then closed.
+The HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco and feed the Pi input on
+BCM 25; its `W1` drives the boiler call and the `BLR` input; its `B` drives `HPHEAT`, whose
+normally closed pole holds the chiller's `C`-`COM` closed and opens it while `B` is energised;
+and, since 14 September 2026, its `O` drives `HPCOOL`, whose normally closed pole holds `H`-`COM`
+closed and opens it while `O` is energised. The two pairs from the chiller are two pairs,
+`C`-`COM` on `HPHEAT`'s pole 1 and `H`-`COM` on `HPCOOL`'s, both `COM` conductors on the block's
+one `COM` terminal. The jumpers Chiltrix ships on the block are out and `P111` is enabled. At
+rest both contacts are closed.
 
 | Signal | Source | Does |
 |---|---|---|
@@ -135,11 +133,12 @@ At rest both contacts are then closed.
 | `COM` | chiller | Return for each contact, dry, no voltage applied; each pair carries its own `COM` conductor to its relay's pole 1 common |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel calls heat-pump heating |
-| `HPCOOL` spare pole | | The `SP-D` channel, BCM 19 (J4.3 on the rev A board, pad (5,19) on the perfboard), as `HPCOOL`: 1 while the panel calls cooling |
+| `HPCOOL` spare pole | | The `SP-C` channel, J4.2 on the perfboard, BCM 13, as `HPCOOL`: 1 while the panel calls cooling. On the rev A board `SP-C` ends on the J8 pads, so at the swap the wire goes to J4.3 `SP-D` and the config pin to 19 |
 
 A lost `O` lead leaves the chiller in its last mode and never commands cooling; a lost `B` lead
-never commands heating. Neither runs anything it should not. `HPHEAT` is fitted and follows `B`,
-checked 8 September 2026.
+never commands heating. Neither runs anything it should not. `HPHEAT` was fitted and proven
+against `B` on 8 September 2026 and `HPCOOL` on 14 September, when it read 1 in Signal K against
+a live cooling call with `CHIL` 1 and `HPHEAT` 0.
 
 Both relays are Magnecraft 782 series 4PDT ice cubes with 24 VAC coils in 70-782EL14-1 sockets.
 The socket's terminals, from its datasheet (Schneider legacy general purpose relays, socket
@@ -155,9 +154,9 @@ link A1 and A2 across neighbouring sockets: the A2 side may carry the shared 24 
 | 14 (A2, coil) | HZ-432 `C`, 24 VAC common | HZ-432 `C`, 24 VAC common |
 | 9 (pole 1 common) | `COM` conductor of the `C` pair | `COM` conductor of the `H` pair |
 | 1 (pole 1 normally closed) | Chiltrix `C` | Chiltrix `H` |
-| 5 (pole 1 normally open) | nothing; the `H` pair leaves here | nothing |
+| 5 (pole 1 normally open) | nothing | nothing |
 | 10 (pole 2 common) | I/O board `COM` (J3.4) | I/O board `COM` (J4.4) |
-| 6 (pole 2 normally open) | I/O board J3.3, `HPHEAT`, BCM 24 | I/O board J4.3, `SP-D`, `HPCOOL`, BCM 19 |
+| 6 (pole 2 normally open) | I/O board J3.3, `HPHEAT`, BCM 24 | I/O board J4.2, `SP-C`, `HPCOOL`, BCM 13 |
 | 2 (pole 2 normally closed) | nothing | nothing |
 | 3, 4, 7, 8, 11, 12 | spare | spare |
 
@@ -185,14 +184,12 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
 3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its spare pole is on J3.3,
    BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
-4. Fit `HPCOOL` per §4: coil on `O` and the 24 VAC common, pole 1 normally closed in series with
-   `H`, pole 2 normally open to the `SP-D` input, move the `H`-`COM` pair over from `HPHEAT`, and add `19: outname: HPCOOL` to the GPIO block
-   of `/etc/pivac/config.yml`, an `order` entry in `~/.signalk/baseDeltas.json`, then `restart
-   pivac-gpio` and `restart signalk`. Move the `H` lead off `HPHEAT`'s normally open pole. Confirm
-   on the panel that `C63` and `C64` both read 1 with no call, that a zone cooling call drops
-   `C63` to 0 with `HPCOOL` at 1, and that the Checkout heat-stage test drops `C64` to 0 with
-   `HPHEAT` at 1. Move the `H`-`COM` pair off `HPHEAT`'s normally open pole and its common. After each call ends, both must return to 1 and register 141 must keep the mode
-   the call set.
+4. `HPCOOL` is fitted per §4 (14 September 2026), `13: outname: HPCOOL` is in the GPIO block of
+   `/etc/pivac/config.yml`, its `order` is 5 in `~/.signalk/baseDeltas.json`, and it publishes as
+   `electrical.ac.switch.utility.HPCOOL`. Still to confirm on the panel: `C63` and `C64` both read
+   1 with no call, a zone cooling call drops `C63` to 0 with `HPCOOL` at 1, and the Checkout
+   heat-stage test drops `C64` to 0 with `HPHEAT` at 1. After each call ends, both must return to
+   1 and register 141 must keep the mode the call set.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should
    put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
