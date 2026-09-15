@@ -46,6 +46,16 @@ def test_gate():
         ("relay on, zone heating       -> open", True, [1], True),
         ("relay unreadable             -> shut", None, [-1], False),
         ("relay on, zone unreadable    -> shut", True, [None], False),
+        ("relay on, zone fan-only      -> shut", True, [0.5], False),
+    ]
+    heat_cases = [
+        # (label, relay, zones, heat_zones, expected)
+        ("heat zone heating            -> open", True, [0], [1], True),
+        ("heat zone cooling (Bosch)    -> shut", True, [0], [-1], False),
+        ("heat zone only, heating      -> open", True, None, [1], True),
+        ("heat zone only, cooling      -> shut", True, None, [-1], False),
+        ("heat zone unreadable         -> shut", True, [0], [None], False),
+        ("own zone cooling, heat idle  -> open", True, [-1], [0], True),
     ]
     failures = 0
     for label, relay, zones, expected in cases:
@@ -53,7 +63,12 @@ def test_gate():
         ok = got == expected
         failures += not ok
         print("%-4s gate: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
-    return failures, len(cases)
+    for label, relay, zones, heat_zones, expected in heat_cases:
+        got = _gate_open(relay, zones, heat_zones)
+        ok = got == expected
+        failures += not ok
+        print("%-4s gate: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
+    return failures, len(cases) + len(heat_cases)
 
 
 def test_values():

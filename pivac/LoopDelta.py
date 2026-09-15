@@ -96,24 +96,37 @@ def _value(tree, *path, **kw):
     return node["value"]
 
 
-def _gate_open(relay_state, zone_states):
+def _calling(z):
+    """A zone is calling on a heat (1) or cool (-1) equipment state.  RedLink's
+    fan-only state is 0.5 and moves no water, so it must not open a gate."""
+    return z is not None and (z >= 1 or z <= -1)
+
+
+def _gate_open(relay_state, zone_states, heat_zone_states=None):
     """True when this loop is pumping.
 
     `relay_state` is the loop's own pump relay once one is wired, or the shared
     CHIL relay until then.  CHIL alone is not sufficient for a secondary,
-    because it asserts when ANY chiller zone calls — including one on the other
+    because it asserts when ANY hydronic zone calls — including one on the other
     loop, which is exactly the case that fabricates a delta-T.  `zone_states`
-    narrows it to this loop's zones.  A zone counts as calling on any non-zero
-    equipment state, so the gate works in heating as well as cooling.
+    narrows it to this loop's zones: any heat or cool call counts.
+
+    `heat_zone_states` are zones that heat from this loop but cool from their
+    own equipment (the kitchen and great room have Bosch compressors), so only
+    a heat call (state >= 1) counts for them.  Their cool call runs a Bosch and
+    moves no water here.  All five zones heat hydronically, so in heating every
+    zone belongs to some loop's gate.
 
     Returns False if the relay is unreadable: no evidence of flow is not
     evidence of flow.
     """
     if not relay_state:
         return False
-    if zone_states is None:
+    if zone_states is None and heat_zone_states is None:
         return True                       # no zone narrowing configured
-    return any(z is not None and z != 0 for z in zone_states)
+    if any(_calling(z) for z in zone_states or []):
+        return True
+    return any(z is not None and z >= 1 for z in heat_zone_states or [])
 
 
 def _advance(state, gated, delta, now, settle_s):
@@ -155,7 +168,7 @@ def status(config={}, output="default"):
     now = time.time()
     hvac = _fetch("%s/%s" % (base, sk_path.replace(".", "/")), timeout)
     relays = _fetch("%s/electrical/ac/switch/utility" % base, timeout)
-    want_zones = any(loop.get("zones") for loop in loops.values())
+    want_zones = any(loop.get("zones") or loop.get("heat_zones") for loop in loops.values())
     zones = _fetch("%s/environment/inside/thermostat" % base, timeout) if want_zones else {}
 
     result = {}
@@ -170,12 +183,15 @@ def status(config={}, output="default"):
         delta = None if sup is None or ret is None else ret - sup
 
         relay = _value(relays, loop["relay"], "state", max_age_s=max_age_s, now=now)
-        zone_states = None
+        zone_states = heat_zone_states = None
         if loop.get("zones"):
             zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
                            for z in loop["zones"]]
+        if loop.get("heat_zones"):
+            heat_zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
+                                for z in loop["heat_zones"]]
 
-        value, flowing = _advance(state, _gate_open(relay, zone_states),
+        value, flowing = _advance(state, _gate_open(relay, zone_states, heat_zone_states),
                                   delta, now, settle_s)
         result["%s.flowing" % name] = 1 if flowing else 0
         if value is not None:

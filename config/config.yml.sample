@@ -200,11 +200,16 @@ pivac.LoopDelta:
             return: LOOPA_RET
             relay: CHIL
             zones: [KIDS_ROOM, MASTER_BR]
+        # `heat_zones` are zones that heat from this loop but cool from their own
+        # equipment: the kitchen and great room have Bosch compressors, so only their
+        # heat call (statenum 1) means water is moving here. All five zones heat
+        # hydronically, so every zone sits in some loop's gate in heating.
         LOOPB:
             supply: LOOPB_SUP
             return: LOOPB_RET
             relay: CHIL
             zones: [DSTRS_FAM_ROOM]
+            heat_zones: [KITCHEN, GREAT_ROOM]
 
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
