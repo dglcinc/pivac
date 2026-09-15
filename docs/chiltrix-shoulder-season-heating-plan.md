@@ -5,8 +5,8 @@
 `HPHEAT` relay is wired, proven in the panel's test mode and monitored on the Pi under the same
 name, all on 8 September
 2026, and `HPCOOL` fitted on 14 September with the `H`-`COM` pair moved to it, so the block now
-runs as option 2. Still to do: the factory outdoor sensor, the heating target confirmed at 50 °C,
-and the live-call proof in §5. The controls are read from the CX65 IOM (pp. 37–41, 67) and the HZ-432 installation guide
+runs as option 2, and the C7089U1006 outdoor sensor is fitted. Still to do: the heating target
+confirmed at 50 °C and the live-call proof in §5. The controls are read from the CX65 IOM (pp. 37–41, 67) and the HZ-432 installation guide
 (69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
@@ -180,7 +180,7 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    target at 50 °C, return to cooling, and read register 143 back through
    `hvac.chiller.chiltrix.heatingTarget`. The IOM adds that the controller's schedule timers are
    unavailable under relay control, which changes nothing here.
-2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
+2. The C7089U1006 outdoor sensor is fitted to the HZ-432 (14 September 2026). Make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
 3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its spare pole is on J3.3,
    BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
