@@ -50,7 +50,7 @@ pivac.GPIO:
         # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
         # senses the Chiltrix chiller call. Rename in place, no wire moved.
         25:
-            outname: CHIL
+            outname: HPCALL
         6:
             outname: BOS1
         5:
@@ -184,7 +184,7 @@ pivac.LoopDelta:
     # for idle rather than nothing is what keeps that third case readable.
     # KELVIN (a difference, so Fahrenheit is * 9/5 with NO offset).
     #
-    # `relay` is the switch that proves this loop is pumping. CHIL is the Taco, which
+    # `relay` is the switch that proves this loop is pumping. HPCALL is the Taco, which
     # the HZ432 energizes on a call from ANY chiller zone -- including one on the other
     # loop -- so a secondary also needs `zones` to narrow it. Once each secondary pump
     # has its own sense input, set `relay` to that channel and delete `zones`: the relay
@@ -194,11 +194,11 @@ pivac.LoopDelta:
         primary:
             supply: IN
             return: OUT
-            relay: CHIL
+            relay: HPCALL
         LOOPA:
             supply: LOOPA_SUP
             return: LOOPA_RET
-            relay: CHIL
+            relay: HPCALL
             zones: [KIDS_ROOM, MASTER_BR]
         # `heat_zones` are zones that heat from this loop but cool from their own
         # equipment: the kitchen and great room have Bosch compressors, so only their
@@ -207,7 +207,7 @@ pivac.LoopDelta:
         LOOPB:
             supply: LOOPB_SUP
             return: LOOPB_RET
-            relay: CHIL
+            relay: HPCALL
             zones: [DSTRS_FAM_ROOM]
             heat_zones: [KITCHEN, GREAT_ROOM]
 

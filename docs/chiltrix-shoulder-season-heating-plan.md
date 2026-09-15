@@ -65,8 +65,8 @@ thermostats change their mind. A short zone call under option 2 also finds the t
 temperature, which matters for the kids' room and its ten-minute cycles.
 
 Today `HPHEAT`'s normally closed pole holds `C` closed at rest and its normally open pole closes
-`H` while `B` is energised, which is why `C64` reads 1 with `CHIL` open and the compressor starts
-with `CHIL` open on 16 % of its starts. The `C` side of option 2 is therefore already wired: the
+`H` while `B` is energised, which is why `C64` reads 1 with `HPCALL` open and the compressor starts
+with `HPCALL` open on 16 % of its starts. The `C` side of option 2 is therefore already wired: the
 pole opens `C` on a heating call. The `H` side is what §4 adds.
 Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), which is where the
 unit's own `P72` caps it and the most the coils can be given, so the first heating test is
@@ -118,33 +118,35 @@ The panel does all three already.
 
 ## 4. Wiring
 
-The HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco and feed the Pi input on
-BCM 25; its `W1` drives the boiler call and the `BLR` input; its `B` drives `HPHEAT`, whose
+The HZ-432's `Y1` drives the `HPCALL` relay (named `CHIL` until 15 September 2026), whose poles
+run the Taco, enable the calling zones' secondary pumps and feed the Pi input on BCM 25; its `W1`
+drives the `BLR` relay, which carries the boiler call and the Pi input, with the zone valves locked
+out while `DHW` and `W1` call together (§4.1); its `B` drives `HPHEAT`, whose
 normally closed pole holds the chiller's `C`-`COM` closed and opens it while `B` is energised;
 and, since 14 September 2026, its `O` drives `HPCOOL`, whose normally closed pole holds `H`-`COM`
 closed and opens it while `O` is energised. The two pairs from the chiller are two pairs,
 `C`-`COM` on `HPHEAT`'s pole 1 and `H`-`COM` on `HPCOOL`'s, both `COM` conductors on the block's
 one `COM` terminal. The jumpers Chiltrix ships on the block are out and `P111` is enabled. The
 panel holds `O` through cooling mode and `B` through heating mode (confirmed 14 September 2026:
-`HPCOOL` read 1 without a break through calls and idle while `CHIL` cycled), so one contact stays
+`HPCOOL` read 1 without a break through calls and idle while `HPCALL` cycled), so one contact stays
 open for as long as the panel is in a mode, and both are closed only when it is in neither.
 
 | Signal | Source | Does |
 |---|---|---|
-| `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling. `CHIL` no longer touches the chiller |
+| `Y1` | HZ-432 equipment terminal | Energises the `HPCALL` coil, as today: the Taco and the calling zones' pumps run on any heat-pump call, heating or cooling. `HPCALL` no longer touches the chiller |
 | `B` | HZ-432 equipment terminal, held for as long as the panel is in heating mode (25.6 VAC on `Y1` and `O` with `B` dark on a cooling call, `B` energised in the panel's Checkout heat-stage test, 8 September 2026) | Energises `HPHEAT`; its normally closed pole opens `C`-`COM`, leaving `H` alone: heating |
 | `O` | HZ-432 equipment terminal, held for as long as the panel is in cooling mode (1 without a break on `HPCOOL` through calls and idle, 14 September 2026) | Energises `HPCOOL`; its normally closed pole opens `H`-`COM`, leaving `C` alone: cooling |
 | neither | The panel in neither mode, as after a power-up before any call | Both contacts closed: the controller keeps the mode it last held and maintains the tank |
 | both | Only if the panel raised `B` and `O` together, which it does not | Both contacts open: standby. Harmless |
 | `COM` | chiller | Return for each contact, dry, no voltage applied; each pair carries its own `COM` conductor to its relay's pole 1 common |
-| `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
+| `W1/E` | HZ-432 | Energises the `BLR` relay: boiler call and the Pi input. §4.1 gates it through the `DHW` relay |
 | `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel is in heat-pump heating mode |
 | `HPCOOL` spare pole | | The `SP-C` channel, J4.2 on the perfboard, BCM 13, as `HPCOOL`: 1 while the panel is in cooling mode, so all summer. On the rev A board `SP-C` ends on the J8 pads, so at the swap the wire goes to J4.3 `SP-D` and the config pin to 19 |
 
 A lost `O` lead leaves the chiller in its last mode and never commands cooling; a lost `B` lead
 never commands heating. Neither runs anything it should not. `HPHEAT` was fitted and proven
 against `B` on 8 September 2026 and `HPCOOL` on 14 September, when it read 1 in Signal K against
-a live cooling call with `CHIL` 1 and `HPHEAT` 0.
+a live cooling call with `HPCALL` 1 and `HPHEAT` 0.
 
 Both relays are Magnecraft 782 series 4PDT ice cubes with 24 VAC coils in 70-782EL14-1 sockets.
 The socket's terminals, from its datasheet (Schneider legacy general purpose relays, socket
@@ -174,6 +176,58 @@ heating and cooling on the panel and stays that way, since it cannot be combined
 `C`-`H`-`COM` control. The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as
 `HPCOOL` if a second 782 is not to hand; `Y2ON` is a timer relay and cannot.
 
+### 4.1 The DHW bridge: the tank covers a heat call the boiler refuses
+
+As built, `W1` reaches the boiler through the `BLR` relay whatever the boiler is doing. The Ti-200
+serves DHW or space heat and never both, so a `W1` that arrives during a DHW call is refused at the
+boiler, and the CDP locks the zone valves out while `DHW` and `W1` call together so that no cold
+water circulates through the coils in the meantime. `BLR` on the Pi reads `W1` upstream of all of
+this, which is why the record holds refused calls: 38 of them in the two weeks from 30 March to
+13 April 2026, 8 to 39 minutes long and most 12 to 15, through which the Sentry's circulator LED
+stayed dark and its aux circulator LED, the DHW pump, stayed lit. The header is isolated from the
+boiler for the whole of such a call. The gap is the DHW call itself; the Ti-200's DHW priority time
+limit does not shorten it, because the boiler never accepts the space-heat call.
+
+The change moves the gate from the zone valves to `W1`. `W1` goes to the boiler through a normally
+closed pole of the `DHW` relay, so the boiler is never offered a call it will refuse. The normally
+open contact of the same pole carries the refused call, `W1` AND `DHW`, to a new relay `DHWX` whose
+contacts parallel `HPCALL`'s, so the Taco and the calling zones' pumps run from the tank for the
+length of the DHW call. The chiller, in heat mode under option 2, reheats the tank on its own band
+as the zones draw it down.
+
+`DHWX` must be its own relay. Driving the `HPCALL` coil from the gated `W1` would tie the coil node
+to two panel terminals: on a bridged call `W1` would appear on `Y1`, and on a cool call during DHW
+`Y1` would appear on `W1`, where the `BLR` relay would read it as a heat call and the zone-valve
+lockout would act on it. Dry contacts paralleled contact for contact have no such path.
+
+| Terminal | Connection |
+|---|---|
+| `DHW` relay, a changeover pole | common `W1` from the panel; normally closed to the `BLR` relay coil and the boiler call as today; normally open to `DHWX` coil A1 |
+| `DHWX`, Magnecraft 782 with 24 VAC coil in a 70-782EL14-1 socket | A2 to the panel's `C` common; the socket's A2 bus bar may be fitted, the A1 bar must not, since a neighbouring socket's A1 is `B` or `O` |
+| Pole 1 | across `HPCALL`'s Taco contact, same line feed, so either relay runs the pump |
+| Pole 2 | across `HPCALL`'s zone-pump enable, if that is a separate pole |
+| Pole 3 normally open | I/O board J4.3 `SP-D`, BCM 19, published as `DHWX`: 1 while the tank is covering the boiler |
+| Inhibit | a switch in series with `DHWX` A1, opened with the controller in §9's winter shutdown |
+
+If the `DHW` relay has no free changeover pole, a second relay with its coil in parallel with
+`DHW`'s supplies one. Keep the `BLR` coil upstream of the gate: `BLR` then keeps meaning `W1`, the
+record keeps showing refused calls as it does now, and `DHWX` marks the bridged ones. With `W1`
+blocked at the boiler the zone-valve lockout no longer protects anything against the boiler, and it
+must not act during a bridged call, so it goes; what it protected against remains in one case, a
+bridged call against a tank at room temperature with the controller off for the winter, and the
+inhibit switch covers that. A Shelly 1 Mini in the same position, commanded by pivac from register
+140, would automate it and fail to no bridge, which is harmless.
+
+Capacity is adequate. The house needs about 50 kBTU/h of output at 20 °F, the CX75 makes 40 to 45
+kBTU/h there, and the tank's 11 °F band holds 3,300 BTU, so a 30-minute call is covered on all but
+the coldest nights. `LoopDelta` gates the primary on `HPCALL` alone and would call a bridged run idle
+until the module takes a second relay.
+
+Where it pays: above the balance point the panel raises `Y1` and no `W1`, so the bridge is idle and
+DHW blocks nothing. It engages when the panel is on the boiler with the chiller on: the second-stage
+hour under `OT+MULTISTG`, the changeover delay, or a day near the balance point. Below the balance
+point with the controller off it does nothing, and §9 prices keeping the chiller on for it.
+
 ## 5. Sequence
 
 1. On the Chiltrix panel, read `C63` (the `H` contact) and `C64` (the `C` contact). Today `C64`
@@ -201,7 +255,7 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
    and none on `Y1`. Checkout steps 11 to 14 show which terminals each zone thermostat raises.
 6. Force one heating call on a mild evening and watch four things: register 141 goes to 1, the
-   Taco runs on `CHIL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
+   Taco runs on `HPCALL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
    loop supply following it after the tank lag.
 7. Leave the balance temperature at 40 °F for a fortnight and read the record: zone droop,
    second-stage calls, and the Chiltrix's runtime and COP against outdoor temperature decide
@@ -212,7 +266,7 @@ heating and cooling on the panel and stays that way, since it cannot be combined
 The Modbus feed already publishes everything the changeover shows: `operatingMode`,
 `heatingTarget`, `inletTemp`, `outletTemp`, `compressorHz` and `startupFlow`, which works in
 heating as it does in cooling because the pump-only plateau precedes every start. `HPHEAT` and `HPCOOL` join
-the relay roster and the Relays panel. `pivac.LoopDelta` needs no change to gate, since `CHIL`
+the relay roster and the Relays panel. `pivac.LoopDelta` needs no change to gate, since `HPCALL`
 closes on either call, but every ΔT it publishes reads negative in heating under the warm-minus-cold
 convention; the panel's soft limits already allow it. The `chiltrix-pump-only-flow-low` and
 `chiltrix-zero-flow` rules stay armed and mean the same thing. `P59` and the E14 exposure are
@@ -340,9 +394,19 @@ contacts closed, which under option 2 means the mode it last held; there is no o
 block. Enabled and left in cool mode through the winter, the unit re-chills the tank whenever it
 drifts past the restart point, a short cooling run every few days at
 whatever the ambient is. Cooling with 0 °F condenser air drives the evaporator far colder than
-summer, and the likely outcome is an E14 lockout, which needs a breaker cycle to clear. The energy at
-stake is small: measured in summer, runs with no primary call cost 0.14 kWh a day, and the tank
-holds its temperature with the Taco off. The reason to stop it is the compressor, not the bill.
+summer, and the likely outcome is an E14 lockout, which needs a breaker cycle to clear. Left on in heat
+mode instead, the unit holds the tank at 122 °F all winter. That standby was measured on 15 September
+2026 with the mode held, the primary off and no compressor run: the tank fell from 130.4 to 125.3 °F
+in 56 minutes against a 56 to 63 °F ambient, about 1,700 BTU/h at 304 BTU/°F, a UA of about
+25 BTU/h·°F for the tank, the near piping and the chiller circuit together. The chiller circuit is the
+part that scales with the weather, because `P52` = 0 keeps the pump idling at 8 L/min through the
+outdoor exchanger. At a January mean of 31 °F that is about 2,200 BTU/h, 16 kWh a day of heat, 5.5 to
+6.5 kWh of electricity at a COP of 2.5 to 3, about $1.10 a day and $100 for December through
+February; and on the 117 to 128 °F band (3,300 BTU a cycle) a reheat every hour and a half, about 16
+starts a day and 1,400 over the winter, plus the defrost cycles a heat pump idling wet below 40 °F
+runs by reversing, drawing that heat from the tank. In cool mode the summer figure is 0.14 kWh a day
+for runs with no primary call. The reason to stop the unit in winter is the compressor; the bill is a
+hundred dollars.
 
 Neither controller can do this on outdoor temperature. The HZ-432's advanced configuration (guide
 69-2198, Table 5) holds two outdoor settings: the OT balance temperature, which moves a dual-fuel
@@ -373,12 +437,14 @@ When the forecast holds below 40 °F for good, three settings together:
 2. HZ-432 to boiler-only: balance temperature to 50 °F or the Emergency Heat button (§3). The panel
    cannot tell that the heat pump is stopped, and a January day above 40 °F would otherwise call it
    and heat nothing.
-3. The four hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
+3. The five hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
    raise a cool call. With the chiller off a cool call harms nothing, but it runs the Taco against
    a tank that has drifted to room temperature. Under option 2 a cool call that slips through
    leaves the unit in cooling mode, and `chiltrix-cooling-cold` emails and raises a Signal K
    notification once it has sat enabled in cooling with its own ambient under 40 °F for 30
    minutes; the remedy is a heating call or the HMI off.
+4. The `DHWX` inhibit switch open (§4.1), so a refused boiler call cannot run the Taco against a
+   tank at room temperature.
 
 Spring is the reverse in the same order: controller back on, balance temperature back to 40 °F,
 thermostats back to Cool or Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. No
@@ -395,11 +461,9 @@ compressor at low water temperature will show in the first cold week's Modbus lo
 "Cooling Validation" set to invalid would also block the `C` contact with the controller on is
 untested, and the off route needs neither answer.
 
-The tank cannot cover the boiler during a long DHW call. Below the balance point nothing routes it to
-the house: the tank is in circuit only on a heat-pump call, so holding it at 110 to 120 °F all winter
-would cost 0.3 to 0.6 kWh a day in standing loss and deliver nothing to a zone while the boiler is on
-DHW priority. The Ti-200's DHW priority time limit is the setting for that: the Sentry alternates
-back to space heating when it expires, and shortening it bounds the drop.
+The tank covers the boiler during a DHW call only through the §4.1 bridge, and only with the
+controller on. Keeping the chiller on through the winter for that alone buys 12 to 15 minute coasts
+the house already rides through, at the standby cost above.
 
 ## 10. What this plan does not touch
 
@@ -414,5 +478,9 @@ roster on its own.
   or from a separate relay that would keep it running against the Taco?
 - How far below 50 °C can the heating target go with the zones still holding at 40 °F outdoor?
   The loop probes, zone droop and the Modbus COP against outdoor temperature will say.
+- Does the `DHW` relay have a free changeover pole for `W1`, or does the bridge need a second relay
+  in parallel with its coil?
+- How far do the rooms fall during a refused call? The RedLink record over last spring's 38 refused
+  calls would say, and it decides how much the bridge is worth.
 - Has the glycol been re-measured since the 3 September top-up? The concentration sets nothing in
   heating, but the record wants it.

@@ -106,7 +106,7 @@ def _gate_open(relay_state, zone_states, heat_zone_states=None):
     """True when this loop is pumping.
 
     `relay_state` is the loop's own pump relay once one is wired, or the shared
-    CHIL relay until then.  CHIL alone is not sufficient for a secondary,
+    HPCALL relay until then.  HPCALL alone is not sufficient for a secondary,
     because it asserts when ANY hydronic zone calls — including one on the other
     loop, which is exactly the case that fabricates a delta-T.  `zone_states`
     narrows it to this loop's zones: any heat or cool call counts.

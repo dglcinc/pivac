@@ -147,7 +147,7 @@ Expect `True 10.0.0.82`.
    is dark.
 2. Photograph the header wiring from two angles before touching a wire, close enough to read
    the label rows against the wires. Then tag each wire at the header with its label-row name
-   (ZV, DHW, BLR, BOS2, BOS1, DEHUM, CHIL, ground, 1-wire, 3.3 V).
+   (ZV, DHW, BLR, BOS2, BOS1, DEHUM, HPCALL, ground, 1-wire, 3.3 V).
 3. Remove the old Pi and its board from the enclosure.
 
 ## 5. Move the field wiring onto the plugs
@@ -162,7 +162,7 @@ return and must never touch Pi ground. That one change is the point of the board
 | ZV | header pin 11 | **J1.1** | (6,2) |
 | DHW | header pin 13 | **J1.2** | (7,2) |
 | BLR | header pin 15 | **J1.3** | (8,2) |
-| CHIL | header pin 22 | **J2.1** | (10,2) |
+| HPCALL | header pin 22 | **J2.1** | (10,2) |
 | BOS1 | header pin 31 | **J2.2** | (11,2) |
 | BOS2 | header pin 29 | **J2.3** | (12,2) |
 | DEHUM | header pin 32 | **J3.1** | (14,2) |
@@ -230,7 +230,7 @@ Every channel idles high (inactive). Then make each relay close and watch exactl
 |---|---|---|
 | BOS1 | call the KITCHEN zone at its thermostat | nothing else |
 | BOS2 | call the GREAT_ROOM zone | nothing else |
-| CHIL | call MASTER_BR, DSTRS_FAM_ROOM or KIDS_ROOM | CHIL may already be on, the Chiltrix runs to tank setpoint |
+| HPCALL | call MASTER_BR, DSTRS_FAM_ROOM or KIDS_ROOM | HPCALL may already be on, the Chiltrix runs to tank setpoint |
 | DHW | draw hot water until the DHW call lands | BLR may follow, that is the boiler answering |
 | BLR, ZV | a heat call on any hydronic zone (raise a setpoint) | ZV and BLR move together on a heat call |
 | DEHUM | the dehumidifier's call, or a jumper from J3.1 to J3.4 | nothing else |
@@ -245,7 +245,7 @@ curl -s http://127.0.0.1:3000/signalk/v1/api/vessels/self/electrical/ac/switch/u
   | python3 -c 'import sys,json; print({k:v["statenum"]["value"] for k,v in json.load(sys.stdin).items()})'
 ```
 
-Exactly seven inputs: ZV, DHW, BLR, BOS2, BOS1, DEHUM, CHIL. (`status()` cannot be called bare;
+Exactly seven inputs: ZV, DHW, BLR, BOS2, BOS1, DEHUM, HPCALL. (`status()` cannot be called bare;
 it needs the module's config block, so read the daemon's output instead.)
 
 ## 8. 1-wire verification
