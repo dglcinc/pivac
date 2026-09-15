@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="830" viewBox="0 0 1160 830" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <title>HPHEAT and HPCOOL on 70-782EL14-1 sockets: Chiltrix option 2</title>
+  <rect width="1160" height="830" fill="#ffffff"/>
+  <text x="20" y="30" font-size="18" font-weight="bold">HPHEAT and HPCOOL on 70-782EL14-1 sockets — Chiltrix C-H-COM option 2</text>
+  <text x="20" y="50" fill="#444">Socket terminals as printed: NC 1–4, NO 5–8, COM 9–12, coil 13 (A1) and 14 (A2). Poles are columns 1·5·9, 2·6·10, 3·7·11, 4·8·12. Filled dots are joins; bare crossings are not.</text>
+
+  <!-- HZ-432 panel -->
+  <g>
+    <rect x="30" y="150" width="170" height="200" rx="6" fill="#f4f4f4" stroke="#333"/>
+    <text x="115" y="175" text-anchor="middle" font-weight="bold">HZ-432 zone panel</text>
+    <text x="115" y="192" text-anchor="middle" fill="#555" font-size="11">equipment terminals</text>
+    <circle cx="190" cy="230" r="6" fill="#fff" stroke="#333"/><text x="150" y="234" text-anchor="end">B (heat pump heating)</text>
+    <circle cx="190" cy="275" r="6" fill="#fff" stroke="#333"/><text x="150" y="279" text-anchor="end">O (cooling)</text>
+    <circle cx="190" cy="320" r="6" fill="#fff" stroke="#333"/><text x="150" y="324" text-anchor="end">C (24 VAC common)</text>
+  </g>
+
+  <!-- socket template drawn twice -->
+  <defs>
+    <g id="socket">
+      <rect x="0" y="0" width="220" height="300" rx="8" fill="#fbfbf2" stroke="#333" stroke-width="1.5"/>
+      <!-- COM row 12 11 10 9 -->
+      <g fill="#fff" stroke="#333">
+        <circle cx="40" cy="50" r="14"/><circle cx="90" cy="50" r="14"/><circle cx="140" cy="50" r="14"/><circle cx="190" cy="50" r="14"/>
+        <circle cx="40" cy="115" r="14"/><circle cx="90" cy="115" r="14"/><circle cx="140" cy="115" r="14"/><circle cx="190" cy="115" r="14"/>
+        <circle cx="40" cy="180" r="14"/><circle cx="90" cy="180" r="14"/><circle cx="140" cy="180" r="14"/><circle cx="190" cy="180" r="14"/>
+        <circle cx="65" cy="255" r="14"/><circle cx="165" cy="255" r="14"/>
+      </g>
+      <g text-anchor="middle" font-size="12" font-weight="bold">
+        <text x="40" y="54">12</text><text x="90" y="54">11</text><text x="140" y="54">10</text><text x="190" y="54">9</text>
+        <text x="40" y="119">8</text><text x="90" y="119">7</text><text x="140" y="119">6</text><text x="190" y="119">5</text>
+        <text x="40" y="184">4</text><text x="90" y="184">3</text><text x="140" y="184">2</text><text x="190" y="184">1</text>
+        <text x="65" y="259">14</text><text x="165" y="259">13</text>
+      </g>
+      <g font-size="10" fill="#666" text-anchor="end">
+        <text x="20" y="54" transform="rotate(-90 20 54)">COM</text>
+        <text x="20" y="119" transform="rotate(-90 20 119)">NO</text>
+        <text x="20" y="184" transform="rotate(-90 20 184)">NC</text>
+      </g>
+      <text x="65" y="282" text-anchor="middle" font-size="10" fill="#666">A2</text>
+      <text x="165" y="282" text-anchor="middle" font-size="10" fill="#666">A1</text>
+      <text x="110" y="292" text-anchor="middle" font-size="10" fill="#666">coil</text>
+    </g>
+  </defs>
+
+  <use href="#socket" x="320" y="140"/>
+  <text x="430" y="130" text-anchor="middle" font-weight="bold" font-size="15">HPHEAT (coil on B)</text>
+  <use href="#socket" x="640" y="140"/>
+  <text x="750" y="130" text-anchor="middle" font-weight="bold" font-size="15">HPCOOL (coil on O)</text>
+
+  <!-- Chiltrix block -->
+  <g>
+    <rect x="950" y="150" width="180" height="150" rx="6" fill="#eef4fb" stroke="#333"/>
+    <text x="1040" y="175" text-anchor="middle" font-weight="bold">Chiltrix C-H-COM</text>
+    <text x="1040" y="192" text-anchor="middle" fill="#555" font-size="11">dry contacts, no voltage</text>
+    <circle cx="960" cy="225" r="6" fill="#fff" stroke="#333"/><text x="975" y="229">C  (cooling)</text>
+    <circle cx="960" cy="255" r="6" fill="#fff" stroke="#333"/><text x="975" y="259">H  (heating)</text>
+    <circle cx="960" cy="285" r="6" fill="#fff" stroke="#333"/><text x="975" y="289">COM</text>
+  </g>
+
+  <!-- Pi I/O board block -->
+  <g>
+    <rect x="950" y="340" width="180" height="170" rx="6" fill="#f2f8ee" stroke="#333"/>
+    <text x="1040" y="365" text-anchor="middle" font-weight="bold">Pi I/O board</text>
+    <text x="1040" y="382" text-anchor="middle" fill="#555" font-size="11">contact to COM = 1</text>
+    <circle cx="960" cy="410" r="6" fill="#fff" stroke="#333"/><text x="975" y="414">J3.3  HPHEAT, BCM 24</text>
+    <circle cx="960" cy="435" r="6" fill="#fff" stroke="#333"/><text x="975" y="439">J3.4  COM</text>
+    <circle cx="960" cy="470" r="6" fill="#fff" stroke="#333"/><text x="975" y="474">J4.3  HPCOOL, BCM 19</text>
+    <circle cx="960" cy="495" r="6" fill="#fff" stroke="#333"/><text x="975" y="499">J4.4  COM</text>
+  </g>
+
+  <!-- Wires: coils -->
+  <g fill="none" stroke-width="2.5">
+    <!-- B -> HPHEAT 13 (485,395) -->
+    <polyline points="196,230 250,230 250,560 485,560 485,409" stroke="#c0392b"/>
+    <!-- O -> HPCOOL 13 (805,395) -->
+    <polyline points="196,275 275,275 275,600 805,600 805,409" stroke="#1f7a3a"/>
+    <!-- C common -> HPHEAT 14 (385,395) and HPCOOL 14 (705,395) -->
+    <polyline points="196,320 225,320 225,640 385,640 385,409" stroke="#222"/>
+    <polyline points="385,640 705,640 705,409" stroke="#222"/>
+  </g>
+  <circle cx="385" cy="640" r="4" fill="#222"/>
+
+  <!-- Wires: chiller contacts -->
+  <g fill="none" stroke-width="2.5">
+    <!-- HPHEAT 9 (510,190) -> COM bus at top -> Chiltrix COM (954,285) -->
+    <polyline points="510,176 510,90 920,90 920,285 954,285" stroke="#7f8c8d"/>
+    <polyline points="830,176 830,130 905,130 905,290 954,290" stroke="#7f8c8d"/>
+    <!-- HPCOOL 9 (830,190) -> COM bus -->
+    <!-- HPHEAT 1 (510,320) -> Chiltrix C (954,225): out the right, down between sockets, under HPCOOL, up -->
+    <polyline points="524,320 580,320 580,70 935,70 935,225 954,225" stroke="#2c5aa0"/>
+    <!-- HPCOOL 1 (830,320) -> Chiltrix H (954,255) -->
+    <polyline points="844,320 880,320 880,255 954,255" stroke="#2c5aa0"/>
+  </g>
+  <circle cx="954" cy="288" r="4" fill="#7f8c8d"/>
+
+  <!-- Wires: Pi inputs (pole 2: COM 10, NO 6) -->
+  <g fill="none" stroke-width="2" stroke-dasharray="6 3">
+    <!-- HPHEAT 6 (460,255) -> J3.3 (954,410): up out of socket? route right at y=255 to x=560, down to 410 -->
+    <polyline points="460,269 460,288 560,288 560,410 954,410" stroke="#d68910"/>
+    <!-- HPHEAT 10 (460,190) -> J3.4 (954,435) -->
+    <polyline points="460,176 460,110 600,110 600,435 954,435" stroke="#7f8c8d"/>
+    <!-- HPCOOL 6 (780,255) -> J4.3 (954,470) -->
+    <polyline points="780,269 780,288 860,288 860,470 954,470" stroke="#d68910"/>
+    <!-- HPCOOL 10 (780,190) -> J4.4 (954,495) -->
+    <polyline points="780,176 780,110 870,110 870,495 954,495" stroke="#7f8c8d"/>
+  </g>
+
+  <!-- Removed lead -->
+  <line x1="524" y1="255" x2="545" y2="240" stroke="#c0392b" stroke-width="2"/>
+  <line x1="524" y1="240" x2="545" y2="255" stroke="#c0392b" stroke-width="2"/>
+
+  <!-- Legend and truth table, below every wire -->
+  <g transform="translate(30,675)" font-size="12">
+    <text x="0" y="0" font-weight="bold" font-size="13">Wires</text>
+    <line x1="0" y1="14" x2="30" y2="14" stroke="#c0392b" stroke-width="2.5"/><text x="38" y="18">HZ-432 B → HPHEAT 13 (A1)</text>
+    <line x1="0" y1="34" x2="30" y2="34" stroke="#1f7a3a" stroke-width="2.5"/><text x="38" y="38">HZ-432 O → HPCOOL 13 (A1)</text>
+    <line x1="0" y1="54" x2="30" y2="54" stroke="#222" stroke-width="2.5"/><text x="38" y="58">HZ-432 C, 24 VAC common → 14 (A2) on both sockets. A2 bus jumper allowed; never fit the A1 jumper</text>
+    <line x1="0" y1="74" x2="30" y2="74" stroke="#2c5aa0" stroke-width="2.5"/><text x="38" y="78">Pole 1 normally closed: HPHEAT 1 → Chiltrix C, HPCOOL 1 → Chiltrix H. Both closed at rest</text>
+    <line x1="0" y1="94" x2="30" y2="94" stroke="#7f8c8d" stroke-width="2.5"/><text x="38" y="98">Commons: 9 → the COM conductor of that relay's pair, both to the chiller's COM; 10 → I/O board COM</text>
+    <line x1="0" y1="114" x2="30" y2="114" stroke="#d68910" stroke-width="2" stroke-dasharray="6 3"/><text x="38" y="118">Pole 2 normally open: HPHEAT 6 → J3.3 (BCM 24), HPCOOL 6 → J4.3 SP-D (BCM 19)</text>
+    <text x="0" y="138" fill="#c0392b">✕  HPHEAT 5 (NO): the H pair leaves here; H to HPCOOL 1, its COM conductor to HPCOOL 9</text>
+  </g>
+  <g transform="translate(640,675)" font-size="12">
+    <text x="0" y="0" font-weight="bold" font-size="13">What the Chiltrix reads (IOM p. 40)</text>
+    <text x="0" y="18">No call, both closed: keeps its last mode, maintains the tank</text>
+    <text x="0" y="38">B energised, HPHEAT opens C, H alone: heating</text>
+    <text x="0" y="58">O energised, HPCOOL opens H, C alone: cooling</text>
+    <text x="0" y="78">B and O together, both open: standby (the panel never does this)</text>
+    <text x="0" y="106" fill="#555">Lost O lead: never told to cool. Lost B lead: never told to heat.</text>
+    <text x="0" y="124" fill="#555">Poles 3 and 4 (3·7·11, 4·8·12) are spare on both relays.</text>
+  </g>
+</svg>

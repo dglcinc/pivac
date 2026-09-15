@@ -4,9 +4,10 @@
 **Status:** the HZ-432 is configured (heat pump, dual fuel, conventional thermostats) and the
 `HPHEAT` relay is wired, proven in the panel's test mode and monitored on the Pi under the same
 name, all on 8 September
-2026. Still to do: the factory outdoor sensor, the override relay's position, the heating target
-confirmed at 50 °C, and the live-call proof in §5. The controls are
-read from the CX65 IOM (pp. 37–38, 67) and the HZ-432 installation guide (69-2198).
+2026. Still to do: the `HPCOOL` relay and the `H` lead move that complete the option 2 wiring in
+§4, the factory outdoor sensor, the heating target confirmed at 50 °C, and the live-call proof in
+§5. The controls are read from the CX65 IOM (pp. 37–41, 67) and the HZ-432 installation guide
+(69-2198).
 **Goal:** heat the house from the Chiltrix CX75 when outdoor air is mild, from the NTI Ti-200 boiler
 when it is cold, and let the changeover happen on its own with a manual override.
 
@@ -46,16 +47,23 @@ in one of two ways, chosen by relay type:
 | 1 | normally open | Closing `H` puts the unit in heating and runs it to the heating target; closing `C` does the same for cooling; both open is standby, and the tank drifts between calls. Chiltrix names this as a shoulder-season choice |
 | 2 | normally closed | The unit stays in its last commanded mode and maintains the tank at target between calls, so the first call gets hot water at once |
 
-Option 1 is the one that maps onto a zone call, and it is the one this plan wires. The standby
-between calls is what makes the mode change safe: nothing runs until a zone asks, and the tank lag
-in §1 is paid once per changeover rather than fought continuously. §7 gives the price.
+The block has four states, drawn on IOM p. 40: both contacts open is standby, `C` alone is
+cooling, `H` alone is heating, and both closed hands the mode to the wired controller. Option 2
+rests in that last state and a call opens the opposite contact, so a heating call leaves `H` alone
+and a cooling call leaves `C` alone. When the call ends both contacts close again and the
+controller holds the mode it was just given, maintaining the tank on its `P12` band until the
+other call arrives. This plan wires option 2. Under option 1 a satisfied heat call drops the unit
+to standby and the tank coasts, which is tolerable, but a single relay driven by `B` can only ever
+show the chiller one contact closed, and with `C` on its resting pole every satisfied heat call
+commands cooling: the 8 September test ended with the unit back in mode 0 within a minute and 36
+minutes and 1.13 kWh spent re-chilling the tank (§7). Option 2 pays the swing only when the
+thermostats change their mind. A short zone call under option 2 also finds the tank already at
+temperature, which matters for the kids' room and its ten-minute cycles.
 
-Because the block is already enabled, the `CHIL` contact on the cooling pair is live today, and
-the compressor still starts with `CHIL` open on 16 % of its starts. Under option 1 a call-driven
-unit does not do that, so the override relay that bridges the cooling pair is presumably closed and
-holding the `C` call; `C64` on the panel reading 1 with `CHIL` open confirms it. **That relay must
-be open before the first heating call**, or `C` and `H` close together when `B` energises. Either
-open it for the season or move it to the `HPHEAT` common so it follows the mode.
+Today `HPHEAT`'s normally closed pole holds `C` closed at rest and its normally open pole closes
+`H` while `B` is energised, which is why `C64` reads 1 with `CHIL` open and the compressor starts
+with `CHIL` open on 16 % of its starts. The `C` side of option 2 is therefore already wired: the
+pole opens `C` on a heating call. The `H` side is what §4 adds.
 Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), which is where the
 unit's own `P72` caps it and the most the coils can be given, so the first heating test is
 unambiguous: a zone that cannot hold at 50 °C is a balance-point problem. Step down afterward if
@@ -106,45 +114,68 @@ The panel does all three already.
 
 ## 4. Wiring
 
-Today the HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco, close the chiller's
-`C`-`COM` cooling contacts, and feed the Pi input on BCM 25; its `W1` drives the boiler call and
-the `BLR` input. A second pair is already run from the CDP to the chiller's `H`-`COM` heating
-contacts and is not yet driven, and the jumpers Chiltrix ships on the block are out. The change
-adds one relay and moves one wire: the `CHIL` contact's run to the cooling pair goes through the
-new relay, which steers it to the cooling pair or the heating pair.
+Today the HZ-432's `Y1` drives the `CHIL` relay, whose poles run the Taco and feed the Pi input on
+BCM 25; its `W1` drives the boiler call and the `BLR` input; and its `B` drives `HPHEAT`, whose
+normally closed pole holds the chiller's `C`-`COM` closed at rest and whose normally open pole
+closes `H`-`COM` while `B` is energised. The jumpers Chiltrix ships on the block are out and
+`P111` is enabled. The change to option 2 adds one relay, `HPCOOL`, driven by the panel's `O`
+terminal, and moves one pair: the chiller's `H`-`COM` pair leaves `HPHEAT` (its `H` conductor
+from the normally open pole) and lands on `HPCOOL`'s pole 1, `H` on the normally closed contact
+and its `COM` conductor on the common. The two pairs from the chiller stay two pairs, `C`-`COM`
+on `HPHEAT` and `H`-`COM` on `HPCOOL`, both `COM` conductors on the block's one `COM` terminal.
+At rest both contacts are then closed.
 
 | Signal | Source | Does |
 |---|---|---|
-| `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling |
-| `B` | HZ-432 equipment terminal. The panel carries separate `O` and `B` equipment terminals: `O` energises in cooling and `B` in heat-pump heating, confirmed 8 September 2026 with a zone cooling call (25.6 VAC on `Y1` and `O`, `B` dark) and the panel's Checkout heat-stage test (`B` energised) | Energises the SPDT relay `HPHEAT` in heating; the relay rests in cooling |
-| `CHIL` dry contact, common | existing pole | Goes to `HPHEAT` common instead of straight to the cooling pair |
-| `HPHEAT` normally closed, the rest state | | To the existing cooling pair, `C`-`COM`: `Y1` without `B` is a cooling call |
-| `HPHEAT` normally open, closed while `B` is energised | | To the existing heating pair, `H`-`COM`: `Y1` with `B` is a heating call. A lost `B` wire reads as cooling, the safer of the two failure modes |
-| `COM` | chiller | Return for both contacts, dry, no voltage applied |
+| `Y1` | HZ-432 equipment terminal | Energises the `CHIL` coil, as today: Taco runs on any heat-pump call, heating or cooling. `CHIL` no longer touches the chiller |
+| `B` | HZ-432 equipment terminal, energised in heat-pump heating (25.6 VAC on `Y1` and `O` with `B` dark on a cooling call, `B` energised in the panel's Checkout heat-stage test, 8 September 2026) | Energises `HPHEAT`; its normally closed pole opens `C`-`COM`, leaving `H` alone: heating |
+| `O` | HZ-432 equipment terminal, energised in cooling | Energises `HPCOOL`; its normally closed pole opens `H`-`COM`, leaving `C` alone: cooling |
+| neither | | Both contacts closed: the controller keeps the mode it was last given and maintains the tank |
+| both | Only if the panel raised `B` and `O` together, which it does not | Both contacts open: standby. Harmless |
+| `COM` | chiller | Return for each contact, dry, no voltage applied; each pair carries its own `COM` conductor to its relay's pole 1 common |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
-| `HPHEAT` spare pole | | To J3.3 on the I/O board, BCM 24, as `HPHEAT`, so the dashboards know which source is heating |
+| `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel calls heat-pump heating |
+| `HPCOOL` spare pole | | The `SP-D` channel, BCM 19 (J4.3 on the rev A board, pad (5,19) on the perfboard), as `HPCOOL`: 1 while the panel calls cooling |
 
-Wired and checked 8 September 2026: the relay follows `B`, and the `CHIL` contact reaches the
-cooling pair at rest and the heating pair with `B` energised.
+A lost `O` lead leaves the chiller in its last mode and never commands cooling; a lost `B` lead
+never commands heating. Neither runs anything it should not. `HPHEAT` is fitted and follows `B`,
+checked 8 September 2026.
 
-The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as `HPHEAT`. `Y2ON` is a
-timer relay and cannot. The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against
-applying voltage to it, and the `CHIL` contact already meets that.
+Both relays are Magnecraft 782 series 4PDT ice cubes with 24 VAC coils in 70-782EL14-1 sockets.
+The socket's terminals, from its datasheet (Schneider legacy general purpose relays, socket
+specifications p. 62): normally closed 1 to 4, normally open 5 to 8, common 9 to 12, coil 13 (A1)
+and 14 (A2), with the poles in columns 1·5·9, 2·6·10, 3·7·11 and 4·8·12. Pole 1 carries the
+chiller contact and pole 2 the Pi input; poles 3 and 4 are spare. The socket's coil bus jumpers
+link A1 and A2 across neighbouring sockets: the A2 side may carry the shared 24 VAC common, and
+**the A1 side must not be fitted**, since the two coils are driven by different terminals.
 
-The override relay that bridges the cooling pair keeps its role in cooling under option 1:
-closed, it holds the `C` call and the unit maintains the tank between zone calls, which is what
-the plant does now. It must not hold `C` while `B` selects `H`, so leave it open in heating, or
-move it to the `HPHEAT` common so it follows the mode; either way label it, which is still
-outstanding from the relay rework. `P112`, the on-board auto switch-over, shows disabled for both
+| Socket terminal | `HPHEAT` | `HPCOOL` |
+|---|---|---|
+| 13 (A1, coil) | HZ-432 `B` | HZ-432 `O` |
+| 14 (A2, coil) | HZ-432 `C`, 24 VAC common | HZ-432 `C`, 24 VAC common |
+| 9 (pole 1 common) | `COM` conductor of the `C` pair | `COM` conductor of the `H` pair |
+| 1 (pole 1 normally closed) | Chiltrix `C` | Chiltrix `H` |
+| 5 (pole 1 normally open) | nothing; the `H` pair leaves here | nothing |
+| 10 (pole 2 common) | I/O board `COM` (J3.4) | I/O board `COM` (J4.4) |
+| 6 (pole 2 normally open) | I/O board J3.3, `HPHEAT`, BCM 24 | I/O board J4.3, `SP-D`, `HPCOOL`, BCM 19 |
+| 2 (pole 2 normally closed) | nothing | nothing |
+| 3, 4, 7, 8, 11, 12 | spare | spare |
+
+![HPHEAT and HPCOOL wiring on 70-782EL14-1 sockets](hpheat-hpcool-wiring.svg)
+
+The `C`-`H`-`COM` block takes dry contacts only; the IOM warns against applying voltage to it, and
+both pole 1 contacts meet that. `P112`, the on-board auto switch-over, shows disabled for both
 heating and cooling on the panel and stays that way, since it cannot be combined with
-`C`-`H`-`COM` control.
+`C`-`H`-`COM` control. The freed `Y2FAN` relay in the CDP is a plain 24 VAC relay and can serve as
+`HPCOOL` if a second 782 is not to hand; `Y2ON` is a timer relay and cannot.
 
 ## 5. Sequence
 
-1. On the Chiltrix panel, read `C63` and `C64` while `CHIL` is closed and open. `C64` should
-   follow `CHIL`, since that relay lands on the cooling pair, and `C63` should stay 0 until the
-   heating pair is driven; that proves the contacts register. The IOM's own preconditions for
-   relay control (p. 38) are met or become so here: DHW is disabled at `P08`, `P112` auto
+1. On the Chiltrix panel, read `C63` (the `H` contact) and `C64` (the `C` contact). Today `C64`
+   is 1 and `C63` is 0 at rest and they swap while `B` is energised; after the §4 rewire both read
+   1 at rest, `C64` drops to 0 on a heating call and `C63` drops to 0 on a cooling call. That
+   proves the contacts register. The IOM's own preconditions for relay control (p. 40) are met or
+   become so here: DHW is disabled at `P08`, `P112` auto
    switch-over is off, `P111` is enabled, and each mode's target is set from the controller
    before the relays are relied on. Use the Mode button to enter heating, confirm the heating
    target at 50 °C, return to cooling, and read register 143 back through
@@ -152,11 +183,16 @@ heating and cooling on the panel and stays that way, since it cannot be combined
    unavailable under relay control, which changes nothing here.
 2. Fit the C7089U1006 outdoor sensor to the HZ-432 in a shaded north location, and make the two
    changes that need no panel work: Loop B to HIGH, the 140 °F loop-probe offsets swapped in.
-3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its `HPHEAT` pole is on J3.3,
+3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its spare pole is on J3.3,
    BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
-4. Open the override relay, or move it to the `HPHEAT` common. Confirm on the Chiltrix panel that
-   `C64` is 0 with no call, 1 on a `Y1` call with `B` off, and that `C63` is 1 on a `Y1` call with
-   `B` on.
+4. Fit `HPCOOL` per §4: coil on `O` and the 24 VAC common, pole 1 normally closed in series with
+   `H`, pole 2 normally open to the `SP-D` input, move the `H`-`COM` pair over from `HPHEAT`, and add `19: outname: HPCOOL` to the GPIO block
+   of `/etc/pivac/config.yml`, an `order` entry in `~/.signalk/baseDeltas.json`, then `restart
+   pivac-gpio` and `restart signalk`. Move the `H` lead off `HPHEAT`'s normally open pole. Confirm
+   on the panel that `C63` and `C64` both read 1 with no call, that a zone cooling call drops
+   `C63` to 0 with `HPCOOL` at 1, and that the Checkout heat-stage test drops `C64` to 0 with
+   `HPHEAT` at 1. Move the `H`-`COM` pair off `HPHEAT`'s normally open pole and its common. After each call ends, both must return to 1 and register 141 must keep the mode
+   the call set.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should
    put 24 VAC on `Y1` and `B` and none on `W1/E`; with Emergency Heat pressed, 24 VAC on `W1/E`
@@ -172,7 +208,7 @@ heating and cooling on the panel and stays that way, since it cannot be combined
 
 The Modbus feed already publishes everything the changeover shows: `operatingMode`,
 `heatingTarget`, `inletTemp`, `outletTemp`, `compressorHz` and `startupFlow`, which works in
-heating as it does in cooling because the pump-only plateau precedes every start. `HPHEAT` joins
+heating as it does in cooling because the pump-only plateau precedes every start. `HPHEAT` and `HPCOOL` join
 the relay roster and the Relays panel. `pivac.LoopDelta` needs no change to gate, since `CHIL`
 closes on either call, but every ΔT it publishes reads negative in heating under the warm-minus-cold
 convention; the panel's soft limits already allow it. The `chiltrix-pump-only-flow-low` and
@@ -217,7 +253,7 @@ electricity on days whose own load is small. The HZ-432's 30 minute changeover d
 thing rationing this. If the record shows changeovers on most shoulder days, widen the deadband or
 lengthen the delay on the panel, or hold one mode for the day.
 
-The first call feels the pull-down. Under option 1 the zone fan runs throughout, and a coil's output
+The first call after a changeover feels the pull-down. The zone fan runs throughout, and a coil's output
 scales with the water-to-air difference, so in heating it delivers nothing until the water passes
 room temperature, about 10 minutes in, and about half its 122 °F output once the water reaches
 100 °F, around 20 minutes in. Going to cooling the coil is useful within a few minutes because the
@@ -296,10 +332,10 @@ cents per 100 kBTU that is not in the table.
 
 ## 9. Winter: taking the chiller out of service, and spring return
 
-Below the balance point the panel sends every heat call to the boiler and the chiller sees only the
-cool contact, because the `HPHEAT` relay selects cool on its normally closed pair and heat when
-energised and there is no off signal. Enabled and in cool mode through the winter, the unit
-re-chills the tank whenever it drifts past the restart point, a short cooling run every few days at
+Below the balance point the panel sends every heat call to the boiler and the chiller sees both
+contacts closed, which under option 2 means the mode it last held; there is no off signal on the
+block. Enabled and left in cool mode through the winter, the unit re-chills the tank whenever it
+drifts past the restart point, a short cooling run every few days at
 whatever the ambient is. Cooling with 0 °F condenser air drives the evaporator far colder than
 summer, and the likely outcome is an E14 lockout, which needs a breaker cycle to clear. The energy at
 stake is small: measured in summer, runs with no primary call cost 0.14 kWh a day, and the tank
