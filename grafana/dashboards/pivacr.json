@@ -1682,6 +1682,25 @@
                 "value": "HPHEAT"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.ac.switch.utility.HPCOOL.statenum.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "HPCOOL"
+              }
+            ]
           }
         ]
       },
@@ -2019,6 +2038,53 @@
               {
                 "params": [
                   " +.11"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdj9fji0j5logc"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.ac.switch.utility.HPCOOL.statenum",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "I",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  " +.13"
                 ],
                 "type": "math"
               }

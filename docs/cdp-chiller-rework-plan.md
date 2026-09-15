@@ -91,7 +91,7 @@ seasonal-cutoff function it performed no longer exists as a CDP interlock (§3, 
 | 3 | BLR | 22 | 15 | unchanged |
 | 4 | **BOS2** | 5 | 29 | **rename only** (was RCHL) — relay reclaimed in place, contact wire reused |
 | 5 | **BOS1** | 6 | 31 | **rename only** (was LCHL) — relay reclaimed in place, contact wire reused |
-| 6 | UNUSED | 13 | 33 | **freed** — pull wire at header + relay |
+| 6 | **HPCOOL** | 13 | 33 | freed 2026-08-02, then taken 2026-09-14 by the `HPCOOL` relay's spare pole (I/O board J4.2): the HZ-432's `O` energised, a cooling call |
 | 7 | UNUSED | 26 | 37 | **retired** — YOFF no longer in use; the dead pad on the current Pi is now irrelevant |
 | 8 | UNUSED | 16 | 36 | **freed** — pull wire at header + relay |
 | 9 | DEHUM | 12 | 32 | unchanged |
