@@ -119,8 +119,11 @@ BCM 25; its `W1` drives the boiler call and the `BLR` input; and its `B` drives 
 normally closed pole holds the chiller's `C`-`COM` closed at rest and whose normally open pole
 closes `H`-`COM` while `B` is energised. The jumpers Chiltrix ships on the block are out and
 `P111` is enabled. The change to option 2 adds one relay, `HPCOOL`, driven by the panel's `O`
-terminal, and moves one wire: the `H` lead leaves `HPHEAT`'s normally open pole and lands on
-`HPCOOL`'s normally closed pole. At rest both contacts are then closed.
+terminal, and moves one pair: the chiller's `H`-`COM` pair leaves `HPHEAT` (its `H` conductor
+from the normally open pole) and lands on `HPCOOL`'s pole 1, `H` on the normally closed contact
+and its `COM` conductor on the common. The two pairs from the chiller stay two pairs, `C`-`COM`
+on `HPHEAT` and `H`-`COM` on `HPCOOL`, both `COM` conductors on the block's one `COM` terminal.
+At rest both contacts are then closed.
 
 | Signal | Source | Does |
 |---|---|---|
@@ -129,7 +132,7 @@ terminal, and moves one wire: the `H` lead leaves `HPHEAT`'s normally open pole 
 | `O` | HZ-432 equipment terminal, energised in cooling | Energises `HPCOOL`; its normally closed pole opens `H`-`COM`, leaving `C` alone: cooling |
 | neither | | Both contacts closed: the controller keeps the mode it was last given and maintains the tank |
 | both | Only if the panel raised `B` and `O` together, which it does not | Both contacts open: standby. Harmless |
-| `COM` | chiller | Return for both contacts, dry, no voltage applied; one lead, daisy-chained between the two sockets |
+| `COM` | chiller | Return for each contact, dry, no voltage applied; each pair carries its own `COM` conductor to its relay's pole 1 common |
 | `W1/E` | HZ-432 | Unchanged: boiler call and `BLR` |
 | `HPHEAT` spare pole | | J3.3 on the I/O board, BCM 24, as `HPHEAT`: 1 while the panel calls heat-pump heating |
 | `HPCOOL` spare pole | | The `SP-D` channel, BCM 19 (J4.3 on the rev A board, pad (5,19) on the perfboard), as `HPCOOL`: 1 while the panel calls cooling |
@@ -150,9 +153,9 @@ link A1 and A2 across neighbouring sockets: the A2 side may carry the shared 24 
 |---|---|---|
 | 13 (A1, coil) | HZ-432 `B` | HZ-432 `O` |
 | 14 (A2, coil) | HZ-432 `C`, 24 VAC common | HZ-432 `C`, 24 VAC common |
-| 9 (pole 1 common) | Chiltrix `COM` | Chiltrix `COM`, daisy-chained from `HPHEAT` 9 |
+| 9 (pole 1 common) | `COM` conductor of the `C` pair | `COM` conductor of the `H` pair |
 | 1 (pole 1 normally closed) | Chiltrix `C` | Chiltrix `H` |
-| 5 (pole 1 normally open) | nothing; the `H` lead leaves here | nothing |
+| 5 (pole 1 normally open) | nothing; the `H` pair leaves here | nothing |
 | 10 (pole 2 common) | I/O board `COM` (J3.4) | I/O board `COM` (J4.4) |
 | 6 (pole 2 normally open) | I/O board J3.3, `HPHEAT`, BCM 24 | I/O board J4.3, `SP-D`, `HPCOOL`, BCM 19 |
 | 2 (pole 2 normally closed) | nothing | nothing |
@@ -183,12 +186,12 @@ heating and cooling on the panel and stays that way, since it cannot be combined
 3. `HPHEAT` is wired per §4 and proven with the HZ-432's test mode. Its spare pole is on J3.3,
    BCM 24, and publishes as `electrical.ac.switch.utility.HPHEAT` since 8 September.
 4. Fit `HPCOOL` per §4: coil on `O` and the 24 VAC common, pole 1 normally closed in series with
-   `H`, pole 2 normally open to the `SP-D` input, and add `19: outname: HPCOOL` to the GPIO block
+   `H`, pole 2 normally open to the `SP-D` input, move the `H`-`COM` pair over from `HPHEAT`, and add `19: outname: HPCOOL` to the GPIO block
    of `/etc/pivac/config.yml`, an `order` entry in `~/.signalk/baseDeltas.json`, then `restart
    pivac-gpio` and `restart signalk`. Move the `H` lead off `HPHEAT`'s normally open pole. Confirm
    on the panel that `C63` and `C64` both read 1 with no call, that a zone cooling call drops
    `C63` to 0 with `HPCOOL` at 1, and that the Checkout heat-stage test drops `C64` to 0 with
-   `HPHEAT` at 1. After each call ends, both must return to 1 and register 141 must keep the mode
+   `HPHEAT` at 1. Move the `H`-`COM` pair off `HPHEAT`'s normally open pole and its common. After each call ends, both must return to 1 and register 141 must keep the mode
    the call set.
 5. Reconfigure the HZ-432 per §3 and prove the heating side of the changeover with a real
    call: with the outdoor sensor reading above the balance temperature, a zone heat call should

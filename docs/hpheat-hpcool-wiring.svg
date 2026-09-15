@@ -84,14 +84,14 @@
   <g fill="none" stroke-width="2.5">
     <!-- HPHEAT 9 (510,190) -> COM bus at top -> Chiltrix COM (954,285) -->
     <polyline points="510,176 510,90 920,90 920,285 954,285" stroke="#7f8c8d"/>
+    <polyline points="830,176 830,130 905,130 905,290 954,290" stroke="#7f8c8d"/>
     <!-- HPCOOL 9 (830,190) -> COM bus -->
-    <polyline points="830,176 830,90" stroke="#7f8c8d"/>
     <!-- HPHEAT 1 (510,320) -> Chiltrix C (954,225): out the right, down between sockets, under HPCOOL, up -->
     <polyline points="524,320 580,320 580,70 935,70 935,225 954,225" stroke="#2c5aa0"/>
     <!-- HPCOOL 1 (830,320) -> Chiltrix H (954,255) -->
     <polyline points="844,320 880,320 880,255 954,255" stroke="#2c5aa0"/>
   </g>
-  <circle cx="830" cy="90" r="4" fill="#7f8c8d"/>
+  <circle cx="954" cy="288" r="4" fill="#7f8c8d"/>
 
   <!-- Wires: Pi inputs (pole 2: COM 10, NO 6) -->
   <g fill="none" stroke-width="2" stroke-dasharray="6 3">
@@ -116,9 +116,9 @@
     <line x1="0" y1="34" x2="30" y2="34" stroke="#1f7a3a" stroke-width="2.5"/><text x="38" y="38">HZ-432 O → HPCOOL 13 (A1)</text>
     <line x1="0" y1="54" x2="30" y2="54" stroke="#222" stroke-width="2.5"/><text x="38" y="58">HZ-432 C, 24 VAC common → 14 (A2) on both sockets. A2 bus jumper allowed; never fit the A1 jumper</text>
     <line x1="0" y1="74" x2="30" y2="74" stroke="#2c5aa0" stroke-width="2.5"/><text x="38" y="78">Pole 1 normally closed: HPHEAT 1 → Chiltrix C, HPCOOL 1 → Chiltrix H. Both closed at rest</text>
-    <line x1="0" y1="94" x2="30" y2="94" stroke="#7f8c8d" stroke-width="2.5"/><text x="38" y="98">Commons: 9 → Chiltrix COM (one lead, chained between sockets); 10 → I/O board COM</text>
+    <line x1="0" y1="94" x2="30" y2="94" stroke="#7f8c8d" stroke-width="2.5"/><text x="38" y="98">Commons: 9 → the COM conductor of that relay's pair, both to the chiller's COM; 10 → I/O board COM</text>
     <line x1="0" y1="114" x2="30" y2="114" stroke="#d68910" stroke-width="2" stroke-dasharray="6 3"/><text x="38" y="118">Pole 2 normally open: HPHEAT 6 → J3.3 (BCM 24), HPCOOL 6 → J4.3 SP-D (BCM 19)</text>
-    <text x="0" y="138" fill="#c0392b">✕  HPHEAT 5 (NO): the H lead leaves here and lands on HPCOOL 1</text>
+    <text x="0" y="138" fill="#c0392b">✕  HPHEAT 5 (NO): the H pair leaves here; H to HPCOOL 1, its COM conductor to HPCOOL 9</text>
   </g>
   <g transform="translate(640,675)" font-size="12">
     <text x="0" y="0" font-weight="bold" font-size="13">What the Chiltrix reads (IOM p. 40)</text>
