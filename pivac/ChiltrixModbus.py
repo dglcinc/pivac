@@ -82,11 +82,15 @@ NAMED = {
 # select, 109=P109 target range.  65 reads 14 against a documented P65 of 20,
 # which most likely means that setting was changed on this unit.
 #
+# 215-217 are the C16 (defrost) and C17 (freeze protection) candidates if the
+# panel's C readouts sit at 200 + n as C13 does at 213 (Chiltrix support named
+# both readouts on 2026-09-16); the first defrost decides.
+#
 # The upper space is deliberately NOT swept.  Only the addresses below carry a
 # documented meaning or a community-map candidate worth catching during a live
 # fault; publishing the rest would be hundreds of InfluxDB series of noise.
 RAW_RANGES = [(0, 139),
-              (140, 146), (202, 214), (225, 227), (243, 248),
+              (140, 146), (202, 217), (225, 227), (243, 248),
               (256, 261), (264, 264), (281, 285)]
 
 DEFAULT_PORT = "/dev/ttyACM0"
