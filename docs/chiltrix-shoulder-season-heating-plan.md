@@ -75,7 +75,8 @@ the zones hold with runtime to spare; each °C of water is worth about 2 to 3 % 
 coils give up about 4 % of output per °C on the way down. Chiltrix support's advice (16 September
 2026) is to take the target well below 40 °C, as low as the rooms allow, since every degree off the
 tank saves compressor work and standby loss alike; on these coils the floor is the water
-temperature that still carries the load at the balance point, which §11 leaves to observation.
+temperature that still carries the load at the balance point. The target stays at 50 °C (decided
+16 September 2026) until the first heating weeks show the zones holding with runtime to spare.
 Register 143 is read/write over Modbus, so a Pi-side schedule could hold a low standby target below
 the balance point and raise it for the shoulder season; pivac stays read only (function 03) until
 such a write path is designed and tested. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
@@ -442,8 +443,8 @@ fourteen minutes at a time, and at 30 % it will not slush. Set it on the panel b
 frost, record the date, and read register 52 back through `raw.r52`. Support regards the cycle
 count, the minimum run time and oil return as no concern at this duty, so the 1,400 winter starts
 cost electricity and nothing else. The reheat count in the table also assumes the 117 to 128 °F band
-measured on 15 September; `P12` sets it, at 2 °C, and support asks that it be checked in heating,
-where the measured band (restart 2 to 3 °C below target, stop 3 °C above) is wider than 2 °C.
+measured on 15 September; `P12` sets it, at 2 °C, and the measured heating band (restart 2 to 3 °C
+below target, stop 3 °C above) is wider than that, so the count is an upper bound.
 Below the balance point the tank serves only the §4.1 bridge, so a lower heating target cuts the
 loss in the table in proportion to the tank-to-ambient difference: a 35 °C (95 °F) tank at the
 January mean loses about 30 % less than a 50 °C one, and the bridge then feeds the zones cooler
@@ -521,9 +522,6 @@ roster on its own.
 
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
-- How far below 50 °C can the heating target go with the zones still holding at 40 °F outdoor?
-  Chiltrix support says as low as the rooms allow; the loop probes, zone droop and the Modbus COP
-  against outdoor temperature will say where these coils stop carrying the load.
 - Does the `DHW` relay have a free changeover pole for `W1`, or does the bridge need a second relay
   in parallel with its coil?
 - How far do the rooms fall during a refused call? The RedLink record over last spring's 38 refused
