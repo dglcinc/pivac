@@ -42,6 +42,10 @@ When the Pi boots into (or rides through) a DNS-less window, `pivac-redlink` acc
 
 ## Relays and GPIO
 
+### `CHIL` renamed `HPCALL` (2026-09-15)
+
+The input on BCM 25 is the HZ-432's `Y1`, a heat-pump call of either kind that runs the Taco 0015 and enables the calling zones' secondary pumps; it has selected nothing about the chiller since `HPHEAT` and `HPCOOL` took the mode contacts, and the name `CHIL` read as a chiller state. Renamed in place: config `outname`, `~/.signalk/baseDeltas.json` order metadata (still 6), the `pivac.LoopDelta` relay, the Relays panel series and the docs. InfluxDB keeps the history under `electrical.ac.switch.utility.CHIL`; `HPCALL` starts on the rename date. The rev A I/O board silkscreen and the J2.1 plug label still read `CHIL`, and `hardware/` and the board docs keep that spelling because they describe the boards as ordered.
+
 ### Relay roster changed for the single-chiller conversion; retiring a relay needs a Signal K restart (2026-08-02)
 
 the `pivac.GPIO` inputs are now **ZV (17), DHW (27), BLR (22), BOS2 (5), BOS1 (6), DEHUM (12), CHIL (25)** — 7 active, plus `SCALA` (23) since 2026-09-07 and `HPHEAT` (24, the `HPHEAT` heating-call relay) since 2026-09-08. (**`SCALA` → `CHIL` on 2026-08-11**: BCM 25 was the booster-pump leak pan; that input now senses the **Chiltrix chiller call**, so the chiller *is* monitored after all — rename in place, no wire moved. The leak-pan signal is no longer published.) **`ZV` is deliberately NOT plotted on the Grafana Relays panel — do not "complete the roster" by adding it.** It carries no independent information: the zone valves are open whenever water is flowing in the secondary loops, i.e. whenever the chiller is running or there is a call for heat, so ZV is derivable from `CHIL`/`BLR` and would just be a near-duplicate line. It is still collected and published; it is only the dashboard series that is intentionally omitted.

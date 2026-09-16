@@ -47,10 +47,15 @@ pivac.GPIO:
         # long as it is in cooling mode, so 1 = the panel is in cooling mode (2026-09-14).
         13:
             outname: HPCOOL
-        # Was SCALA (booster-pump leak pan) until 2026-08-11; this input now
-        # senses the Chiltrix chiller call. Rename in place, no wire moved.
+        # HZ-432 Y1: the heat-pump call of either kind, which runs the Taco 503 zone
+        # controller (the 0015 primary and the calling zones' pumps). Named CHIL until
+        # 2026-09-15; the rev A silkscreen and the J2.1 label still read CHIL.
         25:
-            outname: CHIL
+            outname: HPCALL
+        # DHWX relay spare pole on J4.3 (SP-D): a W1 call the boiler refused for DHW,
+        # bridged to the tank by closing the same Taco 503 input as HPCALL (2026-09-15).
+        19:
+            outname: DHWX
         6:
             outname: BOS1
         5:
@@ -184,21 +189,23 @@ pivac.LoopDelta:
     # for idle rather than nothing is what keeps that third case readable.
     # KELVIN (a difference, so Fahrenheit is * 9/5 with NO offset).
     #
-    # `relay` is the switch that proves this loop is pumping. CHIL is the Taco, which
+    # `relay` is the switch that proves this loop is pumping. HPCALL is the Taco, which
     # the HZ432 energizes on a call from ANY chiller zone -- including one on the other
     # loop -- so a secondary also needs `zones` to narrow it. Once each secondary pump
     # has its own sense input, set `relay` to that channel and delete `zones`: the relay
     # is read locally every 0.5 s while the zone state comes from Honeywell's cloud with
     # a measured median lag of 48 s.
     loops:
+        # `relay` may be a list: any readable one closed proves the pump. The primary runs
+        # on HPCALL (Y1) and on DHWX (a refused boiler call bridged to the tank).
         primary:
             supply: IN
             return: OUT
-            relay: CHIL
+            relay: [HPCALL, DHWX]
         LOOPA:
             supply: LOOPA_SUP
             return: LOOPA_RET
-            relay: CHIL
+            relay: HPCALL
             zones: [KIDS_ROOM, MASTER_BR]
         # `heat_zones` are zones that heat from this loop but cool from their own
         # equipment: the kitchen and great room have Bosch compressors, so only their
@@ -207,7 +214,7 @@ pivac.LoopDelta:
         LOOPB:
             supply: LOOPB_SUP
             return: LOOPB_RET
-            relay: CHIL
+            relay: HPCALL
             zones: [DSTRS_FAM_ROOM]
             heat_zones: [KITCHEN, GREAT_ROOM]
 

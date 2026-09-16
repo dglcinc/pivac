@@ -521,7 +521,7 @@ on register 227 with timeouts dropped.
 
 | Quantity | Value |
 |---|---|
-| Compressor starts | 215 in 9 days, 24 a day; 16 % of them with `CHIL` open |
+| Compressor starts | 215 in 9 days, 24 a day; 16 % of them with `HPCALL` open |
 | Run length | median 16 min, p90 37, longest 356 |
 | Compressor duty | 47 % of the time; above 1,500 W 19 % |
 | Chiller power while running, mean and peak | 1,492 W and 3,740 W |
@@ -773,7 +773,7 @@ The Modbus feed replaced the estimate this section used to carry. Chiller output
 efficiency: EER reads 18.4 at the median above 1,500 W and 16.8
 above 2,500 W, against the published 19.6 IPLV. Chiller flow while running is 11.2 GPM at the
 median, and the Taco is not on the Chiltrix circuit: that circuit's idle draw is no higher with
-`CHIL` closed than open, 58 W against 129 W, so the Taco is metered elsewhere. Distribution flow
+`HPCALL` closed than open, 58 W against 129 W, so the Taco is metered elsewhere. Distribution flow
 comes from the tank energy balance in [4.2](#42-the-sensor-package), 8.8 to 13.1 GPM depending on
 which loops are open.
 
@@ -1804,7 +1804,7 @@ step 14 would settle.
 - How many hydronic zone valves are there, and does one HZ-432 drive all five? Five zones take hot
   water in winter, which is more than a single four-zone panel provides. The kitchen and great
   room may be switched separately, since their cooling comes from their own condensers.
-- The Taco runs on the `CHIL` relay, on any water-cooled zone's call, and it is not on the Chiltrix
+- The Taco runs on the `HPCALL` relay, on any water-cooled zone's call, and it is not on the Chiltrix
   circuit ([4.3](#43-flow-without-a-flow-meter)). Which circuit meters it?
 - Hot water comes from the boiler alone today; the Chiltrix reads mode 0 and a 50 °C heating target
   it has never been asked to make. Whether it should carry the shoulder seasons is the question
@@ -1926,12 +1926,12 @@ to ¾" sweat connections at the cabinet.
 | `environment.inside.thermostat.<ZONE>.coolset` | Zone cooling setpoint |
 | `environment.inside.thermostat.<ZONE>.humidity` | Zone RH, 1 % resolution |
 | `environment.outside.thermostat.temperature` | Outdoor air |
-| `electrical.ac.switch.utility.CHIL` | Any water-cooled zone calling |
+| `electrical.ac.switch.utility.HPCALL` | Any water-cooled zone calling |
 | `electrical.ac.switch.utility.BLR` | Boiler call, used for changeover mode |
 | `electrical.ac.switch.utility.SCALA` | Booster-pump leak pan, since 7 September 2026 |
 | `hvac.boiler.sentry.*` | Boiler supply temperature, gas input, burner state |
 
-> `CHIL` is a system-wide call rather than any one zone's. It asserts when any water-cooled zone
+> `HPCALL` is a system-wide call rather than any one zone's. It asserts when any water-cooled zone
 > calls through the HZ-432, so it reads true while a given coil's valve is shut. Never gate a
 > per-coil calculation on it. Use it for changeover mode, telling you whether arriving water is
 > chilled or hot, and prefer determining that from supply water temperature so the logic survives
@@ -2145,7 +2145,7 @@ pivac and the isolation windows can be selected from data on hand. The loop sens
 independently. A loop with its pump off and its zone valve shut shows supply and return
 converging only if its probes sit in flowing water; here they sit in dead legs off the tees and
 hold a plausible ΔT indefinitely, which is why `pivac.LoopDelta` gates on the zone calls and the
-`CHIL` relay and never on a probe.
+`HPCALL` relay and never on a probe.
 
 ## C.4 Cooling is buffered; heating runs direct
 
@@ -2835,7 +2835,7 @@ from hypothesis into correlation. Humidity comes free with the same sensor: a me
 that runs humid in summer carries mould and corrosion risk, and flags chilled-pipe sweating from
 insulation gaps.
 
-> Leak detection was lost on 11 August 2026, when BCM 25 was renamed from `SCALA` to `CHIL`, and
+> Leak detection was lost on 11 August 2026, when BCM 25 was renamed from `SCALA` to `HPCALL`, and
 > restored on 7 September on BCM 23 with the pump cut done in hardware by the sensor itself. Free
 > GPIO inputs with wire runs on the new Pi's I/O board are BCM 13, 16 and 24.
 
@@ -3127,9 +3127,9 @@ registers on 7 September 2026, because the shoulder-season design will need it.
 | `P110` | register 110 | 30 Hz | Heating minimum compressor frequency; there is no cooling equivalent |
 | `P08` | register 8 | 1 | DHW disabled, so a mode change carries no DHW state with it |
 
-Two things about the plant bear on any heating design. The `CHIL` relay runs the Taco on any
+Two things about the plant bear on any heating design. The `HPCALL` relay runs the Taco on any
 water-cooled zone's cooling call and closes the chiller's `C` contact, which is live because
-`P111` is enabled; the unit nevertheless starts with `CHIL` open on 16 % of its starts, which is
+`P111` is enabled; the unit nevertheless starts with `HPCALL` open on 16 % of its starts, which is
 the override relay holding the `C` call so the tank is maintained between zone calls. And in heating the primary return bypasses the buffer tank for
 the boiler loop ([C.4](#c4-cooling-is-buffered-heating-runs-direct)) only because the boiler's
 own pump is the one running; with the Taco running instead, the tank is in the circuit and the
