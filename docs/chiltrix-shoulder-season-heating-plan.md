@@ -411,15 +411,25 @@ The price of staying on is the standby. It was measured on 15 September
 in 56 minutes against a 56 to 63 °F ambient, about 1,700 BTU/h at 304 BTU/°F, a UA of about
 25 BTU/h·°F for the tank, the near piping and the chiller circuit together. The chiller circuit is the
 part that scales with the weather, because `P52` = 0 keeps the pump idling at 8 L/min through the
-outdoor exchanger. At a January mean of 31 °F that is about 2,200 BTU/h, 16 kWh a day of heat, 5.5 to
-6.5 kWh of electricity at a COP of 2.5 to 3, about $1.10 a day and $100 for December through
-February; and on the 117 to 128 °F band (3,300 BTU a cycle) a reheat every hour and a half, about 16
-starts a day and 1,400 over the winter, plus whatever defrosts those short runs need: the coil only
-frosts while the compressor runs, since at idle it carries tank-warm glycol, and a defrost reverses
-the cycle and draws its heat from the tank. In cool mode the summer figure is 0.14 kWh a day
-for runs with no primary call. The first cold week's record replaces these estimates: the
-Emporia circuit on days without a `Y1` call gives the standby electricity, `compressorHz` the
-starts, and sub-minute cool-mode runs with the outlet dropping mark the defrosts.
+outdoor exchanger, so the loss scales with the tank-to-ambient difference, 5 °F an hour at the
+60 °F it was measured at and more in winter:
+
+| Ambient | Loss | Tank drift | Reheat on the 117 to 128 °F band (3,300 BTU) | Starts a day |
+|---|---|---|---|---|
+| 60 °F (measured) | 1,700 BTU/h | 5 °F/h | every 2 h | 12 |
+| 31 °F (January mean) | 2,200 BTU/h | 7 °F/h | every 1.5 h | 16 |
+| 0 °F (coldest nights) | 3,000 BTU/h | 10 °F/h | every 1.1 h | 22 |
+
+At the January mean that is 16 kWh a day of heat, 5.5 to 6.5 kWh of electricity at a COP of 2.5 to
+3, about $1.10 a day and $100 for December through February, and about 1,400 starts over the
+winter, plus whatever defrosts those short runs need: the coil only frosts while the compressor
+runs, since at idle it carries tank-warm glycol, and a defrost reverses the cycle and draws its heat
+from the tank. In cool mode the summer figure is 0.14 kWh a day for runs with no primary call. The
+first cold week's record replaces these estimates: the Emporia circuit on days without a `Y1` call
+gives the standby electricity, `compressorHz` the starts, and sub-minute cool-mode runs with the
+outlet dropping mark the defrosts. `P52` = 2, the pump one minute in every fifteen at target, would
+remove most of the coil loss and is the question put to Chiltrix support; it leaves the coil's
+glycol still for fourteen minutes at a time, which is where the slush question lives.
 
 Neither controller can block a cool call on outdoor temperature. The HZ-432's advanced configuration (guide
 69-2198, Table 5) holds two outdoor settings: the OT balance temperature, which moves a dual-fuel
