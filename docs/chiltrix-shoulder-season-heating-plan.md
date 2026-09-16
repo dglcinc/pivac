@@ -441,12 +441,14 @@ first defrost confirms or refutes it; until then sub-minute cool-mode runs with 
 mark the defrosts. `P52` = 2, the pump one minute in every fifteen at target, removes most of the
 coil loss, and Chiltrix support concurred with it on 16 September 2026: the coil's glycol stands for
 fourteen minutes at a time, and at 30 % it will not slush. It was set on the panel at 18:10 EDT on
-16 September 2026 and register 52 read 2 on the next poll. Mode 2 stops the pump at target and runs
-it for one minute after each fifteen-minute stop, so idle flow reads 0 for most of every gap
-between runs, where mode 0 held a 6.9 L/min trickle; two things follow. `chiltrix-zero-flow`
-fires on seven minutes of zero flow with the unit on, which is now the ordinary idle state, so the
-rule needs a window long enough to contain the pump's restarts (a 45-minute window spans three) or
-a different signal, decided on the first night's record. The `startupFlow` sentinel takes the
+16 September 2026 and register 52 read 2 on the next poll. The IOM defines mode 2 as the pump
+stopping at target and running one minute after each fifteen-minute stop, so idle flow should read
+0 for most of every gap between runs, where mode 0 held a 6.9 L/min trickle (it still read 6.9 in
+the first samples after the change, with the unit already at target); the first night's record
+shows what the meter reads at idle and when the pump stops. Two things follow if it reads 0.
+`chiltrix-zero-flow` fires on seven minutes of zero flow with the unit on, which would then be the
+ordinary idle state, so the rule needs a window long enough to contain the pump's restarts (a
+45-minute window spans three) or a different signal, decided on that record. The `startupFlow` sentinel takes the
 maximum flow from the last stop through the first 150 s of a run, so the one-minute restarts feed
 it; if they run at the pre-start pump speed the sentinel is unchanged, and if not the baseline
 moves and the first clean start after the change sets the new one. Support regards the cycle
