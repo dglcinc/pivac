@@ -417,8 +417,9 @@ The price of staying on is the standby. It was measured on 15 September
 2026 with the mode held, the primary off and no compressor run: the tank fell from 130.4 to 125.3 °F
 in 56 minutes against a 56 to 63 °F ambient, about 1,700 BTU/h at 304 BTU/°F, a UA of about
 25 BTU/h·°F for the tank, the near piping and the chiller circuit together. The chiller circuit is the
-part that scales with the weather, because `P52` = 0 keeps the pump idling at 8 L/min through the
-outdoor exchanger, so the loss scales with the tank-to-ambient difference, 5 °F an hour at the
+part that scales with the weather, because `P52` = 0 kept the pump idling at 8 L/min through the
+outdoor exchanger (until 16 September 2026; the table is the mode 0 loss, and the mode 2 record
+replaces it), so the loss scales with the tank-to-ambient difference, 5 °F an hour at the
 60 °F it was measured at and more in winter:
 
 | Ambient | Loss | Tank drift | Reheat on the 117 to 128 °F band (3,300 BTU) | Starts a day |
@@ -439,8 +440,16 @@ sit at 200 plus their number as `C13` does at 213, so `raw.r215` to `raw.r217` a
 first defrost confirms or refutes it; until then sub-minute cool-mode runs with the outlet dropping
 mark the defrosts. `P52` = 2, the pump one minute in every fifteen at target, removes most of the
 coil loss, and Chiltrix support concurred with it on 16 September 2026: the coil's glycol stands for
-fourteen minutes at a time, and at 30 % it will not slush. Set it on the panel before the first hard
-frost, record the date, and read register 52 back through `raw.r52`. Support regards the cycle
+fourteen minutes at a time, and at 30 % it will not slush. It was set on the panel at 18:10 EDT on
+16 September 2026 and register 52 read 2 on the next poll. Mode 2 stops the pump at target and runs
+it for one minute after each fifteen-minute stop, so idle flow reads 0 for most of every gap
+between runs, where mode 0 held a 6.9 L/min trickle; two things follow. `chiltrix-zero-flow`
+fires on seven minutes of zero flow with the unit on, which is now the ordinary idle state, so the
+rule needs a window long enough to contain the pump's restarts (a 45-minute window spans three) or
+a different signal, decided on the first night's record. The `startupFlow` sentinel takes the
+maximum flow from the last stop through the first 150 s of a run, so the one-minute restarts feed
+it; if they run at the pre-start pump speed the sentinel is unchanged, and if not the baseline
+moves and the first clean start after the change sets the new one. Support regards the cycle
 count, the minimum run time and oil return as no concern at this duty, so the 1,400 winter starts
 cost electricity and nothing else. The reheat count in the table also assumes the 117 to 128 °F band
 measured on 15 September; `P12` sets it, at 2 °C, and the measured heating band (restart 2 to 3 °C
