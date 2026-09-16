@@ -436,7 +436,8 @@ procedure for relay-control wiring: "to turn the system off, you would select of
 use the Chiltrix controller to stop the heat pump." In off the unit ignores the `C` and `H`
 contacts, keeps whatever standby protection it runs on its own power (the IOM lists `C17` "Freeze
 Protection" as a status independent of mode and treats standby as a normal powered state; it does
-not name a crankcase heater, and an inverter compressor warms its windings at standby either way),
+not name a crankcase heater, but Chiltrix support confirmed one on 15 September 2026, and an inverter
+compressor warms its windings at standby either way),
 and holds the off state through a mains outage because `P00` power-down recovery is on. Modbus
 reads are function 03 and continue, so register 140 reads 0 all winter, ambient and water
 temperatures keep logging, any freeze-protection pump or compressor run shows in the record, and
