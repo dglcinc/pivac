@@ -72,7 +72,13 @@ Register 143 sets the heating target, whole °C. Start at 50 °C (122 °F), whic
 unit's own `P72` caps it and the most the coils can be given, so the first heating test is
 unambiguous: a zone that cannot hold at 50 °C is a balance-point problem. Step down afterward if
 the zones hold with runtime to spare; each °C of water is worth about 2 to 3 % of COP, and the
-coils give up about 4 % of output per °C on the way down. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
+coils give up about 4 % of output per °C on the way down. Chiltrix support's advice (16 September
+2026) is to take the target well below 40 °C, as low as the rooms allow, since every degree off the
+tank saves compressor work and standby loss alike; on these coils the floor is the water
+temperature that still carries the load at the balance point, which §11 leaves to observation.
+Register 143 is read/write over Modbus, so a Pi-side schedule could hold a low standby target below
+the balance point and raise it for the shoulder season; pivac stays read only (function 03) until
+such a write path is designed and tested. Heating AU mode (register 145, with `P48` capping the curve at 45 °C and `P49` an
 offset) floats that target with outdoor air and is worth enabling once a fixed target has run a
 few days. `P42`/`P43` auto switch-over cannot be combined with `C`-`H`-`COM` and stays off. `P08`
 reads 1, DHW disabled, so a mode change carries no DHW state with it.
@@ -426,10 +432,22 @@ winter, plus whatever defrosts those short runs need: the coil only frosts while
 runs, since at idle it carries tank-warm glycol, and a defrost reverses the cycle and draws its heat
 from the tank. In cool mode the summer figure is 0.14 kWh a day for runs with no primary call. The
 first cold week's record replaces these estimates: the Emporia circuit on days without a `Y1` call
-gives the standby electricity, `compressorHz` the starts, and sub-minute cool-mode runs with the
-outlet dropping mark the defrosts. `P52` = 2, the pump one minute in every fifteen at target, would
-remove most of the coil loss and is the question put to Chiltrix support; it leaves the coil's
-glycol still for fourteen minutes at a time, which is where the slush question lives.
+gives the standby electricity, `compressorHz` the starts, and `C16` on the panel reports defrost
+(Chiltrix support, 16 September 2026). Address 216 is the register candidate if the `C` readouts
+sit at 200 plus their number as `C13` does at 213, so `raw.r215` to `raw.r217` are polled and the
+first defrost confirms or refutes it; until then sub-minute cool-mode runs with the outlet dropping
+mark the defrosts. `P52` = 2, the pump one minute in every fifteen at target, removes most of the
+coil loss, and Chiltrix support concurred with it on 16 September 2026: the coil's glycol stands for
+fourteen minutes at a time, and at 30 % it will not slush. Set it on the panel before the first hard
+frost, record the date, and read register 52 back through `raw.r52`. Support regards the cycle
+count, the minimum run time and oil return as no concern at this duty, so the 1,400 winter starts
+cost electricity and nothing else. The reheat count in the table also assumes the 117 to 128 °F band
+measured on 15 September; `P12` sets it, at 2 °C, and support asks that it be checked in heating,
+where the measured band (restart 2 to 3 °C below target, stop 3 °C above) is wider than 2 °C.
+Below the balance point the tank serves only the §4.1 bridge, so a lower heating target cuts the
+loss in the table in proportion to the tank-to-ambient difference: a 35 °C (95 °F) tank at the
+January mean loses about 30 % less than a 50 °C one, and the bridge then feeds the zones cooler
+water.
 
 Neither controller can block a cool call on outdoor temperature. The HZ-432's advanced configuration (guide
 69-2198, Table 5) holds two outdoor settings: the OT balance temperature, which moves a dual-fuel
@@ -478,14 +496,15 @@ Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in, then a check o
 the glycol reading and the first cooling run's `startupFlow` against 51.7 L/min.
 
 Glycol at 30 % covers the outdoor exchanger whatever the controller does: freeze point about 8 °F
-and burst protection well below 0 °F, so the five gallons outdoors may slush on the coldest night
-without harm. At 25 % the freeze point is 14 °F, which is why the top-up to 30 % belongs before the
+and burst protection well below 0 °F, and Chiltrix support expects no slush in the still coil at
+that concentration (16 September 2026). At 25 % the freeze point is 14 °F, which is why the top-up to 30 % belongs before the
 first hard frost.
 
-Two things the manuals leave open. Whether standby freeze protection runs the pump or the
-compressor at low water temperature will show in the first cold week's Modbus log. Whether `P10`
-"Cooling Validation" set to invalid would also block the `C` contact with the controller on is
-untested, and the off route needs neither answer.
+One thing the manuals leave open: whether `P10` "Cooling Validation" set to invalid would also
+block the `C` contact with the controller on is untested, and the off route does not need the
+answer. Standby freeze protection is settled: `C17` runs the pump at full speed when the water
+reaches the antifreeze temperature (Chiltrix support, 16 September 2026), and the first cold week's
+Modbus log will show whether it ever does.
 
 The bridge covers DHW refusals of 12 to 15 minutes, up to 39, that the house would otherwise coast
 through; with the chiller on all winter it costs nothing beyond the standby above, and on its own it
@@ -503,7 +522,8 @@ roster on its own.
 - Does the boiler's pump start from the boiler's own call input, so that dropping `W1` stops it,
   or from a separate relay that would keep it running against the Taco?
 - How far below 50 °C can the heating target go with the zones still holding at 40 °F outdoor?
-  The loop probes, zone droop and the Modbus COP against outdoor temperature will say.
+  Chiltrix support says as low as the rooms allow; the loop probes, zone droop and the Modbus COP
+  against outdoor temperature will say where these coils stop carrying the load.
 - Does the `DHW` relay have a free changeover pole for `W1`, or does the bridge need a second relay
   in parallel with its coil?
 - How far do the rooms fall during a refused call? The RedLink record over last spring's 38 refused
