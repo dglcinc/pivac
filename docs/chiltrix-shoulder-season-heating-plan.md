@@ -204,10 +204,9 @@ lockout would act on it. Dry contacts paralleled contact for contact have no suc
 |---|---|
 | `DHW` relay, a changeover pole | common `W1` from the panel; normally closed to the `BLR` relay coil and the boiler call as today; normally open to `DHWX` coil A1 |
 | `DHWX`, Magnecraft 782 with 24 VAC coil in a 70-782EL14-1 socket | A2 to the panel's `C` common; the socket's A2 bus bar may be fitted, the A1 bar must not, since a neighbouring socket's A1 is `B` or `O` |
-| Pole 1 | across `HPCALL`'s Taco contact, same line feed, so either relay runs the pump |
-| Pole 2 | across `HPCALL`'s zone-pump enable, if that is a separate pole |
-| Pole 3 normally open | I/O board J4.3 `SP-D`, BCM 19, published as `DHWX`: 1 while the tank is covering the boiler |
-| Inhibit | a switch in series with `DHWX` A1, opened with the controller in §9's winter shutdown |
+| Pole 1 | across `HPCALL`'s contact on the Taco 503 zone controller's input, so either relay starts the 0015 and the calling zones' pumps. Wired 15 September 2026 |
+| Pole 2 normally open | I/O board J4.3 `SP-D`, BCM 19, published as `DHWX`: 1 while the tank is covering the boiler. Not yet wired |
+| Inhibit | a switch in series with `DHWX` A1, opened with the controller in §9's out-of-service procedure |
 
 If the `DHW` relay has no free changeover pole, a second relay with its coil in parallel with
 `DHW`'s supplies one. Keep the `BLR` coil upstream of the gate: `BLR` then keeps meaning `W1`, the
@@ -220,8 +219,15 @@ inhibit switch covers that. A Shelly 1 Mini in the same position, commanded by p
 
 Capacity is adequate. The house needs about 50 kBTU/h of output at 20 °F, the CX75 makes 40 to 45
 kBTU/h there, and the tank's 11 °F band holds 3,300 BTU, so a 30-minute call is covered on all but
-the coldest nights. `LoopDelta` gates the primary on `HPCALL` alone and would call a bridged run idle
-until the module takes a second relay.
+the coldest nights. `HPCALL` stays de-energised on a bridged call, so until the `DHWX` pole reaches `SP-D` the Pi sees
+`BLR` 1, `DHW` 1 and `HPCALL` 0, a bridged run is invisible to pivac, and `LoopDelta`, which gates the
+primary on `HPCALL` alone, calls it idle until the module takes a second relay.
+
+The relay went in on 15 September 2026. A bench test at 22:05 that evening moved the boiler call to
+`DHWX` on a DHW call and started the Taco; the pulses were seconds long, so the 1-minute record
+cannot show whether the zone valves opened. The first real call, below the balance point with a heat
+call and a DHW call together, should show `ZV` 1 with `BLR` 1 and `DHW` 1, `IN` climbing toward the
+tank temperature within a minute, and the chiller restarting on its band.
 
 Where it pays: above the balance point the panel raises `Y1` and no `W1`, so the bridge is idle and
 DHW blocks nothing. It engages when the panel is on the boiler with the chiller on: the second-stage
@@ -387,15 +393,21 @@ it; the boiler efficiency band of 87 to 92 % moves the break-even by about 5 ¢.
 122 °F target also runs the air handlers about 40 % longer than 140 °F boiler water does, a few
 cents per 100 kBTU that is not in the table.
 
-## 9. Winter: taking the chiller out of service, and spring return
+## 9. Winter: the chiller stays on, and taking it out of service
 
-Below the balance point the panel sends every heat call to the boiler and the chiller sees both
-contacts closed, which under option 2 means the mode it last held; there is no off signal on the
-block. Enabled and left in cool mode through the winter, the unit re-chills the tank whenever it
-drifts past the restart point, a short cooling run every few days at
-whatever the ambient is. Cooling with 0 °F condenser air drives the evaporator far colder than
-summer, and the likely outcome is an E14 lockout, which needs a breaker cycle to clear. Left on in heat
-mode instead, the unit holds the tank at 122 °F all winter. That standby was measured on 15 September
+The chiller stays on through the winter in heat mode (decided 15 September 2026). The HZ-432
+balance point, 40 °F to start, sends every call below it to the boiler; the chiller holds the tank on
+its 117 to 128 °F band, and the §4.1 bridge feeds the zones from it whenever the boiler refuses a
+call for DHW. Above the balance point the chiller heats the house as in the shoulder season. Below
+it the chiller sees both contacts closed, which under option 2 means the mode it last held, heat, and
+there is no off signal on the block. The `DHWX` inhibit stays closed. The five hydronic thermostats
+sit on Heat, never Auto: a cool call puts the unit in cooling mode, and cooling with 0 °F condenser
+air drives the evaporator far colder than summer, with an E14 lockout the likely outcome, which
+needs a breaker cycle to clear; `chiltrix-cooling-cold` emails and raises a Signal K notification
+once the unit has sat enabled in cooling with its own ambient under 40 °F for 30 minutes, and the
+remedy is a heating call.
+
+The price of staying on is the standby. It was measured on 15 September
 2026 with the mode held, the primary off and no compressor run: the tank fell from 130.4 to 125.3 °F
 in 56 minutes against a 56 to 63 °F ambient, about 1,700 BTU/h at 304 BTU/°F, a UA of about
 25 BTU/h·°F for the tank, the near piping and the chiller circuit together. The chiller circuit is the
@@ -405,10 +417,11 @@ outdoor exchanger. At a January mean of 31 °F that is about 2,200 BTU/h, 16 kWh
 February; and on the 117 to 128 °F band (3,300 BTU a cycle) a reheat every hour and a half, about 16
 starts a day and 1,400 over the winter, plus the defrost cycles a heat pump idling wet below 40 °F
 runs by reversing, drawing that heat from the tank. In cool mode the summer figure is 0.14 kWh a day
-for runs with no primary call. The reason to stop the unit in winter is the compressor; the bill is a
-hundred dollars.
+for runs with no primary call. The first cold week's record replaces these estimates: the
+Emporia circuit on days without a `Y1` call gives the standby electricity, `compressorHz` the
+starts, and sub-minute cool-mode runs with the outlet dropping mark the defrosts.
 
-Neither controller can do this on outdoor temperature. The HZ-432's advanced configuration (guide
+Neither controller can block a cool call on outdoor temperature. The HZ-432's advanced configuration (guide
 69-2198, Table 5) holds two outdoor settings: the OT balance temperature, which moves a dual-fuel
 heat call to the boiler, and the OT lockout temperature, which locks out second and third heating
 stages and applies only to conventional and heat pump panels. Nothing in it blocks a cool call. The
@@ -417,8 +430,9 @@ cannot be used with `C`-`H`-`COM` relay control, which is how this plant is wire
 ambient floor that disables the compressor, defaults to −27 °C and protects against nothing above
 −17 °F.
 
-The unit stays powered and the controller goes to off. The IOM gives this as the procedure for
-relay-control wiring: "to turn the system off, you would select off at the thermostat and then also
+Taking the unit out of service, for a fault, a cold spell the compressor should sit out, or a change
+of mind, is the HMI: the unit stays powered and the controller goes to off. The IOM gives this as the
+procedure for relay-control wiring: "to turn the system off, you would select off at the thermostat and then also
 use the Chiltrix controller to stop the heat pump." In off the unit ignores the `C` and `H`
 contacts, keeps whatever standby protection it runs on its own power (the IOM lists `C17` "Freeze
 Protection" as a status independent of mode and treats standby as a normal powered state; it does
@@ -430,7 +444,7 @@ the `chiltrix-*` freshness alerts stay quiet. Breaker off would leave every
 `hvac.chiller.chiltrix.*` path stale and the rules firing until paused, and the IOM's only
 low-ambient advice is glycol.
 
-When the forecast holds below 40 °F for good, three settings together:
+Out of service is four settings together:
 
 1. Chiltrix controller to off on the HMI. The breaker stays on. Confirm through
    `hvac.chiller.chiltrix.switchOn` reading 0.
@@ -446,10 +460,11 @@ When the forecast holds below 40 °F for good, three settings together:
 4. The `DHWX` inhibit switch open (§4.1), so a refused boiler call cannot run the Taco against a
    tank at room temperature.
 
-Spring is the reverse in the same order: controller back on, balance temperature back to 40 °F,
-thermostats back to Cool or Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in. No
-warm-up wait is needed because the unit never lost power. Check the loop pressure, the glycol
-reading and the first run's `startupFlow` against 51.7 L/min.
+Return to service is the reverse in the same order: controller back on, `DHWX` inhibit closed,
+balance temperature back to 40 °F, thermostats back to Heat. No warm-up wait is needed because the
+unit never lost power. Spring, whether the unit ran all winter or not, is thermostats to Cool or
+Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in, then a check of the loop pressure,
+the glycol reading and the first cooling run's `startupFlow` against 51.7 L/min.
 
 Glycol at 30 % covers the outdoor exchanger whatever the controller does: freeze point about 8 °F
 and burst protection well below 0 °F, so the five gallons outdoors may slush on the coldest night
@@ -461,9 +476,9 @@ compressor at low water temperature will show in the first cold week's Modbus lo
 "Cooling Validation" set to invalid would also block the `C` contact with the controller on is
 untested, and the off route needs neither answer.
 
-The tank covers the boiler during a DHW call only through the §4.1 bridge, and only with the
-controller on. Keeping the chiller on through the winter for that alone buys 12 to 15 minute coasts
-the house already rides through, at the standby cost above.
+The bridge covers DHW refusals of 12 to 15 minutes, up to 39, that the house would otherwise coast
+through; with the chiller on all winter it costs nothing beyond the standby above, and on its own it
+would not justify that standby.
 
 ## 10. What this plan does not touch
 
