@@ -96,6 +96,17 @@ def _value(tree, *path, **kw):
     return node["value"]
 
 
+def _any_relay(states):
+    """Combine the states of a loop's relays.  None if none of them is readable
+    (no evidence of flow), else True if any readable one is closed.  The
+    primary runs on `HPCALL` (the HZ-432's Y1) and on `DHWX` (a boiler call the
+    boiler refused for DHW, bridged to the tank), and either proves the pump."""
+    known = [s for s in states if s is not None]
+    if not known:
+        return None
+    return any(bool(s) for s in known)
+
+
 def _calling(z):
     """A zone is calling on a heat (1) or cool (-1) equipment state.  RedLink's
     fan-only state is 0.5 and moves no water, so it must not open a gate."""
@@ -182,7 +193,9 @@ def status(config={}, output="default"):
         ret = _value(hvac, loop["return"], "temperature", max_age_s=max_age_s, now=now)
         delta = None if sup is None or ret is None else ret - sup
 
-        relay = _value(relays, loop["relay"], "state", max_age_s=max_age_s, now=now)
+        names = loop["relay"] if isinstance(loop["relay"], list) else [loop["relay"]]
+        relay = _any_relay([_value(relays, n, "state", max_age_s=max_age_s, now=now)
+                            for n in names])
         zone_states = heat_zone_states = None
         if loop.get("zones"):
             zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)

@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pivac.LoopDelta import _advance, _gate_open, _new_state  # noqa: E402
+from pivac.LoopDelta import _advance, _any_relay, _gate_open, _new_state  # noqa: E402
 
 SETTLE = 180.0
 
@@ -63,12 +63,23 @@ def test_gate():
         ok = got == expected
         failures += not ok
         print("%-4s gate: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
+    relay_cases = [
+        ("one relay closed of two        -> on", [False, True], True),
+        ("both open                      -> off", [False, False], False),
+        ("one unreadable, other closed   -> on", [None, True], True),
+        ("all unreadable                 -> None", [None, None], None),
+    ]
+    for label, states, expected in relay_cases:
+        got = _any_relay(states)
+        ok = got == expected
+        failures += not ok
+        print("%-4s rly:  %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
     for label, relay, zones, heat_zones, expected in heat_cases:
         got = _gate_open(relay, zones, heat_zones)
         ok = got == expected
         failures += not ok
         print("%-4s gate: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
-    return failures, len(cases) + len(heat_cases)
+    return failures, len(cases) + len(heat_cases) + len(relay_cases)
 
 
 def test_values():

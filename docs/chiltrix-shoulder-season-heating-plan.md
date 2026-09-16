@@ -205,7 +205,7 @@ lockout would act on it. Dry contacts paralleled contact for contact have no suc
 | `DHW` relay, a changeover pole | common `W1` from the panel; normally closed to the `BLR` relay coil and the boiler call as today; normally open to `DHWX` coil A1 |
 | `DHWX`, Magnecraft 782 with 24 VAC coil in a 70-782EL14-1 socket | A2 to the panel's `C` common; the socket's A2 bus bar may be fitted, the A1 bar must not, since a neighbouring socket's A1 is `B` or `O` |
 | Pole 1 | across `HPCALL`'s contact on the Taco 503 zone controller's input, so either relay starts the 0015 and the calling zones' pumps. Wired 15 September 2026 |
-| Pole 2 normally open | I/O board J4.3 `SP-D`, BCM 19, published as `DHWX`: 1 while the tank is covering the boiler. Not yet wired |
+| Pole 2 normally open | I/O board J4.3 `SP-D`, BCM 19, published as `DHWX`: 1 while the tank is covering the boiler. Wired 15 September 2026; SwitchBank order 11 |
 | Inhibit | a switch in series with `DHWX` A1, opened with the controller in §9's out-of-service procedure |
 
 If the `DHW` relay has no free changeover pole, a second relay with its coil in parallel with
@@ -219,15 +219,14 @@ inhibit switch covers that. A Shelly 1 Mini in the same position, commanded by p
 
 Capacity is adequate. The house needs about 50 kBTU/h of output at 20 °F, the CX75 makes 40 to 45
 kBTU/h there, and the tank's 11 °F band holds 3,300 BTU, so a 30-minute call is covered on all but
-the coldest nights. `HPCALL` stays de-energised on a bridged call, so until the `DHWX` pole reaches `SP-D` the Pi sees
-`BLR` 1, `DHW` 1 and `HPCALL` 0, a bridged run is invisible to pivac, and `LoopDelta`, which gates the
-primary on `HPCALL` alone, calls it idle until the module takes a second relay.
+the coldest nights. `HPCALL` stays de-energised on a bridged call, so the Pi sees `BLR` 1, `DHW` 1, `HPCALL` 0 and
+`DHWX` 1, and `LoopDelta` gates the primary on either relay.
 
 The relay went in on 15 September 2026. A bench test at 22:05 that evening moved the boiler call to
 `DHWX` on a DHW call and started the Taco; the pulses were seconds long, so the 1-minute record
 cannot show whether the zone valves opened. The first real call, below the balance point with a heat
-call and a DHW call together, should show `ZV` 1 with `BLR` 1 and `DHW` 1, `IN` climbing toward the
-tank temperature within a minute, and the chiller restarting on its band.
+call and a DHW call together, should show `DHWX` 1 and `ZV` 1 with `BLR` 1 and `DHW` 1, `IN`
+climbing toward the tank temperature within a minute, and the chiller restarting on its band.
 
 Where it pays: above the balance point the panel raises `Y1` and no `W1`, so the bridge is idle and
 DHW blocks nothing. It engages when the panel is on the boiler with the chiller on: the second-stage
