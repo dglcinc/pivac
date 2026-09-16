@@ -414,8 +414,9 @@ part that scales with the weather, because `P52` = 0 keeps the pump idling at 8 
 outdoor exchanger. At a January mean of 31 °F that is about 2,200 BTU/h, 16 kWh a day of heat, 5.5 to
 6.5 kWh of electricity at a COP of 2.5 to 3, about $1.10 a day and $100 for December through
 February; and on the 117 to 128 °F band (3,300 BTU a cycle) a reheat every hour and a half, about 16
-starts a day and 1,400 over the winter, plus the defrost cycles a heat pump idling wet below 40 °F
-runs by reversing, drawing that heat from the tank. In cool mode the summer figure is 0.14 kWh a day
+starts a day and 1,400 over the winter, plus whatever defrosts those short runs need: the coil only
+frosts while the compressor runs, since at idle it carries tank-warm glycol, and a defrost reverses
+the cycle and draws its heat from the tank. In cool mode the summer figure is 0.14 kWh a day
 for runs with no primary call. The first cold week's record replaces these estimates: the
 Emporia circuit on days without a `Y1` call gives the standby electricity, `compressorHz` the
 starts, and sub-minute cool-mode runs with the outlet dropping mark the defrosts.
