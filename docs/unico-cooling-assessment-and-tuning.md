@@ -1771,10 +1771,10 @@ step 14 would settle.
   take Y2 as a blower-speed tap rather than as a second call to something else? Together they decide
   whether stage-2 runtime costs $15 or waits for the node
   ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
-- What are ISU 3010, 3020, 3030, 9000 and 9070 set to on the master bedroom thermostat? The
-  first decides whether the rest are displayed at all
-  ([Appendix J](#appendix-j--the-master-bedroom-thermostat)). 3140 is known: it read 3 on both
-  loop A thermostats and was set to 2 on 16 September 2026 (Appendix J).
+- What are ISU 9000 and 9070 set to on the master bedroom thermostat
+  ([Appendix J](#appendix-j--the-master-bedroom-thermostat))? The staging ISUs are known since
+  16 September 2026: 3010 Advanced, 3020 No, 3030 Comfort in heat and cool, 3140 2 (was 3), on
+  both loop A thermostats.
 - How much of each loop is 1¼" PEX and how much is 1"? It is the largest remaining uncertainty in
   the hydraulic calculation. At 1¼" mains Loop A reaches 82 to 99 % of design flow; at 1" it falls
   to 61 to 72 % ([5.6](#56-what-the-calculation-says-about-each-coil)).
@@ -2948,6 +2948,14 @@ than the 45 °F design, which is what a clean 12 to 18 kBTU/h coil gives on that
 an hour the same duty should read about 15 minutes on and 15 off, and the longer wet-coil time is
 the point for the house's most humid zone. A wider room swing, about a degree either side, is the
 cost. The check is the call-length record after two days.
+
+**The staging ISUs on both loop A thermostats, read on 16 September 2026:** 3010 Advanced, 3020
+Finish With High Cool Stage No, 3030 Staging Control Comfort for heat and for cool. Comfort is the
+setting that upstages readily on temperature and time, so the high fan stage runtime in
+[5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage) is a configuration choice and not a
+capacity shortfall, and with 3020 at No the stage releases as the room closes on setpoint rather than
+holding to it. Economy would hold stage 1 longer and is the setting to try if the high fan's noise
+or its re-evaporation at the end of a call ever matters more than the faster pull-down.
 That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
 **Fan circulate runs the blower between calls**, moving room air across a coil still wet from the
