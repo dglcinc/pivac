@@ -1771,9 +1771,10 @@ step 14 would settle.
   take Y2 as a blower-speed tap rather than as a second call to something else? Together they decide
   whether stage-2 runtime costs $15 or waits for the node
   ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
-- What are ISU 3010, 3020, 3030, 3140, 9000 and 9070 set to on the master bedroom thermostat? The
+- What are ISU 3010, 3020, 3030, 9000 and 9070 set to on the master bedroom thermostat? The
   first decides whether the rest are displayed at all
-  ([Appendix J](#appendix-j--the-master-bedroom-thermostat)).
+  ([Appendix J](#appendix-j--the-master-bedroom-thermostat)). 3140 is known: it read 3 on both
+  loop A thermostats and was set to 2 on 16 September 2026 (Appendix J).
 - How much of each loop is 1¼" PEX and how much is 1"? It is the largest remaining uncertainty in
   the hydraulic calculation. At 1¼" mains Loop A reaches 82 to 99 % of design flow; at 1" it falls
   to 61 to 72 % ([5.6](#56-what-the-calculation-says-about-each-coil)).
@@ -2934,6 +2935,19 @@ acting or the equipment behind it is not configured. ISU 9000 decides which.
 
 **The payload carries no stage information.** `EquipmentOutputStatus` resolves to off, heat or cool
 and nothing finer, and `fanData` reports the user's fan mode rather than the speed the blower runs.
+Both loop A thermostats are configured two-stage in heat and cool, and stage 2 is the air handler's
+high fan tap, so a Y2 call is invisible in the record.
+
+**ISU 3140, Cool Cycles Per Hour, is 2 on the kids room and master bedroom thermostats since
+16 September 2026.** It read 3, the default, and the record showed why that mattered: over the 22
+days to 16 September the kids room made 51 cooling calls a day, median 10 minutes on and 10 off at
+about 50 % duty, which is the anticipator ending calls on the 3-per-hour schedule and not the coil.
+The coil is sound: the zone holds 74 °F at half duty with zero droop, and its water-side ΔT calling
+alone is a median 3.7 °F on loop A, 8 to 11 kBTU/h at 4 to 6 GPM on tank water 8 to 13 °F warmer
+than the 45 °F design, which is what a clean 12 to 18 kBTU/h coil gives on that water. At 2 cycles
+an hour the same duty should read about 15 minutes on and 15 off, and the longer wet-coil time is
+the point for the house's most humid zone. A wider room swing, about a degree either side, is the
+cost. The check is the call-length record after two days.
 That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
 **Fan circulate runs the blower between calls**, moving room air across a coil still wet from the
