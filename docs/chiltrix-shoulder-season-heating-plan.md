@@ -361,6 +361,23 @@ The wire that feeds the `ZV` relay coil is lifted at the coil and becomes the so
 
 The aquastat's `R` takes the lifted feed. Put the aquastat on the primary supply after the tank and after the boiler loop's tee, so it reads whichever source is serving. If the `BLR` relay has no spare pole, a 24 VAC relay on `W1` in the CDP does the same job; the freed `Y2FAN` relay is a candidate. In cooling mode the coil is fed only while the supply is under 70 °F, in heat-pump heating only while it is over 80 °F, and after a changeover by neither path until the tank has swung, about 30 minutes. The Pi's `ZV` input reads the relay, so a held changeover shows as `ZV` 0 with `HPCALL` 1, and the calling zone waits for water of the right temperature instead of getting the wrong kind for eight minutes; the thermostat's droop over the wait is the whole cost. Pole 1's spare terminal on any of the mode relays shares its common with the Chiltrix contact and must not be used; poles 3 and 4 are the spares.
 
+**Point-to-point.** Socket numbers are the 70-782EL14-1 layout: 9 to 12 pole commons, 5 to 8 normally open, 1 to 4 normally closed, 13 and 14 coil; pole 3 is the column 3·7·11.
+
+| # | From | To | Purpose |
+|---|---|---|---|
+| 1 | The wire that feeds the `ZV` relay coil, lifted at the coil terminal | new terminal `FEED` | the call signal, before any gate |
+| 2 | `FEED` | aquastat `R` | supplies both aquastat contacts |
+| 3 | aquastat `B` | `HPCOOL` socket 11 (pole 3 common) | cold-water contact into the cooling gate |
+| 4 | `HPCOOL` socket 7 (pole 3 NO) | `ZV` relay coil terminal (the one wire 1 was lifted from) | cooling path: `O` held and supply under 70 °F |
+| 5 | aquastat `W` | `HPHEAT` socket 11 (pole 3 common) | hot-water contact into the heat-pump gate |
+| 6 | `HPHEAT` socket 7 (pole 3 NO) | `ZV` relay coil terminal | heat-pump path: `B` held and supply over 80 °F |
+| 7 | aquastat `W` (daisy-chained from wire 5) | `DHWX` socket 11 (pole 3 common) | hot-water contact into the bridge gate |
+| 8 | `DHWX` socket 7 (pole 3 NO) | `ZV` relay coil terminal | bridge path: refused boiler call and the tank hot |
+| 9 | `FEED` | `BLR` relay spare pole common | boiler path, no aquastat |
+| 10 | `BLR` relay spare pole NO | `ZV` relay coil terminal | boiler path: `W1` at the boiler |
+
+The `ZV` relay coil's other terminal stays on 24 VAC common. Wires 4, 6, 8 and 10 land together on the one coil terminal; a bus terminal beside the relay keeps that neat. Wires 3, 5 and 7 carry only the aquastat's contact current, so 18 AWG thermostat wire throughout. Aquastat strapped to bare copper with thermal paste under the sensing surface and insulation over it. Do not use socket 5 (pole 1 normally open) on `HPHEAT`, `HPCOOL` or `DHWX`: its common is the Chiltrix contact or the Taco input. Proof on the record after wiring: a changeover shows `HPHEAT` flipping, `HPCALL` 1 and `ZV` 0, then `ZV` 1 once `IN` crosses the aquastat threshold about 30 minutes later; a boiler call shows `BLR` 1 and `ZV` 1 at once.
+
 **The loop pumps start from the valve end switches** (confirmed 16 September 2026), so holding the valves holds the pumps and nothing dead-heads during the swing. Two aquastats with independent thresholds (cool below 65 °F, heat above 95 °F) are the refinement if 70 to 80 °F water proves to matter.
 
 ## 8. Chiller or boiler: the price of heat
