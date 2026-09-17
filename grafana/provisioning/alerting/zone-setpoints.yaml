@@ -1,0 +1,689 @@
+# Zone setpoint spread. The house is open plan, so a zone set apart from its
+# neighbours carries their load: docs/unico-cooling-assessment-and-tuning.md
+# Appendix J has the measurement. Each rule compares the five RedLink setpoints
+# pairwise (Grafana math has no max/min across queries) and fires when any two
+# differ by more than 2 F for two hours. The cooling rule is gated on HPCOOL and
+# the heating rule on HPHEAT, the HZ-432's latched mode outputs, so the setpoints
+# of the mode the panel is not in never fire. Setpoints are stored in F.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: zone-setpoints
+    folder: pivac
+    interval: 1m
+    rules:
+      - uid: zone-coolset-spread
+        title: Zone cooling setpoints more than 2 F apart
+        condition: T
+        data:
+          - refId: AQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.KIDS_ROOM.coolset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: AQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: AQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: BQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.DSTRS_FAM_ROOM.coolset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: BQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: BQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: CQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.MASTER_BR.coolset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: CQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: CQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: DQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.GREAT_ROOM.coolset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: DQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: DQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: EQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.KITCHEN.coolset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: EQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: EQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: GQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: electrical.ac.switch.utility.HPCOOL.statenum
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: GQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: GQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: M
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: "$G > 0.5 && (abs($A - $B) > 2 || abs($A - $C) > 2 || abs($A - $D) > 2 || abs($A - $E) > 2 || abs($B - $C) > 2 || abs($B - $D) > 2 || abs($B - $E) > 2 || abs($C - $D) > 2 || abs($C - $E) > 2 || abs($D - $E) > 2)"
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: M
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: T
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: M
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: T
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - M
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 2h
+        annotations:
+          summary: "Two zones' cooling setpoints differ by more than 2 F - in the open plan the colder zone is cooling its neighbours and will run long"
+          runbook: |
+            Informational. The house is open plan: only the bedrooms have doors, the two
+            lower-level zones share one hallway, and a stairwell joins the downstairs
+            family room to the great room. A zone set more than 2 F from another
+            conditions its neighbours as well as itself. Measured in the month to
+            2026-09-17: the kids room at 73 F beside a 76 F family room ran 0.72 evening
+            duty against 0.53 at 74 F, 1.5 times, the ratio of the two gaps to 76 F, and
+            an 11-hour continuous call on 2026-09-16. Read the five coolset values on the
+            thermostat tiles and bring the outlier within 2 F of the rest. A scheduled
+            setback that lasts under two hours does not fire this rule.
+        labels:
+          severity: info
+          source: redlink
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+          repeat_interval: 24h
+      - uid: zone-heatset-spread
+        title: Zone heating setpoints more than 2 F apart
+        condition: T
+        data:
+          - refId: AQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.KIDS_ROOM.heatset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: AQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: AQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: BQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.DSTRS_FAM_ROOM.heatset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: BQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: BQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: CQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.MASTER_BR.heatset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: CQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: CQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: DQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.GREAT_ROOM.heatset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: DQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: DQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: EQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.thermostat.KITCHEN.heatset
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: EQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: EQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: GQ
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: electrical.ac.switch.utility.HPHEAT.statenum
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: GQ
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: G
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: GQ
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: G
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: M
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: "$G > 0.5 && (abs($A - $B) > 2 || abs($A - $C) > 2 || abs($A - $D) > 2 || abs($A - $E) > 2 || abs($B - $C) > 2 || abs($B - $D) > 2 || abs($B - $E) > 2 || abs($C - $D) > 2 || abs($C - $E) > 2 || abs($D - $E) > 2)"
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: M
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: T
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: M
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: T
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - M
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 2h
+        annotations:
+          summary: "Two zones' heating setpoints differ by more than 2 F - in the open plan the warmer zone is heating its neighbours and will run long"
+          runbook: |
+            Informational. The house is open plan: only the bedrooms have doors, the two
+            lower-level zones share one hallway, and a stairwell joins the downstairs
+            family room to the great room. A zone set more than 2 F from another
+            conditions its neighbours as well as itself. Measured in the month to
+            2026-09-17: the kids room at 73 F beside a 76 F family room ran 0.72 evening
+            duty against 0.53 at 74 F, 1.5 times, the ratio of the two gaps to 76 F, and
+            an 11-hour continuous call on 2026-09-16. Read the five heatset values on the
+            thermostat tiles and bring the outlier within 2 F of the rest. A scheduled
+            setback that lasts under two hours does not fire this rule.
+        labels:
+          severity: info
+          source: redlink
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+          repeat_interval: 24h
