@@ -350,17 +350,18 @@ The `hz432-mode-changeover` rule (added 16 September 2026) counts these: one ema
 
 **Parts.** One Honeywell L6006C1018 strap-on aquastat (SPDT, 65 to 200 °F, 5 to 30 °F differential, 8 A contacts) on the primary supply after the tank, set to about 70 °F with a 10 °F differential: `R`-`B` is closed while the water is under 70 °F and `R`-`W` while it is over 80 °F.
 
-| Connection | From | To |
+The wire that feeds the `ZV` relay coil is lifted at the coil and becomes the source for four parallel paths back to that coil terminal; the coil's other side stays on 24 VAC common.
+
+| Path | Contacts | Why |
 |---|---|---|
-| The wire that feeds the `ZV` relay coil | lifted at the coil | aquastat `R` |
-| Aquastat `B` | | `HPCOOL` socket 11 (pole 3 common) |
-| `HPCOOL` socket 7 (pole 3 normally open) | | the `ZV` relay coil terminal |
-| Aquastat `W` | | `HPHEAT` socket 11 (pole 3 common) |
-| `HPHEAT` socket 7 (pole 3 normally open) | | the same `ZV` relay coil terminal |
+| Cooling | aquastat `R`-`B` (under 70 °F) through `HPCOOL` pole 3 (sockets 11 to 7) | cold tank water to a cool call |
+| Heat pump heating | aquastat `R`-`W` (over 80 °F) through `HPHEAT` pole 3 (11 to 7) | hot tank water to a heat call |
+| DHW bridge | aquastat `R`-`W` through `DHWX` pole 3 (11 to 7) | the tank feeds a refused boiler call, and only when it is hot, which is the bridge's own condition |
+| Boiler | the lifted feed through a spare pole of the `BLR` relay, no aquastat | the boiler loop bypasses the tank, so its water is never the wrong temperature, and the valves must open even when the tank is cold; the panel releases `B` when it sends a call to the boiler, so the heat-pump path cannot be relied on |
 
-The coil's other side stays on 24 VAC common. In cooling mode the coil is fed only while the supply is under 70 °F, in heating only while it is over 80 °F, and after a changeover by neither path until the tank has swung, about 30 minutes. The Pi's `ZV` input reads the relay, so a held changeover shows as `ZV` 0 with `HPCALL` 1, and the calling zone waits for water of the right temperature instead of getting the wrong kind for eight minutes; the thermostat's droop over the wait is the whole cost. Pole 1's spare terminal on either mode relay shares its common with the Chiltrix contact and must not be used; poles 3 and 4 are the spares.
+The aquastat's `R` takes the lifted feed. Put the aquastat on the primary supply after the tank and after the boiler loop's tee, so it reads whichever source is serving. If the `BLR` relay has no spare pole, a 24 VAC relay on `W1` in the CDP does the same job; the freed `Y2FAN` relay is a candidate. In cooling mode the coil is fed only while the supply is under 70 °F, in heat-pump heating only while it is over 80 °F, and after a changeover by neither path until the tank has swung, about 30 minutes. The Pi's `ZV` input reads the relay, so a held changeover shows as `ZV` 0 with `HPCALL` 1, and the calling zone waits for water of the right temperature instead of getting the wrong kind for eight minutes; the thermostat's droop over the wait is the whole cost. Pole 1's spare terminal on any of the mode relays shares its common with the Chiltrix contact and must not be used; poles 3 and 4 are the spares.
 
-**The loop pumps.** If the calling zones' secondary pumps start from the valve end switches, holding the valves holds the pumps. If they start from the Taco 503 input on `HPCALL`, they run against closed valves for the swing; a spare pole on the `ZV` relay in series with that input fixes it if the relay has one, and if not, a rare 30-minute dead-head is within what a wet-rotor circulator tolerates. Two aquastats with independent thresholds (cool below 65 °F, heat above 95 °F) are the refinement if 70 to 80 °F water proves to matter.
+**The loop pumps start from the valve end switches** (confirmed 16 September 2026), so holding the valves holds the pumps and nothing dead-heads during the swing. Two aquastats with independent thresholds (cool below 65 °F, heat above 95 °F) are the refinement if 70 to 80 °F water proves to matter.
 
 ## 8. Chiller or boiler: the price of heat
 
