@@ -2947,7 +2947,55 @@ alone is a median 3.7 °F on loop A, 8 to 11 kBTU/h at 4 to 6 GPM on tank water 
 than the 45 °F design, which is what a clean 12 to 18 kBTU/h coil gives on that water. At 2 cycles
 an hour the same duty should read about 15 minutes on and 15 off, and the longer wet-coil time is
 the point for the house's most humid zone. A wider room swing, about a degree either side, is the
-cost. The check is the call-length record after two days.
+cost. 3140 carries a separate rate for each cooling stage, and the second appears only on a
+thermostat configured for two-stage cooling, as these are for the Unico air handlers' low and high
+fan; the installation guide (Resideo 69-2490) lists the ISU once. Both stages are 2 on both
+thermostats. A fan coil has no compressor to protect, so the rate is a noise and comfort setting
+and nothing argues for 1 on either stage.
+
+**The first night at 2 cycles an hour read as predicted, once the load let the room cycle.** The
+setting was made at 15:55 EDT on 16 September and the kids room then called without a break until
+02:39, almost 11 hours, on a hold at 73 °F with 72 to 78 °F outside and the master bedroom calling
+on the same loop since noon. The thermostat read 73 °F throughout, so the room held. From 04:19 to
+07:26 it made calls of 12 to 22 minutes with gaps of 10 to 18 at 51 % duty, which is two cycles an
+hour. Cycles per hour divides a part-load duty into calls and has no say at full demand, so a
+continuous call is the load and never this setting. Full demand has precedent: 65 of the 732 hours
+to 16 September ran at full duty, with unbroken stretches of 10 hours on 19 August and 9 hours on
+2 September. One-minute breaks in a long call are missing RedLink samples (the humidity is absent in
+the same minute).
+
+**Loop A ΔT on a kids room call follows the fan stage and the tank band, so a low reading is not a
+coil fault.** Divide the ΔT by the gap between the 73 °F room and the supply water: the ratio is
+0.16 to 0.22 through a continuous call and 0.12 in cycling calls at half duty. Full demand brings on
+stage 2, the high fan, and a cycling call stays on the low fan, which moves less heat into the
+water; the payload cannot confirm the stage, and condensation on water below the room's 54 °F dew
+point would raise the ratio as well. The supply water also swings 47 to 58 °F with the chiller's
+own cycle, so a call that lands on the warm half of the band, compressor off and supply 55 to 57 °F,
+reads 2.0 to 2.5 °F where one on the cold half reads 3.6 to 4.9 °F. Compare ΔT between calls only
+at like supply temperature and like duty.
+
+**The setpoint is the cheapest way to shorten the kids room's calls.** Over the month to
+16 September its evening duty (16:00 to midnight) averaged 0.72 on a 73 °F setpoint and 0.53 on
+74 °F, in every outdoor band from 65 to 95 °F. Duty that indifferent to the weather is a load made of
+internal gains and heat from the rest of the house, which is the case for
+`docs/kids-room-return-transfer-plan.md`.
+
+**Most of the kids room's load is the 76 °F lower level at the other end of its hallway.** The lower
+level is open plan with its north side below grade; the kids room and the downstairs family room sit
+at opposite ends of a long hallway, and a stairwell joins the family room to the great room above.
+The family room holds 76 °F on a 76 °F setpoint in 710 of 752 hours to 17 September at 0.15 duty.
+The kids room setpoint alternated between 73 and 74 °F over that month, split evenly across
+morning, afternoon and night at matched outdoor temperature, and its duty at 73 °F is 1.2 to 1.9
+times its duty at 74 °F in every period and 5 °F outdoor band, centred on 1.5. That is the ratio of
+the two gaps to 76 °F, 3 °F against 2 °F, which is what a load made of exchange with a 76 °F space
+predicts and what a load made of weather or internal gains does not. The family room's own duty
+falls when the kids room is at 73 °F (0.24 against 0.31 in the afternoon and evening, 0.07 against
+0.10 at night), so the kids coil on loop A is doing part of the work of a loop B coil that has
+capacity to spare. Closing the gap between the two downstairs setpoints moves that load back:
+the experiment is the family room at 74 °F for several days, read as kids room duty at matched
+setpoint, period and outdoor temperature. The 12 °C return target costs this coil about 3.6 °F of a
+22 °F air-to-water gap, 15 % of its capacity, and buys the E14 margin; widening `P12` would push the
+warm end of the tank band toward 60 °F and halve the capacity of calls that land there.
 
 **The staging ISUs on both loop A thermostats, read on 16 September 2026:** 3010 Advanced, 3020
 Finish With High Cool Stage No, 3030 Staging Control Comfort for heat and for cool. Comfort is the
