@@ -221,7 +221,7 @@ Grafana's built-in SMTP is disabled (DSM/M365 tenants no longer accept SMTP AUTH
 - `/etc/pivac/graph.env` (mode 640, root:pi, **not** in the repo) — holds `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_SENDER_EMAIL`, `ALERT_RECIPIENT`. Same Azure AD app as `~utilityserver/github/bowling-league-tracker/.env` on the Mac Mini.
 - `grafana/provisioning/alerting/contact-points.yaml` — defines the `graph-bridge` webhook receiver (POSTs to the bridge) and a default policy that routes everything to it.
 
-**Rule files** live in `grafana/provisioning/alerting/` (`redlink-stale`, `sensor-freshness`, `domestic-water`, `sentry-boiler`, `chiltrix`). Every rule routes to `graph-bridge`; thresholds, runbooks and retired-rule evidence are in `docs/grafana-alerting-notes.md`.
+**Rule files** live in `grafana/provisioning/alerting/` (`redlink-stale`, `sensor-freshness`, `domestic-water`, `sentry-boiler`, `chiltrix`). `hz432-mode-changeover` (in `chiltrix.yaml`, info) fires once per heat/cool changeover of the HZ-432, read from `HPHEAT.statenum`, to count how often a zone forces the other mode; the panel cannot prevent the old mode's water reaching that zone, so if changeovers are common the fix is an aquastat interlock on the zone-valve common switched by the `HPHEAT`/`HPCOOL` spare poles (plan §7), and if rare, thermostat programming. Every rule routes to `graph-bridge`; thresholds, runbooks and retired-rule evidence are in `docs/grafana-alerting-notes.md`.
 
 **Ship a rule on a metric that does not exist yet as `isPaused: true`**: under `noDataState: Alerting` it emails on every evaluation. Unpause once the metric publishes and verify against the `alert_rule` table.
 

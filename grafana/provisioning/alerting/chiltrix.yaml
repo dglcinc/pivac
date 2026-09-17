@@ -650,6 +650,146 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
+      # ---- Mode changeover: the HZ-432 switched between heating and cooling ----
+      # Under option 2 the chiller holds the panel's mode and keeps the tank at that
+      # mode's temperature, so a changeover sends the old mode's water to the zone that
+      # forced it until the chiller swings the tank (about 74 F, 25-45 min of compressor
+      # time, ~2 kWh; on 2026-09-15 the kids room got eight minutes of 100-118 F water on
+      # a cool call). The panel has no water-temperature input, so nothing prevents it.
+      # This rule is the count David asked for on 2026-09-16: every changeover emails and
+      # pushes, and the Relays panel shows which zone called the other mode. If they are
+      # common, the remedy is an aquastat interlock on the zone-valve common switched by
+      # the HPHEAT/HPCOOL spare poles (docs/chiltrix-shoulder-season-heating-plan.md
+      # section 7); if rare, thermostat programming. HPHEAT.statenum is the HZ-432's B
+      # terminal through the HPHEAT relay's spare pole: 1 in heating mode, 0 otherwise,
+      # so a change within the 10-minute window is a changeover in either direction.
+      # Fires at once (for: 0s) and clears when the edge leaves the window, so each
+      # changeover is one firing and one resolution.
+      - uid: hz432-mode-changeover
+        title: HZ-432 heat/cool changeover (tank at the old mode's temperature)
+        condition: E
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: electrical.ac.switch.utility.HPHEAT.statenum
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: min
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B - $C) > 0.5
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: D
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - D
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 0s
+        annotations:
+          summary: "HZ-432 changed mode (heat/cool changeover) — the zone that forced it gets the old mode's water for ~30 min while the chiller swings the tank; see the Relays panel for which zone called"
+          runbook: |
+            Informational. The panel switched between heating and cooling because a zone
+            called the mode the panel was not in. Read the Relays panel around this time:
+            HPHEAT flipped, and the RedLink zone states show which thermostat called the
+            other mode (a bedroom on Auto is the usual source in the shoulder season).
+            Each changeover costs 25-45 min of compressor time and about 2 kWh, and the
+            calling zone gets the wrong water until the tank swings. If these are common,
+            build the aquastat interlock on the zone-valve common (plan section 7); if
+            rare, put the two bedrooms on one mode per day.
+        labels:
+          severity: info
+          source: chiltrix
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
       # ---- Freshness: the Modbus link or the module stopped ----
       # inletTemp is Kelvin, so "< 100" is never true while data flows — detection is
       # purely noDataState: Alerting, the same sentinel the 1-wire rules use.
