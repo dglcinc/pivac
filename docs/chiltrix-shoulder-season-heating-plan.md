@@ -346,27 +346,21 @@ cooling figure is a floor until a changeover is measured with the zones quiet.
 
 The panel runs one mode at a time and holds the other mode's zone valves closed until the changeover, so hot water never reaches a cool-calling zone mid-mode. At the changeover itself the panel opens the calling zone's valve and raises `Y1` with the new mode terminal in the same instant, while the tank still holds the old mode's temperature for the 33 minutes the chiller takes to swing it; on 15 September 2026 the kids room took eight minutes of 100 to 118 °F water on a cool call. The HZ-432 has no water-temperature input and no setting that waits for one.
 
-The `hz432-mode-changeover` rule (added 16 September 2026) counts these: one email and one Signal K notification per changeover, with the Relays panel showing which zone called. If they are rare, the two bedrooms on one mode per day is the remedy. If they are common, the remedy is a water-temperature interlock that holds the zone valves and the loop pumps until the primary supply is at the calling mode's temperature. It uses the spare poles of the two mode relays and one interposing relay, so nothing already wired moves.
+The `hz432-mode-changeover` rule (added 16 September 2026) counts these: one email and one Signal K notification per changeover, with the Relays panel showing which zone called. If they are rare, the two bedrooms on one mode per day is the remedy. If they are common, the remedy is a water-temperature interlock on the `ZV` relay's coil signal, the single point every valve call passes through, selected by mode through the spare poles of the two mode relays. Nothing already wired moves.
 
-**Parts.** One Honeywell L6006C1018 strap-on aquastat (SPDT, 65 to 200 °F, 5 to 30 °F differential, 8 A contacts), one more Magnecraft 782 4PDT relay with a 24 VAC coil in a 70-782EL14-1 socket, named `WOK` (water OK), and a terminal strip for the valve commons.
-
-**Logic.** The aquastat sits on the primary supply after the tank, set to about 70 °F with a 10 °F differential. `R`-`B` is closed while the water is below 70 °F and `R`-`W` while it is above 80 °F. `WOK`'s coil is fed through two parallel paths: `R`-`B` through `HPCOOL` pole 3, and `R`-`W` through `HPHEAT` pole 3. So `WOK` pulls in when the panel is in cooling mode with cold water, or in heating mode with hot water, and drops out for the swing after a changeover. `WOK`'s contacts then gate the zone-valve common and the Taco 503 input together, so during the swing the valves stay shut and the loop pumps stay off instead of dead-heading against closed valves, while the chiller swings the tank on its own pump.
+**Parts.** One Honeywell L6006C1018 strap-on aquastat (SPDT, 65 to 200 °F, 5 to 30 °F differential, 8 A contacts) on the primary supply after the tank, set to about 70 °F with a 10 °F differential: `R`-`B` is closed while the water is under 70 °F and `R`-`W` while it is over 80 °F.
 
 | Connection | From | To |
 |---|---|---|
-| Aquastat `R` | HZ-432 24 VAC hot (`R`) | |
+| The wire that feeds the `ZV` relay coil | lifted at the coil | aquastat `R` |
 | Aquastat `B` | | `HPCOOL` socket 11 (pole 3 common) |
-| `HPCOOL` socket 7 (pole 3 normally open) | | `WOK` socket 13 (A1) |
+| `HPCOOL` socket 7 (pole 3 normally open) | | the `ZV` relay coil terminal |
 | Aquastat `W` | | `HPHEAT` socket 11 (pole 3 common) |
-| `HPHEAT` socket 7 (pole 3 normally open) | | `WOK` socket 13 (A1) |
-| `WOK` socket 14 (A2) | HZ-432 `C`, 24 VAC common | (A2 bus bar may be fitted; A1 bar must not) |
-| Zone valve commons, all five | lifted from the panel's damper common terminals | new terminal strip `VALVE-COM` |
-| `VALVE-COM` | `WOK` socket 9 (pole 1 common) | `WOK` socket 5 (pole 1 normally open) to the panel's damper common |
-| Taco 503 input, the `HPCALL`/`DHWX` contact pair | broken and run through `WOK` socket 10 and 6 (pole 2 common and normally open) | |
+| `HPHEAT` socket 7 (pole 3 normally open) | | the same `ZV` relay coil terminal |
 
-The valves' power wires (the panel's damper `M1` terminals on this family; confirm on the label) stay as they are. Breaking the shared common is what lets one contact hold all five. Five valve motors at about 0.3 A each are under 2 A through the aquastat's 8 A contact and the 782's 10 A poles. `HPCALL` still reads 1 on the Pi through the wait (it is the panel's `Y1`), so `pivac.LoopDelta` will show the primary as flowing while the pumps are held; the `ZV` input is the one that shows the wait if it senses the valve circuit downstream of `WOK`.
+The coil's other side stays on 24 VAC common. In cooling mode the coil is fed only while the supply is under 70 °F, in heating only while it is over 80 °F, and after a changeover by neither path until the tank has swung, about 30 minutes. The Pi's `ZV` input reads the relay, so a held changeover shows as `ZV` 0 with `HPCALL` 1, and the calling zone waits for water of the right temperature instead of getting the wrong kind for eight minutes; the thermostat's droop over the wait is the whole cost. Pole 1's spare terminal on either mode relay shares its common with the Chiltrix contact and must not be used; poles 3 and 4 are the spares.
 
-**To confirm on site before building.** Whether the valves are two-wire power-open with their commons landed on the panel's damper common terminals, or three-wire; where the `ZV` relay picks up its signal; and whether the old CDP zone-valve lockout is still in the common path. None of these changes the design, only where the wires are lifted.
+**The loop pumps.** If the calling zones' secondary pumps start from the valve end switches, holding the valves holds the pumps. If they start from the Taco 503 input on `HPCALL`, they run against closed valves for the swing; a spare pole on the `ZV` relay in series with that input fixes it if the relay has one, and if not, a rare 30-minute dead-head is within what a wet-rotor circulator tolerates. Two aquastats with independent thresholds (cool below 65 °F, heat above 95 °F) are the refinement if 70 to 80 °F water proves to matter.
 
 ## 8. Chiller or boiler: the price of heat
 
