@@ -3002,8 +3002,15 @@ Finish With High Cool Stage No, 3030 Staging Control Comfort for heat and for co
 setting that upstages readily on temperature and time, so the high fan stage runtime in
 [5.10](#510-why-the-master-bedroom-calls-its-high-fan-stage) is a configuration choice and not a
 capacity shortfall, and with 3020 at No the stage releases as the room closes on setpoint rather than
-holding to it. Economy would hold stage 1 longer and is the setting to try if the high fan's noise
-or its re-evaporation at the end of a call ever matters more than the faster pull-down.
+holding to it. 3030 offers Comfort or a whole number of degrees from setpoint and nothing else; a
+number holds stage 1 until the room sits that far above setpoint, and is the setting to use where
+the high fan's noise or its re-evaporation at the end of a call matters more than the faster
+pull-down. Under Comfort a continuous call stays on stage 2 for its whole length with the display
+reading the setpoint: on 17 September 2026 the master bedroom ran the high fan for four hours at
+75 °F on a 75 °F setpoint, and the downstairs family room, also two-stage, for two hours after its
+setpoint went from 76 to 74 °F. The family room's cool differential is 1 °F since 13:30 EDT that
+day, so its high fan now means a room at 75 °F or warmer. Leaving the installer menu restarts the
+staging, so a drop to stage 1 straight after a settings change proves nothing about the setting.
 That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
 **Fan circulate runs the blower between calls**, moving room air across a coil still wet from the
