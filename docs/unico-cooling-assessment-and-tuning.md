@@ -2991,9 +2991,12 @@ the two gaps to 76 °F, 3 °F against 2 °F, which is what a load made of exchan
 predicts and what a load made of weather or internal gains does not. The family room's own duty
 falls when the kids room is at 73 °F (0.24 against 0.31 in the afternoon and evening, 0.07 against
 0.10 at night), so the kids coil on loop A is doing part of the work of a loop B coil that has
-capacity to spare. Closing the gap between the two downstairs setpoints moves that load back:
-the experiment is the family room at 74 °F for several days, read as kids room duty at matched
-setpoint, period and outdoor temperature. The 12 °C return target costs this coil about 3.6 °F of a
+capacity to spare. Closing the gap between the two downstairs setpoints moves that load back.
+The family room went to 74 °F on 17 September 2026, level with the kids room, and the check is
+kids room duty at matched setpoint, period and outdoor temperature once several days have
+accumulated. The rule for the house follows: keep every zone's setpoint within 2 °F of the others,
+and the `zone-coolset-spread` and `zone-heatset-spread` alerts report a wider spread that lasts two
+hours (`docs/grafana-alerting-notes.md`). The 12 °C return target costs this coil about 3.6 °F of a
 22 °F air-to-water gap, 15 % of its capacity, and buys the E14 margin; widening `P12` would push the
 warm end of the tank band toward 60 °F and halve the capacity of calls that land there.
 
