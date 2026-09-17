@@ -342,6 +342,18 @@ water was still cool. The trip back from 77.7 to 44.6 °F took 36 minutes and 1.
 per °F of swing against the 0.021 in the table, with zones calling throughout, so the table's
 cooling figure is a floor until a changeover is measured with the zones quiet.
 
+### 7.1 Wrong-temperature water at a changeover, and the interlock that would stop it
+
+The panel runs one mode at a time and holds the other mode's zone valves closed until the changeover, so hot water never reaches a cool-calling zone mid-mode. At the changeover itself the panel opens the calling zone's valve and raises `Y1` with the new mode terminal in the same instant, while the tank still holds the old mode's temperature for the 33 minutes the chiller takes to swing it; on 15 September 2026 the kids room took eight minutes of 100 to 118 °F water on a cool call. The HZ-432 has no water-temperature input and no setting that waits for one.
+
+The `hz432-mode-changeover` rule (added 16 September 2026) counts these: one email and one Signal K notification per changeover, with the Relays panel showing which zone called. If they are rare, the two bedrooms on one mode per day is the remedy. If they are common, the remedy is a water-temperature interlock in the zone-valve circuit, switched by mode through the two relays that already exist:
+
+- One Honeywell L6006C1018 strap-on aquastat (SPDT, 65 to 200 °F, 5 to 30 °F differential) on the primary supply after the tank, set to about 70 °F with a 10 °F differential: `R`-`B` closes below the setpoint (cool water present), `R`-`W` closes above the setpoint plus differential (hot water present).
+- The common return of all zone valves broken and fed through two parallel paths: `R`-`B` in series with a normally open pole of `HPCOOL`, and `R`-`W` in series with the empty normally open pole of `HPHEAT`.
+- Nothing else changes: `HPCALL` runs the Taco, the chiller takes its mode from `O` and `B`, and the tank recovers through the primary header with the valves shut.
+
+The calling zone then waits about 30 minutes for water of the right temperature instead of getting the wrong kind for eight, and the thermostat's droop over the wait is the whole cost. The record proves it: `ZV` stays 0 after a changeover until `IN` crosses the aquastat threshold. Two aquastats with independent thresholds (cool below 65 °F, heat above 95 °F) are the refinement if 70 to 80 °F water proves to matter.
+
 ## 8. Chiller or boiler: the price of heat
 
 At $1.93 a therm and 18 ¢/kWh the Chiltrix heats the house for less than the boiler on every
