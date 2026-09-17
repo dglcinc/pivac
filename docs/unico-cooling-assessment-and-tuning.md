@@ -3008,8 +3008,9 @@ the high fan's noise or its re-evaporation at the end of a call matters more tha
 pull-down. Under Comfort a continuous call stays on stage 2 for its whole length with the display
 reading the setpoint: on 17 September 2026 the master bedroom ran the high fan for four hours at
 75 °F on a 75 °F setpoint, and the downstairs family room, also two-stage, for two hours after its
-setpoint went from 76 to 74 °F. The family room's cool differential is 1 °F since 13:30 EDT that
-day, so its high fan now means a room at 75 °F or warmer. Leaving the installer menu restarts the
+setpoint went from 76 to 74 °F. All five thermostats carry a 1 °F differential in heat and cool
+since that afternoon (the family room from 13:30 EDT), so a high fan now means a room at least 1 °F
+off its setpoint, and all five run 2 cycles per hour on both stages in heat and cool. Leaving the installer menu restarts the
 staging, so a drop to stage 1 straight after a settings change proves nothing about the setting.
 That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
