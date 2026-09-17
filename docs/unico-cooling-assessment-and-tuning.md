@@ -2947,9 +2947,11 @@ alone is a median 3.7 °F on loop A, 8 to 11 kBTU/h at 4 to 6 GPM on tank water 
 than the 45 °F design, which is what a clean 12 to 18 kBTU/h coil gives on that water. At 2 cycles
 an hour the same duty should read about 15 minutes on and 15 off, and the longer wet-coil time is
 the point for the house's most humid zone. A wider room swing, about a degree either side, is the
-cost. The installation guide (Resideo 69-2490) lists 3140 as the only cooling cycle rate, so it
-covers both stages; if its screen offers a second-stage field, that field is 2 as well. A fan coil
-has no compressor to protect, so the rate is a noise and comfort setting and nothing argues for 1.
+cost. 3140 carries a separate rate for each cooling stage, and the second appears only on a
+thermostat configured for two-stage cooling, as these are for the Unico air handlers' low and high
+fan; the installation guide (Resideo 69-2490) lists the ISU once. Both stages are 2 on both
+thermostats. A fan coil has no compressor to protect, so the rate is a noise and comfort setting
+and nothing argues for 1 on either stage.
 
 **The first night at 2 cycles an hour read as predicted, once the load let the room cycle.** The
 setting was made at 15:55 EDT on 16 September and the kids room then called without a break until
