@@ -3013,7 +3013,8 @@ reading the setpoint: on 17 September 2026 the master bedroom ran the high fan f
 75 °F on a 75 °F setpoint, and the downstairs family room, also two-stage, for two hours after its
 setpoint went from 76 to 74 °F. All five thermostats carry a 1 °F differential in heat and cool
 since that afternoon (the family room from 13:30 EDT), so a high fan now means a room at least 1 °F
-off its setpoint, and all five run 2 cycles per hour on both stages in heat and cool. Leaving the installer menu restarts the
+off its setpoint, and all five run 2 cycles per hour on both stages in heat and cool. By that
+evening the calls ran on the low fan, confirmed by ear. Leaving the installer menu restarts the
 staging, so a drop to stage 1 straight after a settings change proves nothing about the setting.
 That is why Y2 needs a wire ([4.6](#46-reading-the-master-bedrooms-fan-stage)).
 
