@@ -38,10 +38,11 @@ Solder jumpers JP1 and JP2 and the pads J8, J2, TP1–TP3 are copper on the boar
 
 ## Order placed
 
-Ordered from Mouser on 2026-09-12 (cart in `Cart_Sep12_0937PM.pdf`): every part above at the
-three-board quantity, in the white PTSM variants (headers 1814867 and 1814870, 5-way plug
-1704858), with Ohmite OK1235E-R52 resistors, Diotec 1N4007 diodes and a KEMET SMR5104J50J01L4
-film capacitor for EXT C1. Exceptions: five 4-way headers, one INT board plus a spare; no
+Ordered from Mouser on 2026-09-12, invoice 92489596, shipped 2026-09-14 (PDF in the OneDrive
+Claude folder): every part above at the three-board quantity, in the white PTSM variants
+(headers 1814867 and 1814870, 5-way plug 1704858), with Ohmite OK1235E-R52 resistors, Diotec
+1N4007 diodes, five Vishay MAL202138101E3 for INT C1 and a KEMET SMR5104J50J01L4 film
+capacitor for EXT C1. Exceptions: five 4-way headers, one INT board plus a spare; no
 3-way headers or plugs, which are on hand. The order also carried twenty ST 1,5-QUATTRO
 blocks (3031186) with ten D-ST 2,5-QUATTRO end covers (3030514) and ten ATP-ST 4-QUATTRO
 partition plates (3030815) for the panel.
