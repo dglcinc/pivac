@@ -22,7 +22,7 @@ silkscreen but stay empty.
 | 2 | JP2 | solder jumper, three pads (copper on the board) | mid field, beside the U2 outline | Bridge the **centre pad to the left pad** (pad 1, DATA). That puts H3 on the shared bus. Left open, H3 floats. The right pad is the unfitted U2. |
 | 3 | JP1 | solder jumper, two pads (copper on the board) | near J1 | Leave open. Bridging it joins GPIO 4 to DATA for the software rollback only. |
 | 4 | C1 | KEMET SMR5104J50J01L4 film, 100 nF 50 V, 5 mm pitch | beside U1 | No polarity. Seat it flat. |
-| 5 | H1, H2, H3 | Phoenix PTSM 0,5/3-HH-2,5-THR, from stock (not in the Mouser order) | top edge, entries over the edge | Solder one pin, check the header sits flush and square to the edge, then the rest. H1 is the trunk: VCC · DATA · GND left to right. |
+| 5 | H1,&nbsp;H2,&nbsp;H3 | Phoenix PTSM 0,5/3-HH-2,5-THR, from stock (not in the Mouser order) | top edge, entries over the edge | Solder one pin, check the header sits flush and square to the edge, then the rest. H1 is the trunk: VCC · DATA · GND left to right. |
 | 6 | J1 | Phoenix PTSM 0,5/5-HH-2,5-THR white, 1814870 | against the riser field, entry facing the INT board | Same one-pin-first check. 3V3 · SDA · SCL · GPIO4 · GND. |
 | 7 | J2 | bare pads | | Nothing to fit; VCC, DATA, GND for a scope. |
 
@@ -43,7 +43,7 @@ TP1–TP3 are bare pads.
 | 2 | D1–D4 | Diotec 1N4007, DO-41 axial | one column, bottom right | Lie flat. **Band to the silkscreen bar.** A reversed diode reads as a dead board at power-up. |
 | 3 | F1 | Littelfuse 60R010XU PTC, 0.1 A 60 V | beside C1, between J4 and J6 | Bend the leads and lay the disc flat; it must stay under 8 mm. No polarity. |
 | 4 | C1 | Vishay MAL202138101E3, 100 µF 63 V axial electrolytic, ⌀8 × 18 mm | between J4 and J6, lying flat | **Polarised:** the stripe and the shorter lead are negative (COM); match the + mark on the silkscreen. |
-| 5 | U1–U3 sockets | Adam Tech ICS-316-T, DIP-16 | column at x 10.5–28, one per row | Notch to the silkscreen. Two diagonal corner pins, check it sits flat, then the other fourteen. Chips stay out. |
+| 5 | U1–U3&nbsp;sockets | Adam Tech ICS-316-T, DIP-16 | column at x 10.5–28, one per row | Notch to the silkscreen. Two diagonal corner pins, check it sits flat, then the other fourteen. Chips stay out. |
 | 6 | J1–J4 | Phoenix PTSM 0,5/4-HH-2,5-THR white, 1814867 | top edge, entries over the edge | One pin first, check flush and square, then the rest. J1 ZV·DHW·BLR·COM, J2 CHIL·BOS1·BOS2·COM, J3 DEHUM·SCALA·HPHEAT·COM, J4 24VAC·24VAC·SP-D·COM. J2.1 (CHIL) is `HPCALL`; J4.3 (SP-D, BCM 19) is `DHWX`. |
 | 7 | J6 | Phoenix PTSM 0,5/5-HH-2,5-THR white, 1814870 | right edge, inside the housing slot, entry facing the edge | Same check. 3V3·SDA·SCL·GPIO4·GND, the link to the EXT board. |
 | 8 | trim | flush cutters | whole solder side | Cut every tail flush. The Pi's Ethernet jack sits over the bottom-left field, and its USB shells are Pi ground while the rectifier nets are 35 V above COM. |
