@@ -107,8 +107,12 @@ cloud-init first boot: hostname `pibench`, user `pi`, password `pivac-bench`, th
 SSH and I2C on, `io-board-test.py` copied to the home directory; it boots any Pi 3, 4 or 5 and
 takes a DHCP lease on Ethernet. Reach it as `pi@pibench.local` or by its lease on the UCG. The
 Pi 4 with MAC `dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**,
-low under pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL, SP-C
-or SP-E. Use another Pi for those three or prove them at the swap.
+low under pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL or
+SP-C. BCM 16's input and output driver work and only its pull-up is dead: the pin floats and
+keeps whatever level last charged it, so a channel on it is proven by driving the pin high
+(`pinctrl set 16 op dh`, then `ip pu`) and watching it drop on the short; the release is the
+Pi's pull-up and proves nothing on this Pi. Use another Pi for CHIL and SP-C or prove them at
+the swap.
 
 **Bench record, INT and EXT board 1, 2026-09-25.** INT: 37.1 V DC on TP1–TP2; ZV, DHW, BLR,
 BOS1, BOS2, DEHUM, SCALA, HPHEAT and SP-D each pulled their own pin low on a plug short and
@@ -116,6 +120,16 @@ released clean, with no neighbour dropping. CHIL, SP-C and SP-E are unproven on 
 because of the Pi above; CHIL's proof is `HPCALL` reading 1 on the first call after the swap,
 SP-C's is `HPCOOL` once wired. EXT: DS2482 at 0x18, instantiated with no reset failure, probe
 `0516a36816ff` enumerated with clean CRCs on H1, H2 and H3, so JP2 is bridged right.
+
+**Bench record, SP-E, 2026-09-26.** Full assembly on the same Pi, with a PTSM-3 header in
+the EXT proto field wired to J8. Two shorts of J8.2 to J8.3 through that plug pulled BCM 16
+low each time (12:05:48 and 12:05:52, sampled at 50 ms) with none of the other eleven pins
+moving, and the first release returned it high; the second did not, and driving the pin high
+with the plug open restored and held it, which is the dead pull-up above. That proves the
+pigtail, R12, U3's SP-E channel and the trace to header pin 36. CHIL and SP-C stay unproven
+on the bench; a meter proves them off the Pi: power J4, short the plug position (J2.1, or
+J8.1 through the pigtail) to COM, and header pin 22 (CHIL) or 33 (SP-C) conducts to TP3 in
+diode mode while shorted and reads open when released.
 
 **Into the housing.** `rpi-io-boards-pcb-plan.md` §6 steps 6–8: freeze the services, swap
 the pair, move the four field plugs and three probe plugs over, prove every channel and the
