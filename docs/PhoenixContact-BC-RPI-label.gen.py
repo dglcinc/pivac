@@ -38,7 +38,6 @@ ROWS = [
     ("H1  GND·DATA·VCC  trunk", None),
     ("H2  GND·DATA·VCC  spare", None),
     ("H3  GND·DATA·VCC  spare", None),
-    ("H order is the front view, solder side out", None),
     ("LINK  3V3·SDA·SCL·sp·GND", None),
     (f"eth0  {MAC}", None),
 ]
