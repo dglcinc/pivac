@@ -375,6 +375,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/rpi-io-boards-review.md` | The rev A boards as ordered: both faces and copper of each, what every reference designator is for, the checks done, how to order from OSH Park |
 | `docs/rpi-io-boards-parts.md` | Parts to buy for the rev A boards, with maker part numbers, search descriptions, quantities and distributor links |
 | `docs/rpi-io-boards-assembly.md` | Bench sheet for populating the rev A boards: order of work, per-board table of reference, invoiced part and location, handling notes, checks with rev A values, the bench card and Pi, the bench record, link cable, housing swap. `docs/rpi-io-boards-reva-tone-map.svg` is its meter drawing |
+| `docs/rpi-io-boards-reva-install.md` | Swapping the rev A boards into the housing: what changes against the perfboard (24 VAC on J4.1/J4.2, `HPCOOL` to the J8 pigtail), the plug map position by position, order of work, meter checks, proofs, label rows |
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 
 ## Known Operational Behaviours (Not Bugs)
