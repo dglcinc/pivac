@@ -3,32 +3,37 @@
 
 The docx is its own template: the script opens it, keeps every style, the page setup and the
 empty side shape, and replaces the rows of the single table with the ROWS list below; the last
-row carries the Pi's eth0 MAC. Run it after any change to the channel map (docs/rpi-io-board-design.md
-§2.1 and §4.3) or the 1-wire sockets (docs/ds18b20-bus-topology.md §5.1 and §5.5).
+row carries the Pi's eth0 MAC. Run it after any change to the channel map (rev A: docs/rpi-io-boards-reva-install.md §2;
+perfboard: docs/rpi-io-board-design.md §2.1) or the 1-wire sockets (docs/ds18b20-bus-topology.md
+§5.1 and §5.5).
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
 """
 import os, re, shutil, tempfile, zipfile
 
-MAC = "2c:cf:67:80:55:00"          # new Pi eth0, read on the bench 2026-09-06
+MAC = "2c:cf:67:80:55:00"          # the production Pi's eth0 (Pi 4 Rev 1.5, in service since 2026-09-07)
 
 ROWS = [
     ("J1.1  ZV",        "(17,11)"),
     ("J1.2  DHW",       "(27,13)"),
     ("J1.3  BLR",       "(22,15)"),
-    ("J1.4  24V COM",   None),
-    ("J2.1  CHIL",      "(25,22)"),
+    ("J1.4  COM",       None),
+    ("J2.1  HPCALL",    "(25,22)"),
     ("J2.2  BOS1",      "(6,31)"),
     ("J2.3  BOS2",      "(5,29)"),
-    ("J2.4  24V COM",   None),
+    ("J2.4  COM",       None),
     ("J3.1  DEHUM",     "(12,32)"),
     ("J3.2  SCALA",     "(23,16)"),
     ("J3.3  HPHEAT",    "(24,18)"),
-    ("J3.4  24V COM",   None),
-    ("J4.1  +14V IN",   None),
-    ("J4.2  HPCOOL",    "(13,33)"),
-    ("J4.3  SP-D",      "(19,35)"),
-    ("J4.4  24V COM",   None),
+    ("J3.4  COM",       None),
+    ("J4.1  24VAC IN",  None),
+    ("J4.2  24VAC IN",  None),
+    ("J4.3  DHWX",      "(19,35)"),
+    ("J4.4  COM",       None),
+    None,
+    ("J8.1  HPCOOL  pigtail", "(13,33)"),
+    ("J8.2  SP-E  spare",     "(16,36)"),
+    ("J8.3  COM",             None),
     None,
     ("H1  GND·DATA·VCC  trunk", None),
     ("H2  GND·DATA·VCC  spare", None),

@@ -18,6 +18,9 @@ No pivac install needed. Uses `pinctrl` (Trixie, Pi 4 and Pi 5) or falls back to
     sudo python3 io-board-test.py --only 5   # guided, one channel (by # column)
     sudo python3 io-board-test.py --perfboard  # the original perfboard's map
 
+Each result is printed on its own line as it happens (ACTIVE on the short, idle
+on the release), so a detached run's log can be tailed for live feedback.
+
 The rev A map is docs/rpi-io-boards-assembly.md (SP-C and SP-E have no plug: short
 the J8 pad to the J8 COM pad). The perfboard map is §2.1 of
 docs/rpi-io-board-design.md.
@@ -198,9 +201,9 @@ def guided(be, only):
             print(f"ACTIVE, but so is {others} -> BRIDGE or crossed wire")
             results[n] = f"fail (also {others})"
         else:
-            print("ACTIVE -> PASS", end="", flush=True)
+            print("ACTIVE -> PASS")
             results[n] = "pass"
-        print("   release ... ", end="", flush=True)
+        print("        release ... ", end="", flush=True)
         levels, key = stable_read(be, bcm, 1)
         if key == "q":
             break
