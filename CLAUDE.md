@@ -374,6 +374,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/rpi-io-boards-pcb-plan.md` | Fabricated PCB replacements for the two Phoenix perfboards: dimensions, files to fetch, layout provisions, vendor choice, work plan; Appendix A.3 maps the Pi 4B's connectors under the INT board |
 | `docs/rpi-io-boards-review.md` | The rev A boards as ordered: both faces and copper of each, what every reference designator is for, the checks done, how to order from OSH Park |
 | `docs/rpi-io-boards-parts.md` | Parts to buy for the rev A boards, with maker part numbers, search descriptions, quantities and distributor links |
+| `docs/rpi-io-boards-assembly.md` | Bench sheet for populating the rev A boards: order of work, per-board table of reference, invoiced part and location, handling notes, checks with rev A values, link cable, housing swap |
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 
 ## Known Operational Behaviours (Not Bugs)
