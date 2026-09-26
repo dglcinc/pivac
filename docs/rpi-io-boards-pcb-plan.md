@@ -218,8 +218,17 @@ the running system.
 - Should the INT board also carry the second DS2482 footprint, so a single-board variant is
   possible later, or is the two-board rule firm? The design docs argue for two; this plan keeps
   two.
-- Is a fifth PTSM plug position available on the housing's terminal opening for the twelfth
-  channel, or does the twelfth channel share J4?
+- Rev A is one plug position short: eleven relays are in service and the four plugs carry ten
+  channel positions once J4.1 and J4.2 are the 24 VAC pair, so `HPCOOL` goes to the SP-C pad
+  of J8 by a soldered wire. If the pigtail from J8 (SP-C, SP-E, COM) is to be pluggable, it
+  lands on a 3-way PTSM header in the EXT board's proto field with its entry at the bottom edge;
+  the grid holes are 1.0 mm against the 1.1 mm of the PTSM footprint, so try a header in the
+  grid before counting on it. J7 cannot serve: its copper is VS, COM, +5V and GND.
+- **Rev B: one COM position per board, not four.** The relay commons are daisy-chained in the
+  field wiring and the sense return carries under 35 mA with all twelve channels closed, so
+  sixteen plug positions less the AC pair and one COM gives thirteen channel positions and
+  every channel lands on a plug; J8 goes away. Also label J4.2 (rev A marks only 24VAC, SP-D and
+  COM on J4).
 - The mounting of the boards in the housing: whether the perfboards are retained by the card
   guides alone, or by the header and riser as well. The STEP of the housing answers this; if the
   card guides alone retain them, the outline tolerance matters and OSH Park's routing tolerance
