@@ -55,7 +55,8 @@ for name in ['main', 'balance', 'chiltrix', 'wall_oven', 'bova_kitchen',
              'bova_great_room', 'hall_sub_panel', 'utility_sub_panel',
              'downstairs_bath_and_floor', 'air_conditioner', 'furnace',
              'clothes_washer', 'kitchen_plugs_1', 'kitchen_plugs_2',
-             'garage_entry_basement', 'gfi', 'trophy_a']:
+             'garage_entry_basement', 'gfi_garage_outlets', 'trophy_a',
+             'upstairs_back', 'upstairs_front']:
     check('stable:' + name, name, name)
 
 print('\nsanitize is idempotent (re-running never renames):')
