@@ -169,8 +169,7 @@ window on that pair before relying on its ΔT correction.
   a ROM to a physical probe, unplug it and watch which entry disappears.
 - Mount on **copper at the tees, not PEX** (assessment §4.2).
 
-Raw logs and the scan sketch are archived in the session memory dir
-(`~/.claude/projects/-Users-david-github-pivac/memory/`, M2 only — they are not in this repo):
+Raw logs and the scan sketch are in `docs/data/ds18b20/`:
 
 | File | Bath | Probes | Rows | Notes |
 |---|---|---|---|---|
