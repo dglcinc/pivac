@@ -106,9 +106,9 @@ stays low with nothing on the header is a dead pad on the Pi, not a board fault.
 cloud-init first boot: hostname `pibench`, user `pi`, password `pivac-bench`, the M2's keys,
 SSH and I2C on, `io-board-test.py` copied to the home directory; it boots any Pi 3, 4 or 5 and
 takes a DHCP lease on Ethernet. Reach it by its lease on the UCG (`pibench.local` does not
-resolve from the M2). **The bench Pi is the new Pi 4 Model B Rev 1.5, MAC `88:a2:9e:3c:c3:73`**,
-whose twelve channel pins all read high bare under pull-up. The Pi 4 with MAC
-`dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**, low under
+resolve from the M2). **The bench Pi is the retired production Pi 4 Model B Rev 1.5, MAC
+`2c:cf:67:80:55:00`, with the perfboard pair** (from 2026-10-10; until then it holds its own
+card as the cutover rollback), all channel pads good. The Pi 4 with MAC `dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**, low under
 pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL or SP-C. BCM
 16's input and output driver work and only its pull-up is dead: the pin floats and keeps
 whatever level last charged it, so a channel on it is proven by driving the pin high
@@ -144,7 +144,7 @@ with the plug open restored and held it, which is the dead pull-up above. That p
 pigtail, R12, U3's SP-E channel and the trace to header pin 36.
 
 **Bench record, full walk on the new Pi, 2026-09-26.** Full INT and EXT assembly seated on
-the new Pi 4 Rev 1.5, J4 powered. All twelve pins idle high, and the guided walk in plug
+the new Pi 4 Rev 1.5 (`88:a2:9e:3c:c3:73`, now the production Pi), J4 powered. All twelve pins idle high, and the guided walk in plug
 order (J1.1 to J4.3, then SP-C and SP-E at the J8 pigtail) reported ACTIVE and a clean
 release on every channel with no other pin dropping. CHIL (BCM 25) and SP-C (BCM 13) are
 therefore proven on the bench, and every channel of the rev A INT board has passed. Without

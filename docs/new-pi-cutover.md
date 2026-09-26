@@ -1,6 +1,7 @@
 # New Pi cutover — procedure
 
-**Status:** ready to run. The new Pi (`new-pivac`, Pi 4 Model B Rev 1.5, `eth0`
+**Status:** run 2026-09-07; kept as history. The 2026-09-26 cutover to the rev A boards and
+the next Pi is `rpi-io-boards-reva-install.md`. **Then:** ready to run. The new Pi (`new-pivac`, Pi 4 Model B Rev 1.5, `eth0`
 `2c:cf:67:80:55:00`) has both boards proven on the bench: all eleven I/O channels
 (`scripts/io-board-test.py`, 2026-09-06) and the DS2482 1-wire board with a probe on H1
 (2026-09-07). This document is the order of operations for taking the old Pi out of the panel,
