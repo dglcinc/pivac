@@ -1,10 +1,22 @@
 # Rev A boards and the new Pi into the housing — cutover
 
-**Status:** ready to run. The rev A INT and EXT boards are fully proven on the new Pi (all
-twelve channels, 2026-09-26; `rpi-io-boards-assembly.md`). The new Pi goes into the housing
-with them on the weekly clone card and becomes the production Pi; the production Pi and the
-perfboards come out and become the bench set. **Owner:** David at the panel, Claude at the
-Mac over ssh; each step says who.
+**Status:** run 2026-09-26, 13:53 to 15:10 EDT. The new Pi is the production Pi on the rev A
+boards; the old production Pi and the perfboards are the bench set, held as the rollback until
+2026-10-10. Kept as the record of the day and the pattern for the next swap. **Owner:** David at
+the panel, Claude at the Mac over ssh; each step says who.
+
+**As run.** The clone took 2 m 44 s. First boot was clean on every count. Ten relays read
+live at once; `HPCOOL` did not, and the fault was a loose connector on the pigtail's SP-C
+wire between the plug and J8 pad 1, found by bridging the plug's slots: 1 to 3 left BCM 13
+high, 2 to 3 pulled BCM 16 low, so COM and SP-E were good and slot 1 was open. Reseated and
+read 1 on the next boot. The 1-wire proof passed twice, 320 clean reads each. RedLink stalled
+in its Signal K reconnect backoff after boot and needed one restart. A pin watch (Monitor
+tailing `pinctrl` for the twelve channels) relayed each contact to the terminal as David
+shorted the plugs, which is the bench walk done in the housing. One false lead: BCM 16
+read low before any wire was moved because pivac sets pull-ups only on its configured pins
+and SP-E is unused, so it sits at the Pi's boot pull-down; set `pinctrl set 16 ip pu` before
+reading the spare. The extra card went into the SD reader as the clone target, so the weekly
+clone continues.
 
 | | Production today | After the cutover |
 |---|---|---|
@@ -148,8 +160,10 @@ coil and tag it. Land the transformer **last**, after the checks in step 6.
 3. Plugs J1 to J4 and the pigtail per step 4. H1 takes the trunk plug, VCC · DATA · GND left
    to right in the plug, which reads GND · DATA · VCC from the front with the board solder side
    out. H2 and H3 stay empty.
-4. The Chiltrix UNO R4 bridge and the USB SD reader onto the new Pi's USB (the reader empty for
-   now). Ethernet, then the Pi's USB-C lead. The label under the clear cover.
+4. The Chiltrix UNO R4 bridge and the USB SD reader onto the new Pi's USB, the extra card in
+   the reader as the clone target. Ethernet, then the Pi's USB-C lead. The label under the
+   clear cover. Both USB leads were left off on 2026-09-26 and had to be reconnected after
+   the first-boot checks: `lsusb` showing only the hubs is the sign.
 
 ## 6. Meter checks, then power (David)
 
@@ -233,9 +247,9 @@ Close the panel. The old Pi stays on the shelf, powered off, card in, until 2026
    ```bash
    ssh pi@10.0.0.82 'sudo mount /mnt/nas-pi-backups && sudo sfdisk --disk-id /mnt/nas-pi-backups/pivac.img 0xf8c4a716 && sudo umount /mnt/nas-pi-backups'
    ```
-4. **Weekly clone.** `sd-clone.timer` fires Sunday 02:00 and refuses with no card in the
-   reader; one missed week is accepted. On 2026-10-10 the old Pi's card (`0x059be283`) goes
-   into the reader as the clone target, and the old Pi boots the bench card as `pibench`.
+4. **Weekly clone.** `sd-clone.timer` fires Sunday 02:00 against the extra card in the
+   reader. On 2026-10-10 the old Pi boots the bench card as `pibench`; its own card
+   (`0x059be283`) is then free.
 5. **Docs.** CLAUDE.md: the Pi network interfaces paragraph (both MACs), the bench-Pi
    sentence in Known Operational Behaviours (the bench Pi is now `2c:cf:67:80:55:00` with the
    perfboards), the label's MAC line in `cdp-chiller-rework-plan.md` §4;
