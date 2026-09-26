@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Channel-by-channel bench test for the Raspberry Pi I/O board.
 
-Run this on the bench Pi with the board seated on the header and the 14 V wall
-wart powered. It sets every channel's GPIO to input with pull-up, checks that all
+Run this on the bench Pi with the board seated on the header and the sense supply
+powered (24 VAC on J4.1/J4.2 for the rev A PCB, the 14 V wall wart for the
+perfboard). It sets every channel's GPIO to input with pull-up, checks that all
 of them idle high, then walks the channels in plug order: short the named plug
 position to its COM, and the script reports PASS when that channel's pin goes
 low. It also reports any *other* pin that dropped at the same time, which is the
@@ -12,11 +13,14 @@ short is released, so each channel is proven both ways.
 No pivac install needed. Uses `pinctrl` (Trixie, Pi 4 and Pi 5) or falls back to
 `raspi-gpio`. Stdlib only.
 
-    sudo python3 io-board-test.py            # guided walk-through
+    sudo python3 io-board-test.py            # guided walk-through, rev A PCB map
     sudo python3 io-board-test.py --monitor  # live table of all channels
     sudo python3 io-board-test.py --only 5   # guided, one channel (by # column)
+    sudo python3 io-board-test.py --perfboard  # the original perfboard's map
 
-Channel map is §2.1 of docs/rpi-io-board-design.md.
+The rev A map is docs/rpi-io-boards-assembly.md (SP-C and SP-E have no plug: short
+the J8 pad to the J8 COM pad). The perfboard map is §2.1 of
+docs/rpi-io-board-design.md.
 """
 import argparse
 import select
@@ -25,8 +29,24 @@ import subprocess
 import sys
 import time
 
-# (#, name, IC·ch, plug position, BCM)
-CHANNELS = [
+# (#, name, chip·ch, plug position, BCM) for the rev A PCB
+CHANNELS_REVA = [
+    (1,  "ZV",     "U1", "J1.1", 17),
+    (2,  "DHW",    "U1", "J1.2", 27),
+    (3,  "BLR",    "U1", "J1.3", 22),
+    (4,  "CHIL",   "U1", "J2.1", 25),
+    (5,  "BOS1",   "U2", "J2.2", 6),
+    (6,  "BOS2",   "U2", "J2.3", 5),
+    (7,  "DEHUM",  "U2", "J3.1", 12),
+    (8,  "SCALA",  "U2", "J3.2", 23),
+    (9,  "HPHEAT", "U3", "J3.3", 24),
+    (10, "SP-D",   "U3", "J4.3", 19),
+    (11, "SP-C",   "U3", "J8",   13),
+    (12, "SP-E",   "U3", "J8",   16),
+]
+
+# (#, name, IC·ch, plug position, BCM) for the original perfboard
+CHANNELS_PERF = [
     (1,  "ZV",    "A·4", "J1.1", 17),
     (2,  "DHW",   "A·3", "J1.2", 27),
     (3,  "BLR",   "A·2", "J1.3", 22),
@@ -39,6 +59,7 @@ CHANNELS = [
     (10, "SP-C",  "C·4", "J4.2", 13),
     (11, "SP-D",  "C·3", "J4.3", 19),
 ]
+CHANNELS = CHANNELS_REVA
 BCMS = [c[4] for c in CHANNELS]
 
 POLL_S = 0.05        # read interval
@@ -158,7 +179,8 @@ def guided(be, only):
     else:
         print(f"  all {len(chans)} channels idle high\n")
 
-    print("For each channel, short the plug position to that plug's COM (position 4).\n"
+    print("For each channel, short the plug position to that plug's COM (position 4;\n"
+          "J8 channels: the J8 pad to the J8 COM pad).\n"
           "Type s<Enter> to skip a channel, q<Enter> to quit.\n")
     for ch in chans:
         n, name, ic, plug, bcm = ch
@@ -189,8 +211,8 @@ def guided(be, only):
         print("  " + fmt_row(ch, 1 if results.get(ch[0]) != "pass" else 0,
                              results.get(ch[0], "not tested")))
     print("\nA channel whose IR LED lights but never goes ACTIVE is chip seating or\n"
-          "orientation (IC-C is rotated). One that does neither is on the field side:\n"
-          "resistor, plug link, or the +14 V feeder to that chip.")
+          "orientation. One that does neither is on the field side: resistor, plug\n"
+          "link, or the sense-supply feed (VS) to that chip.")
     return 0 if all(v == "pass" for v in results.values()) else 1
 
 
@@ -198,7 +220,13 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--monitor", action="store_true", help="live table instead of guided walk")
     ap.add_argument("--only", type=int, help="guided test of one channel (# column)")
+    ap.add_argument("--perfboard", action="store_true",
+                    help="use the original perfboard's channel map instead of rev A")
     args = ap.parse_args()
+    global CHANNELS, BCMS
+    if args.perfboard:
+        CHANNELS = CHANNELS_PERF
+        BCMS = [c[4] for c in CHANNELS]
     be = Backend()
     be.set_pullups()
     print(f"using {be.tool}; pull-ups set on BCM {BCMS}")

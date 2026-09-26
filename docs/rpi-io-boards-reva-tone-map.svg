@@ -1,0 +1,653 @@
+<svg viewBox="0 0 1340 1330" role="img" aria-label="Rev A INT board tone map: every socket pin, plug position, header pin, J8 pad and test point labelled with what it should tone to on the bare board." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<rect x="0" y="0" width="1340" height="1330" fill="#ffffff"/>
+<g font-family="IBM Plex Mono, ui-monospace, monospace" fill="#1a1a1a">
+<text x="40" y="34" font-size="16" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">pivac INT rev A — tone map, COMPONENT side up, plugs at the top, Pi header at the left</text>
+<text x="40" y="54" font-size="9.5" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="0.8">Not to scale. Pin order and nets are the board's (hardware/int-board/int-board.kicad_pcb). Bare board: off the Pi, sockets empty, transformer off.</text>
+<rect x="70" y="80" width="1220" height="1110" rx="10" fill="none" stroke="#2f5f3a" stroke-width="3"/>
+<rect x="300" y="86" width="228" height="66" rx="3" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="308" y="100" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">J1</text>
+<rect x="321" y="121" width="18" height="18" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="330" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="330" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.1</text>
+<text x="330" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">ZV</text>
+<text x="330" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U1.2</text>
+<circle cx="386" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="386" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="386" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.2</text>
+<text x="386" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">DHW</text>
+<text x="386" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U1.4</text>
+<circle cx="442" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="442" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="442" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.3</text>
+<text x="442" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BLR</text>
+<text x="442" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U1.6</text>
+<circle cx="498" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="498" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="498" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.4</text>
+<text x="498" y="170" font-size="10.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<text x="498" y="183" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP2</text>
+<rect x="548" y="86" width="228" height="66" rx="3" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="556" y="100" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">J2</text>
+<rect x="569" y="121" width="18" height="18" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="578" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="578" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.1</text>
+<text x="578" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">CHIL</text>
+<text x="578" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U1.8</text>
+<circle cx="634" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="634" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="634" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.2</text>
+<text x="634" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BOS1</text>
+<text x="634" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U2.2</text>
+<circle cx="690" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="690" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="690" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.3</text>
+<text x="690" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BOS2</text>
+<text x="690" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U2.4</text>
+<circle cx="746" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="746" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="746" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.4</text>
+<text x="746" y="170" font-size="10.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<text x="746" y="183" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP2</text>
+<rect x="796" y="86" width="228" height="66" rx="3" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="804" y="100" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">J3</text>
+<rect x="817" y="121" width="18" height="18" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="826" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="826" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.1</text>
+<text x="826" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">DEHUM</text>
+<text x="826" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U2.6</text>
+<circle cx="882" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="882" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="882" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.2</text>
+<text x="882" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SCALA</text>
+<text x="882" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U2.8</text>
+<circle cx="938" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="938" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="938" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.3</text>
+<text x="938" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">HPHEAT</text>
+<text x="938" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U3.2</text>
+<circle cx="994" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="994" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="994" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.4</text>
+<text x="994" y="170" font-size="10.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<text x="994" y="183" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP2</text>
+<rect x="1044" y="86" width="228" height="66" rx="3" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="1052" y="100" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">J4</text>
+<rect x="1065" y="121" width="18" height="18" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1074" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1074" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.1</text>
+<text x="1074" y="170" font-size="10.5" font-weight="700" fill="#7A4E9E" text-anchor="middle" opacity="1.0">24VAC</text>
+<text x="1074" y="183" font-size="8.6" font-weight="400" fill="#7A4E9E" text-anchor="middle" opacity="1.0">AC hot</text>
+<circle cx="1130" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1130" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1130" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.2</text>
+<text x="1130" y="170" font-size="10.5" font-weight="700" fill="#7A4E9E" text-anchor="middle" opacity="1.0">24VAC</text>
+<text x="1130" y="183" font-size="8.6" font-weight="400" fill="#7A4E9E" text-anchor="middle" opacity="1.0">AC return</text>
+<text x="1130" y="195" font-size="8" font-weight="400" fill="#7A4E9E" text-anchor="middle" opacity="0.9">(no silk label)</text>
+<circle cx="1186" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1186" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1186" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.3</text>
+<text x="1186" y="170" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-D</text>
+<text x="1186" y="183" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U3.4</text>
+<circle cx="1242" cy="130" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1242" cy="130" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1242" y="114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.4</text>
+<text x="1242" y="170" font-size="10.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<text x="1242" y="183" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP2</text>
+<rect x="228" y="248" width="84" height="652" rx="4" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="270" y="238" font-size="10" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">J5  Pi header (socket on the solder side)</text>
+<circle cx="250" cy="270" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="270" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="273" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">2</text>
+<text x="220" y="273" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">5V</text>
+<rect x="282" y="262" width="16" height="16" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="270" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="273" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">1</text>
+<text x="304" y="273" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="start" opacity="1.0">open</text>
+<circle cx="250" cy="302" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="302" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="305" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">4</text>
+<text x="220" y="305" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">5V</text>
+<circle cx="290" cy="302" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="302" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="305" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">3</text>
+<text x="304" y="305" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">SDA</text>
+<circle cx="250" cy="334" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="334" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="337" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">6</text>
+<text x="220" y="337" font-size="8.6" font-weight="400" fill="#555555" text-anchor="end" opacity="1.0">GND · tone TP3</text>
+<circle cx="290" cy="334" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="334" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="337" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">5</text>
+<text x="304" y="337" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">SCL</text>
+<circle cx="250" cy="366" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="366" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="369" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">8</text>
+<text x="220" y="369" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="end" opacity="1.0">open</text>
+<circle cx="290" cy="366" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="366" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="369" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">7</text>
+<text x="304" y="369" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">GPIO4</text>
+<circle cx="250" cy="398" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="398" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="401" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">10</text>
+<text x="220" y="401" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="end" opacity="1.0">open</text>
+<circle cx="290" cy="398" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="398" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="401" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">9</text>
+<text x="304" y="401" font-size="8.6" font-weight="400" fill="#555555" text-anchor="start" opacity="1.0">GND · tone TP3</text>
+<circle cx="250" cy="430" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="430" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="433" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">12</text>
+<text x="220" y="433" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">GPIO18</text>
+<circle cx="290" cy="430" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="430" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="433" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">11</text>
+<text x="304" y="433" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">ZV · tone U1 pin 16</text>
+<circle cx="250" cy="462" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="462" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="465" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">14</text>
+<text x="220" y="465" font-size="8.6" font-weight="400" fill="#555555" text-anchor="end" opacity="1.0">GND · tone TP3</text>
+<circle cx="290" cy="462" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="462" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="465" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">13</text>
+<text x="304" y="465" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">DHW · tone U1 pin 14</text>
+<circle cx="250" cy="494" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="494" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="497" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">16</text>
+<text x="220" y="497" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="end" opacity="1.0">SCALA · tone U2 pin 10</text>
+<circle cx="290" cy="494" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="494" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="497" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">15</text>
+<text x="304" y="497" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">BLR · tone U1 pin 12</text>
+<circle cx="250" cy="526" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="526" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="529" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">18</text>
+<text x="220" y="529" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="end" opacity="1.0">HPHEAT · tone U3 pin 16</text>
+<circle cx="290" cy="526" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="526" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="529" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">17</text>
+<text x="304" y="529" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">3V3</text>
+<circle cx="250" cy="558" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="558" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="561" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">20</text>
+<text x="220" y="561" font-size="8.6" font-weight="400" fill="#555555" text-anchor="end" opacity="1.0">GND · tone TP3</text>
+<circle cx="290" cy="558" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="558" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="561" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">19</text>
+<text x="304" y="561" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">GPIO10</text>
+<circle cx="250" cy="590" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="590" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="593" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">22</text>
+<text x="220" y="593" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="end" opacity="1.0">CHIL · tone U1 pin 10</text>
+<circle cx="290" cy="590" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="590" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="593" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">21</text>
+<text x="304" y="593" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">GPIO9</text>
+<circle cx="250" cy="622" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="622" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="625" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">24</text>
+<text x="220" y="625" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">GPIO8</text>
+<circle cx="290" cy="622" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="622" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="625" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">23</text>
+<text x="304" y="625" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">GPIO11</text>
+<circle cx="250" cy="654" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="654" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="657" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">26</text>
+<text x="220" y="657" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">GPIO7</text>
+<circle cx="290" cy="654" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="654" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="657" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">25</text>
+<text x="304" y="657" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="start" opacity="1.0">open</text>
+<circle cx="250" cy="686" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="686" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="689" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">28</text>
+<text x="220" y="689" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="end" opacity="1.0">open</text>
+<circle cx="290" cy="686" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="686" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="689" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">27</text>
+<text x="304" y="689" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="start" opacity="1.0">open</text>
+<circle cx="250" cy="718" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="718" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="721" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">30</text>
+<text x="220" y="721" font-size="8.6" font-weight="400" fill="#555555" text-anchor="end" opacity="1.0">GND · tone TP3</text>
+<circle cx="290" cy="718" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="718" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="721" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">29</text>
+<text x="304" y="721" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">BOS2 · tone U2 pin 14</text>
+<circle cx="250" cy="750" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="750" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="753" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">32</text>
+<text x="220" y="753" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="end" opacity="1.0">DEHUM · tone U2 pin 12</text>
+<circle cx="290" cy="750" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="750" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="753" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">31</text>
+<text x="304" y="753" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">BOS1 · tone U2 pin 16</text>
+<circle cx="250" cy="782" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="782" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="785" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">34</text>
+<text x="220" y="785" font-size="8.6" font-weight="400" fill="#555555" text-anchor="end" opacity="1.0">GND · tone TP3</text>
+<circle cx="290" cy="782" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="782" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="785" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">33</text>
+<text x="304" y="785" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">SP-C · tone U3 pin 12</text>
+<circle cx="250" cy="814" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="814" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="817" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">36</text>
+<text x="220" y="817" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="end" opacity="1.0">SP-E · tone U3 pin 10</text>
+<circle cx="290" cy="814" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="814" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="817" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">35</text>
+<text x="304" y="817" font-size="8.6" font-weight="700" fill="#4A7FB5" text-anchor="start" opacity="1.0">SP-D · tone U3 pin 14</text>
+<circle cx="250" cy="846" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="846" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="849" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">38</text>
+<text x="220" y="849" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">GPIO20</text>
+<circle cx="290" cy="846" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="846" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="849" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">37</text>
+<text x="304" y="849" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="start" opacity="1.0">open</text>
+<circle cx="250" cy="878" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="250" cy="878" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="250" y="881" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">40</text>
+<text x="220" y="881" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="1.0">GPIO21</text>
+<circle cx="290" cy="878" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="290" cy="878" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="290" y="881" font-size="7.5" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">39</text>
+<text x="304" y="881" font-size="8.6" font-weight="400" fill="#9AA0A6" text-anchor="start" opacity="1.0">open</text>
+<text x="228" y="918" font-size="8.6" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="0.85">even outer · odd inner · 1 top</text>
+<rect x="460" y="340" width="512" height="78" rx="5" fill="#f7f7f5" stroke="#1a1a1a" stroke-width="1.8"/>
+<path d="M 460 366 A 13 13 0 0 1 460 392 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.8"/>
+<text x="500" y="383" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">notch</text>
+<text x="716" y="375" font-size="14" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">U1</text>
+<text x="716" y="391" font-size="9.5" font-weight="400" fill="#1a1a1a" text-anchor="middle" opacity="0.7">LTV-847 · ZV · DHW · BLR · CHIL</text>
+<rect x="486" y="420" width="12" height="12" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">1</text>
+<text x="492" y="448" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A1</text>
+<text x="492" y="461" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="492" y="474" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="492" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">16</text>
+<text x="492" y="318" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 11</text>
+<text x="492" y="306" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 17</text>
+<text x="492" y="293" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">ZV</text>
+<text x="492" y="280" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C1</text>
+<text x="492" y="267" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="556" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">2</text>
+<text x="556" y="448" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K1</text>
+<text x="556" y="461" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">ZV</text>
+<text x="556" y="474" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J1.1</text>
+<circle cx="556" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">15</text>
+<text x="556" y="318" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="556" y="293" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="556" y="280" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E1</text>
+<circle cx="620" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">3</text>
+<text x="620" y="448" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A2</text>
+<text x="620" y="461" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="620" y="474" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="620" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">14</text>
+<text x="620" y="318" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 13</text>
+<text x="620" y="306" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 27</text>
+<text x="620" y="293" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">DHW</text>
+<text x="620" y="280" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C2</text>
+<text x="620" y="267" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="684" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">4</text>
+<text x="684" y="448" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K2</text>
+<text x="684" y="461" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">DHW</text>
+<text x="684" y="474" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J1.2</text>
+<circle cx="684" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">13</text>
+<text x="684" y="318" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="684" y="293" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="684" y="280" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E2</text>
+<circle cx="748" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">5</text>
+<text x="748" y="448" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A3</text>
+<text x="748" y="461" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="748" y="474" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="748" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">12</text>
+<text x="748" y="318" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 15</text>
+<text x="748" y="306" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 22</text>
+<text x="748" y="293" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BLR</text>
+<text x="748" y="280" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C3</text>
+<text x="748" y="267" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="812" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">6</text>
+<text x="812" y="448" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K3</text>
+<text x="812" y="461" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BLR</text>
+<text x="812" y="474" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J1.3</text>
+<circle cx="812" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">11</text>
+<text x="812" y="318" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="812" y="293" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="812" y="280" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E3</text>
+<circle cx="876" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">7</text>
+<text x="876" y="448" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A4</text>
+<text x="876" y="461" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="876" y="474" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="876" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">10</text>
+<text x="876" y="318" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 22</text>
+<text x="876" y="306" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 25</text>
+<text x="876" y="293" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">CHIL</text>
+<text x="876" y="280" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C4</text>
+<text x="876" y="267" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="940" cy="426" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="426" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="412" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">8</text>
+<text x="940" y="448" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K4</text>
+<text x="940" y="461" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">CHIL</text>
+<text x="940" y="474" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J2.1</text>
+<circle cx="940" cy="332" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="332" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="356" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">9</text>
+<text x="940" y="318" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="940" y="293" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="940" y="280" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E4</text>
+<rect x="460" y="600" width="512" height="78" rx="5" fill="#f7f7f5" stroke="#1a1a1a" stroke-width="1.8"/>
+<path d="M 460 626 A 13 13 0 0 1 460 652 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.8"/>
+<text x="500" y="643" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">notch</text>
+<text x="716" y="635" font-size="14" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">U2</text>
+<text x="716" y="651" font-size="9.5" font-weight="400" fill="#1a1a1a" text-anchor="middle" opacity="0.7">LTV-847 · BOS1 · BOS2 · DEHUM · SCALA</text>
+<rect x="486" y="680" width="12" height="12" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">1</text>
+<text x="492" y="708" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A1</text>
+<text x="492" y="721" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="492" y="734" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="492" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">16</text>
+<text x="492" y="578" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 31</text>
+<text x="492" y="566" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 6</text>
+<text x="492" y="553" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BOS1</text>
+<text x="492" y="540" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C1</text>
+<text x="492" y="527" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="556" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">2</text>
+<text x="556" y="708" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K1</text>
+<text x="556" y="721" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BOS1</text>
+<text x="556" y="734" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J2.2</text>
+<circle cx="556" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">15</text>
+<text x="556" y="578" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="556" y="553" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="556" y="540" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E1</text>
+<circle cx="620" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">3</text>
+<text x="620" y="708" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A2</text>
+<text x="620" y="721" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="620" y="734" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="620" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">14</text>
+<text x="620" y="578" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 29</text>
+<text x="620" y="566" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 5</text>
+<text x="620" y="553" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BOS2</text>
+<text x="620" y="540" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C2</text>
+<text x="620" y="527" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="684" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">4</text>
+<text x="684" y="708" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K2</text>
+<text x="684" y="721" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">BOS2</text>
+<text x="684" y="734" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J2.3</text>
+<circle cx="684" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">13</text>
+<text x="684" y="578" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="684" y="553" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="684" y="540" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E2</text>
+<circle cx="748" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">5</text>
+<text x="748" y="708" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A3</text>
+<text x="748" y="721" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="748" y="734" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="748" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">12</text>
+<text x="748" y="578" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 32</text>
+<text x="748" y="566" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 12</text>
+<text x="748" y="553" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">DEHUM</text>
+<text x="748" y="540" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C3</text>
+<text x="748" y="527" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="812" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">6</text>
+<text x="812" y="708" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K3</text>
+<text x="812" y="721" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">DEHUM</text>
+<text x="812" y="734" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J3.1</text>
+<circle cx="812" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">11</text>
+<text x="812" y="578" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="812" y="553" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="812" y="540" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E3</text>
+<circle cx="876" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">7</text>
+<text x="876" y="708" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A4</text>
+<text x="876" y="721" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="876" y="734" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="876" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">10</text>
+<text x="876" y="578" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 16</text>
+<text x="876" y="566" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 23</text>
+<text x="876" y="553" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">SCALA</text>
+<text x="876" y="540" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C4</text>
+<text x="876" y="527" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="940" cy="686" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="686" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="672" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">8</text>
+<text x="940" y="708" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K4</text>
+<text x="940" y="721" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SCALA</text>
+<text x="940" y="734" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J3.2</text>
+<circle cx="940" cy="592" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="592" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="616" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">9</text>
+<text x="940" y="578" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="940" y="553" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="940" y="540" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E4</text>
+<rect x="460" y="860" width="512" height="78" rx="5" fill="#f7f7f5" stroke="#1a1a1a" stroke-width="1.8"/>
+<path d="M 460 886 A 13 13 0 0 1 460 912 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.8"/>
+<text x="500" y="903" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">notch</text>
+<text x="716" y="895" font-size="14" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">U3</text>
+<text x="716" y="911" font-size="9.5" font-weight="400" fill="#1a1a1a" text-anchor="middle" opacity="0.7">LTV-847 · HPHEAT · SP-D · SP-C · SP-E</text>
+<rect x="486" y="940" width="12" height="12" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">1</text>
+<text x="492" y="968" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A1</text>
+<text x="492" y="981" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="492" y="994" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="492" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="492" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="492" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">16</text>
+<text x="492" y="838" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 18</text>
+<text x="492" y="826" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 24</text>
+<text x="492" y="813" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">HPHEAT</text>
+<text x="492" y="800" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C1</text>
+<text x="492" y="787" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="556" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">2</text>
+<text x="556" y="968" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K1</text>
+<text x="556" y="981" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">HPHEAT</text>
+<text x="556" y="994" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J3.3</text>
+<circle cx="556" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="556" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="556" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">15</text>
+<text x="556" y="838" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="556" y="813" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="556" y="800" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E1</text>
+<circle cx="620" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">3</text>
+<text x="620" y="968" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A2</text>
+<text x="620" y="981" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="620" y="994" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="620" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="620" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="620" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">14</text>
+<text x="620" y="838" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 35</text>
+<text x="620" y="826" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 19</text>
+<text x="620" y="813" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">SP-D</text>
+<text x="620" y="800" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C2</text>
+<text x="620" y="787" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="684" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">4</text>
+<text x="684" y="968" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K2</text>
+<text x="684" y="981" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-D</text>
+<text x="684" y="994" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J4.3</text>
+<circle cx="684" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="684" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="684" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">13</text>
+<text x="684" y="838" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="684" y="813" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="684" y="800" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E2</text>
+<circle cx="748" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">5</text>
+<text x="748" y="968" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A3</text>
+<text x="748" y="981" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="748" y="994" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="748" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="748" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="748" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">12</text>
+<text x="748" y="838" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 33</text>
+<text x="748" y="826" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 13</text>
+<text x="748" y="813" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">SP-C</text>
+<text x="748" y="800" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C3</text>
+<text x="748" y="787" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="812" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">6</text>
+<text x="812" y="968" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K3</text>
+<text x="812" y="981" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-C</text>
+<text x="812" y="994" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J8.1</text>
+<circle cx="812" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="812" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="812" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">11</text>
+<text x="812" y="838" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="812" y="813" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="812" y="800" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E3</text>
+<circle cx="876" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">7</text>
+<text x="876" y="968" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">A4</text>
+<text x="876" y="981" font-size="10" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<text x="876" y="994" font-size="8.6" font-weight="400" fill="#B03030" text-anchor="middle" opacity="1.0">tone TP1</text>
+<circle cx="876" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="876" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="876" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">10</text>
+<text x="876" y="838" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">tone Pi 36</text>
+<text x="876" y="826" font-size="8.6" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="1.0">BCM 16</text>
+<text x="876" y="813" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">SP-E</text>
+<text x="876" y="800" font-size="10" font-weight="700" fill="#4A7FB5" text-anchor="middle" opacity="1.0">C4</text>
+<text x="876" y="787" font-size="8" font-weight="400" fill="#4A7FB5" text-anchor="middle" opacity="0.85">no tone TP3</text>
+<circle cx="940" cy="946" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="946" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="932" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">8</text>
+<text x="940" y="968" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">K4</text>
+<text x="940" y="981" font-size="10" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-E</text>
+<text x="940" y="994" font-size="8.6" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">~12 k to J8.2</text>
+<circle cx="940" cy="852" r="6" fill="#d8d8d4" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="940" cy="852" r="2.4" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="940" y="876" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">9</text>
+<text x="940" y="838" font-size="8.6" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP3</text>
+<text x="940" y="813" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="940" y="800" font-size="10" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">E4</text>
+<rect x="1214" y="660" width="52" height="5*34+30" rx="3" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="1240" y="676" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">J6</text>
+<rect x="1232" y="692" width="16" height="16" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1240" cy="700" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1224" y="703" font-size="8.6" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">.1 3V3</text>
+<text x="1224" y="714" font-size="8" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="0.85">tone Pi 17</text>
+<circle cx="1240" cy="734" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1240" cy="734" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1224" y="737" font-size="8.6" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">.2 SDA</text>
+<text x="1224" y="748" font-size="8" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="0.85">tone Pi 3</text>
+<circle cx="1240" cy="768" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1240" cy="768" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1224" y="771" font-size="8.6" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">.3 SCL</text>
+<text x="1224" y="782" font-size="8" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="0.85">tone Pi 5</text>
+<circle cx="1240" cy="802" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1240" cy="802" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1224" y="805" font-size="8.6" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">.4 GPIO4</text>
+<text x="1224" y="816" font-size="8" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="0.85">tone Pi 7</text>
+<circle cx="1240" cy="836" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1240" cy="836" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1224" y="839" font-size="8.6" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">.5 GND</text>
+<text x="1224" y="850" font-size="8" font-weight="400" fill="#1a1a1a" text-anchor="end" opacity="0.85">tone TP3</text>
+<circle cx="960" cy="1040" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="960" cy="1040" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="960" y="1022" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">TP1</text>
+<text x="960" y="1066" font-size="9.5" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">VS</text>
+<circle cx="1030" cy="1040" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1030" cy="1040" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1030" y="1022" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">TP2</text>
+<text x="1030" y="1066" font-size="9.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<circle cx="1100" cy="1040" r="9" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1100" cy="1040" r="3.6" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1100" y="1022" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="1.0">TP3</text>
+<text x="1100" y="1066" font-size="9.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">Pi GND</text>
+<text x="1030" y="1084" font-size="9" font-weight="700" fill="#B03030" text-anchor="middle" opacity="1.0">TP2 must NOT tone to TP3</text>
+<text x="920" y="1134" font-size="12" font-weight="700" fill="#1a1a1a" text-anchor="end" opacity="1.0">J8</text>
+<rect x="952" y="1122" width="16" height="16" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="960" cy="1130" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="960" y="1114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.1</text>
+<text x="960" y="1154" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-C</text>
+<text x="960" y="1167" font-size="8.4" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U3.6</text>
+<circle cx="1030" cy="1130" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1030" cy="1130" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1030" y="1114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.2</text>
+<text x="1030" y="1154" font-size="10.5" font-weight="700" fill="#C2622A" text-anchor="middle" opacity="1.0">SP-E</text>
+<text x="1030" y="1167" font-size="8.4" font-weight="400" fill="#C2622A" text-anchor="middle" opacity="1.0">12k→U3.8</text>
+<circle cx="1100" cy="1130" r="8" fill="#e8c84a" stroke="#1a1a1a" stroke-width="1"/>
+<circle cx="1100" cy="1130" r="3.2" fill="#ffffff" stroke="#1a1a1a" stroke-width=".6"/>
+<text x="1100" y="1114" font-size="9" font-weight="700" fill="#1a1a1a" text-anchor="middle" opacity="0.8">.3</text>
+<text x="1100" y="1154" font-size="10.5" font-weight="700" fill="#555555" text-anchor="middle" opacity="1.0">COM</text>
+<text x="1100" y="1167" font-size="8.4" font-weight="400" fill="#555555" text-anchor="middle" opacity="1.0">tone TP2</text>
+<rect x="110" y="1016" width="700" height="170" rx="4" fill="#f4f4f1" stroke="#1a1a1a" stroke-width="1"/>
+<text x="120" y="1032" font-size="11" font-weight="700" fill="#1a1a1a" text-anchor="start" opacity="1.0">Meter checks — board OFF the Pi, chips OUT, 24 VAC OFF</text>
+<rect x="120" y="1048" width="11" height="11" fill="#B03030"/>
+<text x="138" y="1057" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">A pins (odd, bottom row) tone TP1: the VS rail</text>
+<rect x="120" y="1068" width="11" height="11" fill="#C2622A"/>
+<text x="138" y="1077" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">K pins (even, bottom row) read ~12 kΩ to their plug position; no tone to TP1 or TP3</text>
+<rect x="120" y="1088" width="11" height="11" fill="#555555"/>
+<text x="138" y="1097" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">E pins (odd, top row, from the right) tone TP3: Pi ground</text>
+<rect x="120" y="1108" width="11" height="11" fill="#4A7FB5"/>
+<text x="138" y="1117" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">C pins (even, top row) tone their Pi header pin only; never TP3, never the E pin beside them</text>
+<rect x="120" y="1128" width="11" height="11" fill="#555555"/>
+<text x="138" y="1137" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">every plug COM (position 4) tones TP2; TP2 never tones TP3</text>
+<rect x="120" y="1148" width="11" height="11" fill="#7A4E9E"/>
+<text x="138" y="1157" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">J4.1 and J4.2 are the transformer; neither is COM. Powered, chips out: ~35 V DC TP1 to TP2</text>
+<rect x="120" y="1168" width="11" height="11" fill="#9AA0A6"/>
+<text x="138" y="1177" font-size="8.8" font-weight="400" fill="#1a1a1a" text-anchor="start" opacity="1.0">pin order: bottom row 1→8 left to right; top row 9→16 RIGHT to LEFT, so 16 is beside the notch</text>
+</g></svg>
