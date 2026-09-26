@@ -31,7 +31,7 @@ The apartment Vue reports eight circuits, and two more ports are labelled withou
 | 13 | Upstairs Front | 1.0 | `upstairs_front` | no |
 | 14 | GFI Garage Outlets | 1.0 | `gfi_garage_outlets` | yes |
 
-The Vue has bad ports. Ports 2, 3 and 10 are out of use: 2 and 3 carried the upstairs labels and returned no usage, and the GFI CT moved from port 10 to port 14 at 18:33 EDT. The house panel's Chiltrix pair (ports 10 and 13) is unchanged.
+Ports 1, 2, 3 and 10 are suspect and out of use: 2 and 3 carried the upstairs labels and returned no usage, and the GFI CT moved from port 10 to port 14 at 18:33 EDT. Ports 4 and 11 read 0.0 W on 2026-09-26 because the clothes washer and the Trophy A load were off. The house panel's Chiltrix pair (ports 10 and 13) is unchanged.
 
 Ports 12 and 13 reported while unlabelled, as `channel_12` (a steady 32 W) and `channel_13` (0 W), from 18:22 to 18:35 EDT, and the usage API stopped returning both at 18:36, the minute their labels appeared. Their channel records match port 14's in every field but the name and type. Until they report, the upstairs load sits in `balance`, which rose from 3 W to 35 W at that minute.
 
