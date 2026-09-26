@@ -115,15 +115,16 @@ whatever level last charged it, so a channel on it is proven by driving the pin 
 (`pinctrl set 16 op dh`, then `ip pu`) and watching it drop on the short; the release is the
 Pi's pull-up and proves nothing on that Pi.
 
-**Running the walk from the bench.** Start it detached over ssh with `--led` and the Pi's green
-ACT LED reports each short as it is made: lit while the channel reads active, out on release,
-a flicker if a second pin dropped with it, two blinks after the idle check, three slow blinks
-for a clean walk and five fast ones for a failure. The walk advances on the pin alone, so it
-needs no keyboard:
+**Running the walk from the bench.** The walk advances on the pin alone and ignores stdin when
+it is not a terminal, so start it detached over ssh and tail its log for live feedback; every
+result is its own line, ACTIVE as the short is made and idle on the release, so a tail reports
+each channel as it tones out. In a Claude session the log is watched with the Monitor tool and
+each line is relayed to the terminal as it lands; the Pi's ACT and PWR LEDs sit under the
+seated INT board and are no use as indicators.
 
 ```bash
-ssh pi@<lease> 'setsid nohup sudo python3 -u ~/io-board-test.py --led > ~/walk.log 2>&1 < /dev/null & disown'
-ssh pi@<lease> cat ~/walk.log
+ssh pi@<lease> 'setsid nohup sudo python3 -u ~/io-board-test.py > ~/walk.log 2>&1 < /dev/null & disown'
+ssh pi@<lease> tail -f ~/walk.log
 ```
 
 Kill a running walk in its own ssh call (`pkill -f "io-board-tes[t]"`); an ssh command line
