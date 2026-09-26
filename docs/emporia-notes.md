@@ -16,25 +16,27 @@ David pulled **4 CTs out of the apartment panel** to instrument the **Chiltrix**
 
 ### The apartment panel was re-instrumented on 2026-09-26
 
-The apartment Vue reports seven circuits on ports 5 to 11. The energy balance closes: `main` 1599.7 W against circuits plus `balance` 1599.7 W, measured at 18:07 EDT after the change.
+The apartment Vue reports seven circuits on ports 5 to 11. The energy balance closes: `main` 1107.4 W against circuits plus `balance` 1107.4 W, measured at 18:15 EDT after the change.
 
 | Port | App label | Multiplier | Signal K circuit |
 |------|-----------|-----------|------------------|
-| 5 | Kitchen Plugs | 1.0 | `kitchen_plugs` (summed with port 9) |
-| 6 | Air Conditioning | 2.0 | `air_conditioning` |
+| 5 | Kitchen Plugs 1 | 1.0 | `kitchen_plugs_1` |
+| 6 | Air Conditioner | 2.0 | `air_conditioner` |
 | 7 | Furnace | 1.0 | `furnace` |
 | 8 | Garage, Entry, Basement | 1.0 | `garage_entry_basement` |
-| 9 | Kitchen Plugs | 1.0 | `kitchen_plugs` (summed with port 5) |
+| 9 | Kitchen Plugs 2 | 1.0 | `kitchen_plugs_2` |
 | 10 | GFI | 1.0 | `gfi` |
 | 11 | Trophy A | 1.0 | `trophy_a` |
 
 Ports 2, 3 and 4 carry the labels `Upstairs Back`, `Upstairs Front` and `Clothes Washer` in the device properties and return no usage. The house panel's Chiltrix pair (ports 10 and 13) is unchanged.
 
-`Air Conditioning` replaced `Air Conditioner`, so the measurement changed from `air_conditioner` (2026-08-11 to 2026-09-26 16:39 EDT) to `air_conditioning`. `garage_entry_basement` and `trophy_a` sanitize to the names those circuits carried before 2026-08-11 and continue those measurements. The port labels changed several times while the CTs were being placed, so apartment circuit data between 17:03 and 18:03 EDT on 2026-09-26 sits under transitional names: `kit_plugs_6`, `kit_plugs_14`, `channel_9`, `channel_10`, `channel_11`, and a `trophy_a` reading that belonged to another port. `main` and `balance` are sound throughout.
+The air conditioner stays on one CT at multiplier 2.0 by decision, the arrangement that hid the Chiltrix's 120 V standby load (see the single-CT section below), so its idle reading may be low. The load on `gfi` is unidentified: it drew 456 to 480 W around 17:40 to 18:07 EDT and 10 W at 18:15, and it is a different circuit from the garage outlet.
 
-The air conditioner is on one CT at multiplier 2.0, the arrangement that hid the Chiltrix's 120 V standby load (see the single-CT section below).
+The CTs settled on their ports at 17:56 EDT (21:56Z), when port 8 began reading the 955 W load it still carries. The per-circuit record under the names above starts there; `air_conditioner` and `furnace` are continuous from 2026-08-11. The port labels changed several times during the work, and the points written under those labels were deleted from InfluxDB: `kit_plugs_6`, `kit_plugs_14`, `channel_9`, `channel_10` and `channel_11` from 17:00 to 18:10 EDT, `trophy_a` and `garage_entry_basement` from 17:00 to 17:56, and all of `air_conditioning` and `kitchen_plugs`. The 16 minutes from 17:56 to 18:12 were rebuilt from Emporia's cloud with `scripts/emporia-backfill.py` for `air_conditioner`, `kitchen_plugs_1` and `kitchen_plugs_2`, and the first 7 of them for `gfi` and `trophy_a`; the cloud's port 8 series matched the live one to 0.1 W. `main` and `balance` were never touched. `air_conditioner` has a gap from 16:39 to 17:56 EDT.
 
-Grafana panel 11 plots all seven: air conditioning `#1F5FBF`, furnace `#3D9A57`, kitchen plugs `#1B6B36`, garage, entry and basement `#7ECB8B`, GFI `#C6E9C1`, Trophy A `#0F4A24`. `pivac-emporia` was restarted to read the labels at once and `signalk` was restarted to drop the six frozen paths.
+The three final labels were set from the Pi with PyEmVue's `update_channel`, which puts the channel's whole record, so read the channel with `populate_device_properties` first and change the name only. `pivac-emporia` was restarted to read the labels at once and `signalk` to drop the frozen paths.
+
+Grafana panel 11 plots all seven: air conditioner `#1F5FBF`, furnace `#3D9A57`, kitchen plugs 1 `#1B6B36`, kitchen plugs 2 `#3D7A4A`, garage, entry and basement `#7ECB8B`, GFI `#C6E9C1`, Trophy A `#0F4A24`.
 
 ### A renamed Emporia circuit used to look like a dead sensor (FIXED 2026-08-13, PR #109)
 

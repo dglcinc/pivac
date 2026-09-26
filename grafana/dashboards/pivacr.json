@@ -3967,7 +3967,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.apartment.air_conditioning.mean"
+              "options": "electrical.emporia.apartment.air_conditioner.mean"
             },
             "properties": [
               {
@@ -3979,7 +3979,7 @@
               },
               {
                 "id": "displayName",
-                "value": "Air conditioning"
+                "value": "Air conditioner"
               }
             ]
           },
@@ -4005,7 +4005,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.emporia.apartment.kitchen_plugs.mean"
+              "options": "electrical.emporia.apartment.kitchen_plugs_1.mean"
             },
             "properties": [
               {
@@ -4017,7 +4017,26 @@
               },
               {
                 "id": "displayName",
-                "value": "Kitchen plugs"
+                "value": "Kitchen plugs 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "electrical.emporia.apartment.kitchen_plugs_2.mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#3D7A4A",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Kitchen plugs 2"
               }
             ]
           },
@@ -4205,7 +4224,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.apartment.air_conditioning",
+          "measurement": "electrical.emporia.apartment.air_conditioner",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -4287,10 +4306,51 @@
               "type": "fill"
             }
           ],
-          "measurement": "electrical.emporia.apartment.kitchen_plugs",
+          "measurement": "electrical.emporia.apartment.kitchen_plugs_1",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [],
+          "hide": false
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "bdxaqnfllu5fkf"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electrical.emporia.apartment.kitchen_plugs_2",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "I",
           "resultFormat": "time_series",
           "select": [
             [

@@ -54,7 +54,7 @@ print('\nnames already in service must be unchanged (renaming orphans history):'
 for name in ['main', 'balance', 'chiltrix', 'wall_oven', 'bova_kitchen',
              'bova_great_room', 'hall_sub_panel', 'utility_sub_panel',
              'downstairs_bath_and_floor', 'air_conditioner', 'furnace',
-             'clothes_washer', 'air_conditioning', 'kitchen_plugs',
+             'clothes_washer', 'kitchen_plugs_1', 'kitchen_plugs_2',
              'garage_entry_basement', 'gfi', 'trophy_a']:
     check('stable:' + name, name, name)
 
