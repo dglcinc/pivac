@@ -8,6 +8,8 @@ perfboard: docs/rpi-io-board-design.md §2.1) or the 1-wire sockets (docs/ds18b2
 §5.1 and §5.5).
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
+The empty rectangle on the page is the label's bounding box: the table must not outgrow it, and
+spacer rows were dropped for that reason.
 """
 import os, re, shutil, tempfile, zipfile
 
@@ -30,17 +32,14 @@ ROWS = [
     ("J4.2  24VAC IN",  None),
     ("J4.3  DHWX",      "(19,35)"),
     ("J4.4  COM",       None),
-    None,
-    ("J8.1  HPCOOL  pigtail", "(13,33)"),
-    ("J8.2  SP-E  spare",     "(16,36)"),
-    ("J8.3  COM",             None),
-    None,
+    ("J8.1  HPCOOL",    "(13,33)"),
+    ("J8.2  SP-E  spare", "(16,36)"),
+    ("J8.3  COM",       None),
     ("H1  GND·DATA·VCC  trunk", None),
     ("H2  GND·DATA·VCC  spare", None),
     ("H3  GND·DATA·VCC  spare", None),
     ("H order is the front view, solder side out", None),
     ("LINK  3V3·SDA·SCL·sp·GND", None),
-    None,
     (f"eth0  {MAC}", None),
 ]
 

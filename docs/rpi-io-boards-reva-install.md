@@ -101,5 +101,5 @@ Word. The rev A rows are: J1 ZV · DHW · BLR · COM, J2 HPCALL · BOS1 · BOS2 
 SCALA · HPHEAT · COM, J4 24VAC · 24VAC · DHWX · COM, then the J8 pigtail HPCOOL · SP-E · COM,
 then H1–H3 and LINK, then the Pi's `eth0` MAC `2c:cf:67:80:55:00`, which does not change. The
 label uses the config names (`HPCALL`, `DHWX`, `HPCOOL`); the silkscreen says CHIL, SP-D and
-SP-C for the same positions, and this sheet is the cross-reference. The table is four rows
-longer than the perfboard label, so check the print preview fits the label before printing.
+SP-C for the same positions, and this sheet is the cross-reference. The empty rectangle on the
+page is the label's bounding box, so the rows carry no spacers and no words beyond the name.
