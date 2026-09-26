@@ -9,7 +9,8 @@ perfboard: docs/rpi-io-board-design.md §2.1) or the 1-wire sockets (docs/ds18b2
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
 The empty rectangle on the page is the label's bounding box: the table must not outgrow it, so the
-only spacer is the one before the MAC row.
+only spacers are one between the J and H blocks and one before the MAC row. The internal
+INT-EXT link cable has no row: nothing in the field lands on it.
 """
 import os, re, shutil, tempfile, zipfile
 
@@ -35,10 +36,10 @@ ROWS = [
     ("J8.1  HPCOOL",    "(13,33)"),
     ("J8.2  SP-E  spare", "(16,36)"),
     ("J8.3  COM",       None),
+    None,
     ("H1  GND·DATA·VCC  trunk", None),
     ("H2  GND·DATA·VCC  spare", None),
     ("H3  GND·DATA·VCC  spare", None),
-    ("LINK  3V3·SDA·SCL·sp·GND", None),
     None,
     (f"eth0  {MAC}", None),
 ]
