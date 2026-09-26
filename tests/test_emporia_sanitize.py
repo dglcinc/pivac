@@ -38,6 +38,7 @@ check('ampersand', 'Downstairs Bath & Floor', 'downstairs_bath_floor')
 check('parens', 'Bova (Kitchen)', 'bova_kitchen')
 check('slash', 'Washer/Dryer', 'washer_dryer')
 check('hyphen', 'Sub-Panel', 'sub_panel')
+check('commas', 'Garage, Entry, Basement', 'garage_entry_basement')
 
 print('\na period must not survive -- it would nest the Signal K path:')
 check('dot', 'Circ. Pump', 'circ_pump')
@@ -53,7 +54,9 @@ print('\nnames already in service must be unchanged (renaming orphans history):'
 for name in ['main', 'balance', 'chiltrix', 'wall_oven', 'bova_kitchen',
              'bova_great_room', 'hall_sub_panel', 'utility_sub_panel',
              'downstairs_bath_and_floor', 'air_conditioner', 'furnace',
-             'clothes_washer']:
+             'clothes_washer', 'kitchen_plugs_1', 'kitchen_plugs_2',
+             'garage_entry_basement', 'gfi_garage_outlets', 'trophy_a',
+             'upstairs_back', 'upstairs_front']:
     check('stable:' + name, name, name)
 
 print('\nsanitize is idempotent (re-running never renames):')

@@ -14,6 +14,41 @@ David merged the paired 240 V circuits *inside the Emporia app*, so the API now 
 
 David pulled **4 CTs out of the apartment panel** to instrument the **Chiltrix** on the house panel. That is why `garage_entry_basement`, `kit_plugs_6`, `kit_plugs_14`, `trophy_a` and `trophy_b` stopped publishing — **do not diagnose this as a fault or try to "restore" those paths.** It is deliberate and temporary: David intends to return the CTs, though **one pair likely will not go back (leads too short)**, so the apartment's final circuit set is not yet settled. Consequences while this holds: (1) the apartment's **`main` and `balance` are still correct** — only the per-circuit breakdown is reduced, and the unmonitored loads now fall into `balance` (which is why apartment `balance` reads higher than it used to relative to its circuits); (2) **`electrical.emporia.house.chiltrix` depends on borrowed hardware**, so if it ever goes silent, check whether the CTs were moved again before suspecting the module; (3) **expect to repoint Grafana panel 11 again** when CTs are restored — the returning circuits will come back under whatever names the Emporia app gives them, which may not match the orphaned ones. The apartment `clothes_washer` CT was later taken too, to complete the Chiltrix merged pair.
 
+### The apartment panel was re-instrumented on 2026-09-26
+
+The apartment Vue reports eight circuits, and two more ports are labelled without reporting. The energy balance closes: `main` 1033.5 W against circuits plus `balance` 1033.5 W, measured at 18:44 EDT after the change.
+
+| Port | App label | Multiplier | Signal K circuit | Reporting |
+|------|-----------|-----------|------------------|-----------|
+| 4 | Clothes Washer | 1.0 | `clothes_washer` | yes |
+| 5 | Kitchen Plugs 1 | 1.0 | `kitchen_plugs_1` | yes |
+| 6 | Air Conditioner | 2.0 | `air_conditioner` | yes |
+| 7 | Furnace | 1.0 | `furnace` | yes |
+| 8 | Garage, Entry, Basement | 1.0 | `garage_entry_basement` | yes |
+| 9 | Kitchen Plugs 2 | 1.0 | `kitchen_plugs_2` | yes |
+| 11 | Trophy A | 1.0 | `trophy_a` | yes |
+| 12 | Upstairs Back | 1.0 | `upstairs_back` | no |
+| 13 | Upstairs Front | 1.0 | `upstairs_front` | no |
+| 14 | GFI Garage Outlets | 1.0 | `gfi_garage_outlets` | yes |
+
+Ports 1, 2, 3 and 10 are suspect and out of use: 2 and 3 carried the upstairs labels and returned no usage, and the GFI CT moved from port 10 to port 14 at 18:33 EDT. Ports 4 and 11 read 0.0 W on 2026-09-26 because the clothes washer and the Trophy A load were off. The house panel's Chiltrix pair (ports 10 and 13) is unchanged.
+
+Ports 12 and 13 reported while unlabelled, as `channel_12` (a steady 32 W) and `channel_13` (0 W), from 18:22 to 18:35 EDT, and the usage API stopped returning both at 18:36, the minute their labels appeared. Their channel records match port 14's in every field but the name and type. Until they report, the upstairs load sits in `balance`, which rose from 3 W to 35 W at that minute.
+
+The air conditioner stays on one CT at multiplier 2.0 by decision, the arrangement that hid the Chiltrix's 120 V standby load (see the single-CT section below), so its idle reading may be low. The load on `gfi_garage_outlets` cycles: about 480 W for four minutes, 40 W for three, then 0, every 12 minutes or so.
+
+The CTs settled on their first ports at 17:56 EDT (21:56Z), when port 8 began reading the 955 W load it still carries. The per-circuit record starts there; `air_conditioner` and `furnace` are continuous from 2026-08-11. The port labels changed several times during the work, and InfluxDB was put in order afterwards:
+
+- Deleted: `kit_plugs_6`, `kit_plugs_14`, `channel_9`, `channel_10` and `channel_11` from 17:00 to 18:10 EDT; `trophy_a` and `garage_entry_basement` from 17:00 to 17:56, which held other ports' readings; all of `air_conditioning` and `kitchen_plugs`.
+- Rebuilt from Emporia's cloud with `scripts/emporia-backfill.py`: 17:56 to 18:12 for `air_conditioner`, `kitchen_plugs_1` and `kitchen_plugs_2`, and the first 7 minutes for the GFI circuit and `trophy_a`. The cloud's port 8 series matched the live one to 0.1 W.
+- Moved by copying and then deleting the source: `gfi` (before 18:33) and `channel_14` into `gfi_garage_outlets`, `channel_12` into `upstairs_back`, `channel_13` into `upstairs_front`.
+
+`main` and `balance` were never touched. `air_conditioner` has a gap from 16:39 to 17:56 EDT.
+
+Labels can be set from the Pi with PyEmVue's `update_channel`, which puts the channel's whole record, so read the channel with `populate_device_properties` first and change the name only. After a label change, restart `pivac-emporia` to read it at once and `signalk` to drop the frozen paths.
+
+Grafana panel 11 plots all ten: air conditioner `#1F5FBF`, furnace `#3D9A57`, kitchen plugs 1 `#1B6B36`, kitchen plugs 2 `#3D7A4A`, garage, entry and basement `#7ECB8B`, GFI garage outlets `#C6E9C1`, Trophy A `#0F4A24`, clothes washer `#5AA469`, upstairs back `#A3C86D`, upstairs front `#6B8E23`.
+
 ### A renamed Emporia circuit used to look like a dead sensor (FIXED 2026-08-13, PR #109)
 
 `pivac.Emporia` read channel names once and cached them for the life of the daemon, so renaming a circuit in the app had no effect until someone restarted the service by hand. Because **the channel name becomes the Signal K path**, the module kept publishing the old path while Emporia reported the new one — which presents as a *sensor that has gone stale*, not as a naming problem. `_get_device_cache()` now refreshes on a TTL (**`name_refresh_s`, default 3600 s**) rather than every cycle (`populate_device_properties()` is an extra cloud call per device against a 60 s poll); a refresh that raises **keeps the previous names**; and a detected rename logs at WARNING with the reminder that the old path stays frozen until signalk restarts. Same shape as the OneWireTherm boot-race. **NB the change-detection WARNING only fires on a refresh inside a running process** — on a restart the cache starts empty and it logs "Discovered" at INFO, so its absence after a restart proves nothing.
