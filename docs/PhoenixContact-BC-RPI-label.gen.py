@@ -14,7 +14,7 @@ INT-EXT link cable has no row: nothing in the field lands on it.
 """
 import os, re, shutil, tempfile, zipfile
 
-MAC = "2c:cf:67:80:55:00"          # the production Pi's eth0 (Pi 4 Rev 1.5, in service since 2026-09-07)
+MAC = "88:a2:9e:3c:c3:73"          # the new Pi's eth0, the production Pi from the rev A cutover
 
 ROWS = [
     ("J1.1  ZV",        "(17,11)"),
