@@ -17,6 +17,13 @@ No pivac install needed. Uses `pinctrl` (Trixie, Pi 4 and Pi 5) or falls back to
     sudo python3 io-board-test.py --monitor  # live table of all channels
     sudo python3 io-board-test.py --only 5   # guided, one channel (by # column)
     sudo python3 io-board-test.py --perfboard  # the original perfboard's map
+    sudo python3 io-board-test.py --led      # mirror the walk on the Pi's ACT LED
+
+With --led the green ACT LED shows the walk from the bench, so no terminal has to
+be watched: it lights while a short is being read and goes out on release, it
+flickers if another channel dropped with it (a bridge), two blinks close the idle
+check, three slow blinks end a clean walk and five fast ones a walk with a
+failure. The LED's mmc0 trigger is restored on exit.
 
 The rev A map is docs/rpi-io-boards-assembly.md (SP-C and SP-E have no plug: short
 the J8 pad to the J8 COM pad). The perfboard map is §2.1 of
@@ -108,6 +115,51 @@ class Backend:
         return levels
 
 
+class Led:
+    """The Pi's green ACT LED as a bench indicator (no-op without --led)."""
+    PATH = "/sys/class/leds/ACT"
+
+    def __init__(self, enabled):
+        self.enabled = enabled
+        self.old = None
+        if not enabled:
+            return
+        try:
+            with open(f"{self.PATH}/trigger") as f:
+                self.old = f.read().split("[", 1)[1].split("]", 1)[0]
+            self._write("trigger", "none")
+            self.off()
+        except OSError as e:
+            print(f"--led: cannot drive {self.PATH} ({e}); continuing without it")
+            self.enabled = False
+
+    def _write(self, name, value):
+        with open(f"{self.PATH}/{name}", "w") as f:
+            f.write(value)
+
+    def on(self):
+        if self.enabled:
+            self._write("brightness", "1")
+
+    def off(self):
+        if self.enabled:
+            self._write("brightness", "0")
+
+    def blink(self, n, on_s, off_s=None):
+        if not self.enabled:
+            return
+        for _ in range(n):
+            self.on()
+            time.sleep(on_s)
+            self.off()
+            time.sleep(off_s if off_s is not None else on_s)
+
+    def restore(self):
+        if self.enabled and self.old:
+            self.off()
+            self._write("trigger", self.old)
+
+
 def key_pressed():
     """Return the pending keystroke, or None (non-blocking, line-buffered)."""
     if not sys.stdin.isatty():
@@ -162,7 +214,7 @@ def monitor(be):
         print()
 
 
-def guided(be, only):
+def guided(be, only, led):
     chans = [c for c in CHANNELS if only is None or c[0] == only]
     results = {}
 
@@ -178,6 +230,7 @@ def guided(be, only):
             return 1
     else:
         print(f"  all {len(chans)} channels idle high\n")
+        led.blink(2, 0.15)
 
     print("For each channel, short the plug position to that plug's COM (position 4;\n"
           "J8 channels: the J8 pad to the J8 COM pad).\n"
@@ -197,11 +250,14 @@ def guided(be, only):
         if others:
             print(f"ACTIVE, but so is {others} -> BRIDGE or crossed wire")
             results[n] = f"fail (also {others})"
+            led.blink(8, 0.06)
         else:
             print("ACTIVE -> PASS", end="", flush=True)
             results[n] = "pass"
+        led.on()
         print("   release ... ", end="", flush=True)
         levels, key = stable_read(be, bcm, 1)
+        led.off()
         if key == "q":
             break
         print("idle")
@@ -213,7 +269,9 @@ def guided(be, only):
     print("\nA channel whose IR LED lights but never goes ACTIVE is chip seating or\n"
           "orientation. One that does neither is on the field side: resistor, plug\n"
           "link, or the sense-supply feed (VS) to that chip.")
-    return 0 if all(v == "pass" for v in results.values()) else 1
+    ok = all(v == "pass" for v in results.values())
+    led.blink(3, 0.5) if ok else led.blink(5, 0.1)
+    return 0 if ok else 1
 
 
 def main():
@@ -222,6 +280,8 @@ def main():
     ap.add_argument("--only", type=int, help="guided test of one channel (# column)")
     ap.add_argument("--perfboard", action="store_true",
                     help="use the original perfboard's channel map instead of rev A")
+    ap.add_argument("--led", action="store_true",
+                    help="mirror the walk on the Pi's green ACT LED (see the module doc)")
     args = ap.parse_args()
     global CHANNELS, BCMS
     if args.perfboard:
@@ -233,7 +293,11 @@ def main():
     if args.monitor:
         monitor(be)
         return 0
-    return guided(be, args.only)
+    led = Led(args.led)
+    try:
+        return guided(be, args.only, led)
+    finally:
+        led.restore()
 
 
 if __name__ == "__main__":

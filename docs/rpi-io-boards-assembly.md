@@ -105,31 +105,51 @@ stays low with nothing on the header is a dead pad on the Pi, not a board fault.
 **Bench Pi.** The bench card is Raspberry Pi OS Lite 64-bit (Trixie, 2026-09-15 image) with a
 cloud-init first boot: hostname `pibench`, user `pi`, password `pivac-bench`, the M2's keys,
 SSH and I2C on, `io-board-test.py` copied to the home directory; it boots any Pi 3, 4 or 5 and
-takes a DHCP lease on Ethernet. Reach it as `pi@pibench.local` or by its lease on the UCG. The
-Pi 4 with MAC `dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**,
-low under pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL or
-SP-C. BCM 16's input and output driver work and only its pull-up is dead: the pin floats and
-keeps whatever level last charged it, so a channel on it is proven by driving the pin high
+takes a DHCP lease on Ethernet. Reach it by its lease on the UCG (`pibench.local` does not
+resolve from the M2). **The bench Pi is the new Pi 4 Model B Rev 1.5, MAC `88:a2:9e:3c:c3:73`**,
+whose twelve channel pins all read high bare under pull-up. The Pi 4 with MAC
+`dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**, low under
+pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL or SP-C. BCM
+16's input and output driver work and only its pull-up is dead: the pin floats and keeps
+whatever level last charged it, so a channel on it is proven by driving the pin high
 (`pinctrl set 16 op dh`, then `ip pu`) and watching it drop on the short; the release is the
-Pi's pull-up and proves nothing on this Pi. Use another Pi for CHIL and SP-C or prove them at
-the swap.
+Pi's pull-up and proves nothing on that Pi.
+
+**Running the walk from the bench.** Start it detached over ssh with `--led` and the Pi's green
+ACT LED reports each short as it is made: lit while the channel reads active, out on release,
+a flicker if a second pin dropped with it, two blinks after the idle check, three slow blinks
+for a clean walk and five fast ones for a failure. The walk advances on the pin alone, so it
+needs no keyboard:
+
+```bash
+ssh pi@<lease> 'setsid nohup sudo python3 -u ~/io-board-test.py --led > ~/walk.log 2>&1 < /dev/null & disown'
+ssh pi@<lease> cat ~/walk.log
+```
+
+Kill a running walk in its own ssh call (`pkill -f "io-board-tes[t]"`); an ssh command line
+that names the script and also starts it kills the session instead.
 
 **Bench record, INT and EXT board 1, 2026-09-25.** INT: 37.1 V DC on TP1–TP2; ZV, DHW, BLR,
 BOS1, BOS2, DEHUM, SCALA, HPHEAT and SP-D each pulled their own pin low on a plug short and
-released clean, with no neighbour dropping. CHIL, SP-C and SP-E are unproven on the bench
-because of the Pi above; CHIL's proof is `HPCALL` reading 1 on the first call after the swap,
-SP-C's is `HPCOOL` once wired. EXT: DS2482 at 0x18, instantiated with no reset failure, probe
-`0516a36816ff` enumerated with clean CRCs on H1, H2 and H3, so JP2 is bridged right.
+released clean, with no neighbour dropping, on the old Pi. EXT: DS2482 at 0x18, instantiated
+with no reset failure, probe `0516a36816ff` enumerated with clean CRCs on H1, H2 and H3, so
+JP2 is bridged right.
 
-**Bench record, SP-E, 2026-09-26.** Full assembly on the same Pi, with a PTSM-3 header in
+**Bench record, SP-E, 2026-09-26.** Full assembly on the old Pi, with a PTSM-3 header in
 the EXT proto field wired to J8. Two shorts of J8.2 to J8.3 through that plug pulled BCM 16
 low each time (12:05:48 and 12:05:52, sampled at 50 ms) with none of the other eleven pins
 moving, and the first release returned it high; the second did not, and driving the pin high
 with the plug open restored and held it, which is the dead pull-up above. That proves the
-pigtail, R12, U3's SP-E channel and the trace to header pin 36. CHIL and SP-C stay unproven
-on the bench; a meter proves them off the Pi: power J4, short the plug position (J2.1, or
-J8.1 through the pigtail) to COM, and header pin 22 (CHIL) or 33 (SP-C) conducts to TP3 in
-diode mode while shorted and reads open when released.
+pigtail, R12, U3's SP-E channel and the trace to header pin 36.
+
+**Bench record, full walk on the new Pi, 2026-09-26.** Full INT and EXT assembly seated on
+the new Pi 4 Rev 1.5, J4 powered. All twelve pins idle high, and the guided walk in plug
+order (J1.1 to J4.3, then SP-C and SP-E at the J8 pigtail) reported ACTIVE and a clean
+release on every channel with no other pin dropping. CHIL (BCM 25) and SP-C (BCM 13) are
+therefore proven on the bench, and every channel of the rev A INT board has passed. Without
+a Pi with all pads good, a meter proves a channel off the Pi: power J4, short the plug
+position to COM, and the header pin conducts to TP3 in diode mode while shorted and reads
+open when released.
 
 **Into the housing.** `rpi-io-boards-pcb-plan.md` §6 steps 6–8: freeze the services, swap
 the pair, move the four field plugs and three probe plugs over, prove every channel and the
