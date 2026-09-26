@@ -8,8 +8,8 @@ perfboard: docs/rpi-io-board-design.md §2.1) or the 1-wire sockets (docs/ds18b2
 §5.1 and §5.5).
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
-The empty rectangle on the page is the label's bounding box: the table must not outgrow it, and
-spacer rows were dropped for that reason.
+The empty rectangle on the page is the label's bounding box: the table must not outgrow it, so the
+only spacer is the one before the MAC row.
 """
 import os, re, shutil, tempfile, zipfile
 
@@ -39,6 +39,7 @@ ROWS = [
     ("H2  GND·DATA·VCC  spare", None),
     ("H3  GND·DATA·VCC  spare", None),
     ("LINK  3V3·SDA·SCL·sp·GND", None),
+    None,
     (f"eth0  {MAC}", None),
 ]
 
