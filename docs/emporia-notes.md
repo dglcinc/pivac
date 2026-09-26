@@ -14,6 +14,28 @@ David merged the paired 240 V circuits *inside the Emporia app*, so the API now 
 
 David pulled **4 CTs out of the apartment panel** to instrument the **Chiltrix** on the house panel. That is why `garage_entry_basement`, `kit_plugs_6`, `kit_plugs_14`, `trophy_a` and `trophy_b` stopped publishing — **do not diagnose this as a fault or try to "restore" those paths.** It is deliberate and temporary: David intends to return the CTs, though **one pair likely will not go back (leads too short)**, so the apartment's final circuit set is not yet settled. Consequences while this holds: (1) the apartment's **`main` and `balance` are still correct** — only the per-circuit breakdown is reduced, and the unmonitored loads now fall into `balance` (which is why apartment `balance` reads higher than it used to relative to its circuits); (2) **`electrical.emporia.house.chiltrix` depends on borrowed hardware**, so if it ever goes silent, check whether the CTs were moved again before suspecting the module; (3) **expect to repoint Grafana panel 11 again** when CTs are restored — the returning circuits will come back under whatever names the Emporia app gives them, which may not match the orphaned ones. The apartment `clothes_washer` CT was later taken too, to complete the Chiltrix merged pair.
 
+### The apartment panel was re-instrumented on 2026-09-26
+
+The apartment Vue reports seven circuits on ports 5 to 11. The energy balance closes: `main` 1599.7 W against circuits plus `balance` 1599.7 W, measured at 18:07 EDT after the change.
+
+| Port | App label | Multiplier | Signal K circuit |
+|------|-----------|-----------|------------------|
+| 5 | Kitchen Plugs | 1.0 | `kitchen_plugs` (summed with port 9) |
+| 6 | Air Conditioning | 2.0 | `air_conditioning` |
+| 7 | Furnace | 1.0 | `furnace` |
+| 8 | Garage, Entry, Basement | 1.0 | `garage_entry_basement` |
+| 9 | Kitchen Plugs | 1.0 | `kitchen_plugs` (summed with port 5) |
+| 10 | GFI | 1.0 | `gfi` |
+| 11 | Trophy A | 1.0 | `trophy_a` |
+
+Ports 2, 3 and 4 carry the labels `Upstairs Back`, `Upstairs Front` and `Clothes Washer` in the device properties and return no usage. The house panel's Chiltrix pair (ports 10 and 13) is unchanged.
+
+`Air Conditioning` replaced `Air Conditioner`, so the measurement changed from `air_conditioner` (2026-08-11 to 2026-09-26 16:39 EDT) to `air_conditioning`. `garage_entry_basement` and `trophy_a` sanitize to the names those circuits carried before 2026-08-11 and continue those measurements. The port labels changed several times while the CTs were being placed, so apartment circuit data between 17:03 and 18:03 EDT on 2026-09-26 sits under transitional names: `kit_plugs_6`, `kit_plugs_14`, `channel_9`, `channel_10`, `channel_11`, and a `trophy_a` reading that belonged to another port. `main` and `balance` are sound throughout.
+
+The air conditioner is on one CT at multiplier 2.0, the arrangement that hid the Chiltrix's 120 V standby load (see the single-CT section below).
+
+Grafana panel 11 plots all seven: air conditioning `#1F5FBF`, furnace `#3D9A57`, kitchen plugs `#1B6B36`, garage, entry and basement `#7ECB8B`, GFI `#C6E9C1`, Trophy A `#0F4A24`. `pivac-emporia` was restarted to read the labels at once and `signalk` was restarted to drop the six frozen paths.
+
 ### A renamed Emporia circuit used to look like a dead sensor (FIXED 2026-08-13, PR #109)
 
 `pivac.Emporia` read channel names once and cached them for the life of the daemon, so renaming a circuit in the app had no effect until someone restarted the service by hand. Because **the channel name becomes the Signal K path**, the module kept publishing the old path while Emporia reported the new one — which presents as a *sensor that has gone stale*, not as a naming problem. `_get_device_cache()` now refreshes on a TTL (**`name_refresh_s`, default 3600 s**) rather than every cycle (`populate_device_properties()` is an extra cloud call per device against a 60 s poll); a refresh that raises **keeps the previous names**; and a detected rename logs at WARNING with the reminder that the old path stays frozen until signalk restarts. Same shape as the OneWireTherm boot-race. **NB the change-detection WARNING only fires on a refresh inside a running process** — on a restart the cache starts empty and it logs "Discovered" at INFO, so its absence after a restart proves nothing.
