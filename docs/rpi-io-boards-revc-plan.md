@@ -80,7 +80,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 
 - The four reference legends sit on one baseline at y 17.55, each centred under its part.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
-- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 26.3 to 34.0 and y 65.8 to 75.8. C4 keeps its rev B place, 1.75 mm from J4's anchor pads.
+- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 26.3 to 34.0 and y 65.8 to 75.8. C4 moves 2.5 mm left, to x 20.8, which opens 4.25 mm between it and J4's anchor pads for J4's legend.
 - The proto field PF1 is 8 × 3, from x 15.54 to x 33.32 and y 78.14 to y 83.22. It starts one column right of rev B to clear J3's anchor pad and one row lower to clear J4's.
 
 ### 4.1 J3 and J4 take the same plug
@@ -90,7 +90,7 @@ Both are 2-way PTSM, so J3's plug fits J4. The 24 VAC plug seated in J4 puts 36 
 | | J3 | J4 |
 |---|---|---|
 | Header and plug colour | black | white |
-| Silkscreen beside it | `24 VAC`, bold | `5VDC output only` over `to Pi`, bold, two lines, left of C4 |
+| Silkscreen beside it | `24 VAC`, bold | `5VDC output only` and `to Pi`, bold, two lines turned 90° counter-clockwise to read upward, between C4 and J4, centred on J4 |
 | Orientation | horizontal, at the bottom edge | vertical, mid board |
 
 A plug does not enter a header with more positions, so the 2-way plugs do not fit the probe sockets and the probe plugs do not fit J3 or J4: the header's floor ribs stand 1.02 mm high and a plug's nose rides 0.70 mm above the floor.
@@ -167,7 +167,7 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 
 1. Add `ptsm_hh_smd(board, n)` to `hardware/gen-boards.py` from §3, with the peg holes unplated.
 2. Add `ptsm_hv_smd(board, n)` from §4.2. Place H1, H2, J3 and J4 per §4, make PF1 8 × 3, and remove H3, U2, C2, JP2 and TS1.
-3. Add the silkscreen legends of §4.1 in bold, at 1.2 mm text height or larger.
+3. Add the silkscreen legends of §4.1 in bold. J4's legend has 11.9 mm between the lower rib and the proto field, so its text height is the largest that fits 16 characters in that length, about 1 mm.
 4. Move the probe row clear of the header pads and rerun `hardware/build.sh` until DRC is clean.
 5. Check the footprints against the STEP models in KiCad's 3D viewer: pegs in holes, anchors on pads, face on the edge.
 6. Print the top copper at 1:1 and lay a header on it before ordering.
