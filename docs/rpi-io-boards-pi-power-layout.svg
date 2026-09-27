@@ -47,16 +47,16 @@
 <text x="8.4" y="17.8" font-size="0.75" fill="#a45d00">(2.2 in rev A)</text>
 <!-- optocoupler sockets and resistor columns, moved 4.5 mm right into the vacated strip -->
 <g fill="#3a3a3a" stroke="#222" stroke-width="0.1">
-<rect x="13" y="23.4" width="19.5" height="10"/><rect x="13" y="36.8" width="19.5" height="10"/><rect x="13" y="50.2" width="19.5" height="10"/>
+<rect x="13" y="23.6" width="19.5" height="10"/><rect x="13" y="35.9" width="19.5" height="10"/><rect x="13" y="48.2" width="19.5" height="10"/>
 </g>
-<g font-size="1.2" fill="#eee"><text x="20.5" y="28.9">U1</text><text x="20.5" y="42.3">U2</text><text x="20.5" y="55.7">U3</text></g>
+<g font-size="1.2" fill="#eee"><text x="20.5" y="29.3">U1</text><text x="20.5" y="41.6">U2</text><text x="20.5" y="53.9">U3</text></g>
 <g fill="#e7cfa3" stroke="#8a6a3a" stroke-width="0.08">
-<rect x="34.2" y="25.2" width="2.2" height="6.4"/><rect x="38.4" y="25.2" width="2.2" height="6.4"/><rect x="42.6" y="25.2" width="2.2" height="6.4"/><rect x="46.8" y="25.2" width="2.2" height="6.4"/>
-<rect x="34.2" y="38.6" width="2.2" height="6.4"/><rect x="38.4" y="38.6" width="2.2" height="6.4"/><rect x="42.6" y="38.6" width="2.2" height="6.4"/><rect x="46.8" y="38.6" width="2.2" height="6.4"/>
-<rect x="34.2" y="52" width="2.2" height="6.4"/><rect x="38.4" y="52" width="2.2" height="6.4"/><rect x="42.6" y="52" width="2.2" height="6.4"/><rect x="46.8" y="52" width="2.2" height="6.4"/>
+<rect x="34.2" y="25.4" width="2.2" height="6.4"/><rect x="38.4" y="25.4" width="2.2" height="6.4"/><rect x="42.6" y="25.4" width="2.2" height="6.4"/><rect x="46.8" y="25.4" width="2.2" height="6.4"/>
+<rect x="34.2" y="37.7" width="2.2" height="6.4"/><rect x="38.4" y="37.7" width="2.2" height="6.4"/><rect x="42.6" y="37.7" width="2.2" height="6.4"/><rect x="46.8" y="37.7" width="2.2" height="6.4"/>
+<rect x="34.2" y="50" width="2.2" height="6.4"/><rect x="38.4" y="50" width="2.2" height="6.4"/><rect x="42.6" y="50" width="2.2" height="6.4"/><rect x="46.8" y="50" width="2.2" height="6.4"/>
 </g>
-<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="35.3" cy="23.32" r="0.6"/><circle cx="35.3" cy="33.48" r="0.6"/><circle cx="35.3" cy="36.72" r="0.6"/><circle cx="35.3" cy="46.88" r="0.6"/><circle cx="35.3" cy="50.12" r="0.6"/><circle cx="35.3" cy="60.28" r="0.6"/><circle cx="39.5" cy="23.32" r="0.6"/><circle cx="39.5" cy="33.48" r="0.6"/><circle cx="39.5" cy="36.72" r="0.6"/><circle cx="39.5" cy="46.88" r="0.6"/><circle cx="39.5" cy="50.12" r="0.6"/><circle cx="39.5" cy="60.28" r="0.6"/><circle cx="43.7" cy="23.32" r="0.6"/><circle cx="43.7" cy="33.48" r="0.6"/><circle cx="43.7" cy="36.72" r="0.6"/><circle cx="43.7" cy="46.88" r="0.6"/><circle cx="43.7" cy="50.12" r="0.6"/><circle cx="43.7" cy="60.28" r="0.6"/><circle cx="47.9" cy="23.32" r="0.6"/><circle cx="47.9" cy="33.48" r="0.6"/><circle cx="47.9" cy="36.72" r="0.6"/><circle cx="47.9" cy="46.88" r="0.6"/><circle cx="47.9" cy="50.12" r="0.6"/><circle cx="47.9" cy="60.28" r="0.6"/></g>
-<text x="34.2" y="63.4" font-size="1.0" fill="#555">R1-R12 12k, 4.2 mm columns</text>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="35.3" cy="23.52" r="0.6"/><circle cx="35.3" cy="33.68" r="0.6"/><circle cx="35.3" cy="35.82" r="0.6"/><circle cx="35.3" cy="45.98" r="0.6"/><circle cx="35.3" cy="48.12" r="0.6"/><circle cx="35.3" cy="58.28" r="0.6"/><circle cx="39.5" cy="23.52" r="0.6"/><circle cx="39.5" cy="33.68" r="0.6"/><circle cx="39.5" cy="35.82" r="0.6"/><circle cx="39.5" cy="45.98" r="0.6"/><circle cx="39.5" cy="48.12" r="0.6"/><circle cx="39.5" cy="58.28" r="0.6"/><circle cx="43.7" cy="23.52" r="0.6"/><circle cx="43.7" cy="33.68" r="0.6"/><circle cx="43.7" cy="35.82" r="0.6"/><circle cx="43.7" cy="45.98" r="0.6"/><circle cx="43.7" cy="48.12" r="0.6"/><circle cx="43.7" cy="58.28" r="0.6"/><circle cx="47.9" cy="23.52" r="0.6"/><circle cx="47.9" cy="33.68" r="0.6"/><circle cx="47.9" cy="35.82" r="0.6"/><circle cx="47.9" cy="45.98" r="0.6"/><circle cx="47.9" cy="48.12" r="0.6"/><circle cx="47.9" cy="58.28" r="0.6"/></g><g stroke="#8a6a3a" stroke-width="0.18"><line x1="35.3" y1="23.52" x2="35.3" y2="25.40"/><line x1="35.3" y1="31.80" x2="35.3" y2="33.68"/><line x1="35.3" y1="35.82" x2="35.3" y2="37.70"/><line x1="35.3" y1="44.10" x2="35.3" y2="45.98"/><line x1="35.3" y1="48.12" x2="35.3" y2="50.00"/><line x1="35.3" y1="56.40" x2="35.3" y2="58.28"/><line x1="39.5" y1="23.52" x2="39.5" y2="25.40"/><line x1="39.5" y1="31.80" x2="39.5" y2="33.68"/><line x1="39.5" y1="35.82" x2="39.5" y2="37.70"/><line x1="39.5" y1="44.10" x2="39.5" y2="45.98"/><line x1="39.5" y1="48.12" x2="39.5" y2="50.00"/><line x1="39.5" y1="56.40" x2="39.5" y2="58.28"/><line x1="43.7" y1="23.52" x2="43.7" y2="25.40"/><line x1="43.7" y1="31.80" x2="43.7" y2="33.68"/><line x1="43.7" y1="35.82" x2="43.7" y2="37.70"/><line x1="43.7" y1="44.10" x2="43.7" y2="45.98"/><line x1="43.7" y1="48.12" x2="43.7" y2="50.00"/><line x1="43.7" y1="56.40" x2="43.7" y2="58.28"/><line x1="47.9" y1="23.52" x2="47.9" y2="25.40"/><line x1="47.9" y1="31.80" x2="47.9" y2="33.68"/><line x1="47.9" y1="35.82" x2="47.9" y2="37.70"/><line x1="47.9" y1="44.10" x2="47.9" y2="45.98"/><line x1="47.9" y1="48.12" x2="47.9" y2="50.00"/><line x1="47.9" y1="56.40" x2="47.9" y2="58.28"/></g>
+<text x="34.2" y="59.9" font-size="1.0" fill="#555">R1-R12 12k, 4.2 mm columns</text>
 <!-- rev A power parts that leave INT, dashed -->
 <g fill="none" stroke="#8a8f94" stroke-width="0.15" stroke-dasharray="0.7 0.5">
 <rect x="51.3" y="17.6" width="7.4" height="7.6" rx="0.6"/>
@@ -131,7 +131,7 @@
 <rect x="2.55" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="1.2" y="16.4" font-size="0.75" fill="#333">U1 DS2482</text>
 <rect x="8.7" y="9.75" width="7" height="2.5" fill="#d64545"/><circle cx="9.7" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="14.7" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="8.9" y="9.3" font-size="0.7" fill="#333">C1 100n</text>
 <rect x="10.5" y="13.2" width="1.6" height="3" rx="0.6" fill="#d9b53a"/><text x="12.5" y="15.2" font-size="0.7" fill="#333">JP1</text>
-<rect x="19.75" y="9.7" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="17.82" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="27.98" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="19.4" y="13.3" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
+<rect x="19.75" y="9.7" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><g stroke="#8a6a3a" stroke-width="0.18"><line x1="17.82" y1="10.8" x2="19.75" y2="10.8"/><line x1="26.05" y1="10.8" x2="27.98" y2="10.8"/></g><circle cx="17.82" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="27.98" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="19.4" y="13.3" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
 <rect x="21.5" y="14.4" width="3" height="1.6" rx="0.6" fill="#d9b53a"/><text x="24.9" y="15.6" font-size="0.7" fill="#333">JP2</text>
 <rect x="29.8" y="9.15" width="7" height="2.5" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="30.8" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="35.8" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="32.2" y="11.0" font-size="0.65" fill="#333">C2 nf</text>
 <g fill="none" stroke="#777" stroke-width="0.06"><rect x="30.5" y="13.05" width="1.05" height="0.45"/><rect x="35.45" y="13.05" width="1.05" height="0.45"/><rect x="30.5" y="14.32" width="1.05" height="0.45"/><rect x="35.45" y="14.32" width="1.05" height="0.45"/><rect x="30.5" y="15.59" width="1.05" height="0.45"/><rect x="35.45" y="15.59" width="1.05" height="0.45"/><rect x="30.5" y="16.86" width="1.05" height="0.45"/><rect x="35.45" y="16.86" width="1.05" height="0.45"/></g>
@@ -152,6 +152,7 @@
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
 <circle cx="10" cy="24.95" r="0.6"/><circle cx="20.16" cy="24.95" r="0.6"/><circle cx="10" cy="27.95" r="0.6"/><circle cx="20.16" cy="27.95" r="0.6"/><circle cx="10" cy="30.95" r="0.6"/><circle cx="20.16" cy="30.95" r="0.6"/><circle cx="10" cy="33.95" r="0.6"/><circle cx="20.16" cy="33.95" r="0.6"/>
 </g>
+<g stroke="#8a6a3a" stroke-width="0.18"><line x1="10" y1="24.95" x2="12.5" y2="24.95"/><line x1="17.7" y1="24.95" x2="20.16" y2="24.95"/><line x1="10" y1="27.95" x2="12.5" y2="27.95"/><line x1="17.7" y1="27.95" x2="20.16" y2="27.95"/><line x1="10" y1="30.95" x2="12.5" y2="30.95"/><line x1="17.7" y1="30.95" x2="20.16" y2="30.95"/><line x1="10" y1="33.95" x2="12.5" y2="33.95"/><line x1="17.7" y1="33.95" x2="20.16" y2="33.95"/></g>
 <text x="10.8" y="37.2" font-size="0.9" fill="#a45d00">D1-D4 1N4007 bridge</text>
 <!-- C3 reservoir, standing, upper right -->
 <circle cx="31.5" cy="30" r="6.25" fill="#f3b45c" stroke="#a45d00" stroke-width="0.25"/>
@@ -255,7 +256,7 @@
 <rect x="210" y="-9" width="14" height="10" fill="none" stroke="#8a8f94" stroke-width="1" stroke-dasharray="2 1.5"/><text x="230" y="0">leaves</text>
 <rect x="300" y="-9" width="14" height="10" fill="url(#hatch)" stroke="#9aa3ad" stroke-width="0.8"/><text x="320" y="0">keep clear</text>
 <line x1="430" y1="-4" x2="510" y2="-4" stroke="#1a1a1a" stroke-width="2"/><text x="516" y="0">10 mm</text>
-<text x="600" y="0" opacity="0.75">nf = footprint placed, not fitted</text>
+<rect x="600" y="-8" width="10" height="6" rx="2.5" fill="#d9b53a" stroke="#7a6410" stroke-width="0.6"/><text x="616" y="0">solder jumper, no hole</text><text x="760" y="0" opacity="0.75">nf = not fitted</text>
 </g>
 </g>
 </g>
