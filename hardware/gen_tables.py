@@ -6,8 +6,9 @@ CHANNELS = [
     ("ZV", "J1", 1, 17, 11), ("DHW", "J1", 2, 27, 13), ("BLR", "J1", 3, 22, 15),
     ("CHIL", "J2", 1, 25, 22), ("BOS1", "J2", 2, 6, 31), ("BOS2", "J2", 3, 5, 29),
     ("DEHUM", "J3", 1, 12, 32), ("SCALA", "J3", 2, 23, 16), ("HPHEAT", "J3", 3, 24, 18),
-    ("SP-D", "J4", 3, 19, 35), ("SP-C", None, None, 13, 33), ("SP-E", None, None, 16, 36),
-]
+    ("HPCOOL", "J4", 1, 13, 33), ("DHWX", "J4", 2, 19, 35), ("SP-E", "J4", 3, 16, 36),
+]   # rev B: the 24 VAC pair left J4 for the EXT board, so J4.1/J4.2 carry HPCOOL and DHWX
+    # (SP-C and SP-D on rev A) and SP-E takes J4.3; the J8 pigtail pads are gone.
 # LTV-847: channel c (1-4) has A = 2c-1, K = 2c, E = 17-2c, C = 18-2c
 PI_GND = (6, 14, 20, 30, 34)       # the outer-column grounds; 9, 25 and 39 stay unconnected
 GND_BUS_X = 0.75                   # pre-routed ground bus along the board edge, F.Cu

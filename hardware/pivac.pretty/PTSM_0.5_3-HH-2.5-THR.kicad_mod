@@ -7,7 +7,7 @@
 	(property "Reference" "H1"
 		(at 0 -1.6 0)
 		(layer "F.SilkS")
-		(uuid "699bae2a-ffe0-4512-b37e-1f865e1e6730")
+		(uuid "04d1724a-b050-4b9d-b6d1-7843e1eb6586")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -19,7 +19,7 @@
 		(at 0 3.5 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "f510185f-aaef-4bd1-84fd-4115fb95be79")
+		(uuid "56c39a0f-79bc-4d1b-9fe8-c42387dd701e")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -30,7 +30,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "44cecb31-9ff0-47c5-af0a-120ff7b45347")
+		(uuid "145eda0b-f222-4bea-a6da-6c6970794a16")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -41,7 +41,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "2b9c7151-1f28-425d-b708-0e580b36f15a")
+		(uuid "03cdb893-a551-417d-b352-b6e307fd25da")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -58,7 +58,7 @@
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "1f104b5d-ff7c-4a63-9410-e73ff1151cf0")
+		(uuid "f64f1305-819f-4af4-9fe3-714efd8cd8ec")
 	)
 	(fp_rect
 		(start -4.58 -5.65)
@@ -69,7 +69,7 @@
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "6ba2c328-ee61-44b1-b440-9f51d04cf511")
+		(uuid "049a1128-4fc1-445f-9485-4f4cbc4c4ce8")
 	)
 	(fp_rect
 		(start -4.6 -5.4)
@@ -80,12 +80,12 @@
 		)
 		(fill no)
 		(layer "F.Fab")
-		(uuid "62e18fa8-5a7e-42a2-99cb-921896a724de")
+		(uuid "38aad0ab-a3c3-44fc-a751-a34147d8b6f9")
 	)
 	(fp_text user "1"
 		(at -2.5 3.2 0)
 		(layer "F.SilkS")
-		(uuid "9e955853-e708-456b-8a64-c537187c1b2b")
+		(uuid "e4939cac-5d21-4ae9-b85b-4d0a0814c7f2")
 		(effects
 			(font
 				(size 0.7 0.7)
@@ -101,7 +101,7 @@
 		(remove_unused_layers no)
 		(roundrect_rratio 0.25)
 		(thermal_bridge_angle 45)
-		(uuid "612400e6-69a4-436c-b5cd-5ddb44b08d05")
+		(uuid "95fb17df-d3af-49fe-a7a0-50dcead41aef")
 	)
 	(pad "2" thru_hole circle
 		(at 0 0)
@@ -109,7 +109,7 @@
 		(drill 1.1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "5c02b3f1-5a11-4d7d-be52-dbdf0fd20cd5")
+		(uuid "6e3b85c1-fc3f-4376-9bc5-aced060380b0")
 	)
 	(pad "3" thru_hole circle
 		(at 2.5 0)
@@ -117,7 +117,7 @@
 		(drill 1.1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "4a39854d-3cc1-4e18-8cde-c16c158017d6")
+		(uuid "5316c6f9-fdeb-47bb-8bb4-aba9606fde9d")
 	)
 	(embedded_fonts no)
 )

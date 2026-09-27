@@ -3,10 +3,10 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(property "Reference" "J8"
+	(property "Reference" "J2"
 		(at 0 -2.54 0)
 		(layer "F.SilkS")
-		(uuid "87e51493-1ce5-4581-978d-e35475d5d88c")
+		(uuid "b8f716dc-c7c2-4a38-998c-b543b06ddbe7")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -14,11 +14,11 @@
 			)
 		)
 	)
-	(property "Value" "SP-C SP-E COM"
+	(property "Value" "VCC DATA GND"
 		(at 0 7.62 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "ecc07149-327f-432a-97f7-fa8c0a465424")
+		(uuid "1fc3c46d-918f-42b2-ab82-b2a3805edb50")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -29,7 +29,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "2a663b32-b706-4c88-a760-f47f14185e85")
+		(uuid "59e35556-4cec-4f87-a0f6-f96e38e8c729")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -40,7 +40,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "26938b10-e73b-49e3-9057-56cf81e2414e")
+		(uuid "d4e8a695-d2ae-409d-b8fc-e4c740be9e63")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -57,7 +57,7 @@
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "ee60ceb5-e715-4733-a9e2-484489dae5f8")
+		(uuid "b9431e18-7c41-4a78-9fe5-7079b8f62237")
 	)
 	(pad "1" thru_hole roundrect
 		(at 0 0)
@@ -67,7 +67,7 @@
 		(remove_unused_layers no)
 		(roundrect_rratio 0.25)
 		(thermal_bridge_angle 45)
-		(uuid "923eb48f-0a00-42de-b4de-d140a2c19c96")
+		(uuid "d9765adf-edf3-4c4e-b829-3af90fc40238")
 	)
 	(pad "2" thru_hole circle
 		(at 0 2.54)
@@ -75,7 +75,7 @@
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "c4a516ec-bae4-4bcd-9ad0-a9b8126a5a3f")
+		(uuid "4fdfc8fc-0ce6-47a8-8bef-bc3e3332e404")
 	)
 	(pad "3" thru_hole circle
 		(at 0 5.08)
@@ -83,7 +83,7 @@
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "a50206ee-57cf-4010-8c36-35f8fc129fcf")
+		(uuid "aa9e0e3e-46ed-4dd4-a2d0-566a8e43c89c")
 	)
 	(embedded_fonts no)
 )

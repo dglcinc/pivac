@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards on Fabricated PCBs — Plan
 
-**Status:** First complete draft of both boards generated, routed and DRC-clean (`hardware/`). Open questions in §7 gate the order. · **Owner:** David
+**Status:** Rev A boards fabricated, populated and in service since the 2026-09-26 cutover. Rev B, which moves the power section to EXT, is `docs/rpi-io-boards-revb-plan.md`; `hardware/` now generates rev B. · **Owner:** David
 
 Plan for replacing the two hand-wired Phoenix Contact perfboards in the RPI-BC 107,6 housing
 with fabricated printed circuit boards of the same outline, carrying the same circuits. The
@@ -151,13 +151,15 @@ prototyping grid with VCC, DATA and GND pads beside it.
 
 ### 4.3 Pi power
 
-The Pi stays on its USB-C wall adapter through the `PivacPower` Shelly plug (decided
-2026-09-11). No isolated 24 VAC-to-5 V supply exists as a single part; the two-part route is a
-rectifier feeding a Mean Well DDR-15L-5 (18–75 VDC in, 5 V 3 A, 4 kV isolation, DIN rail,
-about $16), and the single-part routes (PowerStream PST-AC24DC5, sCharge ACDC-24V-5V-3A) are
-not isolated and would put the Pi's ground a diode drop from the transformer common. The INT
-board keeps the unfitted 4-way power link `J7` (VS, COM, +5V, GND) so the two-part route can be
-added later with a larger capacitor and a 1 A PTC in place of the 100 µF and 0.1 A parts.
+On the rev A boards in service the Pi runs from its USB-C wall adapter through the
+`PivacPower` Shelly plug, and the unfitted 4-way power link `J7` (VS, COM, +5V, GND) is the
+provision for feeding it from the bus. Rev B (`docs/rpi-io-boards-revb-plan.md`) takes the
+other route: the 24 VAC entry, the rectifier and an isolated Traco TMR 12-4811WI move to the
+EXT board, its 5.1 V reaches the Pi's own USB-C by a pigtail, VS and COM come back to INT over
+a 7-way GH link, and J7, the bridge, F1 and C1 leave INT. The single-part 24 VAC-to-5 V
+supplies (PowerStream PST-AC24DC5, sCharge ACDC-24V-5V-3A) are not isolated and would put the
+Pi's ground a diode drop from the transformer common, which is why the converter is a
+separate isolated module behind the bridge.
 
 ## 5. Fabrication
 
@@ -203,8 +205,8 @@ the running system.
 - **Component height: bounded.** The cover's inner depth is unmeasured, but the built board
   proves it clears a DIP socket with its chip, about 8 mm, and every fitted part on the
   fabricated boards is held to that (Appendix A.3). The 12.5 mm radial capacitor is gone.
-- **Transformer.** 75 VA units; David will pick one with 10 VA to spare if the Pi is to be
-  powered from the bus.
+- **Transformer.** 75 VA units; the Pi adds about 15 VA at its peak under rev B, which the
+  75 VA rating covers with the sense supply's 1.2 W.
 
 - The EXT model has 33 rows of holes, with row 1 sitting 1.16 mm from its edge and row 33
   2.56 mm from the other; `docs/ds18b20-bus-topology.md` counts 32. The band rows agree with the
@@ -219,16 +221,11 @@ the running system.
   possible later, or is the two-board rule firm? The design docs argue for two; this plan keeps
   two.
 - Rev A is one plug position short: eleven relays are in service and the four plugs carry ten
-  channel positions once J4.1 and J4.2 are the 24 VAC pair, so `HPCOOL` goes to the SP-C pad
-  of J8 by a soldered wire. If the pigtail from J8 (SP-C, SP-E, COM) is to be pluggable, it
-  lands on a 3-way PTSM header in the EXT board's proto field with its entry at the bottom edge;
-  the grid holes are 1.0 mm against the 1.1 mm of the PTSM footprint, so try a header in the
-  grid before counting on it. J7 cannot serve: its copper is VS, COM, +5V and GND.
-- **Rev B: one COM position per board, not four.** The relay commons are daisy-chained in the
-  field wiring and the sense return carries under 35 mA with all twelve channels closed, so
-  sixteen plug positions less the AC pair and one COM gives thirteen channel positions and
-  every channel lands on a plug; J8 goes away. Also label J4.2 (rev A marks only 24VAC, SP-D and
-  COM on J4).
+  channel positions with J4.1 and J4.2 as the 24 VAC pair, so `HPCOOL` runs to the SP-C pad
+  of J8 on a pigtail. Rev B moves the 24 VAC pair to EXT, which frees J4.1 and J4.2: J4 then
+  carries HPCOOL, DHWX and SP-E with its COM, every channel is on a plug, each plug keeps a
+  COM, and J8 goes away (`docs/rpi-io-boards-revb-plan.md` §4). J7 cannot serve as a channel
+  pigtail on rev A: its copper is VS, COM, +5V and GND.
 - The mounting of the boards in the housing: whether the perfboards are retained by the card
   guides alone, or by the header and riser as well. The STEP of the housing answers this; if the
   card guides alone retain them, the outline tolerance matters and OSH Park's routing tolerance

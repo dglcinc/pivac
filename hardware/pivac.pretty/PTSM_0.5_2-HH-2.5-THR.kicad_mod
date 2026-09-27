@@ -1,0 +1,115 @@
+(footprint "PTSM_0.5_2-HH-2.5-THR"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Phoenix Contact PTSM 0,5/2-HH-2,5-THR horizontal print header")
+	(property "Reference" "J3"
+		(at 0 -1.6 0)
+		(layer "F.SilkS")
+		(uuid "1a8a368f-c9fb-43e2-b8d2-b942c1f0bb1e")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Value" "PTSM 0,5/2-HH-2,5-THR 24 VAC"
+		(at 0 3.5 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b057a1eb-4e03-4219-a572-ef52c10e48e5")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e56d60ef-e935-4a06-a017-5f7782f9f0a0")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7c354493-e581-4ca5-a46e-5284986968f2")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -3.45 -5.5)
+		(end 3.45 2.2)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "ad68a8af-dc46-4a27-8d27-bc9a563268ec")
+	)
+	(fp_rect
+		(start -3.33 -5.65)
+		(end 3.33 2.35)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "f7fbd0a8-ecd4-4b35-bbee-08ea71e25ecd")
+	)
+	(fp_rect
+		(start -3.35 -5.4)
+		(end 3.35 2.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a5825ca7-e696-4b10-9858-d513671139c3")
+	)
+	(fp_text user "1"
+		(at -1.25 3.2 0)
+		(layer "F.SilkS")
+		(uuid "dcdd3add-6d2a-4f17-b266-697eca39e8ff")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.105)
+			)
+		)
+	)
+	(pad "1" thru_hole roundrect
+		(at -1.25 0)
+		(size 1.95 1.95)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "2fc35a1d-3e66-4163-bac2-a4a4a7337f91")
+	)
+	(pad "2" thru_hole circle
+		(at 1.25 0)
+		(size 1.95 1.95)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "473e3fc5-3a84-4d36-a4bb-cb1f5fc5573d")
+	)
+	(embedded_fonts no)
+)

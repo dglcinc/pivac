@@ -1,0 +1,90 @@
+(footprint "TieSlots_2x"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(property "Reference" "TS1"
+		(at 0 -2.4 0)
+		(layer "F.SilkS")
+		(uuid "3ab05fba-d927-4c08-9b2f-185f32514620")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Value" "tie slots"
+		(at 0 3.599999 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7aa26bcd-7cc7-4064-acbb-e78a42adcbf3")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0d643e2b-a8f6-4512-9208-98253691ee46")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "24155664-3bc3-430e-848a-e304b51274fe")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -3.099999 -1.7)
+		(end 3.099999 1.7)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "16cb4b87-4517-4315-9df2-30d3c7557663")
+	)
+	(fp_text user "tie"
+		(at 0 2.4 0)
+		(layer "F.SilkS")
+		(uuid "2d4dcc8a-2df1-4f90-88a9-01451dd5b049")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(pad "" np_thru_hole oval
+		(at -1.9 0)
+		(size 1.2 2.4)
+		(drill oval 1.2 2.4)
+		(layers "*.Cu" "*.Mask")
+		(thermal_bridge_angle 45)
+		(uuid "ee20c027-0c93-4145-83b8-30e431bcb4b6")
+	)
+	(pad "" np_thru_hole oval
+		(at 1.9 0)
+		(size 1.2 2.4)
+		(drill oval 1.2 2.4)
+		(layers "*.Cu" "*.Mask")
+		(thermal_bridge_angle 45)
+		(uuid "f3766649-4e37-4a2e-b094-20379312bb34")
+	)
+	(embedded_fonts no)
+)
