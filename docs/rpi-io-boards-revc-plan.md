@@ -85,7 +85,15 @@ The board is 38.5 × 85 mm. Three 3-way headers need 39.3 mm over their anchors,
 
 The PTSM `-P-` plugs in service fit the surface-mount header and carry over: the black 3-way 1778845 on the probe sockets and the white 2-way 1704853 on the 24 VAC entry.
 
-A latching plug is wanted if one can be bought. Phoenix's `-PL-` plugs (2-way black 1709442, 3-way black 1709443, 2-way white 1709457) appear to be discontinued (David, 2026-09-27). The header's side lugs give a latch a square face to catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the `-PL-` plug's arms reach 4.5 mm past its body. The board needs no change to take a latching plug later.
+The latching plug that mates with this header is Phoenix's `-PL-` series, which adds two side arms to the `-P-` plug and releases by hand:
+
+| Use | Part | Order no. |
+|---|---|---|
+| J3, 24 VAC, 2-way white | PTSM 0,5/2-PL-2,5 WH | 1709457 |
+| 2-way black | PTSM 0,5/2-PL-2,5 BK | 1709442 |
+| H1, H2 probes, 3-way black | PTSM 0,5/3-PL-2,5 BK | 1709443 |
+
+The header's side lugs are what the arms catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the plug's arms reach 4.5 mm past its body. Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457. Availability is unconfirmed; the board is the same with either plug, so the choice can wait for the order.
 
 ## 7. Parts list
 
@@ -96,6 +104,7 @@ Quantities are for one EXT board. Buy one spare of each header.
 | H1, H2 | Phoenix PTSM 0,5/3-HH-2,5-SMD R32, 1778777, black | 2 | [Phoenix page](https://www.phoenixcontact.com/en-us/products/pcb-header-ptsm-05-3-hh-25-smd-r32-1778777); search Digi-Key for 1778777 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778777) |
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-SMD WH R32, 1708004, white | 1 | [Phoenix page](https://www.phoenixcontact.com/en-us/products/pcb-header-ptsm-05-2-hh-25-smd-wh-r32-1708004); search Digi-Key for 1708004 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1708004) |
 | plugs | PTSM 0,5/3-P-2,5 1778845 and 0,5/2-P-2,5 WH 1704853 | 0 | the ones in service move over | |
+| latching plugs, optional | 1709443 for H1 and H2, 1709457 for J3 | 2 + 1 | search Digi-Key for the order number | [1709443](https://www.amazon.com/s?k=Phoenix+Contact+1709443), [1709457](https://www.amazon.com/s?k=Phoenix+Contact+1709457) |
 
 The Digi-Key product pages would not open on 2026-09-27 and no Amazon listing was found, so stock and price are unchecked. Phoenix's packing unit of 600 applies to factory orders; distributors sell cut tape. Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
@@ -122,5 +131,5 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 ## 10. Open questions
 
 - Whether H3 stays (§5).
-- Whether a latching plug can be found (§6).
+- Whether the `-PL-` latching plugs can be bought (§6).
 - Whether INT follows. Four 4-way surface-mount headers need 62.4 mm against the 59 mm board, so INT needs its own arrangement, such as two 8-way headers at 25.6 mm each.
