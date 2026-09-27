@@ -64,7 +64,7 @@
 <rect x="50.5" y="44.65" width="8.5" height="11.7"/>
 </g>
 <g font-size="0.9" fill="#8a8f94">
-<text x="50.4" y="27.2">C1 and F1 leave</text><text x="39" y="71.5">D1-D4 leave</text><text x="50.8" y="59.2">J7 leaves</text>
+<text x="50.4" y="27.2">C1 and F1 leave</text><text x="46.6" y="64.9">D1-D4 leave</text><text x="50.8" y="59.2">J7 leaves</text>
 </g>
 <!-- housing slot and the GH 7-way side-entry link -->
 <rect x="59" y="26" width="1.2" height="33" fill="#d8dde3"/>
@@ -78,15 +78,15 @@
 <text x="7" y="67.6" font-size="0.95" fill="#8a8f94">no parts: the Pi's USB stacks sit under this field</text>
 <text x="7" y="69.2" font-size="0.9" fill="#a45d00">Pi powered by USB-C from EXT; header pins 2 and 4 carry nothing</text>
 <!-- silkscreen title block: DL monogram in a ring, name and version -->
-<g transform="translate(12.5,75.4)">
+<g transform="translate(19.25,75.4)">
 <circle cx="0" cy="0" r="4.425" fill="none" stroke="#1a1a1a" stroke-width="0.35"/>
 <path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill="#1a1a1a" fill-rule="nonzero"/>
 <path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z" fill="#1a1a1a"/>
 </g>
-<text x="18.4" y="74.6" font-size="1.45" font-weight="700" letter-spacing="0.08">PIVAC MONITORING BOARD</text>
-<line x1="18.4" y1="75.5" x2="37.6" y2="75.5" stroke="#1a1a1a" stroke-width="0.15"/>
-<text x="18.4" y="77.4" font-size="1.05" letter-spacing="0.05">v1.0  ·  Rev B  ·  INT</text>
-<text x="7" y="81.6" font-size="0.8" fill="#8a8f94">silkscreen, component side: ring 0.35, letters 0.8 filled, gap 0.35, caps 1.45 mm</text>
+<text x="25.15" y="74.6" font-size="1.45" font-weight="700" letter-spacing="0.08">PIVAC MONITORING BOARD</text>
+<line x1="25.15" y1="75.5" x2="44.35" y2="75.5" stroke="#1a1a1a" stroke-width="0.15"/>
+<text x="25.15" y="77.4" font-size="1.05" letter-spacing="0.05">v1.0  ·  Rev B  ·  INT</text>
+<text x="14.6" y="81.6" font-size="0.8" fill="#8a8f94">silkscreen, centred on the board: ring 0.35, letters 0.8 filled, gap 0.35, caps 1.45 mm</text>
 </g>
 
 <!-- ================= 7-way GH cable across the opening ================= -->
@@ -127,22 +127,15 @@
 <g font-size="1.1" font-weight="700" fill="#333"><text x="6.6" y="8.4">H1</text><text x="19.3" y="8.4">H2</text><text x="32" y="8.4">H3</text></g>
 <text x="1.2" y="17.9" font-size="0.65" fill="#555">H faces 1.7 mm outside the edge</text>
 <!-- I2C and 1-wire parts in one row under the sockets; SOIC-8 drawn with its 6.0 mm lead span -->
-<g fill="#b9b9b3" stroke="#6f6f6a" stroke-width="0.06">
-<rect x="1.5" y="10.5" width="1.05" height="0.45"/><rect x="1.5" y="11.77" width="1.05" height="0.45"/><rect x="1.5" y="13.04" width="1.05" height="0.45"/><rect x="1.5" y="14.31" width="1.05" height="0.45"/>
-<rect x="6.45" y="10.5" width="1.05" height="0.45"/><rect x="6.45" y="11.77" width="1.05" height="0.45"/><rect x="6.45" y="13.04" width="1.05" height="0.45"/><rect x="6.45" y="14.31" width="1.05" height="0.45"/>
-</g>
+<g fill="#b9b9b3" stroke="#6f6f6a" stroke-width="0.06"><rect x="1.5" y="10.50" width="1.05" height="0.45"/><rect x="6.45" y="10.50" width="1.05" height="0.45"/><rect x="1.5" y="11.77" width="1.05" height="0.45"/><rect x="6.45" y="11.77" width="1.05" height="0.45"/><rect x="1.5" y="13.04" width="1.05" height="0.45"/><rect x="6.45" y="13.04" width="1.05" height="0.45"/><rect x="1.5" y="14.31" width="1.05" height="0.45"/><rect x="6.45" y="14.31" width="1.05" height="0.45"/></g>
 <rect x="2.55" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="1.2" y="16.4" font-size="0.75" fill="#333">U1 DS2482</text>
-<rect x="8.5" y="9.75" width="7" height="2.5" fill="#d64545"/><circle cx="9.5" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="14.5" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="8.7" y="9.3" font-size="0.7" fill="#333">C1 100n</text>
+<rect x="8.7" y="9.75" width="7" height="2.5" fill="#d64545"/><circle cx="9.7" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="14.7" cy="11" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="8.9" y="9.3" font-size="0.7" fill="#333">C1 100n</text>
 <rect x="10.5" y="13.2" width="1.6" height="3" rx="0.6" fill="#d9b53a"/><text x="12.5" y="15.2" font-size="0.7" fill="#333">JP1</text>
-<rect x="17.85" y="9.7" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="15.92" cy="10.8" r="0.6" fill="#d9b53a"/><circle cx="26.08" cy="10.8" r="0.6" fill="#d9b53a"/><text x="17.5" y="13.3" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
-<rect x="20" y="14.4" width="3" height="1.6" rx="0.6" fill="#d9b53a"/><text x="23.4" y="15.6" font-size="0.7" fill="#333">JP2</text>
-<rect x="27.5" y="9.15" width="7" height="2.5" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="28.5" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="33.5" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="27.6" y="8.8" font-size="0.7" fill="#333">C2 (nf)</text>
-<g fill="none" stroke="#777" stroke-width="0.06">
-<rect x="30.5" y="12.85" width="1.05" height="0.45"/><rect x="30.5" y="14.12" width="1.05" height="0.45"/><rect x="30.5" y="15.39" width="1.05" height="0.45"/><rect x="30.5" y="16.66" width="1.05" height="0.45"/>
-<rect x="35.45" y="12.85" width="1.05" height="0.45"/><rect x="35.45" y="14.12" width="1.05" height="0.45"/><rect x="35.45" y="15.39" width="1.05" height="0.45"/><rect x="35.45" y="16.66" width="1.05" height="0.45"/>
-</g>
-<rect x="31.55" y="12.4" width="3.9" height="4.9" fill="none" stroke="#777" stroke-width="0.1"/><text x="27.6" y="17.9" font-size="0.7" fill="#333">U2 0x19 (nf)</text>
-
+<rect x="19.75" y="9.7" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="17.82" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="27.98" cy="10.8" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="19.4" y="13.3" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
+<rect x="21.5" y="14.4" width="3" height="1.6" rx="0.6" fill="#d9b53a"/><text x="24.9" y="15.6" font-size="0.7" fill="#333">JP2</text>
+<rect x="29.8" y="9.15" width="7" height="2.5" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="30.8" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="35.8" cy="10.4" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="32.2" y="11.0" font-size="0.65" fill="#333">C2 nf</text>
+<g fill="none" stroke="#777" stroke-width="0.06"><rect x="30.5" y="13.05" width="1.05" height="0.45"/><rect x="35.45" y="13.05" width="1.05" height="0.45"/><rect x="30.5" y="14.32" width="1.05" height="0.45"/><rect x="35.45" y="14.32" width="1.05" height="0.45"/><rect x="30.5" y="15.59" width="1.05" height="0.45"/><rect x="35.45" y="15.59" width="1.05" height="0.45"/><rect x="30.5" y="16.86" width="1.05" height="0.45"/><rect x="35.45" y="16.86" width="1.05" height="0.45"/></g>
+<rect x="31.55" y="12.6" width="3.9" height="4.9" fill="none" stroke="#777" stroke-width="0.1"/><text x="24.0" y="17.9" font-size="0.7" fill="#333">U2 0x19 (nf)</text>
 <!-- mid field: the power section -->
 <!-- GH 7-way top-entry link header at the left edge, beside the opening to INT -->
 <rect x="1.5" y="46.5" width="5.6" height="12" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
@@ -190,8 +183,8 @@
 <rect x="22.35" y="66.5" width="2.5" height="6" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
 <circle cx="23.6" cy="67" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="23.6" cy="72" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/>
 <text x="22.5" y="73.6" font-size="0.65" fill="#a45d00">C4 1u</text>
-<rect x="28.6" y="72.4" width="1.2" height="2.2" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
-<text x="30.4" y="74.1" font-size="0.65" fill="#a45d00">tie slot</text>
+<rect x="27.6" y="72.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/><rect x="31.4" y="72.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
+<text x="33.0" y="74.2" font-size="0.65" fill="#a45d00">tie slots</text>
 <text x="11.2" y="73.6" font-size="0.75" fill="#a45d00">USB-C pigtail to the Pi</text>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
 <circle cx="35.5" cy="68" r="0.75"/><circle cx="35.5" cy="70.54" r="0.75"/><circle cx="35.5" cy="73.08" r="0.75"/>
