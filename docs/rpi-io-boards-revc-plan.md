@@ -10,9 +10,9 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 ## 1. Scope
 
-**In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. J4 becomes a 2-way vertical surface-mount PTSM header. H3 leaves the board with U2, C2 and JP2. The probe parts under the sockets move toward the upper rib to clear the header pads. A new footprint generator in `hardware/gen-boards.py` builds the surface-mount header.
+**In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. J4 becomes a 2-way vertical surface-mount PTSM header. H3 leaves the board with U2, C2 and JP2, and the tie slots TS1 leave with the JST header they served. The probe parts under the sockets move toward the upper rib to clear the header pads. A new footprint generator in `hardware/gen-boards.py` builds the surface-mount header.
 
-**Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section, the GH link, the tie slots and the title block on EXT keep their rev B nets and parts. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
+**Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section, the GH link and the title block on EXT keep their rev B nets and parts. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
 
 **Boundaries assumed.**
 
@@ -70,10 +70,10 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 - H1 and H2 stand 17.5 mm apart, centre to centre, so two latching plugs sit side by side with 0.7 mm between them. Their anchors span x 2.45 to 15.55 and x 19.95 to 33.05.
 - A latching plug on H1 reaches x 0.6 and one on H2 reaches x 34.9, both inside the board's width.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0.
-- The proto field PF1 becomes 5 × 4 and starts at x 15.54, one column right of rev B, which clears J3's anchor pad and the tie slots.
+- The proto field PF1 becomes 8 × 4, from x 15.54 to x 33.32. It starts one column right of rev B to clear J3's anchor pad and takes the room the tie slots held.
 - The header pads on the top edge end at y 9.8. C1, R1 and the parts beside them sit at y 10.4 to 11.0 on rev B and move to y 11.6 or beyond. The upper rib starts at y 18.11, so the row has 7.6 mm.
-- J3's pads end 9.8 mm in from the bottom edge, at y 75.2. The tie slots keep their rev B position.
-- J4's leads run toward the tie slots and its pads end at y 73.4. C4 moves 1.6 mm left, to x 21.7, to clear J4's anchor pad.
+- J3's pads end 9.8 mm in from the bottom edge, at y 75.2.
+- J4's leads run toward the proto field and its pads end at y 73.4, 0.8 mm short of the field's first row of pads. C4 moves 1.6 mm left, to x 21.7, to clear J4's anchor pad.
 
 ### 4.1 J3 and J4 take the same plug
 
@@ -102,7 +102,7 @@ Measured from Phoenix's STEP model of 1778696 (`pxc_1778696_02_00_PTSM-0-5-2-HV-
 
 ## 5. Plugs
 
-The PTSM `-P-` plugs fit both headers: the black 3-way 1778845 on the probe sockets, the black 2-way 1778832 on the 24 VAC entry and the white 2-way 1704853 on the 5 V output. The pigtail is the rev B one, a USB-C plug on two bare 22 AWG leads, which push into the plug.
+The PTSM `-P-` plugs fit both headers: the black 3-way 1778845 on the probe sockets, the black 2-way 1778832 on the 24 VAC entry and the white 2-way 1704853 on the 5 V output. The pigtail is the rev B one, a USB-C plug on two bare 22 AWG leads, which push into the plug. It is 0.25 m long and nothing else holds it to the board: a plain plug keeps it in J4 by contact friction and a latching plug by its latch.
 
 The latching plug is Phoenix's `-PL-` series, which adds two pivoting side arms to the `-P-` plug. Squeezing the outer ends of the arms releases it.
 
@@ -158,7 +158,7 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 ## 8. Work plan
 
 1. Add `ptsm_hh_smd(board, n)` to `hardware/gen-boards.py` from §3, with the peg holes unplated.
-2. Add `ptsm_hv_smd(board, n)` from §4.2. Place H1, H2, J3 and J4 per §4, move C4, make PF1 5 × 4, and remove H3, U2, C2 and JP2 with their nets.
+2. Add `ptsm_hv_smd(board, n)` from §4.2. Place H1, H2, J3 and J4 per §4, move C4, make PF1 8 × 4, and remove H3, U2, C2, JP2 and TS1.
 3. Add the silkscreen legends `24 VAC` beside J3 and `5 V Pi` beside J4, at the size of the rev B link legend or larger.
 4. Move the probe row clear of the header pads and rerun `hardware/build.sh` until DRC is clean.
 5. Check the footprints against the STEP models in KiCad's 3D viewer: pegs in holes, anchors on pads, face on the edge.
@@ -168,4 +168,3 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 ## 9. Open questions
 
 - Whether the `-PL-` latching plugs can be bought (§5).
-- Whether the tie slots TS1 stay. They keep the pigtail's weight off J4; a latching plug on J4 makes them unnecessary, and a plain plug holds the cable by contact friction alone. Without them the proto field can grow to 8 × 4.
