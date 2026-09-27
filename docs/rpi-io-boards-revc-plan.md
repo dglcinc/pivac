@@ -12,12 +12,12 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 **In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. H3 leaves the board with U2, C2 and JP2. The probe parts under the sockets move toward the upper rib to clear the header pads. A new footprint generator in `hardware/gen-boards.py` builds the surface-mount header.
 
-**Out of scope.** The INT board stays at rev B. The power section, the GH link, J4, the tie slots and the title block on EXT keep their rev B nets and parts. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
+**Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section, the GH link, J4, the tie slots and the title block on EXT keep their rev B nets and parts. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
 
 **Boundaries assumed.**
 
 - The housing accepts a plug with the header's entry face on the board edge, 1.7 mm further in than rev B (David, 2026-09-27).
-- Both ends of EXT are open, so the sockets may move along the top edge.
+- Both ends of EXT are open, so the sockets may move along the top edge, and the openings pass a latching plug, which is 16.8 mm wide on a 3-way socket.
 - Two probe sockets are enough (David, 2026-09-27). H3 was a spare, and `U2` is unfitted on rev A and rev B.
 
 ## 2. Why the through-hole header folds and this one does not
@@ -62,22 +62,22 @@ The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-w
 
 | Ref | Part | Centre x | Edge | Pins |
 |---|---|---|---|---|
-| H1 | 3-way, black | 7.57 | top, entry toward −y | VCC · DATA · GND |
-| H2 | 3-way, black | 21.5 | top, entry toward −y | VCC · DATA · GND |
-| J3 | 2-way, white | 6.75 | bottom, entry toward +y | 1 hot at x 8.0, 2 common at x 5.5 |
+| H1 | 3-way, black | 9.0 | top, entry toward −y | VCC · DATA · GND |
+| H2 | 3-way, black | 26.5 | top, entry toward −y | VCC · DATA · GND |
+| J3 | 2-way, white | 8.0 | bottom, entry toward +y | 1 hot at x 9.25, 2 common at x 6.75 |
 
-- H1 keeps its rev B centre. Its anchors span x 1.02 to 14.12.
-- H2 moves 1.23 mm right of its rev B centre, which leaves 0.83 mm between its anchor and H1's.
-- J3 moves 0.5 mm left of its rev B centre so its anchor pad clears the proto field at x 13.0.
+- H1 and H2 stand 17.5 mm apart, centre to centre, so two latching plugs sit side by side with 0.7 mm between them. Their anchors span x 2.45 to 15.55 and x 19.95 to 33.05.
+- A latching plug on H1 reaches x 0.6 and one on H2 reaches x 34.9, both inside the board's width.
+- J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0.
+- The proto field PF1 becomes 5 × 4 and starts at x 15.54, one column right of rev B, which clears J3's anchor pad and the tie slots.
 - The header pads on the top edge end at y 9.8. C1, R1 and the parts beside them sit at y 10.4 to 11.0 on rev B and move to y 11.6 or beyond. The upper rib starts at y 18.11, so the row has 7.6 mm.
-- J3's pads end 9.8 mm in from the bottom edge, at y 75.2. The proto field and the tie slots keep their rev B positions.
-- The top edge right of x 28.6 is free.
+- J3's pads end 9.8 mm in from the bottom edge, at y 75.2. The tie slots keep their rev B position.
 
 ## 5. Plugs
 
 The PTSM `-P-` plugs in service fit the surface-mount header and carry over: the black 3-way 1778845 on the probe sockets and the white 2-way 1704853 on the 24 VAC entry.
 
-The latching plug that mates with this header is Phoenix's `-PL-` series, which adds two side arms to the `-P-` plug and releases by hand:
+The latching plug is Phoenix's `-PL-` series, which adds two pivoting side arms to the `-P-` plug. Squeezing the outer ends of the arms releases it.
 
 | Use | Part | Order no. |
 |---|---|---|
@@ -85,7 +85,25 @@ The latching plug that mates with this header is Phoenix's `-PL-` series, which 
 | 2-way black | PTSM 0,5/2-PL-2,5 BK | 1709442 |
 | H1, H2 probes, 3-way black | PTSM 0,5/3-PL-2,5 BK | 1709443 |
 
-Phoenix's datasheets pair the two: the plug's derating curve is captioned "PTSM 0,5/...-PL-2,5 WH with PTSM 0,5/...-HH-2,5-SMD WH" (1709459, page 3), and the surface-mount header's datasheet lists 1709457 among its accessories (1814919). Neither shows the latch engaged. The header's side lugs are what the arms would catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the plug's arms reach 4.5 mm past its body. Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457. Availability is unconfirmed; the board is the same with either plug, so the choice can wait for the order.
+Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457.
+
+**The latch engages this header.** Mating Phoenix's STEP models of the plug (`pxc_1709442_05_01_PTSM-0-5-2-PL-2-5-BK_3D.stp`) and the header, with the plug's nose on the bottom of the header's cavity at y 4.5:
+
+| Feature | Plug | Header |
+|---|---|---|
+| Catch | a tooth on the inside of each arm tip, 0.53 deep, 0.72 long, 0.8 tall | a window through each side wall, y 1.2 to 2.1, z 1.6 to 2.65, in a wall 0.52 thick |
+| Position when mated | tooth at y 1.28 to 2.00, z 1.85 to 2.65 | the window encloses it with 0.08 in front and 0.10 behind |
+| Arm tip | ends at y 2.0 | the front lug starts at y 2.1 |
+
+The tooth passes through the full thickness of the wall. The arms clear the solder anchors, whose plates start at y 2.7. Phoenix's datasheets agree: the plug's derating curve is captioned "PTSM 0,5/...-PL-2,5 WH with PTSM 0,5/...-HH-2,5-SMD WH" (1709459, page 3), and the header's datasheet lists 1709457 among its accessories (1814919).
+
+| Plug envelope | Value |
+|---|---|
+| Width | a + 11.8: 14.3 on a 2-way, 16.8 on a 3-way |
+| Length | 15.9, of which 11.4 stands outside the board edge |
+| Height | 5.2 |
+
+Availability is unconfirmed. The layout of §4 takes either plug, so the choice can wait for the order.
 
 ## 6. Parts list
 
@@ -114,7 +132,7 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 ## 8. Work plan
 
 1. Add `ptsm_hh_smd(board, n)` to `hardware/gen-boards.py` from §3, with the peg holes unplated.
-2. Place H1, H2 and J3 per §4 and remove H3, U2, C2 and JP2 with their nets.
+2. Place H1, H2 and J3 per §4, make PF1 5 × 4, and remove H3, U2, C2 and JP2 with their nets.
 3. Move the probe row clear of the header pads and rerun `hardware/build.sh` until DRC is clean.
 4. Check the footprint against the STEP model in KiCad's 3D viewer: pegs in holes, anchors on pads, face on the edge.
 5. Print the top copper at 1:1 and lay a header on it before ordering.
@@ -123,4 +141,3 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 ## 9. Open questions
 
 - Whether the `-PL-` latching plugs can be bought (§5).
-- Whether INT follows. Four 4-way surface-mount headers need 62.4 mm against the 59 mm board, so INT needs its own arrangement, such as two 8-way headers at 25.6 mm each.
