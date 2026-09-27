@@ -58,7 +58,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 
 ## 4. EXT layout
 
-The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 39.3 mm over their anchors.
+`docs/rpi-io-boards-revc-ext-layout.svg` is the layout drawing. The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 39.3 mm over their anchors.
 
 | Ref | Part | Centre x | Edge | Pins |
 |---|---|---|---|---|
