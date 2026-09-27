@@ -957,7 +957,8 @@ def build_extc():
     bb = j1.GetCourtyard(pcbnew.F_CrtYd).BBox()
     if pcbnew.ToMM(bb.GetLeft()) < 0.8 or pcbnew.ToMM(bb.GetBottom()) > 61.0:
         raise SystemExit("J1 outside its room")
-    j1.Reference().SetPosition(mm(4.3, pcbnew.ToMM(bb.GetTop()) - 1.0))
+    # above the header, clear of its upper mounting pad, reading left to right
+    j1.Reference().SetPosition(mm(4.3, pcbnew.ToMM(bb.GetTop()) - 1.4)); j1.Reference().SetTextAngleDegrees(0)
 
     # --- power section as rev B, with U3 2 mm further from J1
     for ref, y in (("D1", 24.95), ("D2", 28.45), ("D3", 31.95), ("D4", 35.45)):
@@ -970,6 +971,20 @@ def build_extc():
     c3.Reference().SetPosition(mm(31.5, 22.9))
     u3 = sip8_converter(B)
     custom.append(B.place("U3", u3, 15.11, 54.04, 0, value="TMR 12-4811WI"))
+    # Traco: no copper under the converter. Its body covers x 13 to 35, y 50.5 to 60.1 on the
+    # component side, so nothing but its own pads may be on F.Cu there; the pins are reached on
+    # the solder side.
+    B.rect_keepout(12.9, 50.4, 35.1, 60.2, layers=("F.Cu",), name="no copper under U3",
+                   pads=False, footprints=False, tracks=True, vias=True, pour=True)
+    # On the solder side only the four connected pins' escapes run under it: each pin leaves
+    # by a 2 mm channel toward the nearer long edge, 3.5 mm away, and the rest is closed.
+    pins = [15.11 + (n - 1) * PITCH for n in (1, 2, 6, 7)]
+    edges = [12.9] + [v for x in pins for v in (x - 1.0, x + 1.0)] + [35.1]
+    for x0, x1 in zip(edges[0::2], edges[1::2]):
+        B.rect_keepout(x0, 50.4, x1, 55.05, layers=("B.Cu",), name="no copper under U3",
+                       pads=False, footprints=False, tracks=True, vias=True, pour=True)
+    B.rect_keepout(12.9, 55.05, 35.1, 60.2, layers=("B.Cu",), name="no copper under U3",
+                   pads=False, footprints=False, tracks=True, vias=True, pour=True)
 
     # --- 5 V output: J4, the vertical header turned so its pin row runs along y and its leads
     # leave toward the right edge; C4 to its left with the legend between them
@@ -1035,20 +1050,40 @@ def build_extc():
     B.connect("U3", 6, "+5V"); B.connect("U3", 7, "GND")
     B.connect("C4", 1, "+5V"); B.connect("C4", 2, "GND")
     B.connect("J4", 1, "+5V"); B.connect("J4", 2, "GND")
+    # The Pi's supply from U3 to C4, laid by hand on the solder side at 1.0 mm: each pin leaves
+    # U3 by its channel, the pair runs round the converter's right end and back under J4, which
+    # has no copper on this side. 47 and 55 mm long, about 25 mohm each, against the 62 mm at
+    # 0.5 mm the router took round the left end.
+    p6x, p6y = B.pad_xy("U3", 6); p7x, p7y = B.pad_xy("U3", 7)
+    (c1x, c1y), (c2x, c2y) = B.pad_xy("C4", 1), B.pad_xy("C4", 2)
+    for net, pts in (("+5V", [(p6x, p6y), (p6x, 47.9), (37.35, 47.9), (37.35, 65.0), (36.35, 66.0),
+                              (c1x + 1.0, 66.0), (c1x, c1y)]),
+                     ("GND", [(p7x, p7y), (p7x, 49.4), (35.85, 49.4), (35.85, 61.3), (34.85, 62.3),
+                              (17.5, 62.3), (17.5, c2y - 1.0), (18.5, c2y), (c2x, c2y)])):
+        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
+            B.track(net, xa, ya, xb, yb, layer="B.Cu", width=1.0)
     # Freerouting leaves J4's two surface pads open on every attempt; lay them: straight out of
     # each pad under the header body to C4, whose pads the router joins to U3. The two tracks
     # run 2.5 apart between the anchor pads and clear the peg holes by 0.65.
     (x1, y1), (x2, y2) = B.pad_xy("J4", 1), B.pad_xy("J4", 2)
-    (c1x, c1y), (c2x, c2y) = B.pad_xy("C4", 1), B.pad_xy("C4", 2)
     B.track("+5V", x1, y1, 23.0, y1, width=0.5)
     B.track("+5V", 23.0, y1, 23.0, c1y, width=0.5)
     B.track("+5V", 23.0, c1y, c1x, c1y, width=0.5)
     B.track("GND", x2, y2, c2x + (y2 - c2y), y2, width=0.5)
     B.track("GND", c2x + (y2 - c2y), y2, c2x, c2y, width=0.5)
 
-    # --- legends
+    # --- legends. No via under a legend: a via's mask opening cuts the letter printed over it.
+    for x0, y0, x1, y1 in ((3.0, 10.1, 36.5, 11.5),        # H1 V D G TRUNK, H2 V D G SPARE
+                           (1.0, 72.6, 14.8, 76.6),        # 24VAC input, C, R
+                           (21.9, 63.2, 24.9, 77.3),       # 5VDC output only, to Pi
+                           (32.9, 69.2, 35.2, 73.4),       # +5, G
+                           (8.8, 46.5, 21.0, 49.7),        # link legend
+                           (2.8, 43.6, 11.0, 45.4),        # the references J1 and F1
+                           (24.8, 37.4, 37.6, 50.2)):      # title block
+        B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name="no via under a legend",
+                       pads=False, footprints=False, tracks=False, vias=True, pour=False)
     for i, s in enumerate(("J1 LINK 1=3V3 2=SDA", "3=SCL 4=GPIO4 5=GND", "6=VS 7=COM")):
-        B.text(s, 9.0, 47.2 + 1.15 * i, size=0.65, left=True)
+        B.text(s, 9.0, 47.1 + 1.05 * i, size=0.65, left=True)
     B.text("24VAC input", 8.0, 73.4, size=1.0, bold=True)
     B.text("R", 10.95, 75.9, size=1.0, bold=True)
     B.text("C", 5.05, 75.9, size=1.0, bold=True)
