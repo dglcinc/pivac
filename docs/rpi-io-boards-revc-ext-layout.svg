@@ -78,7 +78,7 @@
 
 <!-- power path arrows -->
 <g stroke="#5f6368" stroke-width="0.22" fill="none" marker-end="url(#arrg)">
-<path d="M 8 74.6 L 8 73.5 C 8 68, 9.8 64, 9.8 58 L 9.8 48.5 C 9.8 45.5, 12 44.5, 14.7 44.5"/>
+<path d="M 8 72.9 L 8 72.5 C 8 68, 9.8 64, 9.8 58 L 9.8 48.5 C 9.8 45.5, 12 44.5, 14.7 44.5"/>
 <path d="M 20.58 43.7 L 20.3 34.8"/>
 <path d="M 20.9 27.95 C 24 27.95, 26 30, 28.2 30"/>
 <path d="M 31.5 36.5 C 31.5 44, 16 46, 15.65 53.3"/>
@@ -151,10 +151,10 @@
 <text x="8.00" y="80.10" font-size="1.15" font-weight="700" fill="#4a2a00" text-anchor="middle">J3</text>
 <rect x="0.85" y="85.00" width="14.30" height="11.40" fill="none" stroke="#a45d00" stroke-width="0.14" stroke-dasharray="0.9 0.6"/>
 <rect x="5.10" y="85.00" width="5.80" height="11.40" fill="none" stroke="#8a8f94" stroke-width="0.12" stroke-dasharray="0.5 0.4"/>
-<text x="8.00" y="91.20" font-size="0.85" fill="#a45d00" text-anchor="middle">J3 24 VAC, black</text>
+<text x="8.00" y="91.20" font-size="0.85" fill="#a45d00" text-anchor="middle">J3 24VAC input, black</text>
 <text x="8.00" y="92.40" font-size="0.75" fill="#a45d00" text-anchor="middle">latching plug 14.3 wide</text>
 <text x="8.00" y="93.50" font-size="0.7" fill="#6b737c" text-anchor="middle">plain plug inside</text>
-<text x="0.9" y="76.4" font-size="0.95" font-weight="700" fill="#1a1a1a">24 VAC</text><text x="0.9" y="77.4" font-size="0.6" fill="#555">silkscreen</text>
+<g font-weight="700" fill="#1a1a1a" text-anchor="middle"><text x="8.0" y="74.3" font-size="1.1">24VAC input</text><text x="10.75" y="77.3" font-size="1.1">R</text><text x="5.25" y="77.3" font-size="1.1">C</text></g>
 <rect x="18.75" y="66" width="2.5" height="7" rx="0.3" fill="#e1e4e1" stroke="#a45d00" stroke-width="0.2"/><circle cx="20.0" cy="67" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="20.0" cy="72" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><text x="20.0" y="74.4" font-size="0.65" fill="#a45d00" text-anchor="middle">C4 1u</text><rect x="25.10" y="67.45" width="5.0" height="6.7" fill="#fbfbf7" stroke="#a45d00" stroke-width="0.3"/><rect x="24.80" y="65.80" width="5.6" height="2.2" fill="#d9b53a" fill-opacity="0.75" stroke="#7a6410" stroke-width="0.08"/><rect x="24.80" y="73.60" width="5.6" height="2.2" fill="#d9b53a" fill-opacity="0.75" stroke="#7a6410" stroke-width="0.08"/><rect x="29.30" y="68.95" width="3.2" height="1.2" fill="#d9b53a" stroke="#7a6410" stroke-width="0.08"/><rect x="27.20" y="69.15" width="0.8" height="0.8" fill="#8a8f94"/><rect x="29.30" y="71.45" width="3.2" height="1.2" fill="#d9b53a" stroke="#7a6410" stroke-width="0.08"/><rect x="27.20" y="71.65" width="0.8" height="0.8" fill="#8a8f94"/><circle cx="29.70" cy="68.15" r="0.45" fill="#ffffff" stroke="#333" stroke-width="0.1"/><circle cx="29.70" cy="73.45" r="0.45" fill="#ffffff" stroke="#333" stroke-width="0.1"/><text x="26.20" y="71.15" font-size="0.95" font-weight="700" fill="#4a2a00" text-anchor="middle">J4</text><text x="27.10" y="68.90" font-size="0.6" fill="#4a2a00">+5</text><text x="27.30" y="73.20" font-size="0.6" fill="#4a2a00">G</text><rect x="25.00" y="63.65" width="5.2" height="14.3" fill="none" stroke="#a45d00" stroke-width="0.14" stroke-dasharray="0.9 0.6"/><g font-weight="700" fill="#1a1a1a" font-size="1.1" text-anchor="middle"><text transform="translate(22.7,70.9) rotate(-90)">5VDC output only</text><text transform="translate(24.2,70.9) rotate(-90)">to Pi</text></g>
 <!-- dimensions -->
 <g stroke="#1a1a1a" stroke-width="0.1" fill="none"><line x1="10.5" y1="-13.2" x2="28" y2="-13.2"/><line x1="10.5" y1="-14" x2="10.5" y2="-12.4"/><line x1="28" y1="-14" x2="28" y2="-12.4"/></g>
@@ -193,9 +193,9 @@
 <text x="14" y="520">J1 GH link, D1-D4, F1, C3, U3, J2 and the title block,</text>
 <text x="14" y="534">with their nets. The INT board.</text>
 <text x="14" y="560" font-weight="700" fill="#a45d00">J3 and J4 take the same plug</text>
-<text x="14" y="578">J3 is black and marked 24 VAC; J4 is white and marked</text>
-<text x="14" y="592">5VDC output only, to Pi, reading upward between C4 and</text>
-<text x="14" y="606">J4. Print the top copper at 1:1 before ordering.</text>
+<text x="14" y="578">J3 is black, marked 24VAC input with R and C at its pins.</text>
+<text x="14" y="592">J4 is white, marked 5VDC output only, to Pi, reading</text>
+<text x="14" y="606">upward between C4 and J4. F1 is in the R leg.</text>
 <g transform="translate(14,650)">
 <rect x="0" y="-9" width="14" height="10" fill="#e1e4e1" stroke="#5f6368" stroke-width="0.8"/><text x="20" y="0">carried over from rev B</text>
 <rect x="0" y="11" width="14" height="10" fill="#f3b45c" stroke="#a45d00" stroke-width="1"/><text x="20" y="20">new or moved in rev C</text>

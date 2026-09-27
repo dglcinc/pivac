@@ -64,7 +64,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 |---|---|---|---|---|
 | H1 | 3-way, black | 10.5 | top, entry toward −y | VCC · DATA · GND |
 | H2 | 3-way, black | 28.0 | top, entry toward −y | VCC · DATA · GND |
-| J3 | 2-way, black | 8.0 | bottom, entry toward +y | 1 hot at x 9.25, 2 common at x 6.75 |
+| J3 | 2-way, black | 8.0 | bottom, entry toward +y | 1 R (hot) at x 9.25, 2 C (common) at x 6.75 |
 | J4 | 2-way vertical, white | body x 25.1 to 30.1 | pin row along y, centre y 70.8, entry upward, leads toward the right edge | 1 +5 V at y 69.55, 2 GND at y 72.05 |
 
 - H1 and H2 stand 17.5 mm apart, centre to centre, and the pair is centred on the board's 19.25 mm centre line. Two latching plugs sit side by side with 0.7 mm between them and reach x 2.1 and x 36.4.
@@ -90,8 +90,10 @@ Both are 2-way PTSM, so J3's plug fits J4. The 24 VAC plug seated in J4 puts 36 
 | | J3 | J4 |
 |---|---|---|
 | Header and plug colour | black | white |
-| Silkscreen beside it | `24 VAC`, bold | `5VDC output only` and `to Pi`, bold, two lines turned 90° counter-clockwise to read upward, between C4 and J4, centred on J4 |
+| Silkscreen beside it | `24VAC input`, bold, above the pads, with `R` beside pin 1 and `C` beside pin 2 | `5VDC output only` and `to Pi`, bold, two lines turned 90° counter-clockwise to read upward, between C4 and J4, centred on J4 |
 | Orientation | horizontal, at the bottom edge | vertical, mid board |
+
+**Which leg is R.** The bridge rectifies either way round, U3 isolates the Pi, and the sense contacts are dry, so the board works with the two leads swapped. The legs are marked because F1 is in pin 1's leg: on a transformer whose common is bonded to ground, F1 limits a fault to ground only when the hot lead, R, is on pin 1.
 
 A plug does not enter a header with more positions, so the 2-way plugs do not fit the probe sockets and the probe plugs do not fit J3 or J4: the header's floor ribs stand 1.02 mm high and a plug's nose rides 0.70 mm above the floor.
 
