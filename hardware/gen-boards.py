@@ -562,7 +562,7 @@ def build_int():
     bb = j6.GetCourtyard(pcbnew.F_CrtYd).BBox()
     if pcbnew.ToMM(bb.GetTop()) < 26.0 or pcbnew.ToMM(bb.GetBottom()) > 59.0 or pcbnew.ToMM(bb.GetLeft()) < 49.5:
         raise SystemExit("J6 outside the housing slot")
-    j6.Reference().SetPosition(mm(pcbnew.ToMM(bb.GetLeft()) - 1.2, 34.5)); j6.Reference().SetTextAngleDegrees(90)
+    j6.Reference().SetPosition(mm(55.2, pcbnew.ToMM(bb.GetBottom()) + 1.3))   # below the header, clear of the legend
     # --- test points
     for ref, x, val in (("TP1", 40.0, "VS"), ("TP2", 43.0, "COM"), ("TP3", 46.0, "GND")):
         custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 81.0, 0, value=val))
@@ -801,9 +801,8 @@ def build_ext():
     B.connect("C4", 1, "+5V"); B.connect("C4", 2, "GND")
     B.connect("J4", 1, "+5V"); B.connect("J4", 2, "GND")
 
-    for x, s in ((5.07, "V"), (7.57, "D"), (10.07, "G")):
-        B.text(s, x, 8.4, size=0.8)
-    B.text("H1 trunk", 7.57, 9.55, size=0.7)
+    for x, s in ((2.6, "trunk"), (5.07, "V"), (7.57, "D"), (10.07, "G")):
+        B.text(s, x, 8.4, size=0.8 if len(s) == 1 else 0.7)
     B.text("H2 spare", 20.27, 8.4, size=0.8)
     B.text("H3 spare/0x19", 32.97, 8.4, size=0.8)
     B.text("pivac EXT rev B: 24 VAC in J3, VS/COM out J1.6/7, 5.1 V out J4", 19.25, 63.4, size=0.65)

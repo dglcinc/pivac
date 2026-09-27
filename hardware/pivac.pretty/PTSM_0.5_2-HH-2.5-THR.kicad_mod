@@ -7,7 +7,7 @@
 	(property "Reference" "J3"
 		(at 0 -1.6 0)
 		(layer "F.SilkS")
-		(uuid "df5ecfd3-c2be-4460-9fa6-a174744eee34")
+		(uuid "602e130d-eb1f-400b-aeb0-54c396c78bb6")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -19,7 +19,7 @@
 		(at 0 3.5 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "e697865d-7782-4199-bdf5-070763a44b12")
+		(uuid "a22c6687-bba6-4bc7-b8cc-a2086c4db7aa")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -30,7 +30,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "5a26b715-cc67-4024-a822-2b0566a4e7ac")
+		(uuid "2428861b-7f1c-441f-8231-50954c808a67")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -41,7 +41,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "68f2968d-1816-447d-ac16-7d1d8811a496")
+		(uuid "907e5800-16b7-4df9-a3bd-b4ccd91bc4f7")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -58,7 +58,7 @@
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "a7909183-d312-4e06-a115-bc62c157c647")
+		(uuid "a369716a-7a57-489e-a796-68ff073b4b1d")
 	)
 	(fp_rect
 		(start -3.33 -5.65)
@@ -69,7 +69,7 @@
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "7e5d1b18-979f-4fc4-9dc8-673a872329b2")
+		(uuid "2985cd45-7fc0-4948-b668-532ca4f7f4f0")
 	)
 	(fp_rect
 		(start -3.35 -5.4)
@@ -80,12 +80,12 @@
 		)
 		(fill no)
 		(layer "F.Fab")
-		(uuid "4e350fdc-e70a-461c-a09c-c132dc7ad577")
+		(uuid "069e694d-294c-4247-8fc6-9fc7d48a1fb3")
 	)
 	(fp_text user "1"
 		(at -1.25 3.2 0)
 		(layer "F.SilkS")
-		(uuid "6c0c9e0d-f13d-4f52-b71b-bdcb1fb75c61")
+		(uuid "da61d5cf-1d46-44f0-b284-7064ee04d036")
 		(effects
 			(font
 				(size 0.7 0.7)
@@ -101,7 +101,7 @@
 		(remove_unused_layers no)
 		(roundrect_rratio 0.25)
 		(thermal_bridge_angle 45)
-		(uuid "4cf0113d-c81c-48ec-8add-57ca6a0f272f")
+		(uuid "341bd294-ad66-4e83-a28a-5a549e816ead")
 	)
 	(pad "2" thru_hole circle
 		(at 1.25 0)
@@ -109,7 +109,7 @@
 		(drill 1.1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "6efdf5bf-c010-494b-90aa-14d31bbef3e5")
+		(uuid "9a96e430-fa3e-4632-8d62-4e6e06c196b8")
 	)
 	(embedded_fonts no)
 )
