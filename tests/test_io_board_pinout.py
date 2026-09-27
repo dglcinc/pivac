@@ -41,7 +41,9 @@ GND_STUBS = {"IC-A": [(7, 11), (9, 11), (11, 11), (13, 11)],
 FEEDERS = {"IC-A": (14, 8), "IC-B": (14, 13), "IC-C": (13, 21)}
 
 ROW_RE = re.compile(
-    r'^\|\s*(\d+)\s*\|\s*`?([^|`]+?)`?\s*\|\s*([ABC])·(\d)\s*\|\s*([\w.]+|—)\s*\|'
+    # the name may carry a note after it, as in `SCALA` (board name SP-A): the figure prints
+    # the board's name for the channel, so that is the name compared
+    r'^\|\s*(\d+)\s*\|\s*`?([^|`]+?)`?(?:\s*\(([^|]*)\))?\s*\|\s*([ABC])·(\d)\s*\|\s*([\w.]+|—)\s*\|'
     r'[^|]*\|[^|]*\|\s*\((\d+),(\d+)\)\s*\|\s*\((\d+),(\d+)\)\s*\|'
     r'[^|]*\|\s*(\d+|—)\s*\|\s*(\d+|—)\s*\|', re.M)
 
@@ -65,8 +67,10 @@ def main():
         sys.exit(1)
     print(f"[PASS] section 2.1 parsed: {len(rows)} channels")
 
-    for _, name, ic, ch, plug, kc, kr, cc, cr, pipin, bcm in rows:
+    for _, name, note, ic, ch, plug, kc, kr, cc, cr, pipin, bcm in rows:
         name = name.strip().replace("spare ", "")
+        if note.startswith("board name "):
+            name = note[len("board name "):].strip()
         icn = "IC-" + ic
         by_leg = {(p[1][0], p[1][1]): p for p in IC[icn]["pins"]}
         k, c = by_leg[("K", ch)], by_leg[("C", ch)]
