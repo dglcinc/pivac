@@ -63,7 +63,7 @@
 <rect x="50.5" y="44.65" width="8.5" height="11.7"/>
 </g>
 <g font-size="0.9" fill="#8a8f94">
-<text x="49.2" y="15.2">C1 and F1 leave</text><text x="39" y="71.5">D1-D4 leave</text><text x="50.8" y="59.2">J7 leaves</text>
+<text x="50.4" y="27.2">C1 and F1 leave</text><text x="39" y="71.5">D1-D4 leave</text><text x="50.8" y="59.2">J7 leaves</text>
 </g>
 <!-- housing slot and the GH 7-way side-entry link -->
 <rect x="59" y="26" width="1.2" height="33" fill="#d8dde3"/>
@@ -124,7 +124,7 @@
 <circle cx="30.47" cy="3.7" r="0.85"/><circle cx="32.97" cy="3.7" r="0.85"/><circle cx="35.47" cy="3.7" r="0.85"/>
 </g>
 <g font-size="1.1" font-weight="700" fill="#333"><text x="6.6" y="8.4">H1</text><text x="19.3" y="8.4">H2</text><text x="32" y="8.4">H3</text></g>
-<text x="13.4" y="8.4" font-size="0.7" fill="#555">faces 1.7 mm outside the edge, pins at 3.7</text>
+<text x="2.9" y="9.85" font-size="0.7" fill="#555">H1-H3 faces 1.7 mm outside the edge, pins at 3.7</text>
 <rect x="9.05" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="13.4" y="12.2" font-size="1.0" fill="#333">U1 DS2482</text>
 <rect x="17" y="9.75" width="7" height="2.5" fill="#d64545"/><text x="17" y="13.6" font-size="0.9" fill="#333">C1 100n</text>
 <rect x="18.4" y="15.2" width="7.2" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><text x="26" y="17" font-size="0.9" fill="#333">R1 (nf)</text>
