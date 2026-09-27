@@ -129,7 +129,7 @@
 <text x="28.00" y="-6.20" font-size="0.85" fill="#a45d00" text-anchor="middle">H2 spare: VCC · DATA · GND</text>
 <text x="28.00" y="-5.00" font-size="0.75" fill="#a45d00" text-anchor="middle">latching plug 16.8 wide</text>
 <text x="28.00" y="-3.90" font-size="0.7" fill="#6b737c" text-anchor="middle">plain plug inside</text>
-<g font-size="0.7" fill="#4a2a00" text-anchor="middle"><text x="8.0" y="11.0">V</text><text x="10.5" y="11.0">D</text><text x="13.0" y="11.0">G</text><text x="25.5" y="11.0">V</text><text x="28.0" y="11.0">D</text><text x="30.5" y="11.0">G</text></g>
+<g font-size="1.1" font-weight="700" fill="#1a1a1a" text-anchor="middle"><text x="8.0" y="11.15">V</text><text x="10.5" y="11.15">D</text><text x="13.0" y="11.15">G</text><text x="25.5" y="11.15">V</text><text x="28.0" y="11.15">D</text><text x="30.5" y="11.15">G</text></g>
 <g fill="#b9b9b3" stroke="#a45d00" stroke-width="0.06"><rect x="1.60" y="11.77" width="1.05" height="0.45"/><rect x="6.55" y="11.77" width="1.05" height="0.45"/><rect x="1.60" y="13.04" width="1.05" height="0.45"/><rect x="6.55" y="13.04" width="1.05" height="0.45"/><rect x="1.60" y="14.31" width="1.05" height="0.45"/><rect x="6.55" y="14.31" width="1.05" height="0.45"/><rect x="1.60" y="15.58" width="1.05" height="0.45"/><rect x="6.55" y="15.58" width="1.05" height="0.45"/></g>
 <rect x="2.65" y="11.45" width="3.9" height="4.9" fill="#3a3a3a" stroke="#a45d00" stroke-width="0.15"/>
 <rect x="10.1" y="12.65" width="7" height="2.5" fill="#d64545" stroke="#a45d00" stroke-width="0.15"/><circle cx="11.1" cy="13.90" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="16.1" cy="13.90" r="0.6" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/>

@@ -79,6 +79,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 | R1 | 30.78 | pads at 25.7 and 35.86 |
 
 - The four reference legends sit on one baseline at y 17.55, each centred under its part.
+- `V`, `D` and `G` stand under the signal pads of H1 and H2 in bold at the size of J3's `R` and `C`, 0.5 mm below the pads and clear of the header bodies.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
 - J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.8 to 75.8, so its signal pads stand 2.25 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
 - U3 moves 2 mm right for access to J1: body x 13 to 35, pins at x 15.11 to 32.89, pin 1 left. It stands 5.4 mm from J1's courtyard and 3.5 mm from the room kept clear for J1's plug and a finger, against 3.4 and 1.5 mm on rev B, and 3.5 mm from the board's right edge.
