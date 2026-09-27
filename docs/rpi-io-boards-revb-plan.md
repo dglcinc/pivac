@@ -12,7 +12,7 @@ Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board t
 
 **Out of scope.** No change to `pivac`, `config.yml`, InfluxDB or Signal K: every channel keeps its BCM pin and path. No change to the probe end of EXT (H1 to H3, U1, U2, JP1, JP2). No change to the label rows for J1 to J3; J4's row changes. No assembly service.
 
-**Boundaries assumed.** The housing gives the EXT component side at least 30 mm of height everywhere (David, 2026-09-26), so no rev B part on EXT is height-limited. The INT cover clearance stays about 8 mm, and nothing new on INT is taller than a DIP socket. The boards sit in the enclosure with the housing opening between INT's right edge and EXT's left edge, the way the layout drawing shows them. The power riser field on EXT is not reserved. The housing is open at EXT's 85 mm end, where J3 faces out; if it is not, J3 moves to the top edge in place of H2 (§9).
+**Boundaries assumed.** The housing gives the EXT component side at least 30 mm of height everywhere (David, 2026-09-26), so no rev B part on EXT is height-limited. The INT cover clearance stays about 8 mm, and nothing new on INT is taller than a DIP socket. The boards sit in the enclosure with the housing opening between INT's right edge and EXT's left edge, the way the layout drawing shows them. The power riser field on EXT is not reserved. The housing is open at both ends of EXT (David, 2026-09-26), so J3 faces out of the 85 mm end the way the probe sockets face out of the other.
 
 ## 2. Power section on EXT
 
@@ -191,7 +191,6 @@ Boards: OSH Park two-layer at $5 per square inch for three copies is about $39 f
 
 ## 9. Open before regeneration
 
-- **The housing at EXT's 85 mm end.** J3 faces out there with the same 1.7 mm overhang as the probe sockets. If that end of the housing is closed, J3 takes H2's place at the top edge (H2 is a spare) and the proto B block extends to the left edge.
 - **Rev A edge alignment.** David reported the 3-way and 5-way PTSM headers not aligned correctly to the board edges. The design offsets are in §5.2; the measured offset and direction on the rev A boards decide whether the pin rows move in rev B.
 - **Datasheets in hand:** Phoenix PTSM (drawing 1814867, via the footprint), Traco TMR 12WI, JST GH, JST XH, Littelfuse 60R, Nichicon UPW. None outstanding; the Phoenix housing STEP models already in `hardware/vendor/` cover the fit check.
 
