@@ -975,6 +975,13 @@ def build_extc():
     u3 = sip8_converter(B)
     custom.append(B.place("U3", u3, 15.11, 54.04, 0, value="TMR 12-4811WI"))
     u3.Reference().SetPosition(mm(24.0, 61.3))     # below the body, where it shows with U3 fitted
+    # the pin names again on the solder side, for the meter after soldering: the names on the
+    # component side are under the converter once it is fitted
+    for n, name in ((1, "-Vin"), (2, "+Vin"), (3, "Rmt"), (6, "+Vo"), (7, "-Vo"), (8, "NC")):
+        x = 15.11 + (n - 1) * PITCH
+        B.text(name, x, 54.04 + 1.9, layer="B.SilkS", size=0.6)
+        B.text(str(n), x, 54.04 + 3.0, layer="B.SilkS", size=0.6)
+    B.text("U3", 24.0, 58.6, layer="B.SilkS", size=0.8)
     # Traco: no copper under the converter. Its body covers x 13 to 35, y 50.5 to 60.1 on the
     # component side, so nothing but its own pads may be on F.Cu there; the pins are reached on
     # the solder side.
