@@ -138,6 +138,34 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 5. Print the top copper at 1:1 and lay a header on it before ordering.
 6. Order the board and the headers, populate per §7 and the rev B plan, and bench-prove as rev B was.
 
-## 9. Open questions
+## 9. J4 as a PTSM header, under consideration
+
+J4 is the 5.1 V output to the Pi's USB-C pigtail, a JST B2B-XH-A on rev B. The candidate is the vertical surface-mount header of the same family, PTSM 0,5/2-HV-2,5-SMD WH R24, 1778696, measured from Phoenix's STEP model (`pxc_1778696_02_00_PTSM-0-5-2-HV-2-5-SMD-WH-R24_3D.stp`).
+
+| Item | PTSM HV, 2-way | JST XH, 2-way |
+|---|---|---|
+| Footprint | 10.6 × 7.1 | 7.5 × 5.75 |
+| Height of the header | 7.5 | 7.0 |
+| Height with a plug seated | 18.4 | 9.8 |
+| Fixing | two anchors, two pegs, two leads | two through-hole pins |
+| Rating | 6 A | 3 A |
+| Plug | the same `-P-` and `-PL-` plugs as J3 | crimped XH housing |
+
+- The body is 6.7 × 5.0, the anchors make it 10.6 wide, and the leads leave one long side by 2.1 mm.
+- The pegs are ⌀0.8 at 1.4 mm outside the outer pins and 0.4 mm from the long side opposite the leads.
+- The side walls carry the same latch window as the horizontal header, 1.2 to 2.1 mm below the top face, so the latching plug fits.
+- The housing gives EXT 30 mm, so the 18.4 mm standing plug fits.
+- At J4's place the header sits at centre x 29.0 with its body at y 66.0 to 71.0 and its leads toward the tie slots. C4 moves 1.6 mm left to clear the anchor pad.
+
+**J3's plug would fit J4.** Both would be 2-way PTSM, and the rev B design relies on J3's plug not fitting J4. The 24 VAC plug seated in J4 puts 36 V peak across U3's output and C4. The Pi is not at risk, because its pigtail is then unplugged. A plug does not enter a header with more positions: the header's floor ribs stand 1.02 mm high and the plug's nose rides 0.70 mm above the floor, so the models interfere by 0.3 mm.
+
+| Option | How it prevents the wrong plug | Cost |
+|---|---|---|
+| 4-way J4, +5 V on two positions and GND on two | the 2-way and 3-way plugs do not fit | 15.6 mm wide, so J2 moves to the free top-right corner and C4 moves 4 mm left |
+| 2-way J4 in the other colour from J3 | by eye only | none |
+| J4 stays JST XH | different family | none |
+
+## 10. Open questions
 
 - Whether the `-PL-` latching plugs can be bought (§5).
+- Whether J4 becomes a PTSM header, and with how many positions (§9).
