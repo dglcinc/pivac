@@ -703,7 +703,7 @@ def build_ext():
     B.lib("JP1", "Jumper", "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm", 11.3, 14.7, 90, value="GPIO4->DATA")
     r1 = B.lib("R1", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", 17.82, 10.8, 0,
                value="2k2 rollback", dnp=True)
-    r1.Reference().SetPosition(mm(21.0, 13.3))
+    r1.Reference().SetPosition(mm(18.6, 13.3))   # under R1's left end, clear of JP2's reference
     B.lib("JP2", "Jumper", "SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm", 23.0, 15.2, 0, value="H3: bus/U2")
     ec2 = B.lib("C2", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 30.8, 10.4, 0, value="100n", dnp=True)
     ec2.Reference().SetPosition(mm(28.0, 13.0))
@@ -735,6 +735,7 @@ def build_ext():
         d.Reference().SetPosition(mm(22.0, y)); d.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
     f1 = radial_disc(B, "PTC_Radial_P5.08_Standing", 5.08, 13.0, 3.1)
     custom.append(B.place("F1", f1, 18.04, 44.5, 0, value="PTC 1.1A 60V"))
+    f1.Reference().SetPosition(mm(9.7, 44.5))   # left of the disc, so the link legend below it stays clear
     c3 = B.lib("C3", "Capacitor_THT", "CP_Radial_D12.5mm_P5.00mm", 29.0, 30.0, 0, value="470u 63V")
     c3.Reference().SetPosition(mm(31.5, 22.9))
     u3 = sip8_converter(B)
@@ -808,8 +809,8 @@ def build_ext():
     B.text("H2 spare", 20.27, 8.4, size=0.8)
     B.text("H3 spare/0x19", 32.97, 8.4, size=0.8)
     B.text("pivac EXT rev B: 24 VAC in J3, VS/COM out J1.6/7, 5.1 V out J4", 19.25, 63.4, size=0.65)
-    B.text("J1 LINK 1=3V3 2=SDA 3=SCL 4=GPIO4", 9.0, 47.5, size=0.7, left=True)
-    B.text("5=GND 6=VS 7=COM", 9.0, 49.0, size=0.7, left=True)
+    for i, s in enumerate(("J1 LINK 1=3V3 2=SDA", "3=SCL 4=GPIO4 5=GND", "6=VS 7=COM")):
+        B.text(s, 9.0, 47.2 + 1.15 * i, size=0.65, left=True)   # between F1 and U3, beside J1
     B.text("24 VAC", 7.25, 77.6, size=0.8)
     B.text("5V OUT", 31.6, 65.4, size=0.7)
     title_block(B, 31.2, 40.3, 0.7, "EXT", stacked=True)   # below C3, right of F1, above U3
