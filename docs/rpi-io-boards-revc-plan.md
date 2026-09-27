@@ -69,7 +69,16 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 
 - H1 and H2 stand 17.5 mm apart, centre to centre, and the pair is centred on the board's 19.25 mm centre line. Two latching plugs sit side by side with 0.7 mm between them and reach x 2.1 and x 36.4.
 - Their anchors span x 3.95 to 17.05 and x 21.45 to 34.55.
-- U1, C1, JP1 and R1 sit in one row centred under the sockets, from x 5.1 to x 33.4. The header pads end at y 9.8, so the row starts at y 11.5; the upper rib starts at y 18.11.
+- U1, C1, JP1 and R1 stand in one row on the line y 13.9, 2.5 mm apart, from x 1.6 to x 36.9, so an iron reaches every pad. The header pads end at y 9.8 and the nearest pad of the row is 2.0 mm below them; the upper rib starts at y 18.11.
+
+| Ref | Centre x | Extent in x |
+|---|---|---|
+| U1 | 4.6 | 1.6 to 7.6 over the leads |
+| C1 | 13.6 | 10.1 to 17.1; pads at 11.1 and 16.1 |
+| JP1 | 21.1 | 19.6 to 22.6 |
+| R1 | 30.78 | pads at 25.7 and 35.86 |
+
+- The four reference legends sit on one baseline at y 17.55, each centred under its part.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
 - J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 26.3 to 34.0 and y 65.8 to 75.8. C4 keeps its rev B place, 1.75 mm from J4's anchor pads.
 - The proto field PF1 is 8 × 3, from x 15.54 to x 33.32 and y 78.14 to y 83.22. It starts one column right of rev B to clear J3's anchor pad and one row lower to clear J4's.
