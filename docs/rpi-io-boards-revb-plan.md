@@ -2,7 +2,7 @@
 
 **Status:** Layout for review (`docs/rpi-io-boards-pi-power-layout.svg`); KiCad regeneration and the OSH Park order follow approval. · **Owner:** David
 
-Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/rpi-io-boards-pcb-plan.md`; this document states only what rev B does.
+Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/rpi-io-boards-pcb-plan.md`; this document states what rev B does, part by part.
 
 ---
 
@@ -12,7 +12,7 @@ Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board t
 
 **Out of scope.** No change to `pivac`, `config.yml`, InfluxDB or Signal K: every channel keeps its BCM pin and path. No change to the probe end of EXT (H1 to H3, U1, U2, JP1, JP2). No change to the label rows for J1 to J3; J4's row changes. No assembly service.
 
-**Boundaries assumed.** The housing gives the EXT component side at least 30 mm of height everywhere (David, 2026-09-26), so no rev B part on EXT is height-limited. The INT cover clearance stays about 8 mm, and nothing new on INT is taller than a DIP socket. The boards sit in the enclosure with the housing opening between INT's right edge and EXT's left edge, the way the layout drawing shows them. The power riser field on EXT is not reserved.
+**Boundaries assumed.** The housing gives the EXT component side at least 30 mm of height everywhere (David, 2026-09-26), so no rev B part on EXT is height-limited. The INT cover clearance stays about 8 mm, and nothing new on INT is taller than a DIP socket. The boards sit in the enclosure with the housing opening between INT's right edge and EXT's left edge, the way the layout drawing shows them. The power riser field on EXT is not reserved. The housing is open at EXT's 85 mm end, where J3 faces out; if it is not, J3 moves to the top edge in place of H2 (§9).
 
 ## 2. Power section on EXT
 
@@ -23,13 +23,13 @@ Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board t
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-THR | 24 VAC entry, 6 A 160 V, entry faces the bottom edge; white plug so it cannot be confused with a black probe plug |
 | F1 | Littelfuse 60R110XU | 1.1 A hold, 2.2 A trip, 60 V; the rail carries about 0.45 A at the Pi's peak, and the transformer can supply the trip current |
 | D1–D4 | 1N4007 | full-wave bridge, 1 A average, 0.45 A load |
-| C3 | 470 µF 63 V radial, ⌀12.5 × 25 mm, standing | valley near 28 V at the Pi's 0.4 A peak draw, 3 V of ripple at the 0.16 A typical; U3 locks out below 16.4 V |
-| U3 | Traco TMR 12-4811WI | 18–75 V in, 5.1 V ±1 % at 2.4 A out, 1.6 kV isolation, SIP-8 22 × 9.6 × 12 mm; pin 3 Remote left open, which is on |
+| C3 | 470 µF 63 V radial, standing | valley near 28 V at the Pi's 0.4 A peak draw, 3 V of ripple at the 0.16 A typical; U3 locks out below 16.4 V |
+| U3 | Traco TMR 12-4811WI | 18–75 V in, 5.1 V ±1 % at 2.4 A out, 1.6 kV isolation; pin 3 Remote left open, which is on |
 | C4 | 1 µF ceramic | across U3 pins 6 and 7 per the datasheet's ripple figure |
 | J4 | JST B2B-XH-A | 5.1 V out, 3 A 250 V; a different family from J3 so the AC plug does not fit it |
 | pigtail | USB-C plug to two 22 AWG leads, 0.25 m | crimped into an XHP-2 housing; the Pi 4 takes 5 V on VBUS with no CC negotiation |
 
-The isolation barrier is inside U3, so COM never meets Pi ground, which is the rule the rev A design was built on. Keep 2 mm of creepage between the VS/COM copper and the Pi-side copper (5 V, GND, I2C) on EXT. The pin-out of U3 is 1 −Vin (COM), 2 +Vin (VS), 3 Remote (open), 6 +Vout, 7 −Vout, 8 no connection; the four case pins are clipped, since Traco says to leave them unconnected, and no copper runs under the module.
+The isolation barrier is inside U3, so COM never meets Pi ground, which is the rule the rev A design was built on. Keep 2 mm of creepage between the VS/COM copper and the Pi-side copper (5 V, GND, I2C) on EXT. U3's pin-out is 1 −Vin (COM), 2 +Vin (VS), 3 Remote (open), 6 +Vout, 7 −Vout, 8 no connection; the four case pins are clipped, since Traco says to leave them unconnected, and no copper runs under the module.
 
 The PivacPower Shelly moves from the Pi's wall adapter to the transformer's outlet, so one remote cycle restarts the sense supply and the Pi together. The wall adapter is retired; it must never be connected while J4 is live. The Pi adds about 15 VA at the transformer's peak and 6 VA typical; the 75 VA transformer has the margin.
 
@@ -47,7 +47,7 @@ The link grows from five ways to seven and changes family. JST GH is 1.25 mm pit
 | 6 | VS | sense rail, about 35 V, to INT |
 | 7 | COM | sense return, to INT |
 
-VS and COM carry under 35 mA for twelve channels. 37 V unloaded sits inside the 50 V rating. INT's header is J6, SM07B-GHS-TB, at the right edge inside the housing slot at y 28.5 to 40.5, where rev A's J6 was. EXT's header is J1, BM07B-GHS-TBT, at the left edge at y 36 to 48. The cable is two GHR-07V-S housings and seven AGHGH28K51 leads, 51 mm, which loop across a gap of a few millimetres with slack.
+VS and COM carry under 35 mA for twelve channels. 37 V unloaded sits inside the 50 V rating. INT's header is J6, SM07B-GHS-TB, at the right edge inside the housing slot at y 28.5 to 40.5, where rev A's J6 was. EXT's header is J1, BM07B-GHS-TBT, at the left edge at y 46.5 to 58.5, low against the lower rib so it does not sit opposite J6 and the two plugs never crowd each other in the opening. The cable is two GHR-07V-S housings and seven AGHGH28K51 leads, 51 mm, which run diagonally across the gap with slack.
 
 ## 4. INT board
 
@@ -64,24 +64,66 @@ J1 to J3 are as rev A. J4 takes HPCOOL from the J8 pigtail, DHWX from J4.3 and t
 
 The three LTV-847 sockets move from x 9.5 to x 14 and the four resistor columns to x 35.1, 38.4, 41.65 and 44.9, which leaves 6.7 mm of clear board between the J9 breakout column and U1 against 2.2 mm on rev A. The breakout pads are covered once the Pi is on the header, so their uses are bench soldering jobs: rerouting a channel whose BCM pad has died (lift the opto's output pin from its socket, wire it to a spare GPIO's pad, change the BCM in `config.yml`) and a fan header, since GPIO18 is a hardware PWM pin and the fanless Pi touches 83 °C on Sentry capture bursts. The resistor pads end at x 47, clear of the rib bulges at the right edge. Nothing else on INT moves.
 
+### 4.1 INT component index
+
+Positions are millimetres from the board's top-left corner, component side up, plugs at the top, as in the layout drawing. Dimensions are body sizes from the maker's drawing or the KiCad footprint named.
+
+| Ref | Part | Body, mm | Position | Purpose |
+|---|---|---|---|---|
+| J1–J4 | Phoenix PTSM 0,5/4-HH-2,5-THR | 11.7 wide × 7.5 deep × 7.5 tall | pins at y 6.95; J1 x 9.35–16.85, J2 21.05–28.55, J3 32.75–40.25, J4 44.45–51.95 | field plugs, three channels and a COM each (table above) |
+| J5 | Phoenix PSTD 0,65X0,65/40-2,54 socket | 2 × 20 at 2.54, solder side | columns x 2.23 and 4.77, rows y 8.37 to 56.63 | the Pi's 40-pin header; pins 2 and 4 unused in rev B |
+| J6 | JST SM07B-GHS-TB | 12.0 × 5.4, 4.35 tall mated | body x 53.2–58.6, y 28.5–40.5, entry facing +x | link to EXT, seven nets of §3 |
+| J9 | shadow column, 16 pads ⌀1.6 | | x 7.31, one pad per free header row from y 13.45 to 56.63 | header breakout: SCL, SDA, GPIO4, 3V3, 5V, GND ×3, GPIO7–11, 18, 20, 21 |
+| U1–U3 | LTV-847 in DIP-16 sockets (`DIP-16_W7.62mm_Socket`) | socket 20.3 × 10.2, about 8 tall with the chip | x 14–33.5; rows y 23.6, 35.9, 48.2 | four optocoupler channels each: LED from the relay contact through its resistor, transistor to a BCM pin |
+| R1–R12 | 12 kΩ 1/4 W axial (`R_Axial_DIN0207 P10.16 Horizontal`) | 6.3 × 2.5, flat | columns x 35.1, 38.4, 41.65, 44.9; one row per socket | 2.8 mA LED current from the 35 V rail |
+| TP1–TP3 | test pads ⌀1.8 | | (40, 81), (43, 81), (46, 81) | VS, COM, GND for the meter |
+| title block | silkscreen | 31 × 9 | ring centre (12.5, 75.4) | §6 |
+
+Removed from rev A: D1–D4, F1, C1 (the power section), J7 (the unfitted power link) and J8 (the SP-C, SP-E, COM pads). The bottom field under the Pi's USB stacks still carries no through-hole part.
+
 ## 5. EXT board
 
-The probe end is rev A. The mid field between the ribs carries the power section and the link header; the riser field is not reserved. The only keep-out is the room for the GH plug and a finger around J1. Positions are millimetres from the board's top-left corner, component side up, as drawn in the layout SVG.
+The probe end is rev A. The mid field between the ribs carries the power section and the link header; the riser field is not reserved. The only keep-out is the room for the GH plug and a finger around J1.
 
-| Ref | Position | Note |
-|---|---|---|
-| J1 | body x 1.5–7.1, y 36–48, pin 1 at the top | keep x 0–9.5, y 30–54 clear of tall parts |
-| D1–D4 | pads at x 10 and 20.16, rows y 24.95, 27.95, 30.95, 33.95 | lying flat, bodies x 12.5–17.7 |
-| F1 | pads (15.5, 44.5) and (20.58, 44.5) | standing, body x 12–25, 3.4 mm thick |
-| C3 | centre (31.5, 30), pads (29, 30) and (34, 30) | standing, ⌀12.5 |
-| U3 | body x 11–33, y 50.5–60.1; pins at y 54.04, x 13.11 to 30.89 | pin 1 at the left; the 3.54 mm side of the body toward the top |
-| J4 | pads (28, 69.2) and (30.5, 69.2) | against the lower rib; C4 at x 22.3–24.5, y 68.6–70.2; tie slot x 22.6–23.8, y 71–73.4 |
-| J3 | pins (6, 78.05) and (8.5, 78.05), entry facing y = 85 | body x 3.9–10.6, y 75.3–85 |
-| proto A | 8 × 3 pads from (3.0, 66.5) at 2.54 mm | left of J4 |
-| proto B | 10 × 4 pads from (13.0, 75.6) at 2.54 mm | from J3 to the right edge |
-| J2 | pads at x 35.5, y 68, 70.54, 73.08 | VCC, DATA, GND breakout, as rev A |
+### 5.1 EXT component index
+
+| Ref | Part | Body, mm | Position | Purpose |
+|---|---|---|---|---|
+| H1–H3 | Phoenix PTSM 0,5/3-HH-2,5-THR | 9.2 wide × 7.5 deep × 7.5 tall | pins at y 3.7; centres x 7.57, 20.27, 32.97; entry faces −y | 1-wire trunk (H1) and two spare probe sockets, VCC · DATA · GND |
+| U1 | DS2482-100, SOIC-8 | 3.9 × 4.9 | (11.0, 12.5) | I2C to 1-wire master at 0x18 |
+| C1 | 100 nF box, 5 mm | 7 × 2.5 | (20.5, 11.0) | U1 decoupling |
+| U2, C2 | DS2482-100 and 100 nF, not fitted | | (30, 30) and (18.5, 34) | second master at 0x19 for H3 |
+| R1 | 2k2 axial, not fitted | 6.3 × 2.5 | (22.0, 16.3) | pull-up for the w1-gpio rollback, fitted only with JP1 |
+| JP1 | 2-pad solder jumper | | (34.5, 14.5) | GPIO4 to DATA, the w1-gpio rollback |
+| JP2 | 3-pad solder jumper | | (22.0, 29.0) | H3's DATA to the shared bus or to U2 |
+| J1 | JST BM07B-GHS-TBT | 12.0 × 5.6, 7.3 tall mated | body x 1.5–7.1, y 46.5–58.5, pin 1 at the top | link to INT; keep x 0–9.5, y 41–61 clear of tall parts |
+| D1–D4 | 1N4007, DO-41 (`D_DO-41 P10.16 Horizontal`) | 5.2 × 2.7, flat | pads x 10 and 20.16; rows y 24.95, 27.95, 30.95, 33.95 | bridge rectifier |
+| F1 | Littelfuse 60R110XU | ⌀13 × 3.1, lead spacing 5.1, standing | pads (15.5, 44.5) and (20.58, 44.5) | 1.1 A PTC in the 24 VAC feed |
+| C3 | Nichicon UPW1J471MHD, 470 µF 63 V | ⌀12.5 × 25, lead spacing 5.0, standing | centre (31.5, 30), pads (29, 30) and (34, 30) | reservoir on the 35 V rail |
+| U3 | Traco TMR 12-4811WI, SIP-8 | 22.0 × 9.6 × 12.0; 8 pins at 2.54 over 17.78, row 3.54 from the long edge | body x 11–33, y 50.5–60.1; pins at y 54.04, x 13.11 to 30.89, pin 1 left | isolated 35 V to 5.1 V converter |
+| C4 | 1 µF ceramic, 5 mm | | x 22.3–24.5, y 68.6–70.2 | U3 output capacitor |
+| J4 | JST B2B-XH-A | 7.5 × 5.75 × 7.0 | pads (28, 69.2) and (30.5, 69.2) | 5.1 V out to the USB-C pigtail |
+| tie slot | 1.2 × 2.4 mm slot | | x 22.6–23.8, y 71–73.4 | cable tie for the pigtail |
+| J3 | Phoenix PTSM 0,5/2-HH-2,5-THR | 6.7 wide × 7.5 deep × 7.5 tall | pins (6, 81.3) and (8.5, 81.3), entry faces +y | 24 VAC entry |
+| J2 | 3 pads ⌀1.6 | | x 35.5, y 68, 70.54, 73.08 | VCC, DATA, GND breakout |
+| proto A | 8 × 3 pads at 2.54 | | from (3.0, 66.5) | bodge field, left of J4 |
+| proto B | 10 × 4 pads at 2.54 | | from (13.0, 75.6) | bodge field, from J3 to the right edge |
+| title block | silkscreen at 0.8 scale | 25 × 7 | lower field beside J3 | §6, reading EXT |
 
 The rib bands at y 18.11–22.31 and 61.29–65.49 restrict pads on the solder side only; C3 and U3 bodies may cross the lower line but no pad does. Heights: U3 12.0 mm, C3 25 mm, F1 13 mm, J4 7 mm, J3 7.5 mm, all under the 30 mm available.
+
+### 5.2 How the PTSM headers meet the board edges
+
+Every PTSM horizontal header is 7.5 mm deep with its pin row 5.4 mm behind the entry face and 2.1 mm ahead of the rear face (Phoenix drawing 1814867, the geometry `gen-boards.py` builds the footprint from). Where the pins sit decides where the face is.
+
+| Header | Pin row from the edge | Entry face | Why |
+|---|---|---|---|
+| INT J1–J4 | 6.95 mm | 1.55 mm inside the edge | the Phoenix drawing's fixed plug positions, matched to the housing's openings |
+| INT J6 (rev A, PTSM) | 6.0 mm | 0.6 mm inside the edge | inside the housing slot |
+| EXT H1–H3 | 3.7 mm (grid row 2) | 1.7 mm outside the edge | as built on rev A: the sockets overhang the row-1 edge |
+| EXT J3 (rev B) | 3.7 mm | 1.7 mm outside the edge | the same overhang as the probe sockets, so a plug seats from outside the housing |
+
+The layout drawing now shows the bodies at these offsets. If the rev A boards show the 3-way sockets or the 5-way link header sitting differently against their edges than this table says, the measured offset and its direction go into §9 before regeneration, because the footprint puts the face where the pin row puts it and only the pin row can move.
 
 ## 6. Silkscreen title block
 
@@ -99,14 +141,15 @@ The monogram's paths are in `hardware/dl-monogram.svg` (viewBox −5 −5 10 10,
 
 ## 7. Parts list
 
-New parts for one pair of boards. Carried-over parts (PTSM 4-way headers and plugs, PTSM 3-way probe headers, PSTD 40-pin socket, LTV-847 and sockets, 12 kΩ resistors, DS2482-100, 100 nF) are in `docs/rpi-io-boards-parts.md` and mostly on hand from the rev A order. Quantities are for one pair; buy the 1.25 mm parts in fives, since a dropped GH lead is not found again.
+Quantities are for one pair of boards. Parts marked on hand came with the rev A order (`docs/rpi-io-boards-parts.md`, which carries their distributor links). Buy the 1.25 mm parts in fives, since a dropped GH lead is not found again.
+
+### 7.1 New for rev B
 
 | Ref | Part | Qty | Digi-Key | Amazon |
 |---|---|---|---|---|
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-THR, 1778625 | 1 | [Phoenix page](https://www.phoenixcontact.com/en-us/products/pcb-header-ptsm-05-2-hh-25-thr-r16-1778625); search Digi-Key for 1778625 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778625) |
 | J3 plug | Phoenix PTSM 0,5/2-P-2,5, 1778832 | 1 | [Phoenix page](https://www.phoenixcontact.com/en-pc/products/printed-circuit-board-connector-ptsm-05-2-p-25-1778832); search Digi-Key for 1778832 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778832) |
 | F1 | Littelfuse 60R110XU | 1 | [253202](https://www.digikey.com/en/products/detail/littelfuse-inc/60R110XU/253202) | [60R110XU](https://www.amazon.com/LITTELFUSE-60R110XU-FUSE-RESET-RADIAL/dp/B005T75IQK) |
-| D1–D4 | 1N4007 | 4 | on hand | |
 | C3 | Nichicon UPW1J471MHD, 470 µF 63 V | 1 | [589689](https://www.digikey.com/en/products/detail/nichicon/UPW1J471MHD/589689) | [UPW1J471MHD](https://www.amazon.com/NICHICON-UPW1J471MHD6-CAPACITOR-470UF-RADIAL/dp/B00MMYGIQM) |
 | U3 | Traco TMR 12-4811WI | 1 | [16585153](https://www.digikey.com/en/products/detail/traco-power/TMR-12-4811WI/16585153) | [search](https://www.amazon.com/s?k=Traco+TMR+12-4811WI) |
 | C4 | 1 µF 50 V ceramic, 5 mm lead spacing | 1 | [listing](https://www.digikey.com/en/products/filter/ceramic-capacitors/60?s=N4IgTCBcDaIIYFsCmATAlgOwOYBoQF0BfIA) | [search](https://www.amazon.com/s?k=1uF+50V+ceramic+capacitor+5mm) |
@@ -118,27 +161,48 @@ New parts for one pair of boards. Carried-over parts (PTSM 4-way headers and plu
 | link housings | JST GHR-07V-S | 2 | [807819](https://www.digikey.in/en/products/detail/jst-sales-america-inc/GHR-07V-S/807819) | [GH kit](https://www.amazon.com/Kidisoii-Connector-Premium-Pre-Crimped-Housing/dp/B0CKZCFC54) |
 | link leads | JST AGHGH28K51, 51 mm, GH both ends | 7 | [6009448](https://www.digikey.com/en/products/detail/jst-sales-america-inc/AGHGH28K51/6009448) | in the kit at 150 mm |
 
-The two PTSM parts are linked to Phoenix's own pages because their Digi-Key pages would not open on 2026-09-26; the order numbers are exact. The Amazon GH kit stops at 10-position housings, so the 7-position housings come from Digi-Key or the kit, and the kit's leads are the same contacts at 150 mm.
+The two PTSM parts are linked to Phoenix's own pages because their Digi-Key pages would not open on 2026-09-26; the order numbers are exact. The Amazon GH kit stops at 10-position housings, so the 7-position housings come from Digi-Key, and the kit's leads are the same contacts at 150 mm.
+
+### 7.2 Carried over from rev A
+
+| Ref | Part | Qty per pair | Source |
+|---|---|---|---|
+| INT J1–J4 | Phoenix PTSM 0,5/4-HH-2,5-THR, 1778641 | 4 | on hand (five bought for rev A) |
+| INT J5 | Phoenix PSTD 0,65X0,65/40-2,54 | 1 | on hand |
+| INT U1–U3 | Lite-On LTV-847 with DIP-16 sockets | 3 + 3 | on hand |
+| INT R1–R12 | 12 kΩ 1/4 W, Stackpole CF14JT12K0 | 12 | on hand |
+| EXT H1–H3 | Phoenix PTSM 0,5/3-HH-2,5-THR, 1778638 | 3 | on hand |
+| EXT U1 | Maxim DS2482-100 SOIC-8 | 1 | on hand |
+| EXT C1 | 100 nF box, KEMET SMR5104J50J01L4 | 1 | on hand |
+| EXT D1–D4 | 1N4007 | 4 | on hand (INT's four) |
+| field plugs | PTSM 0,5/4-P-2,5 and 0,5/3-P-2,5 | 0 | the ones in service move over |
 
 Boards: OSH Park two-layer at $5 per square inch for three copies is about $39 for INT (7.8 sq in) and $26 for EXT (5.1 sq in).
 
 ## 8. From this layout to the order
 
 1. **Review this layout** (`docs/rpi-io-boards-pi-power-layout.svg`) against §4 to §6. Anything to move is cheaper here than after routing.
-2. **Regenerate the boards** in `hardware/gen-boards.py`. INT: drop D1–D4, F1, C1, J7, J8 and the 24 VAC nets; connect J4.1 to HPCOOL, J4.2 to DHWX, J4.3 to SP-E; shift U1–U3 and R1–R12; place J6 as `Connector_JST:JST_GH_SM07B-GHS-TB_1x07-1MP_P1.25mm_Horizontal` with the seven nets of §3; place the title block. EXT: place J1 as `JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical`, J3 from the Phoenix ECAD footprint for 1778625, J4 as `Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical`, U3 on a SIP-8 footprint at 2.54 mm with the case-pin holes omitted, F1, D1–D4, C3, C4, the two proto blocks and the tie slot; assign the VS, COM, +5V and GND nets to the Power netclass at 0.5 mm; keep the J1 room clear.
+2. **Regenerate the boards** in `hardware/gen-boards.py`. INT: drop D1–D4, F1, C1, J7, J8 and the 24 VAC nets; connect J4.1 to HPCOOL, J4.2 to DHWX, J4.3 to SP-E; shift U1–U3 and R1–R12; place J6 as `Connector_JST:JST_GH_SM07B-GHS-TB_1x07-1MP_P1.25mm_Horizontal` with the seven nets of §3; place the title block. EXT: place J1 as `JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical` at y 46.5, J3 with `ptsm_hh(B, 2)` at pins y 81.3 and entry toward +y, J4 as `Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical`, U3 on a SIP-8 footprint at 2.54 mm with the case-pin holes omitted, F1, D1–D4, C3, C4, the two proto blocks and the tie slot; assign VS, COM, +5V and GND to the Power netclass at 0.5 mm; keep the J1 room clear.
 3. **Route and check**: `hardware/build.sh` (Freerouting, DRC, renders). Confirm on the renders that no pad sits in a rib band, that the 2 mm creepage between VS/COM and Pi-side copper holds around U3 and J1, that J3's entry faces the bottom edge and J6's the slot, and that the title block is on `F.SilkS` with no silk over a pad.
 4. **Fit check** in the KiCad 3D viewer with the Phoenix STEP models: J1's plug room, J3 and the probe plugs against the housing openings, U3 and C3 against the 30 mm.
-5. **Order** three of each from OSH Park with the gerbers `build.sh` writes; order the parts in §7 at the same time.
+5. **Order** three of each from OSH Park with the gerbers `build.sh` writes; order the parts in §7.1 at the same time.
 6. **Populate and prove on the bench** with the retired production Pi and the transformer: 35 V at VS/COM with the Pi disconnected, 5.1 V at J4, an open circuit from COM to Pi ground, then the Pi on the pigtail and the full guided walk with `scripts/io-board-test.py`, all twelve channels including J4.1 to J4.3, and a 1-wire proof of 320 clean reads.
 7. **Install** per `docs/rpi-io-boards-reva-install.md`'s order: freeze and clone, panel breaker off, plugs across position for position (J4 changes and the J8 pigtail is retired), the transformer's secondary to J3 on EXT, the pigtail to the Pi, the wall adapter removed, the PivacPower Shelly moved to the transformer outlet, then the first-boot checks. Rev A stays intact as the rollback.
 
-## 9. Checks before sending to OSH Park
+## 9. Open before regeneration
+
+- **The housing at EXT's 85 mm end.** J3 faces out there with the same 1.7 mm overhang as the probe sockets. If that end of the housing is closed, J3 takes H2's place at the top edge (H2 is a spare) and the proto B block extends to the left edge.
+- **Rev A edge alignment.** David reported the 3-way and 5-way PTSM headers not aligned correctly to the board edges. The design offsets are in §5.2; the measured offset and direction on the rev A boards decide whether the pin rows move in rev B.
+- **Datasheets in hand:** Phoenix PTSM (drawing 1814867, via the footprint), Traco TMR 12WI, JST GH, JST XH, Littelfuse 60R, Nichicon UPW. None outstanding; the Phoenix housing STEP models already in `hardware/vendor/` cover the fit check.
+
+## 10. Checks before sending to OSH Park
 
 - Every channel's BCM pin matches §4 and `config.yml`; `hardware/gen_tables.py` regenerated and the label's J4 row updated.
 - No through-hole pad in a rib band; J6's pads clear the rib bulges at x 49.8; INT's resistor pads end at x 47.
+- PTSM pin rows at the offsets of §5.2, so each entry face lands where the table says.
 - U3 footprint: pin 1 at the left, 17.78 mm over eight pins, no copper under the body, case-pin holes omitted.
 - J3 and J4 are different families; J3's silkscreen reads 24 VAC and J4's 5V OUT.
 - C3 polarity marked; +Vin and −Vin marked at U3.
 - DRC clean at OSH Park's 6 mil trace and space, 10 mil drill, 5 mil annular ring; silkscreen strokes at or above 0.15 mm.
 - Title block text reads "v1.0 · Rev B · INT" and "v1.0 · Rev B · EXT" respectively.
-- Renders reviewed by David; this document's §5 table updated to the routed positions if any moved.
+- Renders reviewed by David; the §4.1 and §5.1 tables updated to the routed positions if any moved.
