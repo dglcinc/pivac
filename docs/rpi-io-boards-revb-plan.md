@@ -108,7 +108,7 @@ The probe sockets are where rev A put them, and the I2C and 1-wire parts that se
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-THR | 6.7 wide × 7.5 deep × 7.5 tall | pins (6, 81.3) and (8.5, 81.3), entry faces +y | 24 VAC entry |
 | J2 | 3 pads ⌀1.6 | | x 35.5, y 68, 70.54, 73.08 | VCC, DATA, GND breakout |
 | proto | 10 × 4 pads at 2.54 | | from (13.0, 75.6) | bodge field, from J3 to the right edge |
-| title block | silkscreen at 0.7 scale | 22 × 6.4 | ring centre (6.8, 69.9), text from x 11.2 | §6, reading EXT |
+| title block | silkscreen at 0.7 scale | 22 × 6.4 | ring centre (4.0, 69.9), text from x 8.2 to 21.6, clear of C4 and the tie slot | §6, reading EXT |
 
 The rib bands at y 18.11–22.31 and 61.29–65.49 restrict pads on the solder side only; C3 and U3 bodies may cross the lower line but no pad does. Heights: U3 12.0 mm, C3 25 mm, F1 13 mm, J4 7 mm, J3 7.5 mm, all under the 30 mm available.
 
@@ -127,7 +127,7 @@ The layout drawing now shows the bodies at these offsets. If the rev A boards sh
 
 ## 6. Silkscreen title block
 
-Both boards carry a title block on the component side: a DL monogram in a ring, the name and the version. On INT it sits in the bottom field under the Pi's USB stacks, ring centre (12.5, 75.4), which carries no parts. On EXT the same block at 0.7 scale sits in the lower field between the rib and J3, left of J4, ring centre (6.8, 69.9), with "EXT" in place of "INT"; its name is 1.0 mm capitals and its version line 0.74 mm, both above OSH Park's 0.8 mm floor for the name and at it for the version, which is why the block is not smaller.
+Both boards carry a title block on the component side: a DL monogram in a ring, the name and the version. On INT it sits in the bottom field under the Pi's USB stacks, ring centre (12.5, 75.4), which carries no parts. On EXT the same block at 0.7 scale sits in the lower field between the rib and J3, left of J4, ring centre (4.0, 69.9) with the text ending at x 21.6 so it clears C4 and the tie slot, with "EXT" in place of "INT"; its name is 1.0 mm capitals and its version line 0.74 mm, both above OSH Park's 0.8 mm floor for the name and at it for the version, which is why the block is not smaller.
 
 | Element | Specification |
 |---|---|
