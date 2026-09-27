@@ -156,6 +156,8 @@ J4 is the 5.1 V output to the Pi's USB-C pigtail, a JST B2B-XH-A on rev B. The c
 - The side walls carry the same latch window as the horizontal header, 1.2 to 2.1 mm below the top face, so the latching plug fits.
 - The housing gives EXT 30 mm, so the 18.4 mm standing plug fits.
 - At J4's place the header sits at centre x 29.0 with its body at y 66.0 to 71.0 and its leads toward the tie slots. C4 moves 1.6 mm left to clear the anchor pad.
+- The tie slots TS1 go with this change. They exist to keep the pigtail's weight off J4's two through-hole pins; the PTSM header is held by its anchors and pegs, and a latching plug holds the cable in it. With a plain plug the cable is held by contact friction alone, so the slots go only with a latching plug on J4.
+- Without the slots the proto field can grow from 5 × 4 to 8 × 4, from x 15.54 to x 33.32.
 
 **J3's plug would fit J4.** Both would be 2-way PTSM, and the rev B design relies on J3's plug not fitting J4. The 24 VAC plug seated in J4 puts 36 V peak across U3's output and C4. The Pi is not at risk, because its pigtail is then unplugged. A plug does not enter a header with more positions: the header's floor ribs stand 1.02 mm high and the plug's nose rides 0.70 mm above the floor, so the models interfere by 0.3 mm.
 
