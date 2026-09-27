@@ -51,12 +51,12 @@
 </g>
 <g font-size="1.2" fill="#eee"><text x="20.5" y="29.3">U1</text><text x="20.5" y="41.6">U2</text><text x="20.5" y="53.9">U3</text></g>
 <g fill="#e7cfa3" stroke="#8a6a3a" stroke-width="0.08">
-<rect x="34.2" y="25.4" width="2.2" height="6.4"/><rect x="38.4" y="25.4" width="2.2" height="6.4"/><rect x="42.6" y="25.4" width="2.2" height="6.4"/><rect x="46.8" y="25.4" width="2.2" height="6.4"/>
-<rect x="34.2" y="37.7" width="2.2" height="6.4"/><rect x="38.4" y="37.7" width="2.2" height="6.4"/><rect x="42.6" y="37.7" width="2.2" height="6.4"/><rect x="46.8" y="37.7" width="2.2" height="6.4"/>
-<rect x="34.2" y="50" width="2.2" height="6.4"/><rect x="38.4" y="50" width="2.2" height="6.4"/><rect x="42.6" y="50" width="2.2" height="6.4"/><rect x="46.8" y="50" width="2.2" height="6.4"/>
+<rect x="34.1" y="25.4" width="2.2" height="6.4"/><rect x="38.1" y="25.4" width="2.2" height="6.4"/><rect x="42.1" y="25.4" width="2.2" height="6.4"/><rect x="46.1" y="25.4" width="2.2" height="6.4"/>
+<rect x="34.1" y="37.7" width="2.2" height="6.4"/><rect x="38.1" y="37.7" width="2.2" height="6.4"/><rect x="42.1" y="37.7" width="2.2" height="6.4"/><rect x="46.1" y="37.7" width="2.2" height="6.4"/>
+<rect x="34.1" y="50" width="2.2" height="6.4"/><rect x="38.1" y="50" width="2.2" height="6.4"/><rect x="42.1" y="50" width="2.2" height="6.4"/><rect x="46.1" y="50" width="2.2" height="6.4"/>
 </g>
-<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="35.3" cy="23.52" r="0.6"/><circle cx="35.3" cy="33.68" r="0.6"/><circle cx="35.3" cy="35.82" r="0.6"/><circle cx="35.3" cy="45.98" r="0.6"/><circle cx="35.3" cy="48.12" r="0.6"/><circle cx="35.3" cy="58.28" r="0.6"/><circle cx="39.5" cy="23.52" r="0.6"/><circle cx="39.5" cy="33.68" r="0.6"/><circle cx="39.5" cy="35.82" r="0.6"/><circle cx="39.5" cy="45.98" r="0.6"/><circle cx="39.5" cy="48.12" r="0.6"/><circle cx="39.5" cy="58.28" r="0.6"/><circle cx="43.7" cy="23.52" r="0.6"/><circle cx="43.7" cy="33.68" r="0.6"/><circle cx="43.7" cy="35.82" r="0.6"/><circle cx="43.7" cy="45.98" r="0.6"/><circle cx="43.7" cy="48.12" r="0.6"/><circle cx="43.7" cy="58.28" r="0.6"/><circle cx="47.9" cy="23.52" r="0.6"/><circle cx="47.9" cy="33.68" r="0.6"/><circle cx="47.9" cy="35.82" r="0.6"/><circle cx="47.9" cy="45.98" r="0.6"/><circle cx="47.9" cy="48.12" r="0.6"/><circle cx="47.9" cy="58.28" r="0.6"/></g><g stroke="#8a6a3a" stroke-width="0.18"><line x1="35.3" y1="23.52" x2="35.3" y2="25.40"/><line x1="35.3" y1="31.80" x2="35.3" y2="33.68"/><line x1="35.3" y1="35.82" x2="35.3" y2="37.70"/><line x1="35.3" y1="44.10" x2="35.3" y2="45.98"/><line x1="35.3" y1="48.12" x2="35.3" y2="50.00"/><line x1="35.3" y1="56.40" x2="35.3" y2="58.28"/><line x1="39.5" y1="23.52" x2="39.5" y2="25.40"/><line x1="39.5" y1="31.80" x2="39.5" y2="33.68"/><line x1="39.5" y1="35.82" x2="39.5" y2="37.70"/><line x1="39.5" y1="44.10" x2="39.5" y2="45.98"/><line x1="39.5" y1="48.12" x2="39.5" y2="50.00"/><line x1="39.5" y1="56.40" x2="39.5" y2="58.28"/><line x1="43.7" y1="23.52" x2="43.7" y2="25.40"/><line x1="43.7" y1="31.80" x2="43.7" y2="33.68"/><line x1="43.7" y1="35.82" x2="43.7" y2="37.70"/><line x1="43.7" y1="44.10" x2="43.7" y2="45.98"/><line x1="43.7" y1="48.12" x2="43.7" y2="50.00"/><line x1="43.7" y1="56.40" x2="43.7" y2="58.28"/><line x1="47.9" y1="23.52" x2="47.9" y2="25.40"/><line x1="47.9" y1="31.80" x2="47.9" y2="33.68"/><line x1="47.9" y1="35.82" x2="47.9" y2="37.70"/><line x1="47.9" y1="44.10" x2="47.9" y2="45.98"/><line x1="47.9" y1="48.12" x2="47.9" y2="50.00"/><line x1="47.9" y1="56.40" x2="47.9" y2="58.28"/></g>
-<text x="34.2" y="59.9" font-size="1.0" fill="#555">R1-R12 12k, 4.2 mm columns</text>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="35.2" cy="23.52" r="0.6"/><circle cx="35.2" cy="33.68" r="0.6"/><circle cx="35.2" cy="35.82" r="0.6"/><circle cx="35.2" cy="45.98" r="0.6"/><circle cx="35.2" cy="48.12" r="0.6"/><circle cx="35.2" cy="58.28" r="0.6"/><circle cx="39.2" cy="23.52" r="0.6"/><circle cx="39.2" cy="33.68" r="0.6"/><circle cx="39.2" cy="35.82" r="0.6"/><circle cx="39.2" cy="45.98" r="0.6"/><circle cx="39.2" cy="48.12" r="0.6"/><circle cx="39.2" cy="58.28" r="0.6"/><circle cx="43.2" cy="23.52" r="0.6"/><circle cx="43.2" cy="33.68" r="0.6"/><circle cx="43.2" cy="35.82" r="0.6"/><circle cx="43.2" cy="45.98" r="0.6"/><circle cx="43.2" cy="48.12" r="0.6"/><circle cx="43.2" cy="58.28" r="0.6"/><circle cx="47.2" cy="23.52" r="0.6"/><circle cx="47.2" cy="33.68" r="0.6"/><circle cx="47.2" cy="35.82" r="0.6"/><circle cx="47.2" cy="45.98" r="0.6"/><circle cx="47.2" cy="48.12" r="0.6"/><circle cx="47.2" cy="58.28" r="0.6"/></g><g stroke="#8a6a3a" stroke-width="0.18"><line x1="35.2" y1="23.52" x2="35.2" y2="25.40"/><line x1="35.2" y1="31.80" x2="35.2" y2="33.68"/><line x1="35.2" y1="35.82" x2="35.2" y2="37.70"/><line x1="35.2" y1="44.10" x2="35.2" y2="45.98"/><line x1="35.2" y1="48.12" x2="35.2" y2="50.00"/><line x1="35.2" y1="56.40" x2="35.2" y2="58.28"/><line x1="39.2" y1="23.52" x2="39.2" y2="25.40"/><line x1="39.2" y1="31.80" x2="39.2" y2="33.68"/><line x1="39.2" y1="35.82" x2="39.2" y2="37.70"/><line x1="39.2" y1="44.10" x2="39.2" y2="45.98"/><line x1="39.2" y1="48.12" x2="39.2" y2="50.00"/><line x1="39.2" y1="56.40" x2="39.2" y2="58.28"/><line x1="43.2" y1="23.52" x2="43.2" y2="25.40"/><line x1="43.2" y1="31.80" x2="43.2" y2="33.68"/><line x1="43.2" y1="35.82" x2="43.2" y2="37.70"/><line x1="43.2" y1="44.10" x2="43.2" y2="45.98"/><line x1="43.2" y1="48.12" x2="43.2" y2="50.00"/><line x1="43.2" y1="56.40" x2="43.2" y2="58.28"/><line x1="47.2" y1="23.52" x2="47.2" y2="25.40"/><line x1="47.2" y1="31.80" x2="47.2" y2="33.68"/><line x1="47.2" y1="35.82" x2="47.2" y2="37.70"/><line x1="47.2" y1="44.10" x2="47.2" y2="45.98"/><line x1="47.2" y1="48.12" x2="47.2" y2="50.00"/><line x1="47.2" y1="56.40" x2="47.2" y2="58.28"/></g>
+<text x="34.2" y="59.9" font-size="1.0" fill="#555">R1-R12 12k, 4.0 mm columns</text>
 <!-- rev A power parts that leave INT, dashed -->
 <g fill="none" stroke="#8a8f94" stroke-width="0.15" stroke-dasharray="0.7 0.5">
 <rect x="51.3" y="17.6" width="7.4" height="7.6" rx="0.6"/>
@@ -70,7 +70,7 @@
 <rect x="59" y="26" width="1.2" height="33" fill="#d8dde3"/>
 <rect x="53.2" y="28.5" width="5.4" height="12" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
 <g fill="#4a2a00" font-size="0.75">
-<text x="53.7" y="30.2">1 3V3</text><text x="53.7" y="31.7">2 SDA</text><text x="53.7" y="33.2">3 SCL</text><text x="53.7" y="34.7">4 G4</text><text x="53.7" y="36.2">5 GND</text><text x="53.7" y="37.7">6 VS</text><text x="53.7" y="39.2">7 COM</text>
+<text x="53.7" y="30.2">7 COM</text><text x="53.7" y="31.7">6 VS</text><text x="53.7" y="33.2">5 GND</text><text x="53.7" y="34.7">4 G4</text><text x="53.7" y="36.2">3 SCL</text><text x="53.7" y="37.7">2 SDA</text><text x="53.7" y="39.2">1 3V3</text>
 </g>
 <text x="47.6" y="42.4" font-size="0.95" font-weight="700" fill="#a45d00">J6 GH SM07B</text>
 <text x="47.6" y="43.7" font-size="0.85" fill="#a45d00">side entry,</text>
@@ -140,20 +140,20 @@
 <!-- GH 7-way top-entry link header at the left edge, beside the opening to INT -->
 <rect x="1.5" y="46.5" width="5.6" height="12" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
 <g fill="#4a2a00" font-size="0.7">
-<text x="1.9" y="48.1">1 3V3</text><text x="1.9" y="49.6">2 SDA</text><text x="1.9" y="51.1">3 SCL</text><text x="1.9" y="52.6">4 G4</text><text x="1.9" y="54.1">5 GND</text><text x="1.9" y="55.6">6 VS</text><text x="1.9" y="57.1">7 COM</text>
+<text x="1.9" y="48.1">7 COM</text><text x="1.9" y="49.6">6 VS</text><text x="1.9" y="51.1">5 GND</text><text x="1.9" y="52.6">4 G4</text><text x="1.9" y="54.1">3 SCL</text><text x="1.9" y="55.6">2 SDA</text><text x="1.9" y="57.1">1 3V3</text>
 </g>
 <text x="0.6" y="42.6" font-size="0.8" fill="#a45d00">J1 GH BM07B</text>
 <text x="0.6" y="43.8" font-size="0.8" fill="#a45d00">top entry, at</text>
 <text x="0.6" y="45" font-size="0.8" fill="#a45d00">the opening</text>
 <!-- D1-D4 column -->
 <g fill="#f3b45c" stroke="#a45d00" stroke-width="0.2">
-<rect x="12.5" y="23.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="26.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="29.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="32.6" width="5.2" height="2.7" rx="0.4"/>
+<rect x="12.5" y="23.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="27.1" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="30.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="34.1" width="5.2" height="2.7" rx="0.4"/>
 </g>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
-<circle cx="10" cy="24.95" r="0.6"/><circle cx="20.16" cy="24.95" r="0.6"/><circle cx="10" cy="27.95" r="0.6"/><circle cx="20.16" cy="27.95" r="0.6"/><circle cx="10" cy="30.95" r="0.6"/><circle cx="20.16" cy="30.95" r="0.6"/><circle cx="10" cy="33.95" r="0.6"/><circle cx="20.16" cy="33.95" r="0.6"/>
+<circle cx="10" cy="24.95" r="0.6"/><circle cx="20.16" cy="24.95" r="0.6"/><circle cx="10" cy="28.45" r="0.6"/><circle cx="20.16" cy="28.45" r="0.6"/><circle cx="10" cy="31.95" r="0.6"/><circle cx="20.16" cy="31.95" r="0.6"/><circle cx="10" cy="35.45" r="0.6"/><circle cx="20.16" cy="35.45" r="0.6"/>
 </g>
-<g stroke="#8a6a3a" stroke-width="0.18"><line x1="10" y1="24.95" x2="12.5" y2="24.95"/><line x1="17.7" y1="24.95" x2="20.16" y2="24.95"/><line x1="10" y1="27.95" x2="12.5" y2="27.95"/><line x1="17.7" y1="27.95" x2="20.16" y2="27.95"/><line x1="10" y1="30.95" x2="12.5" y2="30.95"/><line x1="17.7" y1="30.95" x2="20.16" y2="30.95"/><line x1="10" y1="33.95" x2="12.5" y2="33.95"/><line x1="17.7" y1="33.95" x2="20.16" y2="33.95"/></g>
-<text x="10.8" y="37.2" font-size="0.9" fill="#a45d00">D1-D4 1N4007 bridge</text>
+<g stroke="#8a6a3a" stroke-width="0.18"><line x1="10" y1="24.95" x2="12.5" y2="24.95"/><line x1="17.7" y1="24.95" x2="20.16" y2="24.95"/><line x1="10" y1="28.45" x2="12.5" y2="28.45"/><line x1="17.7" y1="28.45" x2="20.16" y2="28.45"/><line x1="10" y1="31.95" x2="12.5" y2="31.95"/><line x1="17.7" y1="31.95" x2="20.16" y2="31.95"/><line x1="10" y1="35.45" x2="12.5" y2="35.45"/><line x1="17.7" y1="35.45" x2="20.16" y2="35.45"/></g>
+<text x="10.8" y="38.6" font-size="0.9" fill="#a45d00">D1-D4 1N4007 bridge</text>
 <!-- C3 reservoir, standing, upper right -->
 <circle cx="31.5" cy="30" r="6.25" fill="#f3b45c" stroke="#a45d00" stroke-width="0.25"/>
 <circle cx="29" cy="30" r="0.6" fill="#d9b53a"/><circle cx="34" cy="30" r="0.6" fill="#d9b53a"/>
@@ -181,11 +181,11 @@
 <circle cx="28" cy="69.2" r="0.6" fill="#d9b53a"/><circle cx="30.5" cy="69.2" r="0.6" fill="#d9b53a"/>
 <text x="25.8" y="68.1" font-size="0.8" font-weight="700" fill="#4a2a00">J4 XH-2</text>
 <text x="25.8" y="71.3" font-size="0.65" fill="#4a2a00">+5V  GND</text>
-<rect x="22.35" y="66.5" width="2.5" height="6" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
-<circle cx="23.6" cy="67" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="23.6" cy="72" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/>
-<text x="22.5" y="73.6" font-size="0.65" fill="#a45d00">C4 1u</text>
-<rect x="27.6" y="72.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/><rect x="31.4" y="72.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
-<text x="33.0" y="74.2" font-size="0.65" fill="#a45d00">tie slots</text>
+<rect x="22.05" y="66" width="2.5" height="7" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
+<circle cx="23.3" cy="67" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="23.3" cy="72" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/>
+<text x="22.2" y="74.4" font-size="0.65" fill="#a45d00">C4 1u</text>
+<rect x="28.1" y="74.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/><rect x="31.9" y="74.4" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
+<text x="28.4" y="78.1" font-size="0.65" fill="#a45d00">TS1 tie slots</text>
 <text x="11.2" y="73.6" font-size="0.75" fill="#a45d00">USB-C pigtail to the Pi</text>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
 <circle cx="35.5" cy="68" r="0.75"/><circle cx="35.5" cy="70.54" r="0.75"/><circle cx="35.5" cy="73.08" r="0.75"/>
@@ -193,22 +193,19 @@
 <text x="34.2" y="66.6" font-size="0.9" fill="#333">J2</text>
 <text x="36.6" y="68.4" font-size="0.75" fill="#333">V</text><text x="36.6" y="70.9" font-size="0.75" fill="#333">D</text><text x="36.6" y="73.4" font-size="0.75" fill="#333">G</text>
 <!-- EXT title block at 0.7 scale, left of J4 -->
-<g transform="translate(4.0,69.9) scale(0.7)">
+<g transform="translate(31.2,40.3) scale(0.7)">
 <circle cx="0" cy="0" r="4.425" fill="none" stroke="#1a1a1a" stroke-width="0.35"/>
 <path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill="#1a1a1a" fill-rule="nonzero"/>
 <path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z" fill="#1a1a1a"/>
 </g>
-<text x="8.2" y="69.3" font-size="1.02" font-weight="700" letter-spacing="0.06">PIVAC MONITORING BOARD</text>
-<line x1="8.2" y1="69.95" x2="21.6" y2="69.95" stroke="#1a1a1a" stroke-width="0.15"/>
-<text x="8.2" y="71.35" font-size="0.74" letter-spacing="0.04">v1.0  ·  Rev B  ·  EXT</text>
+<text x="31.2" y="45.2" font-size="0.85" font-weight="700" text-anchor="middle" letter-spacing="0.05">PIVAC MONITORING</text>
+<text x="31.2" y="46.7" font-size="0.75" text-anchor="middle">BOARD · v1.0 · Rev B · EXT</text>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
 <!-- block B: 10 x 4 from J3 to the right edge -->
-<g id="pb">
-<circle cx="13" cy="75.6" r="0.7"/><circle cx="15.54" cy="75.6" r="0.7"/><circle cx="18.08" cy="75.6" r="0.7"/><circle cx="20.62" cy="75.6" r="0.7"/><circle cx="23.16" cy="75.6" r="0.7"/><circle cx="25.7" cy="75.6" r="0.7"/><circle cx="28.24" cy="75.6" r="0.7"/><circle cx="30.78" cy="75.6" r="0.7"/><circle cx="33.32" cy="75.6" r="0.7"/><circle cx="35.86" cy="75.6" r="0.7"/>
-</g>
+<g id="pb"><circle cx="13.00" cy="75.6" r="0.7"/><circle cx="15.54" cy="75.6" r="0.7"/><circle cx="18.08" cy="75.6" r="0.7"/><circle cx="20.62" cy="75.6" r="0.7"/><circle cx="23.16" cy="75.6" r="0.7"/><circle cx="25.70" cy="75.6" r="0.7"/></g>
 <use href="#pb" y="2.54"/><use href="#pb" y="5.08"/><use href="#pb" y="7.62"/>
 </g>
-<text x="13" y="74.4" font-size="0.75" fill="#333">proto 10 x 4, 2.54 mm</text>
+<text x="13" y="74.4" font-size="0.75" fill="#333">PF1 proto 6 x 4</text>
 <!-- J3 24 VAC entry, facing the bottom edge -->
 <rect x="3.9" y="79.2" width="6.7" height="7.5" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
 <circle cx="6" cy="81.3" r="0.7" fill="#d9b53a"/><circle cx="8.5" cy="81.3" r="0.7" fill="#d9b53a"/>
@@ -221,7 +218,7 @@
 <path d="M 20.9 27.95 C 24 27.95, 26 30, 28.2 30"/>
 <path d="M 31.5 36.5 C 31.5 44, 16 46, 15.65 53.3"/>
 <path d="M 25.81 54.8 C 25.81 60, 28 63, 28 65.6"/>
-<path d="M 10 34.7 C 9.8 44, 8.8 54, 7.4 56.1"/>
+<path d="M 10 34.7 C 9.8 40, 8.8 46, 7.4 48.6"/>
 </g>
 <g font-size="0.7" fill="#a45d00">
 <text x="29.2" y="62.6">5.1 V to J4</text>
@@ -244,7 +241,7 @@
 <text x="14" y="122">J1 sits at EXT's left edge beside the opening, low against the rib so it clears INT's J6; the only keep-out is the room for its plug and a</text>
 <text x="14" y="136">finger. The rest of the mid field carries the power section; the riser field is not reserved. The probe end stays as rev A.</text>
 <text x="14" y="156">Heights: the housing gives EXT at least 30 mm everywhere (measured 2026-09-26), so C3 (25 mm) and F1 (13 mm) stand and U3</text>
-<text x="14" y="170">(12 mm) is unconstrained. Creepage: 2 mm between the VS/COM copper and the Pi-side copper; U3 provides the 1.6 kV barrier.</text>
+<text x="14" y="170">(12 mm) is unconstrained. EXT Power netclass clearance 0.5 mm, both sides SELV; U3 provides the 1.6 kV barrier.</text>
 <text x="14" y="184" font-size="10.5">Pigtail: a power-only USB-C plug with two 22 AWG leads; the Pi 4 takes 5 V on VBUS with no CC negotiation. J3's plug does not fit J4.</text>
 <text x="14" y="202">C3 at 470 uF holds the valley near 28 V at the Pi's 0.4 A peak against U3's 16.4 V lockout; 3 V of ripple at the 0.16 A typical.</text>
 <text x="14" y="220" fill="#a45d00" font-weight="700">Ratings: J3 6 A 160 V; GH 1 A 50 V per contact against 37 V on VS; XH 3 A against a 1.5 A Pi peak; F1 holds 1.1 A at 0.45 A.</text>

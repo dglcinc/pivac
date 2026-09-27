@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards on Fabricated PCBs — Plan
 
-**Status:** First complete draft of both boards generated, routed and DRC-clean (`hardware/`). Open questions in §7 gate the order. · **Owner:** David
+**Status:** Rev A boards fabricated, populated and in service since the 2026-09-26 cutover. Rev B, which moves the power section to EXT, is `docs/rpi-io-boards-revb-plan.md`; `hardware/` now generates rev B. · **Owner:** David
 
 Plan for replacing the two hand-wired Phoenix Contact perfboards in the RPI-BC 107,6 housing
 with fabricated printed circuit boards of the same outline, carrying the same circuits. The

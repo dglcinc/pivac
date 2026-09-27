@@ -192,7 +192,7 @@ def build_int():
                                [(16, "C1"), (15, "E1"), (14, "C2"), (13, "E2"), (12, "C3"), (11, "E3"), (10, "C4"), (9, "E4")],
                                desc="Lite-On LTV-847 quad optocoupler, DIP-16")
     S.lib("pivac:LTV-847", ltv, ltv_pins)
-    S.text("pivac INT board rev A: relay-sense inputs on LTV-847 optocouplers, 24 VAC sense supply", 20, 15, 3)
+    S.text("pivac INT board rev B: relay-sense inputs on LTV-847 optocouplers; VS/COM arrive from the EXT board", 20, 15, 3)
     S.text("Field side (VS / COM / plugs) and Pi side (GND / GPIO) meet only inside the optocouplers.", 20, 21, 1.6)
 
     # channels: one row per IC, resistor + plug label per channel
@@ -209,27 +209,18 @@ def build_int():
             S.place("Device:R", f"R{n}", "12k 1/4W", x + 60 + (c - 1) * 30, y - 6, {1: f"K{n}", 2: f"S_{name}"},
                     footprint="Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
             S.text(f"ch{n} {name}", x + 52 + (c - 1) * 30, y + 10, 1.2)
-            S.text(f"{plug + '.' + str(pos) if plug else 'J8'} > G{bcm} (p{pin})", x + 52 + (c - 1) * 30, y + 13, 1.0)
+            S.text(f"{plug}.{pos} > G{bcm} (p{pin})", x + 52 + (c - 1) * 30, y + 13, 1.0)
         S.place("pivac:LTV-847", f"U{k}", "LTV-847", x, y, nets, footprint="Package_DIP:DIP-16_W7.62mm_Socket")
 
     # plugs
-    S.text("Field plugs, PTSM 0,5/4-HH-2,5-THR; position 4 is COM on every plug; J4.1/J4.2 take the 24 VAC", 20, 225, 1.6)
+    S.text("Field plugs, PTSM 0,5/4-HH-2,5-THR; position 4 is COM on every plug; twelve channels on twelve positions", 20, 225, 1.6)
     for i, (j, xc) in enumerate(T.PLUG_X.items()):
         nets = {4: "COM"}
         for name, plug, pos, bcm, pin in T.CHANNELS:
             if plug == j:
                 nets[pos] = f"S_{name}"
-        if j == "J4":
-            nets[1], nets[2] = "ACR", "ACC"
         S.place("Connector_Generic:Conn_01x04", j, "PTSM 0,5/4-HH", 40 + i * 45, 240, nets, footprint="pivac:PTSM_0.5_4-HH-2.5-THR")
-    S.place("Connector_Generic:Conn_01x03", "J8", "spare ch pads", 220, 240, {1: "S_SP-C", 2: "S_SP-E", 3: "COM"}, footprint="pivac:Pads_3x1")
-
-    # supply
-    S.text("24 VAC sense supply: PTC, full-wave bridge, 100 uF; VS is about 35 V DC, COM its return; C1 and F1 lie flat, nothing on the component side stands over 8 mm", 250, 225, 1.6)
-    S.place("Device:Fuse", "F1", "PTC 0.1A 60V", 270, 245, {1: "ACR", 2: "ACF"}, footprint="pivac:PTC_Radial_P5.08_Flat")
-    for ref, a, kk, x in (("D1", "ACF", "VS", 320), ("D2", "ACC", "VS", 340), ("D3", "COM", "ACF", 360), ("D4", "COM", "ACC", 380)):
-        S.place("Device:D", ref, "1N4007", x, 245, {2: a, 1: kk}, footprint="Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
-    S.place("Device:C_Polarized", "C1", "100u 63V axial", 400, 245, {1: "VS", 2: "COM"}, footprint="Capacitor_THT:CP_Axial_L18.0mm_D6.5mm_P25.00mm_Horizontal")
+    S.text("The sense supply (VS about 35 V DC, COM its return) is made on the EXT board and arrives on J6.6/J6.7.", 250, 225, 1.6)
 
     # Pi header
     S.text("Pi 40-pin socket J5 (solder side), odd pins left, even pins right. Pins 9, 25, 39 (GND), 8/10 (console), 27/28 (ID EEPROM) unconnected.", 250, 30, 1.6)
@@ -251,11 +242,10 @@ def build_int():
     S.place("Connector_Generic:Conn_02x20_Odd_Even", "J5", "Pi 40-pin socket", 330, 110, hdr, footprint="pivac:PiHeader_2x20_Socket_Bottom", hide_value=True)
 
     # breakout, link, power link, test points
-    S.text("Shadow column J9: one pad per header row (rows 1, 2, 16, 18 empty)", 250, 185, 1.6)
+    S.text("Shadow column J9: one pad per header row (rows 1, 2, 16, 18 empty); pins 2 and 4 (5 V) carry nothing, the Pi is fed by USB-C", 250, 185, 1.6)
     S.place("Connector_Generic:Conn_01x20", "J9", "breakout", 290, 210, {i: e[2] for i, e in enumerate(T.BREAKOUT, start=1) if e},
             footprint="pivac:Shadow_1x20", hide_value=True)
-    S.place("Connector_Generic:Conn_01x05", "J6", "LINK to EXT", 400, 120, dict(enumerate(("3V3", "SDA", "SCL", "GPIO4", "GND"), start=1)), footprint="pivac:PTSM_0.5_5-HH-2.5-THR")
-    S.place("Connector_Generic:Conn_01x04", "J7", "PWR link (not fitted)", 400, 160, dict(enumerate(("VS", "COM", "+5V", "GND"), start=1)), footprint="pivac:PTSM_0.5_4-HH-2.5-THR", dnp=True)
+    S.place("Connector_Generic:Conn_01x07", "J6", "GH link to EXT", 400, 120, dict(enumerate(("3V3", "SDA", "SCL", "GPIO4", "GND", "VS", "COM"), start=1)), footprint="Connector_JST:JST_GH_SM07B-GHS-TB_1x07-1MP_P1.25mm_Horizontal")
     for ref, net, y in (("TP1", "VS", 190), ("TP2", "COM", 200), ("TP3", "GND", 210)):
         S.place("Connector_Generic:Conn_01x01", ref, net, 400, y, {1: net}, footprint="pivac:TestPad", hide_value=True)
     S.pwr_flags(("3V3", "+5V", "GND", "VS", "COM"), 250, 270)
@@ -269,7 +259,10 @@ def build_ext():
     ds, ds_pins = box_symbol("DS2482-100", [(1, "VCC"), (2, "IO"), (3, "GND"), (4, "SCL")], [(8, "AD0"), (7, "AD1"), (6, "PCTLZ"), (5, "SDA")],
                              desc="Analog Devices DS2482-100 I2C to 1-Wire bridge, SO-8")
     S.lib("pivac:DS2482-100", ds, ds_pins)
-    S.text("pivac EXT board rev A: DS2482-100 1-wire master, three probe sockets, link to the INT board", 20, 15, 3)
+    S.text("pivac EXT board rev B: DS2482-100 1-wire master, three probe sockets, 24 VAC sense supply and the Pi's 5.1 V supply, link to the INT board", 20, 15, 3)
+    tmr, tmr_pins = box_symbol("TMR12WI", [(1, "-Vin"), (2, "+Vin"), (3, "Remote")], [(6, "+Vout"), (7, "-Vout"), (8, "NC")],
+                               desc="Traco TMR 12-4811WI isolated DC/DC, 18-75 V in, 5.1 V 2.4 A out, SIP-8")
+    S.lib("pivac:TMR12WI", tmr, tmr_pins)
     S.place("pivac:DS2482-100", "U1", "DS2482-100 (0x18)", 80, 60, {1: "VCC", 2: "DATA", 3: "GND", 4: "SCL", 5: "SDA", 7: "GND", 8: "GND"}, footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
     S.place("Device:C", "C1", "100n", 130, 60, {1: "VCC", 2: "GND"}, footprint="Capacitor_THT:C_Rect_L7.0mm_W2.5mm_P5.00mm")
     S.place("pivac:DS2482-100", "U2", "DS2482-100 (0x19, not fitted)", 80, 120, {1: "VCC", 2: "DATA_H3", 3: "GND", 4: "SCL", 5: "SDA", 7: "GND", 8: "VCC"}, footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm", dnp=True)
@@ -281,9 +274,20 @@ def build_ext():
     S.text("Rollback to w1-gpio: fit R1 and bridge JP1, and GPIO4 becomes the bus data line.", 20, 215, 1.6)
     S.place("Device:R", "R1", "2k2 (not fitted)", 50, 235, {1: "VCC", 2: "DATA"}, footprint="Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", dnp=True)
     S.place("Jumper:SolderJumper_2_Open", "JP1", "GPIO4 -> DATA", 90, 235, {1: "GPIO4", 2: "DATA"}, footprint="Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
-    S.place("Connector_Generic:Conn_01x05", "J1", "LINK to INT", 250, 60, dict(enumerate(("VCC", "SDA", "SCL", "GPIO4", "GND"), start=1)), footprint="pivac:PTSM_0.5_5-HH-2.5-THR")
+    S.place("Connector_Generic:Conn_01x07", "J1", "GH link to INT", 250, 60, dict(enumerate(("VCC", "SDA", "SCL", "GPIO4", "GND", "VS", "COM"), start=1)), footprint="Connector_JST:JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical")
     S.place("Connector_Generic:Conn_01x03", "J2", "bus pads", 250, 110, {1: "VCC", 2: "DATA", 3: "GND"}, footprint="pivac:Pads_1x3")
-    S.pwr_flags(("VCC", "GND"), 200, 240)
+    # power section
+    S.text("24 VAC in on J3, PTC F1, bridge D1-D4, C3 470 uF: VS about 35 V DC against COM, out to INT on J1.6/J1.7 and into U3.", 20, 270, 1.6)
+    S.text("U3 makes 5.1 V isolated for the Pi: C4 at its output, J4 to a USB-C pigtail. Remote (pin 3) open = on. COM never meets GND.", 20, 276, 1.6)
+    S.place("Connector_Generic:Conn_01x02", "J3", "PTSM 0,5/2-HH 24 VAC", 40, 300, {1: "ACR", 2: "ACC"}, footprint="pivac:PTSM_0.5_2-HH-2.5-THR")
+    S.place("Device:Fuse", "F1", "PTC 1.1A 60V", 80, 300, {1: "ACR", 2: "ACF"}, footprint="pivac:PTC_Radial_P5.08_Standing")
+    for ref, a, kk, x in (("D1", "ACF", "VS", 120), ("D2", "ACC", "VS", 140), ("D3", "COM", "ACF", 160), ("D4", "COM", "ACC", 180)):
+        S.place("Device:D", ref, "1N4007", x, 300, {2: a, 1: kk}, footprint="Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
+    S.place("Device:C_Polarized", "C3", "470u 63V", 210, 300, {1: "VS", 2: "COM"}, footprint="Capacitor_THT:CP_Radial_D12.5mm_P5.00mm")
+    S.place("pivac:TMR12WI", "U3", "TMR 12-4811WI", 260, 300, {1: "COM", 2: "VS", 6: "+5V", 7: "GND"}, footprint="pivac:TMR12WI_SIP-8")
+    S.place("Device:C", "C4", "1u", 310, 300, {1: "+5V", 2: "GND"}, footprint="Capacitor_THT:C_Rect_L7.0mm_W2.5mm_P5.00mm")
+    S.place("Connector_Generic:Conn_01x02", "J4", "XH 5V OUT to Pi USB-C", 340, 300, {1: "+5V", 2: "GND"}, footprint="Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical")
+    S.pwr_flags(("VCC", "GND", "VS", "COM", "+5V"), 200, 240)
     S.save()
     return S
 
