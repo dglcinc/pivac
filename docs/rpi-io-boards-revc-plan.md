@@ -93,7 +93,7 @@ The latching plug that mates with this header is Phoenix's `-PL-` series, which 
 | 2-way black | PTSM 0,5/2-PL-2,5 BK | 1709442 |
 | H1, H2 probes, 3-way black | PTSM 0,5/3-PL-2,5 BK | 1709443 |
 
-The header's side lugs are what the arms catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the plug's arms reach 4.5 mm past its body. Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457. Availability is unconfirmed; the board is the same with either plug, so the choice can wait for the order.
+Phoenix's datasheets pair the two: the plug's derating curve is captioned "PTSM 0,5/...-PL-2,5 WH with PTSM 0,5/...-HH-2,5-SMD WH" (1709459, page 3), and the surface-mount header's datasheet lists 1709457 among its accessories (1814919). Neither shows the latch engaged. The header's side lugs are what the arms would catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the plug's arms reach 4.5 mm past its body. Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457. Availability is unconfirmed; the board is the same with either plug, so the choice can wait for the order.
 
 ## 7. Parts list
 
