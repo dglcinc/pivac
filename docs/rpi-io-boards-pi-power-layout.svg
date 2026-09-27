@@ -1,0 +1,249 @@
+<svg viewBox="0 0 1000 1100" role="img" aria-label="Rev B component layout: the 24 VAC entry, rectifier, reservoir and TMR 12-4811WI converter on the EXT board's mid field with a USB-C pigtail to the Pi, a 7-way GH link at the opening carrying VS and COM to the INT board, and the INT board with its power section removed." xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+<defs>
+<pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="4" stroke="#9aa3ad" stroke-width="0.8"/>
+</pattern>
+<marker id="arr" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#a45d00"/></marker>
+</defs>
+<rect x="0" y="0" width="1000" height="1100" fill="#ffffff"/>
+<g font-family="IBM Plex Mono, ui-monospace, monospace" fill="#1a1a1a">
+<text x="30" y="30" font-size="15" font-weight="700">Rev B: the Pi's supply lives on the EXT board, component side up, scale 8 px per mm</text>
+<text x="30" y="48" font-size="9.5" opacity="0.8">Grey: carried over from rev A. Orange: new part. Dashed grey: rev A part that leaves. Hatched: keep clear. The panels sit as the boards do in the enclosure, the opening between them.</text>
+
+<!-- ================= INT board rev B, origin (60,80) ================= -->
+<g transform="translate(60,80) scale(8)">
+<rect x="0" y="0" width="59" height="85" fill="#eef1ee" stroke="#2f5f3a" stroke-width="0.3"/>
+<text x="1.5" y="83.5" font-size="1.6" font-weight="700">INT 59 x 85</text>
+<g stroke="#8a8f94" stroke-width="0.12" stroke-dasharray="0.8 0.5" fill="none">
+<line x1="12.99" y1="18.11" x2="59" y2="18.11"/><line x1="12.99" y1="22.31" x2="59" y2="22.31"/>
+<line x1="6.64" y1="61.29" x2="59" y2="61.29"/><line x1="6.64" y1="65.49" x2="59" y2="65.49"/>
+</g>
+<text x="14" y="21.1" font-size="1.1" fill="#8a8f94">rib (solder side)</text>
+<text x="8" y="64.3" font-size="1.1" fill="#8a8f94">rib (solder side)</text>
+<rect x="1.1" y="7.2" width="4.9" height="50.6" rx="0.3" fill="none" stroke="#7c7c78" stroke-width="0.08"/>
+<text x="1.2" y="60" font-size="1.0" fill="#555">Pi header J5</text>
+<text x="1.2" y="61.6" font-size="1.0" fill="#555">(solder side)</text>
+<g fill="#f4f4f1" stroke="#555" stroke-width="0.15">
+<rect x="7.1" y="0.4" width="12" height="9.6"/><rect x="18.8" y="0.4" width="12" height="9.6"/><rect x="30.5" y="0.4" width="12" height="9.6"/><rect x="42.2" y="0.4" width="12" height="9.6"/>
+</g>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.08">
+<circle cx="9.35" cy="6.95" r="0.9"/><circle cx="11.85" cy="6.95" r="0.9"/><circle cx="14.35" cy="6.95" r="0.9"/><circle cx="16.85" cy="6.95" r="0.9"/>
+<circle cx="21.05" cy="6.95" r="0.9"/><circle cx="23.55" cy="6.95" r="0.9"/><circle cx="26.05" cy="6.95" r="0.9"/><circle cx="28.55" cy="6.95" r="0.9"/>
+<circle cx="32.75" cy="6.95" r="0.9"/><circle cx="35.25" cy="6.95" r="0.9"/><circle cx="37.75" cy="6.95" r="0.9"/><circle cx="40.25" cy="6.95" r="0.9"/>
+<circle cx="44.45" cy="6.95" r="0.9"/><circle cx="46.95" cy="6.95" r="0.9"/><circle cx="49.45" cy="6.95" r="0.9"/><circle cx="51.95" cy="6.95" r="0.9"/>
+</g>
+<g font-size="1.3" font-weight="700" fill="#333">
+<text x="12" y="3.2">J1</text><text x="23.7" y="3.2">J2</text><text x="35.4" y="3.2">J3</text><text x="47.1" y="3.2">J4</text>
+</g>
+<text x="42.4" y="12.4" font-size="1.0" font-weight="700" fill="#a45d00">ch  ch  ch  COM</text>
+<text x="33" y="14.6" font-size="0.95" fill="#a45d00">J4.1 and J4.2 become channel positions</text>
+<!-- J9 header breakout column, one pad per free header row -->
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
+<circle cx="7.31" cy="13.45" r="0.6"/><circle cx="7.31" cy="15.99" r="0.6"/><circle cx="7.31" cy="18.53" r="0.6"/><circle cx="7.31" cy="21.07" r="0.6"/><circle cx="7.31" cy="23.61" r="0.6"/><circle cx="7.31" cy="26.15" r="0.6"/><circle cx="7.31" cy="28.69" r="0.6"/><circle cx="7.31" cy="31.23" r="0.6"/><circle cx="7.31" cy="33.77" r="0.6"/><circle cx="7.31" cy="36.31" r="0.6"/><circle cx="7.31" cy="38.85" r="0.6"/><circle cx="7.31" cy="41.39" r="0.6"/><circle cx="7.31" cy="43.93" r="0.6"/><circle cx="7.31" cy="49.01" r="0.6"/><circle cx="7.31" cy="54.09" r="0.6"/><circle cx="7.31" cy="56.63" r="0.6"/>
+</g>
+<text x="8.4" y="14" font-size="0.8" fill="#555">J9 breakout</text>
+<text x="8.4" y="16.6" font-size="0.75" fill="#a45d00">6.7 mm clear to U1</text>
+<text x="8.4" y="17.8" font-size="0.75" fill="#a45d00">(2.2 in rev A)</text>
+<!-- optocoupler sockets and resistor columns, moved 4.5 mm right into the vacated strip -->
+<g fill="#3a3a3a" stroke="#222" stroke-width="0.1">
+<rect x="14" y="23.6" width="19.5" height="10"/><rect x="14" y="35.9" width="19.5" height="10"/><rect x="14" y="48.2" width="19.5" height="10"/>
+</g>
+<g font-size="1.2" fill="#eee"><text x="21.5" y="29.3">U1</text><text x="21.5" y="41.6">U2</text><text x="21.5" y="53.9">U3</text></g>
+<g fill="#e7cfa3" stroke="#8a6a3a" stroke-width="0.08">
+<rect x="35.1" y="25.3" width="2.2" height="6.4"/><rect x="38.4" y="25.3" width="2.2" height="6.4"/><rect x="41.65" y="25.3" width="2.2" height="6.4"/><rect x="44.9" y="25.3" width="2.2" height="6.4"/>
+<rect x="35.1" y="37.6" width="2.2" height="6.4"/><rect x="38.4" y="37.6" width="2.2" height="6.4"/><rect x="41.65" y="37.6" width="2.2" height="6.4"/><rect x="44.9" y="37.6" width="2.2" height="6.4"/>
+<rect x="35.1" y="49.9" width="2.2" height="6.4"/><rect x="38.4" y="49.9" width="2.2" height="6.4"/><rect x="41.65" y="49.9" width="2.2" height="6.4"/><rect x="44.9" y="49.9" width="2.2" height="6.4"/>
+</g>
+<text x="35.1" y="58.6" font-size="1.0" fill="#555">R1-R12 12k</text>
+<!-- rev A power parts that leave INT, dashed -->
+<g fill="none" stroke="#8a8f94" stroke-width="0.15" stroke-dasharray="0.7 0.5">
+<rect x="51.3" y="17.6" width="7.4" height="7.6" rx="0.6"/>
+<rect x="46.5" y="65.7" width="7" height="2.2" rx="0.4"/><rect x="46.5" y="69.2" width="7" height="2.2" rx="0.4"/><rect x="46.5" y="72.7" width="7" height="2.2" rx="0.4"/><rect x="46.5" y="76.2" width="7" height="2.2" rx="0.4"/>
+<rect x="50.5" y="44.65" width="8.5" height="11.7"/>
+</g>
+<g font-size="0.9" fill="#8a8f94">
+<text x="49.2" y="15.2">C1 and F1 leave</text><text x="39" y="71.5">D1-D4 leave</text><text x="50.8" y="59.2">J7 leaves</text>
+</g>
+<!-- housing slot and the GH 7-way side-entry link -->
+<rect x="59" y="26" width="1.2" height="33" fill="#d8dde3"/>
+<rect x="53.2" y="28.5" width="5.4" height="12" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
+<g fill="#4a2a00" font-size="0.75">
+<text x="53.7" y="30.2">1 3V3</text><text x="53.7" y="31.7">2 SDA</text><text x="53.7" y="33.2">3 SCL</text><text x="53.7" y="34.7">4 G4</text><text x="53.7" y="36.2">5 GND</text><text x="53.7" y="37.7">6 VS</text><text x="53.7" y="39.2">7 COM</text>
+</g>
+<text x="47.6" y="42.4" font-size="0.95" font-weight="700" fill="#a45d00">J6 GH SM07B</text>
+<text x="47.6" y="43.7" font-size="0.85" fill="#a45d00">side entry,</text>
+<text x="47.6" y="44.9" font-size="0.85" fill="#a45d00">faces the slot</text>
+<text x="7" y="67.6" font-size="0.95" fill="#8a8f94">no parts: the Pi's USB stacks sit under this field</text>
+<text x="7" y="69.2" font-size="0.9" fill="#a45d00">Pi powered by USB-C from EXT; header pins 2 and 4 carry nothing</text>
+<!-- silkscreen title block: DL monogram in a ring, name and version -->
+<g transform="translate(12.5,75.4)">
+<circle cx="0" cy="0" r="4.425" fill="none" stroke="#1a1a1a" stroke-width="0.35"/>
+<path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill="#1a1a1a" fill-rule="nonzero"/>
+<path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z" fill="#1a1a1a"/>
+</g>
+<text x="18.4" y="74.6" font-size="1.45" font-weight="700" letter-spacing="0.08">PIVAC MONITORING BOARD</text>
+<line x1="18.4" y1="75.5" x2="37.6" y2="75.5" stroke="#1a1a1a" stroke-width="0.15"/>
+<text x="18.4" y="77.4" font-size="1.05" letter-spacing="0.05">v1.0  ·  Rev B  ·  INT</text>
+<text x="7" y="81.6" font-size="0.8" fill="#8a8f94">silkscreen, component side: ring 0.35, letters 0.8 filled, gap 0.35, caps 1.45 mm</text>
+</g>
+
+<!-- ================= 7-way GH cable across the opening ================= -->
+<g transform="translate(60,80) scale(8)">
+<g stroke-width="0.3" fill="none" stroke="#1a1a1a">
+<path d="M 59.6 30 C 64 30, 66 38, 72 38"/><path d="M 59.6 31.3 C 64 31.3, 66 39.3, 72 39.3"/><path d="M 59.6 32.6 C 64 32.6, 66 40.6, 72 40.6"/><path d="M 59.6 33.9 C 64 33.9, 66 41.9, 72 41.9"/><path d="M 59.6 35.2 C 64 35.2, 66 43.2, 72 43.2"/>
+</g>
+<g stroke-width="0.3" fill="none"><path d="M 59.6 36.5 C 64 36.5, 66 44.5, 72 44.5" stroke="#c8321e"/><path d="M 59.6 37.8 C 64 37.8, 66 45.8, 72 45.8" stroke="#555"/></g>
+<text x="60.8" y="49.5" font-size="0.95" fill="#333">GHR-07V-S both ends,</text>
+<text x="60.8" y="51" font-size="0.95" fill="#333">seven 51 mm leads,</text>
+<text x="60.8" y="52.5" font-size="0.95" fill="#333">latched after the</text>
+<text x="60.8" y="54" font-size="0.95" fill="#333">boards are seated</text>
+<text x="60.8" y="27.4" font-size="0.9" fill="#555">opening</text>
+</g>
+
+<!-- ================= EXT board rev B, origin (652,80) ================= -->
+<g transform="translate(652,80) scale(8)">
+<rect x="0" y="0" width="38.5" height="85" fill="#eef1ee" stroke="#2f5f3a" stroke-width="0.3"/>
+<text x="1.2" y="17.2" font-size="1.4" font-weight="700">EXT 38.5 x 85</text>
+<g stroke="#8a8f94" stroke-width="0.12" stroke-dasharray="0.8 0.5" fill="none">
+<line x1="0" y1="18.11" x2="38.5" y2="18.11"/><line x1="0" y1="22.31" x2="38.5" y2="22.31"/>
+<line x1="0" y1="61.29" x2="38.5" y2="61.29"/><line x1="0" y1="65.49" x2="38.5" y2="65.49"/>
+</g>
+<text x="14" y="21.1" font-size="1.1" fill="#8a8f94">rib (solder side)</text>
+<text x="17" y="64.3" font-size="1.1" fill="#8a8f94">rib (solder side)</text>
+<!-- room for the GH plug at the opening -->
+<rect x="0" y="30" width="9.5" height="24" fill="url(#hatch)" stroke="#9aa3ad" stroke-width="0.1"/>
+<text x="0.6" y="33.2" font-size="0.8" fill="#6b737c">J1 plug room</text>
+<!-- probe end, carried over -->
+<g fill="#f4f4f1" stroke="#555" stroke-width="0.15">
+<rect x="2.9" y="0.4" width="9.4" height="6.4"/><rect x="15.6" y="0.4" width="9.4" height="6.4"/><rect x="28.3" y="0.4" width="9.4" height="6.4"/>
+</g>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.08">
+<circle cx="5.07" cy="3.7" r="0.85"/><circle cx="7.57" cy="3.7" r="0.85"/><circle cx="10.07" cy="3.7" r="0.85"/>
+<circle cx="17.77" cy="3.7" r="0.85"/><circle cx="20.27" cy="3.7" r="0.85"/><circle cx="22.77" cy="3.7" r="0.85"/>
+<circle cx="30.47" cy="3.7" r="0.85"/><circle cx="32.97" cy="3.7" r="0.85"/><circle cx="35.47" cy="3.7" r="0.85"/>
+</g>
+<g font-size="1.1" font-weight="700" fill="#333"><text x="6.6" y="8.4">H1</text><text x="19.3" y="8.4">H2</text><text x="32" y="8.4">H3</text></g>
+<rect x="9.05" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="13.4" y="12.2" font-size="1.0" fill="#333">U1 DS2482</text>
+<rect x="17" y="9.75" width="7" height="2.5" fill="#d64545"/><text x="17" y="13.6" font-size="0.9" fill="#333">C1 100n</text>
+<rect x="18.4" y="15.2" width="7.2" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><text x="26" y="17" font-size="0.9" fill="#333">R1 (nf)</text>
+<rect x="33.7" y="13" width="1.6" height="3" rx="0.6" fill="#d9b53a"/><text x="30.6" y="12.4" font-size="0.9" fill="#333">JP1</text>
+
+<!-- mid field: the power section -->
+<!-- GH 7-way top-entry link header at the left edge, beside the opening to INT -->
+<rect x="1.5" y="36" width="5.6" height="12" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
+<g fill="#4a2a00" font-size="0.7">
+<text x="1.9" y="37.6">1 3V3</text><text x="1.9" y="39.1">2 SDA</text><text x="1.9" y="40.6">3 SCL</text><text x="1.9" y="42.1">4 G4</text><text x="1.9" y="43.6">5 GND</text><text x="1.9" y="45.1">6 VS</text><text x="1.9" y="46.6">7 COM</text>
+</g>
+<text x="0.6" y="50" font-size="0.8" fill="#a45d00">J1 GH BM07B</text>
+<text x="0.6" y="51.2" font-size="0.8" fill="#a45d00">top entry, at</text>
+<text x="0.6" y="52.4" font-size="0.8" fill="#a45d00">the opening</text>
+<!-- D1-D4 column -->
+<g fill="#f3b45c" stroke="#a45d00" stroke-width="0.2">
+<rect x="12.5" y="23.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="26.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="29.6" width="5.2" height="2.7" rx="0.4"/><rect x="12.5" y="32.6" width="5.2" height="2.7" rx="0.4"/>
+</g>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
+<circle cx="10" cy="24.95" r="0.6"/><circle cx="20.16" cy="24.95" r="0.6"/><circle cx="10" cy="27.95" r="0.6"/><circle cx="20.16" cy="27.95" r="0.6"/><circle cx="10" cy="30.95" r="0.6"/><circle cx="20.16" cy="30.95" r="0.6"/><circle cx="10" cy="33.95" r="0.6"/><circle cx="20.16" cy="33.95" r="0.6"/>
+</g>
+<text x="9.6" y="37.2" font-size="0.9" fill="#a45d00">D1-D4 1N4007 bridge</text>
+<!-- C3 reservoir, standing, upper right -->
+<circle cx="31.5" cy="30" r="6.25" fill="#f3b45c" stroke="#a45d00" stroke-width="0.25"/>
+<circle cx="29" cy="30" r="0.6" fill="#d9b53a"/><circle cx="34" cy="30" r="0.6" fill="#d9b53a"/>
+<text x="27.3" y="27.7" font-size="0.9" font-weight="700" fill="#4a2a00">C3 470u 63V</text>
+<text x="27.1" y="32.6" font-size="0.7" fill="#4a2a00">12.5 x 25, standing</text>
+<text x="27.6" y="33.8" font-size="0.7" fill="#4a2a00">valley 28 V at peak</text>
+<!-- F1 PTC disc standing, below the bridge -->
+<rect x="12" y="39.5" width="13" height="3.4" rx="0.5" fill="#f3b45c" stroke="#a45d00" stroke-width="0.25"/>
+<circle cx="15.5" cy="44.5" r="0.6" fill="#d9b53a"/><circle cx="20.58" cy="44.5" r="0.6" fill="#d9b53a"/>
+<text x="12.2" y="46.9" font-size="0.9" font-weight="700" fill="#4a2a00">F1 60R110XU</text>
+<text x="12.2" y="48.2" font-size="0.75" fill="#4a2a00">1.1 A PTC, standing, 13 tall</text>
+<!-- TMR converter along the lower rib -->
+<rect x="11" y="50.5" width="22" height="9.6" rx="0.4" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
+<circle cx="13.11" cy="54.04" r="0.55"/><circle cx="15.65" cy="54.04" r="0.55"/><circle cx="18.19" cy="54.04" r="0.55"/><circle cx="20.73" cy="54.04" r="0.55"/><circle cx="23.27" cy="54.04" r="0.55"/><circle cx="25.81" cy="54.04" r="0.55"/><circle cx="28.35" cy="54.04" r="0.55"/><circle cx="30.89" cy="54.04" r="0.55"/>
+</g>
+<g fill="#4a2a00" font-size="0.65">
+<text x="12.1" y="52.7">1 -Vin</text><text x="14.9" y="52.7">2 +Vin</text><text x="17.6" y="52.7">3 Rmt</text><text x="25.1" y="52.7">6 +Vo</text><text x="27.7" y="52.7">7 -Vo</text><text x="30.2" y="52.7">8 NC</text>
+</g>
+<text x="12.1" y="57" font-size="0.95" font-weight="700" fill="#4a2a00">U3 TMR 12-4811WI</text>
+<text x="12.1" y="58.5" font-size="0.8" fill="#4a2a00">SIP-8, 12.0 tall, 5.1 V 2.4 A</text>
+
+<!-- lower field: J4 against the rib, proto field across to J3, J3 at the bottom edge -->
+<rect x="25.5" y="66.3" width="7.5" height="5.75" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
+<circle cx="28" cy="69.2" r="0.6" fill="#d9b53a"/><circle cx="30.5" cy="69.2" r="0.6" fill="#d9b53a"/>
+<text x="25.8" y="68.1" font-size="0.8" font-weight="700" fill="#4a2a00">J4 XH-2</text>
+<text x="25.8" y="71.3" font-size="0.65" fill="#4a2a00">+5V  GND</text>
+<rect x="22.3" y="68.6" width="2.2" height="1.6" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
+<text x="21.9" y="67.9" font-size="0.65" fill="#a45d00">C4 1u</text>
+<rect x="22.6" y="71" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
+<text x="20.2" y="74.6" font-size="0.65" fill="#a45d00">tie slot</text>
+<text x="24.6" y="74.3" font-size="0.75" fill="#a45d00">USB-C pigtail to the Pi</text>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
+<circle cx="35.5" cy="68" r="0.75"/><circle cx="35.5" cy="70.54" r="0.75"/><circle cx="35.5" cy="73.08" r="0.75"/>
+</g>
+<text x="34.2" y="66.6" font-size="0.9" fill="#333">J2</text>
+<text x="36.6" y="68.4" font-size="0.75" fill="#333">V</text><text x="36.6" y="70.9" font-size="0.75" fill="#333">D</text><text x="36.6" y="73.4" font-size="0.75" fill="#333">G</text>
+<!-- proto field block A: 8 x 3 left of J4 -->
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
+<g id="pa">
+<circle cx="3" cy="66.5" r="0.7"/><circle cx="5.54" cy="66.5" r="0.7"/><circle cx="8.08" cy="66.5" r="0.7"/><circle cx="10.62" cy="66.5" r="0.7"/><circle cx="13.16" cy="66.5" r="0.7"/><circle cx="15.7" cy="66.5" r="0.7"/><circle cx="18.24" cy="66.5" r="0.7"/><circle cx="20.78" cy="66.5" r="0.7"/>
+</g>
+<use href="#pa" y="2.54"/><use href="#pa" y="5.08"/>
+<!-- block B: 10 x 4 from J3 to the right edge -->
+<g id="pb">
+<circle cx="13" cy="75.6" r="0.7"/><circle cx="15.54" cy="75.6" r="0.7"/><circle cx="18.08" cy="75.6" r="0.7"/><circle cx="20.62" cy="75.6" r="0.7"/><circle cx="23.16" cy="75.6" r="0.7"/><circle cx="25.7" cy="75.6" r="0.7"/><circle cx="28.24" cy="75.6" r="0.7"/><circle cx="30.78" cy="75.6" r="0.7"/><circle cx="33.32" cy="75.6" r="0.7"/><circle cx="35.86" cy="75.6" r="0.7"/>
+</g>
+<use href="#pb" y="2.54"/><use href="#pb" y="5.08"/><use href="#pb" y="7.62"/>
+</g>
+<text x="13" y="74.4" font-size="0.75" fill="#333">proto, 2.54 mm</text>
+<!-- J3 24 VAC entry, facing the bottom edge -->
+<rect x="3.9" y="75.3" width="6.7" height="9.7" fill="#f3b45c" stroke="#a45d00" stroke-width="0.3"/>
+<circle cx="6" cy="78.05" r="0.7" fill="#d9b53a"/><circle cx="8.5" cy="78.05" r="0.7" fill="#d9b53a"/>
+<text x="4.3" y="82" font-size="0.85" font-weight="700" fill="#4a2a00">J3</text>
+<text x="4.3" y="83.3" font-size="0.75" fill="#4a2a00">24 VAC</text>
+<!-- power path arrows -->
+<g stroke="#a45d00" stroke-width="0.22" fill="none" marker-end="url(#arr)">
+<path d="M 7.2 75 L 7.2 73.5 C 7.2 68, 9.8 64, 9.8 58 L 9.8 48.5 C 9.8 45.5, 12 44.5, 14.7 44.5"/>
+<path d="M 20.58 43.7 L 20.3 34.8"/>
+<path d="M 20.9 27.95 C 24 27.95, 26 30, 28.2 30"/>
+<path d="M 31.5 36.5 C 31.5 44, 16 46, 15.65 53.3"/>
+<path d="M 25.81 54.8 C 25.81 60, 28 63, 28 65.6"/>
+<path d="M 10 34.7 C 9.4 40, 8.2 44.6, 7.4 45.6"/>
+</g>
+<g font-size="0.7" fill="#a45d00">
+<text x="29.2" y="62.6">5.1 V to J4</text>
+<text x="11.4" y="63.4" font-size="0.65">24 VAC in</text>
+<text x="0.6" y="56.3" font-size="0.65">VS, COM</text>
+<text x="0.6" y="57.4" font-size="0.65">to J1.6, 7</text>
+</g>
+</g>
+
+<!-- ================= notes and legend ================= -->
+<g transform="translate(60,790)">
+<rect x="0" y="0" width="880" height="288" rx="6" fill="#f7f7f4" stroke="#d0d0cb" stroke-width="1"/>
+<g font-size="11">
+<text x="14" y="22" font-weight="700">Rev B power section</text>
+<text x="14" y="40">EXT: 24 VAC enters on J3, a 2-way PTSM at the bottom edge, through F1 (1.1 A PTC) into the D1-D4 bridge and C3 (470 uF 63 V).</text>
+<text x="14" y="54">That rail, VS and COM at about 35 V, feeds U3 (TMR 12-4811WI, isolated) whose 5.1 V goes to J4, a 2-pin JST XH, and from there by a</text>
+<text x="14" y="68">USB-C pigtail to the Pi's own USB-C inside the enclosure; header pins 2 and 4 carry nothing, so the Pi's input protection stays.</text>
+<text x="14" y="88">INT: the bridge, F1, C1 and J7 leave. J4.1 and J4.2 become channel positions. VS and COM for the twelve sense channels arrive</text>
+<text x="14" y="102">over the link, which grows from five ways to seven: GH SM07B-GHS-TB side entry on INT facing the slot, BM07B-GHS-TBT top entry on EXT.</text>
+<text x="14" y="122">J1 sits at EXT's left edge beside the opening to INT, so the link is short and the only keep-out is the room for its plug and a</text>
+<text x="14" y="136">finger. The rest of the mid field carries the power section; the riser field is not reserved. The probe end stays as rev A.</text>
+<text x="14" y="156">Heights: the housing gives EXT at least 30 mm everywhere (measured 2026-09-26), so C3 (25 mm) and F1 (13 mm) stand and U3</text>
+<text x="14" y="170">(12 mm) is unconstrained. Creepage: 2 mm between the VS/COM copper and the Pi-side copper; U3 provides the 1.6 kV barrier.</text>
+<text x="14" y="184" font-size="10.5">Pigtail: a power-only USB-C plug with two 22 AWG leads; the Pi 4 takes 5 V on VBUS with no CC negotiation. J3's plug does not fit J4.</text>
+<text x="14" y="202">C3 at 470 uF holds the valley near 28 V at the Pi's 0.4 A peak against U3's 16.4 V lockout; 3 V of ripple at the 0.16 A typical.</text>
+<text x="14" y="220" fill="#a45d00" font-weight="700">Ratings: J3 6 A 160 V; GH 1 A 50 V per contact against 37 V on VS; XH 3 A against a 1.5 A Pi peak; F1 holds 1.1 A at 0.45 A.</text>
+<text x="14" y="238">INT: with the power strip empty, U1-U3 and R1-R12 shift 4.5 mm right, so the J9 breakout pads beside the header get 6.7 mm of clear board.</text>
+</g>
+<g font-size="11" transform="translate(14,262)">
+<rect x="0" y="-9" width="14" height="10" fill="#eef1ee" stroke="#555" stroke-width="0.8"/><text x="20" y="0">carried over</text>
+<rect x="110" y="-9" width="14" height="10" fill="#f3b45c" stroke="#a45d00" stroke-width="1"/><text x="130" y="0">new part</text>
+<rect x="210" y="-9" width="14" height="10" fill="none" stroke="#8a8f94" stroke-width="1" stroke-dasharray="2 1.5"/><text x="230" y="0">leaves</text>
+<rect x="300" y="-9" width="14" height="10" fill="url(#hatch)" stroke="#9aa3ad" stroke-width="0.8"/><text x="320" y="0">keep clear</text>
+<line x1="430" y1="-4" x2="510" y2="-4" stroke="#1a1a1a" stroke-width="2"/><text x="516" y="0">10 mm</text>
+<text x="600" y="0" opacity="0.75">nf = footprint placed, not fitted</text>
+</g>
+</g>
+</g>
+</svg>
