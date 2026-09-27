@@ -43,20 +43,20 @@
 <circle cx="7.31" cy="13.45" r="0.6"/><circle cx="7.31" cy="15.99" r="0.6"/><circle cx="7.31" cy="18.53" r="0.6"/><circle cx="7.31" cy="21.07" r="0.6"/><circle cx="7.31" cy="23.61" r="0.6"/><circle cx="7.31" cy="26.15" r="0.6"/><circle cx="7.31" cy="28.69" r="0.6"/><circle cx="7.31" cy="31.23" r="0.6"/><circle cx="7.31" cy="33.77" r="0.6"/><circle cx="7.31" cy="36.31" r="0.6"/><circle cx="7.31" cy="38.85" r="0.6"/><circle cx="7.31" cy="41.39" r="0.6"/><circle cx="7.31" cy="43.93" r="0.6"/><circle cx="7.31" cy="49.01" r="0.6"/><circle cx="7.31" cy="54.09" r="0.6"/><circle cx="7.31" cy="56.63" r="0.6"/>
 </g>
 <text x="8.4" y="14" font-size="0.8" fill="#555">J9 breakout</text>
-<text x="8.4" y="16.6" font-size="0.75" fill="#a45d00">6.7 mm clear to U1</text>
+<text x="8.4" y="16.6" font-size="0.75" fill="#a45d00">5.7 mm clear to U1</text>
 <text x="8.4" y="17.8" font-size="0.75" fill="#a45d00">(2.2 in rev A)</text>
 <!-- optocoupler sockets and resistor columns, moved 4.5 mm right into the vacated strip -->
 <g fill="#3a3a3a" stroke="#222" stroke-width="0.1">
-<rect x="14" y="23.6" width="19.5" height="10"/><rect x="14" y="35.9" width="19.5" height="10"/><rect x="14" y="48.2" width="19.5" height="10"/>
+<rect x="13" y="23.4" width="19.5" height="10"/><rect x="13" y="36.8" width="19.5" height="10"/><rect x="13" y="50.2" width="19.5" height="10"/>
 </g>
-<g font-size="1.2" fill="#eee"><text x="21.5" y="29.3">U1</text><text x="21.5" y="41.6">U2</text><text x="21.5" y="53.9">U3</text></g>
+<g font-size="1.2" fill="#eee"><text x="20.5" y="28.9">U1</text><text x="20.5" y="42.3">U2</text><text x="20.5" y="55.7">U3</text></g>
 <g fill="#e7cfa3" stroke="#8a6a3a" stroke-width="0.08">
-<rect x="35.1" y="25.3" width="2.2" height="6.4"/><rect x="38.4" y="25.3" width="2.2" height="6.4"/><rect x="41.65" y="25.3" width="2.2" height="6.4"/><rect x="44.9" y="25.3" width="2.2" height="6.4"/>
-<rect x="35.1" y="37.6" width="2.2" height="6.4"/><rect x="38.4" y="37.6" width="2.2" height="6.4"/><rect x="41.65" y="37.6" width="2.2" height="6.4"/><rect x="44.9" y="37.6" width="2.2" height="6.4"/>
-<rect x="35.1" y="49.9" width="2.2" height="6.4"/><rect x="38.4" y="49.9" width="2.2" height="6.4"/><rect x="41.65" y="49.9" width="2.2" height="6.4"/><rect x="44.9" y="49.9" width="2.2" height="6.4"/>
+<rect x="34.2" y="25.2" width="2.2" height="6.4"/><rect x="38.4" y="25.2" width="2.2" height="6.4"/><rect x="42.6" y="25.2" width="2.2" height="6.4"/><rect x="46.8" y="25.2" width="2.2" height="6.4"/>
+<rect x="34.2" y="38.6" width="2.2" height="6.4"/><rect x="38.4" y="38.6" width="2.2" height="6.4"/><rect x="42.6" y="38.6" width="2.2" height="6.4"/><rect x="46.8" y="38.6" width="2.2" height="6.4"/>
+<rect x="34.2" y="52" width="2.2" height="6.4"/><rect x="38.4" y="52" width="2.2" height="6.4"/><rect x="42.6" y="52" width="2.2" height="6.4"/><rect x="46.8" y="52" width="2.2" height="6.4"/>
 </g>
-<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="36.2" cy="23.42" r="0.6"/><circle cx="36.2" cy="33.58" r="0.6"/><circle cx="36.2" cy="35.72" r="0.6"/><circle cx="36.2" cy="45.88" r="0.6"/><circle cx="36.2" cy="48.02" r="0.6"/><circle cx="36.2" cy="58.18" r="0.6"/><circle cx="39.5" cy="23.42" r="0.6"/><circle cx="39.5" cy="33.58" r="0.6"/><circle cx="39.5" cy="35.72" r="0.6"/><circle cx="39.5" cy="45.88" r="0.6"/><circle cx="39.5" cy="48.02" r="0.6"/><circle cx="39.5" cy="58.18" r="0.6"/><circle cx="42.75" cy="23.42" r="0.6"/><circle cx="42.75" cy="33.58" r="0.6"/><circle cx="42.75" cy="35.72" r="0.6"/><circle cx="42.75" cy="45.88" r="0.6"/><circle cx="42.75" cy="48.02" r="0.6"/><circle cx="42.75" cy="58.18" r="0.6"/><circle cx="46.0" cy="23.42" r="0.6"/><circle cx="46.0" cy="33.58" r="0.6"/><circle cx="46.0" cy="35.72" r="0.6"/><circle cx="46.0" cy="45.88" r="0.6"/><circle cx="46.0" cy="48.02" r="0.6"/><circle cx="46.0" cy="58.18" r="0.6"/></g>
-<text x="35.1" y="58.6" font-size="1.0" fill="#555">R1-R12 12k</text>
+<g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"><circle cx="35.3" cy="23.32" r="0.6"/><circle cx="35.3" cy="33.48" r="0.6"/><circle cx="35.3" cy="36.72" r="0.6"/><circle cx="35.3" cy="46.88" r="0.6"/><circle cx="35.3" cy="50.12" r="0.6"/><circle cx="35.3" cy="60.28" r="0.6"/><circle cx="39.5" cy="23.32" r="0.6"/><circle cx="39.5" cy="33.48" r="0.6"/><circle cx="39.5" cy="36.72" r="0.6"/><circle cx="39.5" cy="46.88" r="0.6"/><circle cx="39.5" cy="50.12" r="0.6"/><circle cx="39.5" cy="60.28" r="0.6"/><circle cx="43.7" cy="23.32" r="0.6"/><circle cx="43.7" cy="33.48" r="0.6"/><circle cx="43.7" cy="36.72" r="0.6"/><circle cx="43.7" cy="46.88" r="0.6"/><circle cx="43.7" cy="50.12" r="0.6"/><circle cx="43.7" cy="60.28" r="0.6"/><circle cx="47.9" cy="23.32" r="0.6"/><circle cx="47.9" cy="33.48" r="0.6"/><circle cx="47.9" cy="36.72" r="0.6"/><circle cx="47.9" cy="46.88" r="0.6"/><circle cx="47.9" cy="50.12" r="0.6"/><circle cx="47.9" cy="60.28" r="0.6"/></g>
+<text x="34.2" y="63.4" font-size="1.0" fill="#555">R1-R12 12k, 4.2 mm columns</text>
 <!-- rev A power parts that leave INT, dashed -->
 <g fill="none" stroke="#8a8f94" stroke-width="0.15" stroke-dasharray="0.7 0.5">
 <rect x="51.3" y="17.6" width="7.4" height="7.6" rx="0.6"/>

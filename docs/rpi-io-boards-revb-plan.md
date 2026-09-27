@@ -62,7 +62,7 @@ With the entry on EXT, D1 to D4, F1, C1 and J7 leave INT and J8 goes away. Every
 
 J1 to J3 are as rev A. J4 takes HPCOOL from the J8 pigtail, DHWX from J4.3 and the spare SP-E, so the pigtail and its loose connector of 2026-09-26 are gone. The label's J4 row changes accordingly.
 
-The three LTV-847 sockets move from x 9.5 to x 14 and the four resistor columns to x 35.1, 38.4, 41.65 and 44.9, which leaves 6.7 mm of clear board between the J9 breakout column and U1 against 2.2 mm on rev A. The breakout pads are covered once the Pi is on the header, so their uses are bench soldering jobs: rerouting a channel whose BCM pad has died (lift the opto's output pin from its socket, wire it to a spare GPIO's pad, change the BCM in `config.yml`) and a fan header, since GPIO18 is a hardware PWM pin and the fanless Pi touches 83 °C on Sentry capture bursts. The resistor pads end at x 47, clear of the rib bulges at the right edge. Nothing else on INT moves.
+The three LTV-847 sockets move from x 9.5 to x 13 and their rows spread evenly between the ribs, centres at y 28.4, 41.8 and 55.2 against rev A's 28.6, 40.9 and 53.2, so the groups sit 3.3 mm apart instead of 2.3. The four resistor columns go to x 35.3, 39.5, 43.7 and 47.9, a 4.2 mm pitch against rev A's 3.3, which puts 1.7 mm between bodies instead of 0.8; their pads end at x 48.7, short of the rib bulges at 49.3. The move leaves 5.7 mm of clear board between the J9 breakout column and U1 against 2.2 mm on rev A. The breakout pads are covered once the Pi is on the header, so their uses are bench soldering jobs: rerouting a channel whose BCM pad has died (lift the opto's output pin from its socket, wire it to a spare GPIO's pad, change the BCM in `config.yml`) and a fan header, since GPIO18 is a hardware PWM pin and the fanless Pi touches 83 °C on Sentry capture bursts. Nothing else on INT moves.
 
 ### 4.1 INT component index
 
@@ -74,8 +74,8 @@ Positions are millimetres from the board's top-left corner, component side up, p
 | J5 | Phoenix PSTD 0,65X0,65/40-2,54 socket | 2 × 20 at 2.54, solder side | columns x 2.23 and 4.77, rows y 8.37 to 56.63 | the Pi's 40-pin header; pins 2 and 4 unused in rev B |
 | J6 | JST SM07B-GHS-TB | 12.0 × 5.4, 4.35 tall mated | body x 53.2–58.6, y 28.5–40.5, entry facing +x | link to EXT, seven nets of §3 |
 | J9 | shadow column, 16 pads ⌀1.6 | | x 7.31, one pad per free header row from y 13.45 to 56.63 | header breakout: SCL, SDA, GPIO4, 3V3, 5V, GND ×3, GPIO7–11, 18, 20, 21 |
-| U1–U3 | LTV-847 in DIP-16 sockets (`DIP-16_W7.62mm_Socket`) | socket 20.3 × 10.2, about 8 tall with the chip | x 14–33.5; rows y 23.6, 35.9, 48.2 | four optocoupler channels each: LED from the relay contact through its resistor, transistor to a BCM pin |
-| R1–R12 | 12 kΩ 1/4 W axial (`R_Axial_DIN0207 P10.16 Horizontal`) | 6.3 × 2.5, flat | columns x 35.1, 38.4, 41.65, 44.9; one row per socket | 2.8 mA LED current from the 35 V rail |
+| U1–U3 | LTV-847 in DIP-16 sockets (`DIP-16_W7.62mm_Socket`) | socket 20.3 × 10.2, about 8 tall with the chip | x 13–32.5; row centres y 28.4, 41.8, 55.2 | four optocoupler channels each: LED from the relay contact through its resistor, transistor to a BCM pin |
+| R1–R12 | 12 kΩ 1/4 W axial (`R_Axial_DIN0207 P10.16 Horizontal`) | 6.3 × 2.5, flat, pads 10.16 apart along y | columns x 35.3, 39.5, 43.7, 47.9 at 4.2 mm; one row per socket, pads at the row centre ±5.08 | 2.8 mA LED current from the 35 V rail |
 | TP1–TP3 | test pads ⌀1.8 | | (40, 81), (43, 81), (46, 81) | VS, COM, GND for the meter |
 | title block | silkscreen | 31 × 9 | ring centre (12.5, 75.4) | §6 |
 
@@ -197,7 +197,7 @@ Boards: OSH Park two-layer at $5 per square inch for three copies is about $39 f
 ## 10. Checks before sending to OSH Park
 
 - Every channel's BCM pin matches §4 and `config.yml`; `hardware/gen_tables.py` regenerated and the label's J4 row updated.
-- No through-hole pad in a rib band; J6's pads clear the rib bulges at x 49.8; INT's resistor pads end at x 47.
+- No through-hole pad in a rib band: the outer resistor pads sit at y 23.3 and 60.3, inside the 22.31 to 61.29 window; J6's pads clear the rib bulges at x 49.8; INT's resistor pads end at x 48.7.
 - PTSM pin rows at the offsets of §5.2, so each entry face lands where the table says.
 - U3 footprint: pin 1 at the left, 17.78 mm over eight pins, no copper under the body, case-pin holes omitted.
 - J3 and J4 are different families; J3's silkscreen reads 24 VAC and J4's 5V OUT.
