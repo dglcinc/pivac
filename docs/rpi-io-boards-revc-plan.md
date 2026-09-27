@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Plan. Nothing generated or ordered. Rev B is on order and is fitted first; rev C follows it on EXT only. · **Owner:** David
+**Status:** Generated and routed on 2026-09-27: `hardware/extc-board`, DRC clean with nothing unconnected, gerbers exported. Not ordered. Rev B is on order and is fitted first; rev C follows it on EXT only. · **Owner:** David
 
 Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes.
 
@@ -10,7 +10,7 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 ## 1. Scope
 
-**In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. J4 becomes a 2-way vertical surface-mount PTSM header. H3 leaves the board with U2, C2 and JP2, and the tie slots TS1 leave with the JST header they served. The probe parts under the sockets move toward the upper rib to clear the header pads. A new footprint generator in `hardware/gen-boards.py` builds the surface-mount header.
+**In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. J4 becomes a 2-way vertical surface-mount PTSM header. H3 leaves the board with U2, C2 and JP2, and the tie slots TS1 leave with the JST header they served. The probe parts under the sockets move toward the upper rib to clear the header pads. `hardware/gen-boards.py` builds both surface-mount footprints and the board.
 
 **Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section and the GH link on EXT keep their rev B nets and parts; U3 and C4 move. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
 
@@ -43,32 +43,32 @@ The hold-down points span 8 mm front to back and 15.6 mm side to side on the 4-w
 | Width over the anchors | a + 8.1 |
 | Depth with leads | 9.5 |
 | Signal pads | 1.2 × 3.2, at x = pin, y 6.6 to 9.8 |
-| Anchor pads | 2.2 × 5.6, centred x = ±(a/2 + 2.65), y 0.8 to 6.4 |
+| Anchor pads | 2.2 × 5.6, centred x = ±(a/2 + 3.25), y 0.8 to 6.4; the inner edge stands 1.55 from the edge of the outer signal pad |
 | Peg holes | ⌀1.1 unplated, at x = ±(a/2 + 1.1), y 2.85 |
-| Pad pattern width | a + 7.5 |
+| Pad pattern width | a + 8.7 |
 | Rating | 6 A, 160 V, 26–20 AWG |
 
 | Positions | Body width | Over the anchors | Pad pattern |
 |---|---|---|---|
-| 2 | 6.7 | 10.6 | 10.0 |
-| 3 | 9.2 | 13.1 | 12.5 |
-| 4 | 11.7 | 15.6 | 15.0 |
+| 2 | 6.7 | 10.6 | 11.2 |
+| 3 | 9.2 | 13.1 | 13.7 |
+| 4 | 11.7 | 15.6 | 16.2 |
 
-With the face on the edge, the anchor pads start 0.8 mm from the edge and the peg holes leave 2.3 mm of board in front of them.
+With the face on the edge, the anchor pads start 0.8 mm from the edge and the peg holes leave 2.3 mm of board in front of them. Each anchor pad covers its foot, which the STEP model puts 2.4 to 4.05 mm outside the outer pin, with 0.25 mm to spare on each side, and stands 0.5 mm from the peg hole.
 
 ## 4. EXT layout
 
-`docs/rpi-io-boards-revc-ext-layout.svg` is the layout drawing. The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 39.3 mm over their anchors.
+`docs/rpi-io-boards-revc-ext-layout.svg` is the layout drawing, and `hardware/extc-board/extc-board-top.png` the render of the board as generated. The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 41.1 mm of pad pattern.
 
 | Ref | Part | Centre x | Edge | Pins |
 |---|---|---|---|---|
 | H1 | 3-way, black | 10.5 | top, entry toward −y | VCC · DATA · GND |
 | H2 | 3-way, black | 28.0 | top, entry toward −y | VCC · DATA · GND |
 | J3 | 2-way, black | 8.0 | bottom, entry toward +y | 1 R (hot) at x 9.25, 2 C (common) at x 6.75 |
-| J4 | 2-way vertical, white | body x 25.1 to 30.1 | pin row along y, centre y 70.8, entry upward, leads toward the right edge | 1 +5 V at y 69.55, 2 GND at y 72.05 |
+| J4 | 2-way vertical, white | body x 25.1 to 30.1 | pin row along y, centre y 71.3, entry upward, leads toward the right edge | 1 +5 V at y 70.05, 2 GND at y 72.55 |
 
 - H1 and H2 stand 17.5 mm apart, centre to centre, and the pair is centred on the board's 19.25 mm centre line. Two latching plugs sit side by side with 0.7 mm between them and reach x 2.1 and x 36.4.
-- Their anchors span x 3.95 to 17.05 and x 21.45 to 34.55.
+- Their pad patterns span x 3.65 to 17.35 and x 21.15 to 34.85, 3.8 mm apart.
 - U1, C1, JP1 and R1 stand in one row on the line y 13.9, 2.5 mm apart, from x 1.6 to x 36.9, so an iron reaches every pad. The header pads end at y 9.8 and the nearest pad of the row is 2.0 mm below them; the upper rib starts at y 18.11.
 
 | Ref | Centre x | Extent in x |
@@ -78,13 +78,15 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 | JP1 | 21.1 | 19.6 to 22.6 |
 | R1 | 30.78 | pads at 25.7 and 35.86 |
 
-- The four reference legends sit on one baseline at y 17.55, each centred under its part.
-- `V`, `D` and `G` stand under the signal pads of H1 and H2 in bold at the size of J3's `R` and `C`, 0.5 mm below the pads and clear of the header bodies.
-- J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
-- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.8 to 75.8, so its signal pads stand 2.25 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
+- The four reference legends sit on one baseline at y 17.3, each centred under its part.
+- `V`, `D` and `G` stand under the signal pads of H1 and H2 in bold at 1.0 mm, the size of J3's `R` and `C`, 0.5 mm below the pads and clear of the header bodies. The reference stands to their left and `TRUNK` or `SPARE` to their right.
+- J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its pad pattern spans x 2.4 to 13.6 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
+- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.65 to 76.95, which clears the lower rib above it. J2 moves 0.9 mm right, to x 36.4, so J4's signal pads stand 3.1 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
+- J4's two pads are joined to C4 by hand-laid tracks, because the router left them open on every attempt: straight out of each pad under the header body, 2.5 mm apart, 0.65 mm clear of the peg holes. The router joins C4 to U3. The VS track from C3 to D1 is hand-laid as on rev B.
 - U3 moves 2 mm right for access to J1: body x 13 to 35, pins at x 15.11 to 32.89, pin 1 left. It stands 5.4 mm from J1's courtyard and 3.5 mm from the room kept clear for J1's plug and a finger, against 3.4 and 1.5 mm on rev B, and 3.5 mm from the board's right edge.
-- The title block sits midway between C3 and U3, at the same distance from the right edge as on rev B: ring centre (31.2, 41.7), text lines 1.4 mm lower than rev B's. That leaves 2.3 mm between C3 and the ring and 2.2 mm between the second line and U3.
+- The title block sits midway between C3 and U3, at the same distance from the right edge as on rev B: ring centre (31.2, 40.8), 0.5 mm lower than rev B's. The block is the ring over three lines, and the ring's top and the last line's foot stand 1.5 mm from C3 and from U3.
 - The proto field PF1 is 8 × 3, from x 15.54 to x 33.32 and y 78.14 to y 83.22. It starts one column right of rev B to clear J3's anchor pad and one row lower to clear J4's.
+- The solder side carries no connector pins: the four PTSM headers leave only their eight peg holes there.
 
 ### 4.1 J3 and J4 take the same plug
 
@@ -94,7 +96,7 @@ Both are 2-way PTSM, so J3's plug fits J4. The 24 VAC plug seated in J4 puts 36 
 |---|---|---|
 | Header and plug colour | black | white |
 | Silkscreen beside it | `24VAC input`, bold, above the pads; `R` beside pin 1 and `C` beside pin 2 at the far end of the pads, 1.3 mm clear of the header body so the 5 mm body does not hide them | `5VDC output only` and `to Pi`, bold, two lines turned 90° counter-clockwise to read upward, between C4 and J4, centred on J4 |
-| Pin legends | `R` and `C`, bold | `+5` and `G`, bold, beside the leads in the 2.25 mm between J4's pads and J2 |
+| Pin legends | `R` and `C`, bold | `+5` and `G`, bold, beside the leads in the 3.1 mm between J4's pads and J2 |
 | Orientation | horizontal, at the bottom edge | vertical, mid board |
 
 **Which leg is R.** The bridge rectifies either way round, U3 isolates the Pi, and the sense contacts are dry, so the board works with the two leads swapped. The legs are marked because F1 is in pin 1's leg: on a transformer whose common is bonded to ground, F1 limits a fault to ground only when the hot lead, R, is on pin 1.
@@ -110,7 +112,9 @@ Measured from Phoenix's STEP model of 1778696 (`pxc_1778696_02_00_PTSM-0-5-2-HV-
 | Body | 6.7 × 5.0, 7.5 tall |
 | Width over the anchors | 10.6 |
 | Depth with leads | 7.1; the leads leave one long side by 2.1 |
-| Pegs | ⌀0.8, 1.4 outside the outer pins, 0.4 in from the long side the leads leave by |
+| Pegs | ⌀0.8, 1.4 outside the outer pins, 0.4 in from the long side the leads leave by; holes ⌀1.0 |
+| Signal pads | 1.2 × 4.4, from 2.4 outside that side to 2.0 inside it, over lead feet of −2.1 to 1.85 |
+| Anchor pads | 2.1 × 5.6, centred 3.35 outside the outer pins, 0.35 from the peg holes |
 | Height with a plug seated | 18.4, inside the 30 mm the housing gives EXT |
 | Latch window | in each side wall, 1.2 to 2.1 below the top face |
 
@@ -169,15 +173,34 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 5. Solder the signal leads from behind the body.
 6. Pull on a seated plug in every direction; the body must not move.
 
-## 8. Work plan
+## 8. What `hardware/` produces, and the path to the order
 
-1. Add `ptsm_hh_smd(board, n)` to `hardware/gen-boards.py` from §3, with the peg holes unplated.
-2. Add `ptsm_hv_smd(board, n)` from §4.2. Place H1, H2, J3 and J4 per §4, make PF1 8 × 3, and remove H3, U2, C2, JP2 and TS1.
-3. Add the silkscreen legends of §4.1 in bold. J4's legend has 11.9 mm between the lower rib and the proto field, so its text height is the largest that fits 16 characters in that length, about 1 mm.
-4. Move the probe row clear of the header pads and rerun `hardware/build.sh` until DRC is clean.
-5. Check the footprints against the STEP models in KiCad's 3D viewer: pegs in holes, anchors on pads, face on the edge.
-6. Print the top copper at 1:1 and lay a header on it before ordering.
-7. Order the board and the headers, populate per §7 and the rev B plan, and bench-prove as rev B was.
+`hardware/build.sh extc` generates the board, routes it with Freerouting, runs DRC, and repeats up to six times until DRC reports no violation and nothing unconnected. It then renders both faces and exports the copper plots, the schematic, the BOM and the gerbers. With no argument the script rebuilds the rev B pair and leaves rev C alone.
+
+| File in `hardware/extc-board/` | Content |
+|---|---|
+| `extc-board.kicad_pcb`, `.kicad_sch`, `.kicad_pro` | the board, its schematic and the project |
+| `extc-board-top.png`, `extc-board-bottom.png` | renders of both faces |
+| `extc-board-copper-front.svg`, `extc-board-copper-back.svg` | copper and silkscreen plots |
+| `extc-board-schematic.svg` | the schematic |
+| `extc-board-bom.csv` | the parts, grouped by value and footprint |
+| `extc-board-drc.json` | the DRC report |
+| `extc-board-gerbers.zip` | the OSH Park upload |
+
+The footprints are `PTSM_0.5_3-HH-2.5-SMD`, `PTSM_0.5_2-HH-2.5-SMD`, `PTSM_0.5_2-HV-2.5-SMD` and `Proto_8x3` in `hardware/pivac.pretty`.
+
+Checks done:
+
+- DRC at error severity: no violation, nothing unconnected, clean on the first routing attempt.
+- Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
+- The pads of both footprints cover the feet measured from the STEP models (§3, §4.2).
+
+Before ordering:
+
+1. Open the board in KiCad's 3D viewer with the STEP models attached: pegs in holes, anchors on pads, faces on the edges.
+2. Print `extc-board-copper-front.svg` at 1:1 and lay a header on it.
+3. Confirm the housing openings pass the plugs with the header faces on the board edge.
+4. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
 
 ## 9. Open questions
 

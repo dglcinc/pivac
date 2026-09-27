@@ -7,6 +7,7 @@ Run with KiCad's own Python so that ``pcbnew`` imports:
         hardware/gen-boards.py
 
 Writes ``hardware/int-board/int-board.kicad_pcb`` and ``hardware/ext-board/ext-board.kicad_pcb``
+(rev B), and with the argument ``extc`` the rev C EXT board in ``hardware/extc-board``, each
 with the outline, the housing's restricted areas as rule areas, every footprint placed and
 every pad on its net. Routing is done afterwards by ``hardware/route.sh`` (Freerouting), and the
 plan is ``docs/rpi-io-boards-pcb-plan.md``.
@@ -276,7 +277,87 @@ def ptsm_hh(board, n):
     return fp
 
 
-def pad_array(board, name, cols, rows, pitch=PITCH, size=1.6, drill=1.0, square_first=True):
+def _smd(fp, number, x, y, w, h):
+    p = pcbnew.PAD(fp)
+    p.SetNumber(str(number))
+    p.SetShape(pcbnew.PAD_SHAPE_RECT)
+    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(VECTOR2I(FromMM(w), FromMM(h)))
+    p.SetLayerSet(pcbnew.PAD.SMDMask())
+    p.SetPosition(mm(x, y))
+    fp.Add(p)
+    return p
+
+
+def _peg(fp, x, y, drill):
+    p = pcbnew.PAD(fp)
+    p.SetNumber("")
+    p.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
+    p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+    p.SetSize(VECTOR2I(FromMM(drill), FromMM(drill)))
+    p.SetDrillSize(VECTOR2I(FromMM(drill), FromMM(drill)))
+    p.SetLayerSet(pcbnew.PAD.UnplatedHoleMask())
+    p.SetPosition(mm(x, y))
+    fp.Add(p)
+    return p
+
+
+def ptsm_hh_smd(board, n):
+    """Phoenix PTSM 0,5/n-HH-2,5-SMD: horizontal surface-mount header, entry toward -y.
+
+    Origin at the middle of the pin row on the entry face, which the caller puts on the board
+    edge. Body (a + 4.2) wide, 7.5 deep and 5.0 tall, a = (n-1)*2.5. Pad pattern from Phoenix's
+    drawing for 1778780 and its STEP model: signal pads 1.2 x 3.2 behind the body (y 6.6 to
+    9.8), two anchor pads 2.2 x 5.6 whose inner edge is 1.55 from the outer signal pad's edge
+    (y 0.8 to 6.4), two 1.1 mm unplated holes for the pegs, 1.1 outside the outer pins at
+    y 2.85. The side walls carry the window a latching -PL- plug's tooth enters."""
+    fp = pcbnew.FOOTPRINT(board.board)
+    fp.SetFPID(pcbnew.LIB_ID("pivac", f"PTSM_0.5_{n}-HH-2.5-SMD"))
+    fp.SetLibDescription(f"Phoenix Contact PTSM 0,5/{n}-HH-2,5-SMD horizontal header, surface mount")
+    fp.SetAttributes(pcbnew.FP_SMD)
+    a = (n - 1) * 2.5
+    for i in range(n):
+        _smd(fp, i + 1, -a / 2 + i * 2.5, 8.2, 1.2, 3.2)
+    for sgn in (-1, 1):
+        _smd(fp, "MP", sgn * (a / 2 + 3.25), 3.6, 2.2, 5.6)
+        _peg(fp, sgn * (a / 2 + 1.1), 2.85, 1.1)
+    hw = a / 2 + 2.1
+    _fp_rect(fp, -hw, 0, hw, 7.5, pcbnew.F_Fab, 0.1)
+    _fp_rect(fp, -hw, 0.15, hw, 7.5, pcbnew.F_SilkS, 0.12)
+    _fp_rect(fp, -a / 2 - 4.5, 0.05, a / 2 + 4.5, 9.95, pcbnew.F_CrtYd, 0.05)
+    fp.Reference().SetPosition(mm(0, 11.0))
+    fp.Value().SetPosition(mm(0, 12.2))
+    return fp
+
+
+def ptsm_hv_smd(board, n):
+    """Phoenix PTSM 0,5/n-HV-2,5-SMD: vertical surface-mount header, entry upward.
+
+    Origin at the middle of the pin row on the long side the leads leave by; the body runs
+    5.0 toward +y and the leads 2.1 toward -y. Body (a + 4.2) wide and 7.5 tall. From the
+    STEP model of 1778696: lead feet y -2.1 to 1.85, anchor feet 2.4 to 4.05 outside the outer
+    pins over the body's whole depth, pegs 1.4 outside the outer pins at y 0.4. The peg holes
+    are 1.0 mm and the anchor pads 2.1 wide so the two stay 0.35 mm apart."""
+    fp = pcbnew.FOOTPRINT(board.board)
+    fp.SetFPID(pcbnew.LIB_ID("pivac", f"PTSM_0.5_{n}-HV-2.5-SMD"))
+    fp.SetLibDescription(f"Phoenix Contact PTSM 0,5/{n}-HV-2,5-SMD vertical header, surface mount")
+    fp.SetAttributes(pcbnew.FP_SMD)
+    a = (n - 1) * 2.5
+    for i in range(n):
+        _smd(fp, i + 1, -a / 2 + i * 2.5, -0.2, 1.2, 4.4)
+    for sgn in (-1, 1):
+        _smd(fp, "MP", sgn * (a / 2 + 3.35), 2.5, 2.1, 5.6)
+        _peg(fp, sgn * (a / 2 + 1.4), 0.4, 1.0)
+    hw = a / 2 + 2.1
+    _fp_rect(fp, -hw, 0, hw, 5.0, pcbnew.F_Fab, 0.1)
+    _fp_rect(fp, -hw, 0, hw, 5.0, pcbnew.F_SilkS, 0.12)
+    _fp_rect(fp, -a / 2 - 4.55, -2.55, a / 2 + 4.55, 5.45, pcbnew.F_CrtYd, 0.05)
+    fp.Reference().SetPosition(mm(0, 6.6))
+    fp.Value().SetPosition(mm(0, 7.8))
+    return fp
+
+
+def pad_array(board, name, cols, rows, pitch=PITCH, size=1.6, drill=1.0, square_first=True, margin=None):
     """A plated-hole prototyping field or breakout row, pads numbered row-major from 1."""
     fp = pcbnew.FOOTPRINT(board.board)
     fp.SetFPID(pcbnew.LIB_ID("pivac", name))
@@ -286,7 +367,8 @@ def pad_array(board, name, cols, rows, pitch=PITCH, size=1.6, drill=1.0, square_
             _pad(fp, n, i * pitch, j * pitch, size, drill,
                  pcbnew.PAD_SHAPE_ROUNDRECT if (n == 1 and square_first) else pcbnew.PAD_SHAPE_CIRCLE)
             n += 1
-    _fp_rect(fp, -pitch / 2, -pitch / 2, (cols - 0.5) * pitch, (rows - 0.5) * pitch, pcbnew.F_CrtYd, 0.05)
+    m = pitch / 2 if margin is None else margin
+    _fp_rect(fp, -m, -m, (cols - 1) * pitch + m, (rows - 1) * pitch + m, pcbnew.F_CrtYd, 0.05)
     fp.Reference().SetPosition(mm((cols - 1) * pitch / 2, -pitch))
     fp.Value().SetPosition(mm(0, rows * pitch))
     return fp
@@ -382,7 +464,7 @@ def slot_pair(board, gap=3.8, w=1.2, l=2.4):
     return fp
 
 
-def title_block(B, cx, cy, scale, board_name, stacked=False):
+def title_block(B, cx, cy, scale, board_name, stacked=False, rev="B"):
     """DL monogram in a ring, name and version on F.SilkS. Geometry from hardware/dl-monogram.svg
     (units mm, ring at the origin): the letters are 0.8 mm strokes drawn here as silkscreen
     segments with round ends, so the mark is a footprint-free set of board graphics."""
@@ -414,14 +496,14 @@ def title_block(B, cx, cy, scale, board_name, stacked=False):
         # ring above two centred lines, for the EXT board's narrow field
         B.text("PIVAC MONITORING", cx, cy + 4.425 * s + 1.6, size=0.85, bold=True)
         B.text("BOARD  v1.0", cx, cy + 4.425 * s + 3.1, size=0.8)
-        B.text("Rev B  " + board_name, cx, cy + 4.425 * s + 4.6, size=0.8)
+        B.text("Rev " + rev + "  " + board_name, cx, cy + 4.425 * s + 4.6, size=0.8)
         return
     # KiCad's stroke font runs about 1.25 mm per character at size 1.45, so the name is 27 mm
     # long: the block is ring (8.85) + gap (1.6) + 27 wide and the caller centres it
     tx = cx + (4.425 + 1.6) * s
     B.text("PIVAC MONITORING BOARD", tx, cy - 0.8 * s, size=1.45 * s, bold=True, left=True)
     B.line(tx, cy + 0.15 * s, tx + 27.0 * s, cy + 0.15 * s, "F.SilkS", 0.15)
-    B.text("v1.0  Rev B  " + board_name, tx, cy + 2.0 * s, size=1.05 * s, left=True)
+    B.text("v1.0  Rev " + rev + "  " + board_name, tx, cy + 2.0 * s, size=1.05 * s, left=True)
 
 
 def pi_header(board):
@@ -819,6 +901,168 @@ def build_ext():
     return B
 
 
+# --------------------------------------------------------------------------- EXT board, rev C
+def build_extc():
+    """Rev C of the EXT board (docs/rpi-io-boards-revc-plan.md): every connector at an edge is
+    the surface-mount PTSM header with its entry face on the edge, J4 is the vertical header of
+    the same family, two probe sockets, no tie slots. The power section and the link are rev B's."""
+    out = os.path.join(HERE, "extc-board")
+    os.makedirs(out, exist_ok=True)
+    B = Board(os.path.join(out, "extc-board.kicad_pcb"), 38.5, 85.0, power_clearance=0.5)
+    custom = []
+    for (y0, y1) in BANDS_Y:
+        B.rect_keepout(0, y0, 38.5, y1, name="housing rib")
+        B.line(0, y0, 38.5, y0, "B.SilkS", 0.1)
+        B.line(0, y1, 38.5, y1, "B.SilkS", 0.1)
+    for x0, y0, x1, y1 in ((0, 0, 0.8, 85), (37.7, 0, 38.5, 85), (0, 0, 38.5, 0.8), (0, 84.2, 38.5, 85)):
+        B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name="edge via keepout",
+                       pads=False, footprints=False, tracks=False, vias=True, pour=False)
+
+    # --- probe sockets, centred on the board and 17.5 apart so two latching plugs (16.8 wide)
+    # sit side by side; entry face on the top edge
+    for ref, xc, what in (("H1", 10.5, "TRUNK"), ("H2", 28.0, "SPARE")):
+        h = ptsm_hh_smd(B, 3)
+        custom.append(B.place(ref, h, xc, 0.0, 0, value="PTSM 0,5/3-HH-2,5-SMD"))
+        for k, (dx, letter) in enumerate(((-2.5, "V"), (0.0, "D"), (2.5, "G")), start=1):
+            x, y = B.pad_xy(ref, k)
+            if abs(x - (xc + dx)) > 0.01 or abs(y - 8.2) > 0.01:
+                raise SystemExit(f"{ref} pad {k} at {x:.2f},{y:.2f}")
+            B.text(letter, xc + dx, 10.8, size=1.0, bold=True)
+        h.Reference().SetPosition(mm(xc - 5.0, 10.8))
+        B.text(what, xc + 5.9, 10.8, size=0.7)
+
+    # --- probe row: four parts on one line, 2.5 apart, references on one baseline
+    ROW, REF = 13.9, 17.3
+    u1 = B.lib("U1", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 4.6, ROW, 0, value="DS2482-100")
+    u1.Reference().SetPosition(mm(4.6, REF))
+    ec1 = B.lib("C1", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 11.1, ROW, 0, value="100n")
+    ec1.Reference().SetPosition(mm(13.6, REF))
+    jp1 = B.lib("JP1", "Jumper", "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm", 21.1, ROW, 0, value="GPIO4->DATA")
+    jp1.Reference().SetPosition(mm(21.1, REF))
+    r1 = B.lib("R1", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", 25.7, ROW, 0,
+               value="2k2 rollback", dnp=True)
+    r1.Reference().SetPosition(mm(30.78, REF))
+
+    # --- link header J1, as rev B
+    j1 = B.lib("J1", "Connector_JST", "JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical", 4.3, 52.5, 0,
+               value="GH BM07B link to INT")
+    for rot in (0, 90, 180, 270):
+        j1.SetOrientationDegrees(rot)
+        j1.SetPosition(mm(4.3, 52.5))
+        p1 = j1.FindPadByNumber("1").GetPosition(); p7 = j1.FindPadByNumber("7").GetPosition()
+        if abs(pcbnew.ToMM(p1.x) - pcbnew.ToMM(p7.x)) < 0.01 and pcbnew.ToMM(p1.y) > pcbnew.ToMM(p7.y):
+            break
+    else:
+        raise SystemExit("could not orient J1")
+    bb = j1.GetCourtyard(pcbnew.F_CrtYd).BBox()
+    if pcbnew.ToMM(bb.GetLeft()) < 0.8 or pcbnew.ToMM(bb.GetBottom()) > 61.0:
+        raise SystemExit("J1 outside its room")
+    j1.Reference().SetPosition(mm(4.3, pcbnew.ToMM(bb.GetTop()) - 1.0))
+
+    # --- power section as rev B, with U3 2 mm further from J1
+    for ref, y in (("D1", 24.95), ("D2", 28.45), ("D3", 31.95), ("D4", 35.45)):
+        d = B.lib(ref, "Diode_THT", "D_DO-41_SOD81_P10.16mm_Horizontal", 10.0, y, 0, value="1N4007")
+        d.Reference().SetPosition(mm(22.0, y)); d.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
+    f1 = radial_disc(B, "PTC_Radial_P5.08_Standing", 5.08, 13.0, 3.1)
+    custom.append(B.place("F1", f1, 18.04, 44.5, 0, value="PTC 1.1A 60V"))
+    f1.Reference().SetPosition(mm(9.7, 44.5))
+    c3 = B.lib("C3", "Capacitor_THT", "CP_Radial_D12.5mm_P5.00mm", 29.0, 30.0, 0, value="470u 63V")
+    c3.Reference().SetPosition(mm(31.5, 22.9))
+    u3 = sip8_converter(B)
+    custom.append(B.place("U3", u3, 15.11, 54.04, 0, value="TMR 12-4811WI"))
+
+    # --- 5 V output: J4, the vertical header turned so its pin row runs along y and its leads
+    # leave toward the right edge; C4 to its left with the legend between them
+    J4X, J4Y = 30.1, 71.3          # the lead-side face, and the middle of the pin row
+    j4 = ptsm_hv_smd(B, 2)
+    custom.append(B.place("J4", j4, J4X, J4Y, 0, value="PTSM 0,5/2-HV-2,5-SMD 5V OUT"))
+    for rot in (0, 90, 180, 270):
+        j4.SetOrientationDegrees(rot)
+        j4.SetPosition(mm(J4X, J4Y))
+        (x1, y1), (x2, y2) = B.pad_xy("J4", 1), B.pad_xy("J4", 2)
+        if abs(x1 - x2) < 0.01 and y1 < y2 and x1 > J4X:
+            break      # pin 1 (+5 V) above pin 2, pads centred right of the lead-side face
+    else:
+        raise SystemExit("could not orient J4")
+    if abs(x1 - (J4X + 0.2)) > 0.01 or abs(y1 - (J4Y - 1.25)) > 0.01:
+        raise SystemExit(f"J4 pad 1 at {x1:.2f},{y1:.2f}")
+    j4.Reference().SetPosition(mm(J4X - 2.5, 64.6)); j4.Reference().SetTextAngleDegrees(0)
+    c4 = B.lib("C4", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 20.0, 67.0, 270, value="1u")
+    x2, y2 = B.pad_xy("C4", 2)
+    if abs(x2 - 20.0) > 0.01 or abs(y2 - 72.0) > 0.01:
+        raise SystemExit(f"C4 pad 2 at {x2:.2f},{y2:.2f}, wanted 20.0,72.0")
+    c4.Reference().SetPosition(mm(17.9, 69.5)); c4.Reference().SetTextAngleDegrees(90)
+
+    # --- 24 VAC input: J3 on the bottom edge, pin 1 (R) at x 9.25
+    j3 = ptsm_hh_smd(B, 2)
+    custom.append(B.place("J3", j3, 8.0, 85.0, 180, value="PTSM 0,5/2-HH-2,5-SMD 24 VAC"))
+    x1, y1 = B.pad_xy("J3", 1)
+    if abs(x1 - 9.25) > 0.01 or abs(y1 - 76.8) > 0.01:
+        raise SystemExit(f"J3 pad 1 at {x1:.2f},{y1:.2f}, wanted 9.25,76.8")
+    j3.Reference().SetPosition(mm(1.9, 78.0))
+    pf1 = pad_array(B, "Proto_8x3", 8, 3, square_first=False, margin=0.95)
+    custom.append(B.place("PF1", pf1, 15.54, 78.14, 0, value="proto"))
+    pf1.Reference().SetPosition(mm(36.2, 80.68)); pf1.Reference().SetTextAngleDegrees(90)
+    # J2 stands 0.9 right of its rev B place, which leaves J4's pin legends whole
+    custom.append(B.place("J2", pad_array(B, "Pads_1x3", 1, 3), 36.4, 68.0, 0, value="VCC DATA GND"))
+
+    # --- nets
+    B.connect("U1", 1, "VCC"); B.connect("U1", 2, "DATA"); B.connect("U1", 3, "GND")
+    B.connect("U1", 4, "SCL"); B.connect("U1", 5, "SDA"); B.connect("U1", 7, "GND")
+    B.connect("U1", 8, "GND")      # 0x18
+    B.connect("C1", 1, "VCC"); B.connect("C1", 2, "GND")
+    for ref in ("H1", "H2"):
+        B.connect(ref, 1, "VCC"); B.connect(ref, 2, "DATA"); B.connect(ref, 3, "GND")
+    B.connect("R1", 1, "VCC"); B.connect("R1", 2, "DATA")
+    B.connect("JP1", 1, "GPIO4"); B.connect("JP1", 2, "DATA")
+    for pos, net in enumerate(("VCC", "SDA", "SCL", "GPIO4", "GND", "VS", "COM"), start=1):
+        B.connect("J1", pos, net)
+    B.connect("J2", 1, "VCC"); B.connect("J2", 2, "DATA"); B.connect("J2", 3, "GND")
+    B.connect("J3", 1, "ACR")
+    B.connect("J3", 2, "ACC")
+    B.connect("F1", 1, "ACR")
+    B.connect("F1", 2, "ACF")
+    B.connect("D1", 2, "ACF"); B.connect("D1", 1, "VS")
+    B.connect("D2", 2, "ACC"); B.connect("D2", 1, "VS")
+    B.connect("D3", 2, "COM"); B.connect("D3", 1, "ACF")
+    B.connect("D4", 2, "COM"); B.connect("D4", 1, "ACC")
+    B.connect("C3", 1, "VS"); B.connect("C3", 2, "COM")
+    xc, yc = B.pad_xy("C3", 1); xd, yd = B.pad_xy("D1", 1)
+    B.track("VS", xc, yc, xc, 22.9, width=0.5)
+    B.track("VS", xc, 22.9, xd, 22.9, width=0.5)
+    B.track("VS", xd, 22.9, xd, yd, width=0.5)
+    B.connect("U3", 1, "COM"); B.connect("U3", 2, "VS")
+    B.connect("U3", 6, "+5V"); B.connect("U3", 7, "GND")
+    B.connect("C4", 1, "+5V"); B.connect("C4", 2, "GND")
+    B.connect("J4", 1, "+5V"); B.connect("J4", 2, "GND")
+    # Freerouting leaves J4's two surface pads open on every attempt; lay them: straight out of
+    # each pad under the header body to C4, whose pads the router joins to U3. The two tracks
+    # run 2.5 apart between the anchor pads and clear the peg holes by 0.65.
+    (x1, y1), (x2, y2) = B.pad_xy("J4", 1), B.pad_xy("J4", 2)
+    (c1x, c1y), (c2x, c2y) = B.pad_xy("C4", 1), B.pad_xy("C4", 2)
+    B.track("+5V", x1, y1, 23.0, y1, width=0.5)
+    B.track("+5V", 23.0, y1, 23.0, c1y, width=0.5)
+    B.track("+5V", 23.0, c1y, c1x, c1y, width=0.5)
+    B.track("GND", x2, y2, c2x + (y2 - c2y), y2, width=0.5)
+    B.track("GND", c2x + (y2 - c2y), y2, c2x, c2y, width=0.5)
+
+    # --- legends
+    for i, s in enumerate(("J1 LINK 1=3V3 2=SDA", "3=SCL 4=GPIO4 5=GND", "6=VS 7=COM")):
+        B.text(s, 9.0, 47.2 + 1.15 * i, size=0.65, left=True)
+    B.text("24VAC input", 8.0, 73.4, size=1.0, bold=True)
+    B.text("R", 10.95, 75.9, size=1.0, bold=True)
+    B.text("C", 5.05, 75.9, size=1.0, bold=True)
+    B.text("5VDC output only", 22.7, 70.4, size=0.95, rot=90, bold=True)
+    B.text("to Pi", 24.2, 70.4, size=0.95, rot=90, bold=True)
+    B.text("+5", 33.95, J4Y - 1.25, size=1.0, bold=True)
+    B.text("G", 33.95, J4Y + 1.25, size=1.0, bold=True)
+    # the block's ring top and its last line's foot stand the same distance from C3 and U3
+    title_block(B, 31.2, 40.8, 0.7, "EXT", stacked=True, rev="C")
+    B.save()
+    save_pretty(custom)
+    return B
+
+
 if __name__ == "__main__":
     which = sys.argv[1:] or ["int", "ext"]
     if "int" in which:
@@ -827,3 +1071,6 @@ if __name__ == "__main__":
     if "ext" in which:
         build_ext()
         print("wrote ext-board")
+    if "extc" in which:
+        build_extc()
+        print("wrote extc-board")

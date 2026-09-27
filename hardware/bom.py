@@ -15,8 +15,10 @@ import pcbnew
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKIP_PREFIX = ("PF", "TP")
 
-for b in ("int", "ext"):
+for b in ("int", "ext", "extc"):
     path = os.path.join(HERE, f"{b}-board", f"{b}-board.kicad_pcb")
+    if not os.path.exists(path):
+        continue
     board = pcbnew.LoadBoard(path)
     groups = collections.OrderedDict()
     for fp in sorted(board.GetFootprints(), key=lambda f: (f.GetReference()[0], int("".join(c for c in f.GetReference() if c.isdigit()) or 0))):
