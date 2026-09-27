@@ -65,7 +65,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 | H1 | 3-way, black | 10.5 | top, entry toward −y | VCC · DATA · GND |
 | H2 | 3-way, black | 28.0 | top, entry toward −y | VCC · DATA · GND |
 | J3 | 2-way, black | 8.0 | bottom, entry toward +y | 1 hot at x 9.25, 2 common at x 6.75 |
-| J4 | 2-way vertical, white | body x 26.6 to 31.6 | pin row along y, centre y 70.8, entry upward, leads toward the right edge | 1 +5 V at y 69.55, 2 GND at y 72.05 |
+| J4 | 2-way vertical, white | body x 25.1 to 30.1 | pin row along y, centre y 70.8, entry upward, leads toward the right edge | 1 +5 V at y 69.55, 2 GND at y 72.05 |
 
 - H1 and H2 stand 17.5 mm apart, centre to centre, and the pair is centred on the board's 19.25 mm centre line. Two latching plugs sit side by side with 0.7 mm between them and reach x 2.1 and x 36.4.
 - Their anchors span x 3.95 to 17.05 and x 21.45 to 34.55.
@@ -80,7 +80,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 
 - The four reference legends sit on one baseline at y 17.55, each centred under its part.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
-- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 26.3 to 34.0 and y 65.8 to 75.8. C4 moves 2.5 mm left, to x 20.8, which opens 4.25 mm between it and J4's anchor pads for J4's legend.
+- J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.8 to 75.8, so its signal pads stand 2.25 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
 - The proto field PF1 is 8 × 3, from x 15.54 to x 33.32 and y 78.14 to y 83.22. It starts one column right of rev B to clear J3's anchor pad and one row lower to clear J4's.
 
 ### 4.1 J3 and J4 take the same plug
