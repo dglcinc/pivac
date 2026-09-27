@@ -178,11 +178,12 @@
 <circle cx="28" cy="69.2" r="0.6" fill="#d9b53a"/><circle cx="30.5" cy="69.2" r="0.6" fill="#d9b53a"/>
 <text x="25.8" y="68.1" font-size="0.8" font-weight="700" fill="#4a2a00">J4 XH-2</text>
 <text x="25.8" y="71.3" font-size="0.65" fill="#4a2a00">+5V  GND</text>
-<rect x="22.3" y="68.6" width="2.2" height="1.6" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
-<text x="21.9" y="67.9" font-size="0.65" fill="#a45d00">C4 1u</text>
-<rect x="22.6" y="71" width="1.2" height="2.4" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
-<text x="20.2" y="74.6" font-size="0.65" fill="#a45d00">tie slot</text>
-<text x="24.6" y="74.3" font-size="0.75" fill="#a45d00">USB-C pigtail to the Pi</text>
+<rect x="22.35" y="66.5" width="2.5" height="6" rx="0.3" fill="#f3b45c" stroke="#a45d00" stroke-width="0.2"/>
+<circle cx="23.6" cy="67" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/><circle cx="23.6" cy="72" r="0.55" fill="#d9b53a" stroke="#7a6410" stroke-width="0.06"/>
+<text x="22.5" y="73.6" font-size="0.65" fill="#a45d00">C4 1u</text>
+<rect x="28.6" y="72.4" width="1.2" height="2.2" rx="0.3" fill="none" stroke="#a45d00" stroke-width="0.2"/>
+<text x="30.4" y="74.1" font-size="0.65" fill="#a45d00">tie slot</text>
+<text x="11.2" y="73.6" font-size="0.75" fill="#a45d00">USB-C pigtail to the Pi</text>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
 <circle cx="35.5" cy="68" r="0.75"/><circle cx="35.5" cy="70.54" r="0.75"/><circle cx="35.5" cy="73.08" r="0.75"/>
 </g>

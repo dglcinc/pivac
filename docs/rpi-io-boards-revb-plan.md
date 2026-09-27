@@ -102,9 +102,9 @@ The probe sockets are where rev A put them, and the I2C and 1-wire parts that se
 | F1 | Littelfuse 60R110XU | ⌀13 × 3.1, lead spacing 5.1, standing | pads (15.5, 44.5) and (20.58, 44.5) | 1.1 A PTC in the 24 VAC feed |
 | C3 | Nichicon UPW1J471MHD, 470 µF 63 V | ⌀12.5 × 25, lead spacing 5.0, standing | centre (31.5, 30), pads (29, 30) and (34, 30) | reservoir on the 35 V rail |
 | U3 | Traco TMR 12-4811WI, SIP-8 | 22.0 × 9.6 × 12.0; 8 pins at 2.54 over 17.78, row 3.54 from the long edge | body x 11–33, y 50.5–60.1; pins at y 54.04, x 13.11 to 30.89, pin 1 left | isolated 35 V to 5.1 V converter |
-| C4 | 1 µF ceramic, 5 mm | | x 22.3–24.5, y 68.6–70.2 | U3 output capacitor |
-| J4 | JST B2B-XH-A | 7.5 × 5.75 × 7.0 | pads (28, 69.2) and (30.5, 69.2) | 5.1 V out to the USB-C pigtail |
-| tie slot | 1.2 × 2.4 mm slot | | x 22.6–23.8, y 71–73.4 | cable tie for the pigtail |
+| C4 | 1 µF 50 V radial ceramic, 5 mm lead spacing, through-hole | 5 × 2.5 | pads (23.6, 67.0) and (23.6, 72.0), between the title block and J4 | U3 output capacitor, the 1 µF the TMR datasheet specifies its ripple with |
+| J4 | JST B2B-XH-A | 7.5 × 5.75 × 7.0 | pads (28, 69.2) and (30.5, 69.2) | 5.1 V out to the USB-C pigtail; through-hole, 2 pins |
+| tie slot | 1.2 × 2.2 mm slot | | x 28.6–29.8, y 72.4–74.6, under J4 | cable tie for the pigtail |
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-THR | 6.7 wide × 7.5 deep × 7.5 tall | pins (6, 81.3) and (8.5, 81.3), entry faces +y | 24 VAC entry |
 | J2 | 3 pads ⌀1.6 | | x 35.5, y 68, 70.54, 73.08 | VCC, DATA, GND breakout |
 | proto | 10 × 4 pads at 2.54 | | from (13.0, 75.6) | bodge field, from J3 to the right edge |
