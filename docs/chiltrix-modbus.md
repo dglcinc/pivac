@@ -88,11 +88,11 @@ dropping the target to 46 °F locked the chiller out overnight with **E14 "Syste
 
 ## Chiltrix CX75 P5 "indoor unit water flow error" is the LOW-FLOW alarm, and the Y-strainer is the first suspect (root-caused + fixed 2026-08-22)
 
-repeated P5 alarms that reset and re-tripped within the hour. **`P5` fires when measured water flow falls below `P65` "AC minimum water flow" = 20 L/min on cx65/cx75**; `P64` sets the sensing type (factory `1` = flow meter) and **`C13` on the panel is the live flow readout**. "Indoor unit" is a misnomer inherited from split-system firmware — on a monobloc it is the water side of the plate exchanger, the circuit the CX's own pump drives. The same manual calls the identical quantity "usage side water flow volume" (`C13`) and "AC minimum water flow" (`P65`). **Cause was a heavily clogged Y-strainer**, loaded with calcium-looking scale that migrates from the boiler side of the shared four-pipe loop. **After cleaning, `C13` read over 54 L/min against the 20 L/min trip.** **Signature in the data:** chiller runtime collapsed to **169 min against 626–1,012 min on each of the previous ten days** (mean run 15.4 min vs 22–72), the loop warmed from ~45 °F to **77 °F**, and only the chiller's zones drifted — MASTER_BR went 76 → 79 °F while KITCHEN and GREAT_ROOM held, because those two are DX in cooling. **What rules out the alternatives:** loop pressure stayed **21–23 psi** (no water lost), and the unit still made cold water when it ran, pulling the tank down 8.1 °F in five minutes (~29,500 BTU/hr net) — capacity was normal and the *protection* was stopping it. **Why the margin is thin here:** removing ~30,000 BTU/hr at Chiltrix's 9 °F design ΔT needs ~25 L/min against a 20 L/min trip, so losing a fifth of the flow crosses it at full output while part load keeps running. An isolated early P5 followed later by a cluster is a **fouling curve** — that history is what points at the strainer rather than at air. **⚠️ `C13` reads 0 at idle and that is normal** — the CX's pump does not run continuously (standby is 9–11 W, controls only). Every start goes **9 W → 22–200 W for 1–2 min (pump alone) → 1,000–2,600 W (compressor)**, and that pump-only window is when to read `C13`. Setting **`P52 = 0`** ("not stop", the factory value; this unit is stopping at target) would make `C13` continuously readable and keep debris in suspension between cycles. **Follow-ups:** re-check the screen in days, not months; the right permanent filtration is a **hydronic dirt separator** with a blowdown valve (a *finer* in-line filter clogs faster than the Y did) — dirt-only, since the loop already has an air separator. **And do NOT raise the autofill to recover pressure: on a glycol system keep the feed valve closed.** An autofill feeds plain water, carrying the dissolved calcium and oxygen that caused this, diluting the glycol silently, and masking leaks. Top up **manually with premixed glycol** to the **21–23 psi the loop holds normally** (it has touched 27.1 psi, so headroom to a 30 psi relief is thin), then vent.
+repeated P5 alarms that reset and re-tripped within the hour. **`P5` fires when measured water flow falls below `P65` "AC minimum water flow" = 20 L/min on cx65/cx75**; `P64` sets the sensing type (factory `1` = flow meter) and **`C13` on the panel is the live flow readout**. "Indoor unit" is a misnomer inherited from split-system firmware — on a monobloc it is the water side of the plate exchanger, the circuit the CX's own pump drives. The same manual calls the identical quantity "usage side water flow volume" (`C13`) and "AC minimum water flow" (`P65`). **Cause was a heavily clogged Y-strainer**, loaded with calcium-looking scale that migrates from the boiler side of the shared four-pipe loop. **After cleaning, `C13` read over 54 L/min against the 20 L/min trip.** **Signature in the data:** chiller runtime collapsed to **169 min against 626–1,012 min on each of the previous ten days** (mean run 15.4 min vs 22–72), the loop warmed from ~45 °F to **77 °F**, and only the chiller's zones drifted — MASTER_BR went 76 → 79 °F while KITCHEN and GREAT_ROOM held, because those two are DX in cooling. **What rules out the alternatives:** loop pressure stayed **21–23 psi** (no water lost), and the unit still made cold water when it ran, pulling the tank down 8.1 °F in five minutes (~29,500 BTU/hr net) — capacity was normal and the *protection* was stopping it. **Why the margin is thin here:** removing ~30,000 BTU/hr at Chiltrix's 9 °F design ΔT needs ~25 L/min against a 20 L/min trip, so losing a fifth of the flow crosses it at full output while part load keeps running. An isolated early P5 followed later by a cluster is a **fouling curve** — that history is what points at the strainer rather than at air. **⚠️ `C13` reads 0 at idle and that is normal** — the CX's pump does not run continuously (standby is 9–11 W, controls only). Every start goes **9 W → 22–200 W for 1–2 min (pump alone) → 1,000–2,600 W (compressor)**, and that pump-only window is when to read `C13`. Setting **`P52 = 0`** ("not stop", the factory value; this unit is stopping at target) would make `C13` continuously readable and keep debris in suspension between cycles. **Follow-ups:** re-check the screen in days, not months; the right permanent filtration is a **hydronic dirt separator** with a blowdown valve (a *finer* in-line filter clogs faster than the Y did) — dirt-only, since the loop already has an air separator. **And do NOT raise the autofill to recover pressure: on a glycol system keep the feed valve closed.** An autofill feeds plain water, carrying the dissolved calcium and oxygen that caused this, diluting the glycol silently, and masking leaks. Top up **manually with premixed glycol** to **22–23 psi cold** (it has touched 27.1 psi, so headroom to a 30 psi relief is thin), then vent.
 
 ## The Y-strainer fouls from the boiler side, and low flow presents as `P5` — check `C13`, not the chiller (2026-08-22)
 
-repeated **`P5` "indoor unit water flow error"** traced to the shared four-pipe loop's Y-strainer, **heavily clogged with calcium-looking scale migrating from the boiler side**. `P65` sets the low-flow trip at **20 L/min** on a CX65/CX75, `P64` selects the flow meter, and **`C13` is the live readout** — over **54 L/min** after cleaning. **`C13` reads 0 at idle and that is normal**; the pump only runs during a call, so read it in the **1–2 minute pump-only window at the start of a run**. That check costs nothing and catches the next restriction long before `P5` does, which matters because the scale keeps arriving from a shared loop. **The failure signature in InfluxDB** on 22 Aug: the chiller ran 5, 10, 0 and 6 minutes across 10:00–14:00 EDT while `IN` climbed 58.6 → 76.0 °F. **The quieter signature is more useful** — a restricted chiller sits *above* its own return-water target all afternoon, which is what happened for at least the ten days before cleaning (return water 52.4–54.4 °F against a 50 °F target, running power averaging 1593 W; post-clean 51.9 °F on 1423 W at a *warmer* outdoor average). **Consequence: any capacity or comfort analysis using data before 2026-08-22 is measuring a flow-restricted plant**, including the "loop runs 6–8 °F warmer than the UniChillers" finding — see `docs/unico-cooling-assessment-and-tuning.md` §6.4. **Do not raise the autofill to recover pressure** on a glycol system: it carries in the calcium and oxygen that caused this, dilutes the glycol silently, and hides leaks. Top up manually with premixed glycol to 21–23 psi.
+repeated **`P5` "indoor unit water flow error"** traced to the shared four-pipe loop's Y-strainer, **heavily clogged with calcium-looking scale migrating from the boiler side**. `P65` sets the low-flow trip at **20 L/min** on a CX65/CX75, `P64` selects the flow meter, and **`C13` is the live readout** — over **54 L/min** after cleaning. **`C13` reads 0 at idle and that is normal**; the pump only runs during a call, so read it in the **1–2 minute pump-only window at the start of a run**. That check costs nothing and catches the next restriction long before `P5` does, which matters because the scale keeps arriving from a shared loop. **The failure signature in InfluxDB** on 22 Aug: the chiller ran 5, 10, 0 and 6 minutes across 10:00–14:00 EDT while `IN` climbed 58.6 → 76.0 °F. **The quieter signature is more useful** — a restricted chiller sits *above* its own return-water target all afternoon, which is what happened for at least the ten days before cleaning (return water 52.4–54.4 °F against a 50 °F target, running power averaging 1593 W; post-clean 51.9 °F on 1423 W at a *warmer* outdoor average). **Consequence: any capacity or comfort analysis using data before 2026-08-22 is measuring a flow-restricted plant**, including the "loop runs 6–8 °F warmer than the UniChillers" finding — see `docs/unico-cooling-assessment-and-tuning.md` §6.4. **Do not raise the autofill to recover pressure** on a glycol system: it carries in the calcium and oxygen that caused this, dilutes the glycol silently, and hides leaks. Top up manually with premixed glycol to 22–23 psi cold.
 
 
 ## The Y-strainer screen is 60 mesh and re-fouls slowly (measured 2026-09-12)
@@ -129,3 +129,59 @@ under a minute of `operatingMode` = 1 with `HPHEAT` energised and the outlet jum
 the pair at 13:02 and 13:09 cost a 52-minute cool-back run starting from 57.7 °F. No thermostat
 carried a heat state, so read a sub-minute mode flip against the Pi's `journalctl --list-boots`
 before suspecting the HZ-432's `B` terminal.
+
+## Measured heating performance, 2026-09-15 → 09-27
+
+Same method as the cooling figures: water side from registers 213, 281 and 205 with glycol at 0.98
+of water's heat capacity, electricity from `electrical.emporia.house.chiltrix`, every figure ±10 %.
+The heating target is 50 °C, so steady running holds a 120 °F return and a 128 °F supply. Steady
+means heating mode, compressor running and return above 110 °F: 568 minutes in all.
+
+| Chiller ambient | Minutes | Input | Output | COP |
+|---|---|---|---|---|
+| 45–50 °F | 98 | 4.55 kW | 53 kBTU/h | 3.4 |
+| 50–55 °F | 344 | 4.41 kW | 55 kBTU/h | 3.7 |
+| 55–60 °F | 171 | 3.89 kW | 54 kBTU/h | 4.1 |
+
+Across all 568 minutes the COP is 3.6 at a median 50 Hz. The three bands differ by less than the
+error of the method, so read them as one figure near 3.6 that improves with ambient. Warming a
+cold tank runs far better: with the return under 95 °F the unit delivers 68 kBTU/h from 3.0 kW, a
+COP of 6.8. Over the six days from 09-22 the unit drew 70.4 kWh in heating mode, idle included, and
+delivered 1,010 kBTU, a COP of 4.2; that figure is lifted by the warm-up minutes of 35 changeovers
+and a plant that holds one mode will sit nearer 3.6.
+
+Peak draw in heating is 6.9 kW and 26.9 A from register 256, reached at 65–68 Hz with the return
+above 116 °F, against 3.7 kW in cooling. The Emporia reading and the register agree at 254 V.
+Idle draw in heating mode is 10 W with the pump at 8.0 L/min. Heat runs are short at this load:
+55 runs in the six days, median 13 minutes, about 10 starts a day. No defrost occurred; the lowest
+ambient in the record is 48 °F, so the COP below 45 °F is unmeasured.
+
+## The pump-start pressure step needs 21.5 psi cold (measured 2026-09-19 → 09-27)
+
+The step in `electrical.ac.arduinoThermPSI.psi` at pump start depends on the pressure the loop
+holds before the start, at the same 52–54 L/min startup flow:
+
+| Pressure before the start | Starts | Median step | Range |
+|---|---|---|---|
+| 21.5–26 psi | 52 | −0.9 psi | −0.0 to −1.9 |
+| 21.0–21.5 psi | 28 | −2.9 psi | −0.3 to −6.3 |
+| under 21.0 psi | 40 | −5.2 psi | −2.7 to −7.5 |
+
+The change is abrupt. Every start up to 20:48 on 2026-09-21 stepped −0.6 to −1.9 psi from 21.3 to
+21.7 psi; the start at 21:13, from 20.7 psi, stepped −4.4 psi, and every cold start since has
+stepped −4.4 to −7.5 psi, taking the gauge to 12.5–14 psi. A start from a hot tank at 24.9 psi on
+2026-09-22 stepped −0.9 psi between two cold starts that stepped −5.3 and −4.6 psi, and
+`.startupFlow` held 52.2–54.4 L/min throughout, so the strainer and exchanger are clear and the
+step is a property of the loop's pressure. The behaviour fits an expansion tank precharged near
+21 psi: below the precharge the tank holds no water, the loop has no compliance, and the pump's
+suction pulls the gauge down by the whole friction loss. A gauge on the tank's air valve, with the
+loop side at zero, confirms or refutes it.
+
+Cold idle pressure (compressor off, tank under 60 °F) was 23.5–23.7 psi until 2026-09-18, 21.5–21.7
+psi after the demineralisation filter went in on 09-19, and 20.1–20.7 psi from 09-22.
+
+Heating raises the loop 5 to 6.6 psi above its cold pressure: from 23.6 psi cold the gauge reached
+30.2 psi on 2026-09-15 and 29.1 psi on 09-16 with the tank at 129 °F, at the 30 psi relief, and
+from 20.5 psi cold it reaches 25.0–25.7 psi. The cold fill window is therefore 22 to 23 psi: above
+the 21.5 psi the tank needs, and low enough that a 129 °F tank stays under the relief. The
+pump-step fouling sentinel is valid only for starts from 21.5 psi or more.

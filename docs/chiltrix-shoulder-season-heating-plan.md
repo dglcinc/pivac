@@ -285,9 +285,10 @@ convention; the panel's soft limits already allow it. The `chiltrix-pump-only-fl
 cooling-only and do not apply.
 
 A heating COP falls out of the same energy balance the assessment uses in cooling: chiller output
-from registers 213, 281 and 205 over the Emporia CT, with the tank term reversed in sign. Log it
-against outdoor temperature from the first week; §8 holds the estimate it replaces, and at today's
-prices only capacity and comfort set the balance point.
+from registers 213, 281 and 205 over the Emporia CT, with the tank term reversed in sign. The
+record from 15 to 27 September 2026 gives 3.4 to 4.1 between 45 and 60 °F ambient with a 120 °F
+return (`docs/chiltrix-modbus.md`, Measured heating performance), and §8 prices heat with it. At
+today's prices only capacity and comfort set the balance point.
 
 ## 7. The cost of a changeover
 
@@ -310,8 +311,9 @@ primary piping, and the calling secondary loop, which the first call brings into
 The output rate assumes the inverter runs near its ceiling against a 70 °F error: cooling has
 measured 55,400 BTU/hr at p99 and 3,740 W peak, and in heating the 72,000 BTU/hr rating is at
 47 °F ambient and cooler water than 122 °F, so 40,000 to 55,000 BTU/hr is the working range,
-stretched by defrost below about 45 °F outdoor. Heating at 122 °F loses 2 to 3 % of COP per °C
-above the rating point, which puts the COP near 3.0 against the rated 4.57. Cooling is priced at
+stretched by defrost below about 45 °F outdoor. Measured output with the tank at temperature is
+53 to 55 kBTU/h at a COP of 3.4 to 4.1 between 45 and 60 °F ambient, and 68 kBTU/h at a COP of 6.8
+while the return is under 95 °F. Cooling is priced at
 the measured EER of 16.8 above 2,500 W, and the first part of a pull-down runs better than that
 because warm return water raises evaporator capacity.
 
@@ -332,8 +334,8 @@ Two things would change these numbers. The heating target is assumed to be a ret
 like register 142; step 1 of §5 reads register 143 back. Pulling 122 °F glycol through the
 evaporator on the first cooling call may trip a high-inlet limit in the cooling logic, and neither
 the IOM notes here nor the Modbus record shows one, so watch `r284` and `operatingMode` on the
-first heat-to-cool changeover. The heating COP and the pull-down rate are estimates until the first
-week's energy balance in §6 replaces them.
+first heat-to-cool changeover. The pull-down rate is an estimate until a changeover is measured
+with the zones quiet.
 
 The first measured changeover, on 2026-09-08 at 70 °F ambient, ran a partial swing: 14 minutes of
 heating at 55–60 Hz and 0.45 kWh moved the return from 51 to 77.5 °F with the supply at 86 °F, about
@@ -409,35 +411,43 @@ in either mode, so the boiler never goes cold and its standby loss is sunk. The 
 
 The comparison takes boiler efficiency at 90 % (AFUE 93.5, condensing returns at minimum fire, a
 few points lost to cycling), boiler electricity as the UP26-99F at 197 W over the call hours plus
-about 80 W of fan and controls while firing, and the chiller's COP at 122 °F water from the 4.57
-rating at 47 °F with §2's 2 to 3 % per °C derate. The chiller column includes the Taco 0015 at
-90 W. Delivered heat is the same in both columns.
+about 80 W of fan and controls while firing. The chiller's COP at 50 and 55 °F is measured, 3.6 and
+3.9 at a 120 °F return (15 to 27 September 2026, `docs/chiltrix-modbus.md`); at 45 °F and below it
+is the 4.57 rating at 47 °F with §2's 2 to 3 % per °C derate, which the measured band exceeds by
+14 to 19 % where the two overlap. The chiller column includes the Taco 0015 at 90 W. Delivered
+heat is the same in both columns.
 
 | Outdoor | Heat delivered | Boiler gas | Boiler cost | Chiller COP | Chiller kWh | Chiller cost | Saving | Break-even gas |
 |---|---|---|---|---|---|---|---|---|
-| 55 °F | 265 kBTU | 2.95 therms | $5.94 | 3.3 | 24.0 | $4.32 | $1.62 | $1.38/therm |
-| 50 °F | 395 | 4.39 | $8.85 | 3.1 | 38.1 | $6.86 | $1.99 | $1.48 |
+| 55 °F | 265 kBTU | 2.95 therms | $5.94 | 3.9 | 20.4 | $3.67 | $2.27 | $1.17/therm |
+| 50 °F | 395 | 4.39 | $8.85 | 3.6 | 33.0 | $5.94 | $2.91 | $1.27 |
 | 45 °F | 526 | 5.84 | $11.77 | 2.9 | 54.2 | $9.76 | $2.01 | $1.59 |
 | 40 °F | 655 | 7.28 | $14.68 | 2.7 | 72.4 | $13.03 | $1.65 | $1.70 |
 | 35 °F | 786 | 8.73 | $17.60 | 2.4 | 97.6 | $17.57 | $0.03 | $1.93 |
 
 Per 100 kBTU delivered the boiler costs 1.11 × P + $0.10 and the chiller $5.28 ÷ COP + $0.04, so
 the break-even gas price is $4.76 ÷ COP − $0.05 and, at $1.93, the chiller wins at any COP above
-2.4. The saving is about $2 a day through the 40 to 55 °F band, and a 46 °F day costs about $10 on
+2.4. The saving is $2 to $3 a day through the 45 to 55 °F band, and a 46 °F day costs about $10 on
 the chiller against $12 on gas; either is three to four times a summer cooling day.
 
 Three things move the chiller's column. The heating target is the lever: each °C below 50 °C is
 worth 2 to 3 % of COP, so the 45 °C that heating AU mode settles at on a mild day raises COP by
 10 to 15 % and widens the saving. A day that both heats and cools adds the 70 ¢ changeover from
-§7, which takes a third of the saving on such a day. And a 40 °F day averages 27 kBTU/h with peaks
+§7, which takes a third of the saving on such a day. From 22 to 27 September 2026 the panel
+changed mode 35 times in six days at 56 to 61 °F outdoor, with the thermostats holding a 71 °F
+heat setpoint and 74 to 76 °F cool setpoints: the chiller made 1,010 kBTU of heat for 70.4 kWh,
+removed 362 kBTU again from water above 62 °F for 12.2 kWh, and spent 26 kWh in all on tank
+swings. The same heat from the boiler costs $22.60; the chiller's $14.87 is a saving if all of the
+heat was wanted and a tie with the boiler's $14.50 if only the 648 kBTU net was. The changeovers
+are what decide the saving, and the hydronic thermostats on Heat remove them. And a 40 °F day averages 27 kBTU/h with peaks
 near twice that, close to what the CX75 delivers at that ambient through coils giving 70 % of
 their rating, so below about 40 °F capacity decides before price does. The plan's 40 °F starting
 balance temperature stands; the fortnight in §5 step 7 tests capacity, and the price would only
 argue for lowering it further.
 
 The gas side carries about ±10 % from reading the chart and the weather scatter above. The chiller
-side rests on an estimated COP, ±20 % until the first heating week's energy balance in §6 replaces
-it; the boiler efficiency band of 87 to 92 % moves the break-even by about 5 ¢. The chiller at a
+side carries ±10 % on the measured COP at 50 and 55 °F and ±20 % on the estimate below 45 °F, where
+no run has been recorded and defrost begins; the boiler efficiency band of 87 to 92 % moves the break-even by about 5 ¢. The chiller at a
 122 °F target also runs the air handlers about 40 % longer than 140 °F boiler water does, a few
 cents per 100 kBTU that is not in the table.
 

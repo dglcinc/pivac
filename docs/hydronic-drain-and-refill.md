@@ -16,7 +16,7 @@ glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 | Each secondary loop | about 9 gal in 200 ft of 1¼" PEX | assessment §2.2 |
 | System high point | attic coil, about 25 ft above the boiler gauge | assessment §3.5 |
 | Static head to the attic coil | 10.8 psi | 25 ft ÷ 2.31 |
-| Cold fill pressure | 21–23 psi at the boiler gauge | `CLAUDE.md`, glycol top-up rule |
+| Cold fill pressure | 22–23 psi at the boiler gauge | `CLAUDE.md`, glycol top-up rule; `docs/chiltrix-modbus.md`, pump-start pressure step |
 | Head the fill pump must make at zero flow | 53 ft (23 psi × 2.31) | |
 | Boiler relief valve | 30 psi (confirm on the valve tag) | Ti-200 standard fitting |
 | Glycol target | 30 % PG (freezes about −13 °C) | assessment §7.1; 25 % sits on the −10 °C line P109 = 1 is conditioned on |
@@ -96,7 +96,7 @@ Inhibited concentrate carries its own inhibitor, so no 8-Way.
 4. Fill the chiller side, restore its breaker, and let its internal pump's idle trickle and its
    own auto-vent finish. `hvac.chiller.chiltrix.startupFlow` back at 51.7 L/min in the next
    pump-only window proves the exchanger and pump are free of air.
-5. Throttle the discharge to bring the boiler gauge to 21–23 psi cold, close the fill valve,
+5. Throttle the discharge to bring the boiler gauge to 22–23 psi cold, close the fill valve,
    stop the pump, and cap the fill fitting.
 
 ## 5. After the first day
