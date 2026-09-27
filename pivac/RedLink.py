@@ -56,6 +56,52 @@ _last_error_type = ""
 
 _STATENUMS = {"heat": 1, "cool": -1, "fan": 0.5, "off": 0}
 
+# Per-device refresh failures are Honeywell-side and run at 15–30 % of
+# refreshes, about 8,000 journal lines a day when each one is a WARNING. They
+# are logged at INFO and rolled up: one WARNING per SUMMARY_INTERVAL with each
+# device's failure share, and one as soon as a device misses CONSEC_WARN
+# refreshes in a row (about 3.5 min), which is the case that needs attention.
+SUMMARY_INTERVAL = 3600.0
+CONSEC_WARN = 10
+
+_refresh_attempts = {}
+_refresh_failures = {}
+_refresh_consecutive = {}
+_summary_start = None
+
+
+def _note_refresh(name, failed, kind=""):
+    _refresh_attempts[name] = _refresh_attempts.get(name, 0) + 1
+    if not failed:
+        _refresh_consecutive[name] = 0
+        return
+    _refresh_failures[name] = _refresh_failures.get(name, 0) + 1
+    _refresh_consecutive[name] = _refresh_consecutive.get(name, 0) + 1
+    if _refresh_consecutive[name] == CONSEC_WARN:
+        logger.warning("RedLink %s has failed %d refreshes in a row (last: %s)",
+                       name, CONSEC_WARN, kind)
+
+
+def _summarise_refreshes(now):
+    """Emit the rollup once per SUMMARY_INTERVAL and start a new window."""
+    global _summary_start
+    if _summary_start is None:
+        _summary_start = now
+        return
+    if now - _summary_start < SUMMARY_INTERVAL:
+        return
+    failed = sum(_refresh_failures.values())
+    if failed:
+        shares = ", ".join(
+            "%s %d/%d" % (n, _refresh_failures.get(n, 0), _refresh_attempts[n])
+            for n in sorted(_refresh_attempts)
+        )
+        logger.warning("RedLink refresh failures in the last %d min: %s",
+                       round((now - _summary_start) / 60), shares)
+    _refresh_attempts.clear()
+    _refresh_failures.clear()
+    _summary_start = now
+
 
 def _ensure_loop():
     global _loop, _loop_thread
@@ -108,11 +154,13 @@ async def _connect(uid, pwd, timeout):
 async def _refresh_one(dev):
     try:
         await asyncio.wait_for(dev.refresh(), timeout=REFRESH_DEADLINE)
+        _note_refresh(dev.name, False)
         return dev
     except (asyncio.TimeoutError, aiosomecomfort.ConnectionTimeout,
             aiosomecomfort.ConnectionError) as e:
-        logger.warning("RedLink %s refresh failed (%s); skipping this cycle",
-                       dev.name, type(e).__name__)
+        logger.info("RedLink %s refresh failed (%s); skipping this cycle",
+                    dev.name, type(e).__name__)
+        _note_refresh(dev.name, True, type(e).__name__)
         return None
     except aiosomecomfort.UnauthorizedError:
         # 401 from Honeywell means the access token has expired. Don't
@@ -130,8 +178,9 @@ async def _refresh_one(dev):
         # refreshes, and the outer except in status() would tear down the
         # session and force a fresh ~75s login next cycle. Per-device errors
         # are isolated; the other thermostats still publish.
-        logger.warning("RedLink %s refresh raised %s: %s; skipping this cycle",
-                       dev.name, type(e).__name__, e)
+        logger.info("RedLink %s refresh raised %s: %s; skipping this cycle",
+                    dev.name, type(e).__name__, e)
+        _note_refresh(dev.name, True, type(e).__name__)
         return None
 
 
@@ -258,6 +307,7 @@ def status(config={}, output="default"):
     if cycle_elapsed > CYCLE_WARN_THRESHOLD:
         logger.warning("RedLink cycle took %.1fs (threshold %.0fs) — expect WilhelmSK widget freshness flicker",
                        cycle_elapsed, CYCLE_WARN_THRESHOLD)
+    _summarise_refreshes(time.monotonic())
 
     if error is not None:
         _consecutive_errors += 1
