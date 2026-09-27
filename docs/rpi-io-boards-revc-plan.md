@@ -94,6 +94,7 @@ Both are 2-way PTSM, so J3's plug fits J4. The 24 VAC plug seated in J4 puts 36 
 |---|---|---|
 | Header and plug colour | black | white |
 | Silkscreen beside it | `24VAC input`, bold, above the pads; `R` beside pin 1 and `C` beside pin 2 at the far end of the pads, 1.3 mm clear of the header body so the 5 mm body does not hide them | `5VDC output only` and `to Pi`, bold, two lines turned 90° counter-clockwise to read upward, between C4 and J4, centred on J4 |
+| Pin legends | `R` and `C`, bold | `+5` and `G`, bold, beside the leads in the 2.25 mm between J4's pads and J2 |
 | Orientation | horizontal, at the bottom edge | vertical, mid board |
 
 **Which leg is R.** The bridge rectifies either way round, U3 isolates the Pi, and the sense contacts are dry, so the board works with the two leads swapped. The legs are marked because F1 is in pin 1's leg: on a transformer whose common is bonded to ground, F1 limits a fault to ground only when the hot lead, R, is on pin 1.
