@@ -163,9 +163,11 @@ J4 is the 5.1 V output to the Pi's USB-C pigtail, a JST B2B-XH-A on rev B. The c
 
 | Option | How it prevents the wrong plug | Cost |
 |---|---|---|
-| 4-way J4, +5 V on two positions and GND on two | the 2-way and 3-way plugs do not fit | 15.6 mm wide, so J2 moves to the free top-right corner and C4 moves 4 mm left |
+| 4-way J4, +5 V on positions 1 and 2, GND on 3 and 4 | the 2-way and 3-way plugs do not fit | 15.6 mm wide, so J2 moves to the free top-right corner and C4 moves 4 mm left |
 | 2-way J4 in the other colour from J3 | by eye only | none |
 | J4 stays JST XH | different family | none |
+
+The pigtail is the rev B one in every option: a USB-C plug on two bare 22 AWG leads, which push into a PTSM plug. In a 4-way plug the leads take positions 1 and 4 and the middle two stay empty; the extra positions key the plug and carry no current.
 
 ## 10. Open questions
 
