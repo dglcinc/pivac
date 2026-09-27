@@ -12,7 +12,7 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 **In scope.** On EXT: H1 and H2 become 3-way surface-mount headers on the top edge, J3 becomes a 2-way surface-mount header on the bottom edge, and all three sit with the entry face on the board edge. J4 becomes a 2-way vertical surface-mount PTSM header. H3 leaves the board with U2, C2 and JP2, and the tie slots TS1 leave with the JST header they served. The probe parts under the sockets move toward the upper rib to clear the header pads. A new footprint generator in `hardware/gen-boards.py` builds the surface-mount header.
 
-**Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section and the GH link on EXT keep their rev B nets and parts. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
+**Out of scope.** The INT board stays at rev B: the enclosure supports its plugs on both sides, so its headers do not fold. The link between the boards stays the JST GH of rev B, which is lower than a PTSM header. The power section and the GH link on EXT keep their rev B nets and parts; U3 and C4 move. No change to `pivac`, `config.yml`, InfluxDB or Signal K. The plugs in service carry over.
 
 **Boundaries assumed.**
 
@@ -81,6 +81,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 - The four reference legends sit on one baseline at y 17.55, each centred under its part.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its anchor pads span x 3.0 to 13.0 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
 - J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.8 to 75.8, so its signal pads stand 2.25 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
+- U3 moves 2 mm right for access to J1: body x 13 to 35, pins at x 15.11 to 32.89, pin 1 left. It stands 5.4 mm from J1's courtyard and 3.5 mm from the room kept clear for J1's plug and a finger, against 3.4 and 1.5 mm on rev B, and 3.5 mm from the board's right edge.
 - The title block sits midway between C3 and U3, at the same distance from the right edge as on rev B: ring centre (31.2, 41.7), text lines 1.4 mm lower than rev B's. That leaves 2.3 mm between C3 and the ring and 2.2 mm between the second line and U3.
 - The proto field PF1 is 8 × 3, from x 15.54 to x 33.32 and y 78.14 to y 83.22. It starts one column right of rev B to clear J3's anchor pad and one row lower to clear J4's.
 

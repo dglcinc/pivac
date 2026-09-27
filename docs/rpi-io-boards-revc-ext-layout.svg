@@ -48,15 +48,15 @@
 <text x="12.2" y="46.9" font-size="0.9" font-weight="700" fill="#333333">F1 60R110XU</text>
 <text x="12.2" y="48.2" font-size="0.75" fill="#333333">1.1 A PTC, standing</text>
 <!-- TMR converter along the lower rib -->
-<rect x="11" y="50.5" width="22" height="9.6" rx="0.4" fill="#e1e4e1" stroke="#5f6368" stroke-width="0.3"/>
+<rect x="13.00" y="50.5" width="22" height="9.6" rx="0.4" fill="#e1e4e1" stroke="#a45d00" stroke-width="0.3"/>
 <g fill="#d9b53a" stroke="#7a6410" stroke-width="0.06">
-<circle cx="13.11" cy="54.04" r="0.55"/><circle cx="15.65" cy="54.04" r="0.55"/><circle cx="18.19" cy="54.04" r="0.55"/><circle cx="20.73" cy="54.04" r="0.55"/><circle cx="23.27" cy="54.04" r="0.55"/><circle cx="25.81" cy="54.04" r="0.55"/><circle cx="28.35" cy="54.04" r="0.55"/><circle cx="30.89" cy="54.04" r="0.55"/>
+<circle cx="15.11" cy="54.04" r="0.55"/><circle cx="17.65" cy="54.04" r="0.55"/><circle cx="20.19" cy="54.04" r="0.55"/><circle cx="22.73" cy="54.04" r="0.55"/><circle cx="25.27" cy="54.04" r="0.55"/><circle cx="27.81" cy="54.04" r="0.55"/><circle cx="30.35" cy="54.04" r="0.55"/><circle cx="32.89" cy="54.04" r="0.55"/>
 </g>
 <g fill="#333333" font-size="0.65">
-<text x="12.1" y="52.7">1 -Vin</text><text x="14.9" y="52.7">2 +Vin</text><text x="17.6" y="52.7">3 Rmt</text><text x="25.1" y="52.7">6 +Vo</text><text x="27.7" y="52.7">7 -Vo</text><text x="30.2" y="52.7">8 NC</text>
+<text x="14.10" y="52.7">1 -Vin</text><text x="16.90" y="52.7">2 +Vin</text><text x="19.60" y="52.7">3 Rmt</text><text x="27.10" y="52.7">6 +Vo</text><text x="29.70" y="52.7">7 -Vo</text><text x="32.20" y="52.7">8 NC</text>
 </g>
-<text x="12.1" y="57" font-size="0.95" font-weight="700" fill="#333333">U3 TMR 12-4811WI</text>
-<text x="12.1" y="58.5" font-size="0.8" fill="#333333">SIP-8, 12.0 tall, 5.1 V 2.4 A</text>
+<text x="14.10" y="57" font-size="0.95" font-weight="700" fill="#333333">U3 TMR 12-4811WI</text>
+<text x="14.10" y="58.5" font-size="0.8" fill="#333333">SIP-8, 12.0 tall, 5.1 V 2.4 A</text>
 
 <!-- lower field: J4 against the rib, proto field across to J3, J3 at the bottom edge -->
 
@@ -81,8 +81,8 @@
 <path d="M 8 72.9 L 8 72.5 C 8 68, 9.8 64, 9.8 58 L 9.8 48.5 C 9.8 45.5, 12 44.5, 14.7 44.5"/>
 <path d="M 20.58 43.7 L 20.3 34.8"/>
 <path d="M 20.9 27.95 C 24 27.95, 26 30, 28.2 30"/>
-<path d="M 31.5 36.5 C 31.5 44, 16 46, 15.65 53.3"/>
-<path d="M 25.81 54.8 C 25.81 60, 27.6 62, 27.6 64.2"/>
+<path d="M 31.5 36.5 C 31.5 44, 18 46, 17.65 53.3"/>
+<path d="M 27.81 54.8 C 27.81 60, 27.6 62, 27.6 64.2"/>
 <path d="M 10 34.7 C 9.8 40, 8.8 46, 7.4 48.6"/>
 </g>
 <g font-size="0.7" fill="#5f6368">
@@ -186,11 +186,11 @@
 <text x="14" y="386" font-weight="700">Moved</text>
 <text x="14" y="404">U1, C1, JP1 and R1 stand in one row, 2.5 mm apart and</text>
 <text x="14" y="418">centred, 2 mm below the header pads.</text>
-<text x="14" y="432">PF1 is 8 x 3 from x 15.54, y 78.14. C4 sits 3.3 mm left.</text>
+<text x="14" y="432">PF1 is 8 x 3. C4 sits 3.3 mm left. U3 sits 2 mm right.</text>
 <text x="14" y="458" font-weight="700">Leaves</text>
 <text x="14" y="476">H3, U2, C2, JP2 and the tie slots TS1.</text>
 <text x="14" y="502" font-weight="700">Unchanged from rev B</text>
-<text x="14" y="520">J1 GH link, D1-D4, F1, C3, U3 and J2, with their nets.</text>
+<text x="14" y="520">J1 GH link, D1-D4, F1, C3 and J2, with their nets.</text>
 <text x="14" y="534">The INT board. The title block sits midway between C3 and U3.</text>
 <text x="14" y="560" font-weight="700" fill="#a45d00">J3 and J4 take the same plug</text>
 <text x="14" y="578">J3 is black, marked 24VAC input with R and C at its pins.</text>
