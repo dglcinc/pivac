@@ -1,5 +1,6 @@
 #!/bin/sh
-# Regenerate, route, check, render and export both boards. Needs KiCad 10 in ~/Applications and
+# Regenerate, route, check, render and export the boards named, or int and ext (rev B) when none
+# is named. "extc" is the rev C EXT board, in extc-board. Needs KiCad 10 in ~/Applications and
 # Freerouting 1.9.0 in ~/Applications/freerouting (see docs/rpi-io-boards-pcb-plan.md §6).
 # Freerouting is not deterministic and sometimes leaves a connection open or crosses two tracks,
 # so each board is regenerated and routed again until DRC reports no violation and nothing
@@ -9,7 +10,7 @@ cd "$(dirname "$0")"
 PY=~/Applications/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3
 CLI=~/Applications/KiCad.app/Contents/MacOS/kicad-cli
 $PY gen-boards.py "$@"
-rm -f pivac.kicad_sym; python3 gen-schematics.py; $PY bom.py
+[ $# -eq 0 ] && rm -f pivac.kicad_sym; python3 gen-schematics.py "$@"; $PY bom.py
 for b in ${*:-int ext}; do
   for attempt in 1 2 3 4 5 6; do
     [ $attempt -gt 1 ] && $PY gen-boards.py $b

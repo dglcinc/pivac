@@ -1,0 +1,15 @@
+qty,value,footprint,references,fitted
+1,100n,C_Rect_L7.0mm_W2.5mm_P5.00mm,C1,yes
+1,470u 63V,CP_Radial_D12.5mm_P5.00mm,C3,yes
+1,1u,C_Rect_L7.0mm_W2.5mm_P5.00mm,C4,yes
+4,1N4007,D_DO-41_SOD81_P10.16mm_Horizontal,D1 D2 D3 D4,yes
+1,PTC 1.1A 60V,PTC_Radial_P5.08_Standing,F1,yes
+2,"PTSM 0,5/3-HH-2,5-SMD",PTSM_0.5_3-HH-2.5-SMD,H1 H2,yes
+1,GH BM07B link to INT,JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical,J1,yes
+1,GPIO4->DATA,SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm,JP1,yes
+1,VCC DATA GND,Pads_1x3,J2,yes
+1,"PTSM 0,5/2-HH-2,5-SMD 24 VAC",PTSM_0.5_2-HH-2.5-SMD,J3,yes
+1,"PTSM 0,5/2-HV-2,5-SMD 5V OUT",PTSM_0.5_2-HV-2.5-SMD,J4,yes
+1,2k2 rollback,R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,R1,no
+1,DS2482-100,SOIC-8_3.9x4.9mm_P1.27mm,U1,yes
+1,TMR 12-4811WI,TMR12WI_SIP-8,U3,yes

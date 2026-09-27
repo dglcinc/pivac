@@ -292,7 +292,49 @@ def build_ext():
     return S
 
 
+# ------------------------------------------------------------------ EXT board, rev C
+def build_extc():
+    S = Sheet(os.path.join(HERE, "extc-board", "extc-board.kicad_sch"), "extc-board")
+    ds, ds_pins = box_symbol("DS2482-100", [(1, "VCC"), (2, "IO"), (3, "GND"), (4, "SCL")], [(8, "AD0"), (7, "AD1"), (6, "PCTLZ"), (5, "SDA")],
+                             desc="Analog Devices DS2482-100 I2C to 1-Wire bridge, SO-8")
+    S.lib("pivac:DS2482-100", ds, ds_pins)
+    S.text("pivac EXT board rev C: DS2482-100 1-wire master, two probe sockets, 24 VAC sense supply and the Pi's 5.1 V supply, link to the INT board", 20, 15, 3)
+    S.text("Every connector at an edge is the surface-mount PTSM header with its entry face on the edge; J4 is the vertical header of the same family.", 20, 21, 1.6)
+    tmr, tmr_pins = box_symbol("TMR12WI", [(1, "-Vin"), (2, "+Vin"), (3, "Remote")], [(6, "+Vout"), (7, "-Vout"), (8, "NC")],
+                               desc="Traco TMR 12-4811WI isolated DC/DC, 18-75 V in, 5.1 V 2.4 A out, SIP-8")
+    S.lib("pivac:TMR12WI", tmr, tmr_pins)
+    S.place("pivac:DS2482-100", "U1", "DS2482-100 (0x18)", 80, 60, {1: "VCC", 2: "DATA", 3: "GND", 4: "SCL", 5: "SDA", 7: "GND", 8: "GND"}, footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+    S.place("Device:C", "C1", "100n", 130, 60, {1: "VCC", 2: "GND"}, footprint="Capacitor_THT:C_Rect_L7.0mm_W2.5mm_P5.00mm")
+    S.text("Probe sockets PTSM 0,5/3-HH-2,5-SMD: 1 VCC, 2 DATA, 3 GND. H1 is the trunk, H2 a spare on the same bus.", 20, 160, 1.6)
+    for i, ref in enumerate(("H1", "H2")):
+        S.place("Connector_Generic:Conn_01x03", ref, "PTSM 0,5/3-HH-SMD", 50 + i * 45, 180, {1: "VCC", 2: "DATA", 3: "GND"}, footprint="pivac:PTSM_0.5_3-HH-2.5-SMD")
+    S.text("Rollback to w1-gpio: fit R1 and bridge JP1, and GPIO4 becomes the bus data line.", 20, 215, 1.6)
+    S.place("Device:R", "R1", "2k2 (not fitted)", 50, 235, {1: "VCC", 2: "DATA"}, footprint="Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", dnp=True)
+    S.place("Jumper:SolderJumper_2_Open", "JP1", "GPIO4 -> DATA", 90, 235, {1: "GPIO4", 2: "DATA"}, footprint="Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    S.place("Connector_Generic:Conn_01x07", "J1", "GH link to INT", 250, 60, dict(enumerate(("VCC", "SDA", "SCL", "GPIO4", "GND", "VS", "COM"), start=1)), footprint="Connector_JST:JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical")
+    S.place("Connector_Generic:Conn_01x03", "J2", "bus pads", 250, 110, {1: "VCC", 2: "DATA", 3: "GND"}, footprint="pivac:Pads_1x3")
+    S.text("24VAC input on J3 (1 = R, 2 = C), PTC F1 in the R leg, bridge D1-D4, C3 470 uF: VS about 35 V DC against COM, out to INT on J1.6/J1.7 and into U3.", 20, 270, 1.6)
+    S.text("U3 makes 5.1 V isolated for the Pi: C4 at its output, J4 (1 = +5 V, 2 = GND) to a USB-C pigtail. J3 is black and J4 white: they take the same plug.", 20, 276, 1.6)
+    S.place("Connector_Generic:Conn_01x02", "J3", "PTSM 0,5/2-HH-SMD 24VAC input", 40, 300, {1: "ACR", 2: "ACC"}, footprint="pivac:PTSM_0.5_2-HH-2.5-SMD")
+    S.place("Device:Fuse", "F1", "PTC 1.1A 60V", 80, 300, {1: "ACR", 2: "ACF"}, footprint="pivac:PTC_Radial_P5.08_Standing")
+    for ref, a, kk, x in (("D1", "ACF", "VS", 120), ("D2", "ACC", "VS", 140), ("D3", "COM", "ACF", 160), ("D4", "COM", "ACC", 180)):
+        S.place("Device:D", ref, "1N4007", x, 300, {2: a, 1: kk}, footprint="Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal")
+    S.place("Device:C_Polarized", "C3", "470u 63V", 210, 300, {1: "VS", 2: "COM"}, footprint="Capacitor_THT:CP_Radial_D12.5mm_P5.00mm")
+    S.place("pivac:TMR12WI", "U3", "TMR 12-4811WI", 260, 300, {1: "COM", 2: "VS", 6: "+5V", 7: "GND"}, footprint="pivac:TMR12WI_SIP-8")
+    S.place("Device:C", "C4", "1u", 310, 300, {1: "+5V", 2: "GND"}, footprint="Capacitor_THT:C_Rect_L7.0mm_W2.5mm_P5.00mm")
+    S.place("Connector_Generic:Conn_01x02", "J4", "PTSM 0,5/2-HV-SMD 5VDC output to Pi", 340, 300, {1: "+5V", 2: "GND"}, footprint="pivac:PTSM_0.5_2-HV-2.5-SMD")
+    S.pwr_flags(("VCC", "GND", "VS", "COM", "+5V"), 200, 240)
+    S.save()
+    return S
+
+
 if __name__ == "__main__":
-    build_int()
-    build_ext()
-    print("wrote int-board.kicad_sch and ext-board.kicad_sch")
+    import sys
+    which = sys.argv[1:] or ["int", "ext"]
+    if "int" in which:
+        build_int()
+    if "ext" in which:
+        build_ext()
+    if "extc" in which:
+        build_extc()
+    print("wrote", ", ".join(w + "-board.kicad_sch" for w in which))
