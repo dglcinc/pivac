@@ -2,7 +2,7 @@
 
 **Status:** Generated and routed on 2026-09-27: `hardware/extc-board`, DRC clean with nothing unconnected, gerbers exported. Not ordered. Rev B is on order and is fitted first; rev C follows it on EXT only. · **Owner:** David
 
-Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes.
+Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
 
 **Rule for the EXT board from rev C on: every edge connector is a PTSM 0,5/n-HH-2,5-SMD header, flush with the edge.** A new edge connector on EXT takes this part and the footprint of §3.
 
