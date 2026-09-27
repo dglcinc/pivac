@@ -18,7 +18,7 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 - The housing accepts a plug with the header's entry face on the board edge, 1.7 mm further in than rev B (David, 2026-09-27).
 - Both ends of EXT are open, so the sockets may move along the top edge.
-- H3 is a spare: `U2` is unfitted on rev A and rev B and no probe uses the socket. §5 lists the arrangements that keep it, if it is wanted.
+- Two probe sockets are enough (David, 2026-09-27). H3 was a spare, and `U2` is unfitted on rev A and rev B.
 
 ## 2. Why the through-hole header folds and this one does not
 
@@ -58,7 +58,7 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 
 ## 4. EXT layout
 
-The board is 38.5 × 85 mm. Three 3-way headers need 39.3 mm over their anchors, so the top edge carries two.
+The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 39.3 mm over their anchors.
 
 | Ref | Part | Centre x | Edge | Pins |
 |---|---|---|---|---|
@@ -71,17 +71,9 @@ The board is 38.5 × 85 mm. Three 3-way headers need 39.3 mm over their anchors,
 - J3 moves 0.5 mm left of its rev B centre so its anchor pad clears the proto field at x 13.0.
 - The header pads on the top edge end at y 9.8. C1, R1 and the parts beside them sit at y 10.4 to 11.0 on rev B and move to y 11.6 or beyond. The upper rib starts at y 18.11, so the row has 7.6 mm.
 - J3's pads end 9.8 mm in from the bottom edge, at y 75.2. The proto field and the tie slots keep their rev B positions.
-- The top edge right of x 28.6 is free once H3 goes.
+- The top edge right of x 28.6 is free.
 
-## 5. If H3 is wanted
-
-| Arrangement | Top edge used | Consequence |
-|---|---|---|
-| H1 and H2 only (this plan) | 27.0 mm | H3, U2, C2 and JP2 leave the board |
-| H3 on the bottom edge beside J3 | 27.0 mm top, 23.7 mm bottom | the proto field and tie slots move; U2, C2 and JP2 stay |
-| One 3-way and one 6-way | 33.7 mm | H2 and H3 share one plug |
-
-## 6. Plugs
+## 5. Plugs
 
 The PTSM `-P-` plugs in service fit the surface-mount header and carry over: the black 3-way 1778845 on the probe sockets and the white 2-way 1704853 on the 24 VAC entry.
 
@@ -95,7 +87,7 @@ The latching plug that mates with this header is Phoenix's `-PL-` series, which 
 
 Phoenix's datasheets pair the two: the plug's derating curve is captioned "PTSM 0,5/...-PL-2,5 WH with PTSM 0,5/...-HH-2,5-SMD WH" (1709459, page 3), and the surface-mount header's datasheet lists 1709457 among its accessories (1814919). Neither shows the latch engaged. The header's side lugs are what the arms would catch: each side has a lug at y 2.1 to 3.4 standing 1.35 mm proud of the body from z 1 to 4, and the plug's arms reach 4.5 mm past its body. Rev B makes the 24 VAC plug white and the probe plugs black, so J3 takes 1709457. Availability is unconfirmed; the board is the same with either plug, so the choice can wait for the order.
 
-## 7. Parts list
+## 6. Parts list
 
 Quantities are for one EXT board. Buy one spare of each header.
 
@@ -108,7 +100,7 @@ Quantities are for one EXT board. Buy one spare of each header.
 
 The Digi-Key product pages would not open on 2026-09-27 and no Amazon listing was found, so stock and price are unchecked. Phoenix's packing unit of 600 applies to factory orders; distributors sell cut tape. Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
-## 8. Soldering the header by hand
+## 7. Soldering the header by hand
 
 OSH Park boards come without a stencil, so the header is soldered with an iron. The body is LCP and rated for three reflow cycles.
 
@@ -119,17 +111,16 @@ OSH Park boards come without a stencil, so the header is soldered with an iron. 
 5. Solder the signal leads from behind the body.
 6. Pull on a seated plug in every direction; the body must not move.
 
-## 9. Work plan
+## 8. Work plan
 
 1. Add `ptsm_hh_smd(board, n)` to `hardware/gen-boards.py` from §3, with the peg holes unplated.
 2. Place H1, H2 and J3 per §4 and remove H3, U2, C2 and JP2 with their nets.
 3. Move the probe row clear of the header pads and rerun `hardware/build.sh` until DRC is clean.
 4. Check the footprint against the STEP model in KiCad's 3D viewer: pegs in holes, anchors on pads, face on the edge.
 5. Print the top copper at 1:1 and lay a header on it before ordering.
-6. Order the board and the headers, populate per §8 and the rev B plan, and bench-prove as rev B was.
+6. Order the board and the headers, populate per §7 and the rev B plan, and bench-prove as rev B was.
 
-## 10. Open questions
+## 9. Open questions
 
-- Whether H3 stays (§5).
-- Whether the `-PL-` latching plugs can be bought (§6).
+- Whether the `-PL-` latching plugs can be bought (§5).
 - Whether INT follows. Four 4-way surface-mount headers need 62.4 mm against the 59 mm board, so INT needs its own arrangement, such as two 8-way headers at 25.6 mm each.
