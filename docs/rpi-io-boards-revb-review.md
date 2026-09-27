@@ -100,7 +100,7 @@ The probe end is rev A's: the trunk header H1 (VCC · DATA · GND) and the spare
 
 ## The order
 
-Bare boards from OSH Park, three of each, hand assembled: two-layer, 1.6 mm, 1 oz copper, HASL. Upload the Gerber zips, or the `.kicad_pcb` files, which OSH Park also accepts.
+Bare boards from OSH Park, three of each, hand assembled: two-layer, 1.6 mm, 1 oz copper, ENIG. Ordered 2026-09-27 from the Gerber zips, with the parts from Digi-Key and Amazon the same day; the zips are also in `~/OneDrive - DGLC/Claude/` as `int-board-revB-gerbers.zip` and `ext-board-revB-gerbers.zip`.
 
 | | Area | Price for three | Turnaround |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev B Plan
 
-**Status:** Both boards generated, routed, DRC-clean and fully connected in `hardware/`, gerbers zipped for OSH Park; David's review of the renders gates the order. · **Owner:** David
+**Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). Next: populate and bench-prove when they arrive (§9). · **Owner:** David
 
 Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/rpi-io-boards-pcb-plan.md`; this document states what rev B does, part by part.
 
