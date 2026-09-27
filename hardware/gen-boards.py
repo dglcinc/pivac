@@ -504,7 +504,9 @@ def build_int():
     # map (docs/rpi-io-board-design.md §4.2): pin 1 at (4.77, 8.37), pin 2 at (2.23, 8.37),
     # pin 3 at (4.77, 10.91). Built by hand so the numbering is explicit; §7 of the plan asks
     # for the meter check of pin 1 and pin 2 before ordering.
-    custom.append(B.place("J5", pi_header(B), 4.77, 8.37, 0, back=True, value="Pi 40-pin socket"))
+    j5 = B.place("J5", pi_header(B), 4.77, 8.37, 0, back=True, value="Pi 40-pin socket")
+    custom.append(j5)
+    j5.Reference().SetVisible(False)   # the socket body covers it; the pin numbers on the front say what it is
     for pin, (x, y) in ((1, (4.77, 8.37)), (2, (2.23, 8.37)), (3, (4.77, 10.91)), (40, (2.23, 56.63))):
         px, py = B.pad_xy("J5", pin)
         if abs(px - x) > 0.01 or abs(py - y) > 0.01:
@@ -565,7 +567,9 @@ def build_int():
     for ref, x, val in (("TP1", 40.0, "VS"), ("TP2", 43.0, "COM"), ("TP3", 46.0, "GND")):
         custom.append(B.place(ref, pad_array(B, "TestPad", 1, 1, size=1.8, drill=1.0, square_first=False), x, 81.0, 0, value=val))
     # --- GPIO breakout (2 x 6 under the header) and prototyping field, bottom right
-    custom.append(B.place("J9", shadow_column(B, BREAKOUT), BREAKOUT_X, 8.37, 0, value="GPIO breakout"))
+    j9 = B.place("J9", shadow_column(B, BREAKOUT), BREAKOUT_X, 8.37, 0, value="GPIO breakout")
+    custom.append(j9)
+    j9.Reference().SetPosition(mm(BREAKOUT_X, 11.7))   # above the column's first pad (row 3)
 
     # ---------------------------------------------------------------- nets
     # header; the five outer-column grounds are tied by a pre-routed bus along the board edge,
@@ -658,9 +662,10 @@ def build_int():
     # J6 is surface-mount, so its pin legend goes on the front beside the pads, not on the back
     B.text("J6 LINK 1=3V3 2=SDA 3=SCL 4=G4 5=GND 6=VS 7=COM", 50.4, 34.5, size=0.7, rot=90)
     title_block(B, 15.2, 75.4, 1.0, "INT")     # 37.5 mm wide, centred on the 59 mm board
-    B.text("1", 3.5, 6.5, size=0.8)
-    B.text("2", 1.0, 6.5, size=0.8)
-    B.text("39", 3.5, 58.5, size=0.8)
+    B.text("1", 4.77, 6.3, size=0.8)
+    B.text("2", 2.23, 6.3, size=0.8)
+    B.text("39", 4.77, 58.7, size=0.8)
+    B.text("40", 2.23, 58.7, size=0.8)
 
     B.fill()
     B.save()
@@ -700,7 +705,8 @@ def build_ext():
     B.lib("JP2", "Jumper", "SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm", 23.0, 15.2, 0, value="H3: bus/U2")
     ec2 = B.lib("C2", "Capacitor_THT", "C_Rect_L7.0mm_W2.5mm_P5.00mm", 30.8, 10.4, 0, value="100n", dnp=True)
     ec2.Reference().SetPosition(mm(28.0, 13.0))
-    B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 33.5, 15.05, 0, value="DS2482-100 (0x19)", dnp=True)
+    u2 = B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 33.5, 15.05, 0, value="DS2482-100 (0x19)", dnp=True)
+    u2.Reference().SetPosition(mm(28.6, 15.0))   # left of the part; above it sits C2
 
     # --- link header J1: JST GH BM07B-GHS-TBT, top entry, at the left edge beside the opening to
     # the INT board and low against the lower rib so it does not face INT's J6; pins along y,
@@ -795,10 +801,11 @@ def build_ext():
     B.connect("C4", 1, "+5V"); B.connect("C4", 2, "GND")
     B.connect("J4", 1, "+5V"); B.connect("J4", 2, "GND")
 
-    B.text("H1 trunk", 5.5, 8.8, size=0.8)
-    B.text("H2 spare", 20.27, 8.3, size=0.8)
-    B.text("H3 spare/0x19", 32.97, 8.3, size=0.8)
-    B.text("V D G", 7.57, 7.2, size=0.8)
+    for x, s in ((5.07, "V"), (7.57, "D"), (10.07, "G")):
+        B.text(s, x, 8.4, size=0.8)
+    B.text("H1 trunk", 7.57, 9.55, size=0.7)
+    B.text("H2 spare", 20.27, 8.4, size=0.8)
+    B.text("H3 spare/0x19", 32.97, 8.4, size=0.8)
     B.text("pivac EXT rev B: 24 VAC in J3, VS/COM out J1.6/7, 5.1 V out J4", 19.25, 63.4, size=0.65)
     B.text("LINK 1=3V3 2=SDA 3=SCL 4=GPIO4 5=GND 6=VS 7=COM", 8.55, 46.0, size=0.7, rot=90)
     B.text("24 VAC", 7.25, 77.6, size=0.8)
