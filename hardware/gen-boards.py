@@ -655,7 +655,8 @@ def build_int():
     B.text("pivac INT rev B -- VS/COM in on J6.6/J6.7 -- COM never meets Pi GND", 31.0, 63.4, size=0.8)
     B.text("Pi GND", 7.6, 59.5, size=0.8, rot=90)
     B.text("no parts here: the Pi's USB stacks sit under this field", 29.5, 68.5, size=0.8)
-    B.text("LINK 3V3 SDA SCL G4 GND VS COM", 51.0, 34.5, size=0.8, rot=90, layer="B.SilkS")
+    # J6 is surface-mount, so its pin legend goes on the front beside the pads, not on the back
+    B.text("J6 LINK 1=3V3 2=SDA 3=SCL 4=G4 5=GND 6=VS 7=COM", 50.4, 34.5, size=0.7, rot=90)
     title_block(B, 15.2, 75.4, 1.0, "INT")     # 37.5 mm wide, centred on the 59 mm board
     B.text("1", 3.5, 6.5, size=0.8)
     B.text("2", 1.0, 6.5, size=0.8)
