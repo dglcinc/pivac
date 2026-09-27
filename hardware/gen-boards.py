@@ -928,8 +928,11 @@ def build_extc():
             if abs(x - (xc + dx)) > 0.01 or abs(y - 8.2) > 0.01:
                 raise SystemExit(f"{ref} pad {k} at {x:.2f},{y:.2f}")
             B.text(letter, xc + dx, 10.8, size=1.0, bold=True)
-        h.Reference().SetPosition(mm(xc - 5.0, 10.8))
-        B.text(what, xc + 5.9, 10.8, size=0.7)
+        # the reference and the socket's use stand beside its leads, level with the signal
+        # pads and behind the body, so each reads as that connector's and shows when it is fitted
+        h.Reference().SetPosition(mm(xc - 5.3, 8.2))
+        h.Reference().SetTextSize(VECTOR2I(FromMM(0.9), FromMM(0.9)))
+        B.text(what, xc + 5.4, 8.2, size=0.7)
 
     # --- probe row: four parts on one line, 2.5 apart, references on one baseline
     ROW, REF = 13.9, 17.3
@@ -971,6 +974,7 @@ def build_extc():
     c3.Reference().SetPosition(mm(31.5, 22.9))
     u3 = sip8_converter(B)
     custom.append(B.place("U3", u3, 15.11, 54.04, 0, value="TMR 12-4811WI"))
+    u3.Reference().SetPosition(mm(24.0, 61.3))     # below the body, where it shows with U3 fitted
     # Traco: no copper under the converter. Its body covers x 13 to 35, y 50.5 to 60.1 on the
     # component side, so nothing but its own pads may be on F.Cu there; the pins are reached on
     # the solder side.
@@ -1073,7 +1077,11 @@ def build_extc():
     B.track("GND", c2x + (y2 - c2y), y2, c2x, c2y, width=0.5)
 
     # --- legends. No via under a legend: a via's mask opening cuts the letter printed over it.
-    for x0, y0, x1, y1 in ((3.0, 10.1, 36.5, 11.5),        # H1 V D G TRUNK, H2 V D G SPARE
+    for x0, y0, x1, y1 in ((3.0, 10.1, 36.5, 11.5),        # V D G under both sockets
+                           (3.4, 7.5, 7.0, 9.0), (13.9, 7.5, 17.6, 9.0),       # H1, TRUNK
+                           (20.9, 7.5, 24.5, 9.0), (31.4, 7.5, 35.1, 9.0),     # H2, SPARE
+                           (22.4, 60.5, 25.6, 62.1),       # the reference U3
+                           (2.5, 16.6, 33.0, 18.0),        # the references U1, C1, JP1, R1
                            (1.0, 72.6, 14.8, 76.6),        # 24VAC input, C, R
                            (21.9, 63.2, 24.9, 77.3),       # 5VDC output only, to Pi
                            (32.9, 69.2, 35.2, 73.4),       # +5, G

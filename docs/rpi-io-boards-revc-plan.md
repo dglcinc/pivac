@@ -79,7 +79,8 @@ With the face on the edge, the anchor pads start 0.8 mm from the edge and the pe
 | R1 | 30.78 | pads at 25.7 and 35.86 |
 
 - The four reference legends sit on one baseline at y 17.3, each centred under its part.
-- `V`, `D` and `G` stand under the signal pads of H1 and H2 in bold at 1.0 mm, the size of J3's `R` and `C`, 0.5 mm below the pads and clear of the header bodies. The reference stands to their left and `TRUNK` or `SPARE` to their right.
+- `V`, `D` and `G` stand under the signal pads of H1 and H2 in bold at 1.0 mm, the size of J3's `R` and `C`, 0.5 mm below the pads and clear of the header bodies. The reference and `TRUNK` or `SPARE` stand one row higher, beside the socket's leads and behind its body, the reference on the left.
+- U3's reference stands below its outline, at (24.0, 61.3), so it shows with the converter fitted. The pin names and numbers inside the outline are covered by it.
 - J3 sits at x 8.0 so a latching plug on it reaches x 0.9 on the left. Its pad pattern spans x 2.4 to 13.6 and its signal pads end 9.8 mm in from the bottom edge, at y 75.2.
 - J4 is turned 90° from its datasheet orientation, which a surface-mount part allows. Its pad pattern spans x 24.8 to 32.5 and y 65.65 to 76.95, which clears the lower rib above it. J2 moves 0.9 mm right, to x 36.4, so J4's signal pads stand 3.1 mm from J2's pads. The side that faces the legend has no solder joint: the anchors are at the top and bottom and the leads leave to the right. C4 moves 3.3 mm left, to x 20.0, which opens 3.55 mm between it and J4's anchor pads for J4's legend.
 - J4's two pads are joined to C4 by hand-laid tracks, because the router left them open on every attempt: straight out of each pad under the header body, 2.5 mm apart, 0.65 mm clear of the peg holes. The VS track from C3 to D1 is hand-laid as on rev B.
@@ -193,7 +194,7 @@ The footprints are `PTSM_0.5_3-HH-2.5-SMD`, `PTSM_0.5_2-HH-2.5-SMD`, `PTSM_0.5_2
 
 Checks done:
 
-- DRC at error severity: no violation, nothing unconnected, clean on the second routing attempt.
+- DRC at error severity: no violation, nothing unconnected, clean on the first routing attempt.
 - Copper under U3 and vias under legends, measured on the routed board: four pin escapes on the solder side, and no via under any legend.
 - Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
 - The pads of both footprints cover the feet measured from the STEP models (§3, §4.2).
