@@ -25,9 +25,12 @@ for b in ${*:-int ext}; do
     $CLI pcb render --output $b-board/$b-board-$side.png --side $side --width 1600 --height 2300 \
       --quality basic --background opaque --zoom 1.0 $b-board/$b-board.kicad_pcb
   done
+  $CLI pcb export svg --output $b-board/$b-board-copper-front.svg --layers "F.Cu,F.Silkscreen,Edge.Cuts" --page-size-mode 2 --exclude-drawing-sheet $b-board/$b-board.kicad_pcb
+  $CLI pcb export svg --output $b-board/$b-board-copper-back.svg --layers "B.Cu,B.Silkscreen,Edge.Cuts" --page-size-mode 2 --exclude-drawing-sheet --mirror $b-board/$b-board.kicad_pcb
+  $CLI sch export svg --output $b-board/sch-svg --no-background-color $b-board/$b-board.kicad_sch && mv $b-board/sch-svg/$b-board.svg $b-board/$b-board-schematic.svg && rmdir $b-board/sch-svg
   rm -rf $b-board/gerbers; mkdir -p $b-board/gerbers
   $CLI pcb export gerbers --output $b-board/gerbers/ --layers F.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts \
       --no-x2 --subtract-soldermask $b-board/$b-board.kicad_pcb
   $CLI pcb export drill --output $b-board/gerbers/ --format excellon --excellon-units mm --generate-map --map-format gerberx2 $b-board/$b-board.kicad_pcb
   (cd $b-board && rm -f $b-board-gerbers.zip && zip -q -j $b-board-gerbers.zip gerbers/*)
-done 2>&1 | grep -viE "wxApp|image handler|pass #"
+done 2>&1 | grep -viE "wxApp|image handler|pass #|deprecated behavior|mode-multi"
