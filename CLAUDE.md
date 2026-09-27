@@ -128,6 +128,8 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - WaterMeter glyph templates: `/etc/pivac/wm-templates/` (Pi-local calibration, **not** in repo — `<glyph>_<n>.png`, multiple exemplars per digit; drop in updated/new glyphs and the module hot-reloads on mtime change, no restart)
 - nginx site config: `/etc/nginx/sites-available/pivac`
 - nginx bowling proxy config: `/etc/nginx/sites-available/mlb.dglc.com` (proxies `mlb.dglc.com` → Mac Mini `10.0.0.84:5001`)
+- nginx catch-all: `/etc/nginx/sites-available/000-default-drop` is the `default_server` on 80 and 443. A request that names neither hostname (the public IP, `10.0.0.82`, a foreign name) is refused at the TLS handshake or closed with 444, so reach the Pi's web services by hostname, or by their own ports on the LAN.
+- sshd: `/etc/ssh/sshd_config.d/10-key-only.conf` sets key-only logins, root included (`PermitRootLogin prohibit-password`). A new machine needs its public key appended to `~/.ssh/authorized_keys` from one that already has access; xrdp and VNC still take the password.
 - nginx Basic Auth credentials: `/etc/nginx/.htpasswd` (user: dglcinc)
 - TLS certificate: `/etc/letsencrypt/live/68lookout.dglc.com/` (auto-renews via certbot timer)
 - Grafana config: `/etc/grafana/grafana.ini`
