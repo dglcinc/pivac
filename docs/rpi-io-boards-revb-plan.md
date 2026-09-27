@@ -83,20 +83,20 @@ Removed from rev A: D1–D4, F1, C1 (the power section), J7 (the unfitted power 
 
 ## 5. EXT board
 
-The probe sockets are where rev A put them, and the I2C and 1-wire parts that served them from scattered positions on rev A now sit in one row between the sockets and the upper rib: U1 with C1 under H1, R1 and JP1 in the middle, U2 with C2 and JP2 under H3. The mid field between the ribs carries the power section and the link header; the riser field is not reserved. The only keep-out is the room for the GH plug and a finger around J1.
+The probe sockets are where rev A put them, and the I2C and 1-wire parts that served them from scattered positions on rev A now sit in one row between the sockets and the upper rib: U1 at the left edge with C1 and JP1 beside it, R1 and JP2 in the middle, C2 and U2 under H3. The mid field between the ribs carries the power section and the link header; the riser field is not reserved. The only keep-out is the room for the GH plug and a finger around J1.
 
 ### 5.1 EXT component index
 
 | Ref | Part | Body, mm | Position | Purpose |
 |---|---|---|---|---|
 | H1–H3 | Phoenix PTSM 0,5/3-HH-2,5-THR | 9.2 wide × 7.5 deep × 7.5 tall | pins at y 3.7; centres x 7.57, 20.27, 32.97; entry faces −y | 1-wire trunk (H1) and two spare probe sockets, VCC · DATA · GND |
-| U1 | DS2482-100, SOIC-8 | 3.9 × 4.9 | (9.0, 12.5), under H1 | I2C to 1-wire master at 0x18 |
-| C1 | 100 nF box, 5 mm | 7 × 2.5 | (15.5, 11.0) | U1 decoupling |
-| R1 | 2k2 axial, not fitted | 6.3 × 2.5, pads at 10.16 | (17.0, 14.6) | pull-up for the w1-gpio rollback, fitted only with JP1 |
-| JP1 | 2-pad solder jumper | | (23.5, 11.0) | GPIO4 to DATA, the w1-gpio rollback |
-| U2 | DS2482-100, not fitted | 3.9 × 4.9 | (28.0, 12.5) | second master at 0x19 for H3 |
-| C2 | 100 nF box, not fitted | 7 × 2.5 | (34.0, 11.0) | U2 decoupling |
-| JP2 | 3-pad solder jumper | | (33.0, 15.2), under H3 | H3's DATA to the shared bus or to U2 |
+| U1 | DS2482-100, SOIC-8 | body 3.9 × 4.9, 6.0 over the leads | (4.5, 12.5), under H1 | I2C to 1-wire master at 0x18 |
+| C1 | 100 nF box, 5 mm | 7 × 2.5 | (12.0, 11.0) | U1 decoupling |
+| R1 | 2k2 axial, not fitted | 6.3 × 2.5, pads at 10.16 | (21.0, 10.8) | pull-up for the w1-gpio rollback, fitted only with JP1 |
+| JP1 | 2-pad solder jumper | | (11.3, 14.7) | GPIO4 to DATA, the w1-gpio rollback |
+| U2 | DS2482-100, not fitted | body 3.9 × 4.9, 6.0 over the leads | (33.5, 14.85), under H3 | second master at 0x19 for H3 |
+| C2 | 100 nF box, not fitted | 7 × 2.5 | (31.0, 10.4) | U2 decoupling |
+| JP2 | 3-pad solder jumper | | (21.5, 15.2) | H3's DATA to the shared bus or to U2 |
 | J1 | JST BM07B-GHS-TBT | 12.0 × 5.6, 7.3 tall mated | body x 1.5–7.1, y 46.5–58.5, pin 1 at the top | link to INT; keep x 0–9.5, y 41–61 clear of tall parts |
 | D1–D4 | 1N4007, DO-41 (`D_DO-41 P10.16 Horizontal`) | 5.2 × 2.7, flat | pads x 10 and 20.16; rows y 24.95, 27.95, 30.95, 33.95 | bridge rectifier |
 | F1 | Littelfuse 60R110XU | ⌀13 × 3.1, lead spacing 5.1, standing | pads (15.5, 44.5) and (20.58, 44.5) | 1.1 A PTC in the 24 VAC feed |

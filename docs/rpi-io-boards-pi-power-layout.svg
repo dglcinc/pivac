@@ -124,15 +124,23 @@
 <circle cx="30.47" cy="3.7" r="0.85"/><circle cx="32.97" cy="3.7" r="0.85"/><circle cx="35.47" cy="3.7" r="0.85"/>
 </g>
 <g font-size="1.1" font-weight="700" fill="#333"><text x="6.6" y="8.4">H1</text><text x="19.3" y="8.4">H2</text><text x="32" y="8.4">H3</text></g>
-<text x="25.4" y="17.75" font-size="0.65" fill="#555">H faces 1.7 mm outside the edge</text>
-<!-- I2C and 1-wire parts in one row under the sockets -->
-<rect x="7.05" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="6.6" y="16.4" font-size="0.75" fill="#333">U1 DS2482</text>
-<rect x="12" y="9.75" width="7" height="2.5" fill="#d64545"/><text x="12.2" y="9.3" font-size="0.7" fill="#333">C1 100n</text>
-<rect x="13.85" y="13.5" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="11.92" cy="14.6" r="0.6" fill="#d9b53a"/><circle cx="22.08" cy="14.6" r="0.6" fill="#d9b53a"/><text x="14.3" y="17.1" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
-<rect x="22.7" y="9.5" width="1.6" height="3" rx="0.6" fill="#d9b53a"/><text x="21.6" y="9.1" font-size="0.7" fill="#333">JP1</text>
-<rect x="26.05" y="10.05" width="3.9" height="4.9" fill="none" stroke="#777" stroke-width="0.1"/><text x="25.4" y="16.4" font-size="0.75" fill="#333">U2 0x19 (nf)</text>
-<rect x="30.5" y="9.75" width="7" height="2.5" fill="none" stroke="#555" stroke-width="0.12"/><text x="31.2" y="9.3" font-size="0.7" fill="#333">C2 100n (nf)</text>
-<rect x="31.5" y="14.4" width="3" height="1.6" rx="0.6" fill="#d9b53a"/><text x="34.9" y="15.6" font-size="0.7" fill="#333">JP2</text>
+<text x="1.2" y="17.9" font-size="0.65" fill="#555">H faces 1.7 mm outside the edge</text>
+<!-- I2C and 1-wire parts in one row under the sockets; SOIC-8 drawn with its 6.0 mm lead span -->
+<g fill="#b9b9b3" stroke="#6f6f6a" stroke-width="0.06">
+<rect x="1.5" y="10.5" width="1.05" height="0.45"/><rect x="1.5" y="11.77" width="1.05" height="0.45"/><rect x="1.5" y="13.04" width="1.05" height="0.45"/><rect x="1.5" y="14.31" width="1.05" height="0.45"/>
+<rect x="6.45" y="10.5" width="1.05" height="0.45"/><rect x="6.45" y="11.77" width="1.05" height="0.45"/><rect x="6.45" y="13.04" width="1.05" height="0.45"/><rect x="6.45" y="14.31" width="1.05" height="0.45"/>
+</g>
+<rect x="2.55" y="10.05" width="3.9" height="4.9" fill="#3a3a3a"/><text x="1.2" y="16.4" font-size="0.75" fill="#333">U1 DS2482</text>
+<rect x="8.5" y="9.75" width="7" height="2.5" fill="#d64545"/><text x="8.7" y="9.3" font-size="0.7" fill="#333">C1 100n</text>
+<rect x="10.5" y="13.2" width="1.6" height="3" rx="0.6" fill="#d9b53a"/><text x="12.5" y="15.2" font-size="0.7" fill="#333">JP1</text>
+<rect x="17.85" y="9.7" width="6.3" height="2.2" fill="none" stroke="#555" stroke-width="0.12"/><circle cx="15.92" cy="10.8" r="0.6" fill="#d9b53a"/><circle cx="26.08" cy="10.8" r="0.6" fill="#d9b53a"/><text x="17.5" y="13.3" font-size="0.7" fill="#333">R1 2k2 (nf)</text>
+<rect x="20" y="14.4" width="3" height="1.6" rx="0.6" fill="#d9b53a"/><text x="23.4" y="15.6" font-size="0.7" fill="#333">JP2</text>
+<rect x="27.5" y="9.15" width="7" height="2.5" fill="none" stroke="#555" stroke-width="0.12"/><text x="27.6" y="8.8" font-size="0.7" fill="#333">C2 (nf)</text>
+<g fill="none" stroke="#777" stroke-width="0.06">
+<rect x="30.5" y="12.85" width="1.05" height="0.45"/><rect x="30.5" y="14.12" width="1.05" height="0.45"/><rect x="30.5" y="15.39" width="1.05" height="0.45"/><rect x="30.5" y="16.66" width="1.05" height="0.45"/>
+<rect x="35.45" y="12.85" width="1.05" height="0.45"/><rect x="35.45" y="14.12" width="1.05" height="0.45"/><rect x="35.45" y="15.39" width="1.05" height="0.45"/><rect x="35.45" y="16.66" width="1.05" height="0.45"/>
+</g>
+<rect x="31.55" y="12.4" width="3.9" height="4.9" fill="none" stroke="#777" stroke-width="0.1"/><text x="27.6" y="17.9" font-size="0.7" fill="#333">U2 0x19 (nf)</text>
 
 <!-- mid field: the power section -->
 <!-- GH 7-way top-entry link header at the left edge, beside the opening to INT -->
