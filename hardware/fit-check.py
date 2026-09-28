@@ -12,8 +12,9 @@ anchor within 0.3 mm of the board) and each locating peg, puts them on the board
 generator places the footprint, and prints the margin of every foot inside its pad and the
 play of every peg in its hole. It exits 1 if a foot leaves its pad or a peg misses its hole.
 
-A horizontal header's ends are the same for every position count, so the 4-way model stands
-for the 2-way and 3-way parts: each end's feet are measured from that end's outer pin.
+Each connector is checked against the model of the part fitted there. The HH0 header has no
+locating pegs, so the holes its footprint carries for them stay empty under it; the same
+footprint takes the HH header, which has them.
 """
 import json
 import os
@@ -21,8 +22,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "extc-board", "extc-board.kicad_pcb")
-HH = os.path.join(HERE, "vendor", "pxc_1778780_02_01_PTSM-0-5-4-HH-2-5-SMD-R32_3D.stp")
-HV = os.path.join(HERE, "vendor", "pxc_1778696_02_00_PTSM-0-5-2-HV-2-5-SMD-WH-R24_3D.stp")
+VENDOR = os.path.join(HERE, "vendor")
+# the parts David is fitting (2026-09-27), each checked against its own model
+MODEL = {"H1": "pxc_1808200_01_01_PTSM-0-5-3-HH0-2-5-SMD-R32_3D.stp",
+         "H2": "pxc_1808200_01_01_PTSM-0-5-3-HH0-2-5-SMD-R32_3D.stp",
+         "J3": "pxc_1778764_02_01_PTSM-0-5-2-HH-2-5-SMD-R32_3D.stp",
+         "J4": "pxc_1778696_02_00_PTSM-0-5-2-HV-2-5-SMD-WH-R24_3D.stp"}
 REFS = ("H1", "H2", "J3", "J4")
 
 
@@ -91,7 +96,8 @@ def features(path):
         if i == housing:
             pegs = s[s[:, 2] < -0.3]
             for part in (pegs[pegs[:, 0] < mid], pegs[pegs[:, 0] > mid]):
-                out.append(("peg", part))
+                if len(part):
+                    out.append(("peg", part))
             continue
         foot = s[s[:, 2] < 0.31]
         cx = (s[:, 0].min() + s[:, 0].max()) / 2
@@ -107,10 +113,12 @@ def features(path):
     return rows
 
 
-def check(ref, pads, model, place):
+def check(ref, pads, name, model, place):
     sig = sorted((p for p in pads if p["num"].isdigit()), key=lambda p: int(p["num"]))
     ok = True
-    print(ref)
+    print(ref, "-", name)
+    if not any(k == "peg" for k, *_ in model):
+        print("  no pegs on this part: the footprint's two peg holes stay empty under it")
     for kind, end, a, b, y0, y1 in model:
         pin = sig[0] if end == "first" else sig[-1]
         pts = [place(pin, x, y) for x in (a, b) for y in (y0, y1)]
@@ -138,17 +146,18 @@ def check(ref, pads, model, place):
 
 def main():
     pads = json.load(open(sys.argv[1]))
-    hh, hv = features(HH), features(HV)
+    part = {ref: (f.split("_3D")[0].split("_", 3)[-1], features(os.path.join(VENDOR, f)))
+            for ref, f in MODEL.items()}
     j4x = max(p["x0"] for p in pads["J4"] if p["num"].isdigit()) + 2.0   # the lead-side face
     ok = True
     # H1, H2: entry face on the top edge, model y runs into the board
     for ref in ("H1", "H2"):
-        ok &= check(ref, pads[ref], hh, lambda pin, x, y: (pin["cx"] + x, y))
+        ok &= check(ref, pads[ref], *part[ref], lambda pin, x, y: (pin["cx"] + x, y))
     # J3: turned 180 on the bottom edge
-    ok &= check("J3", pads["J3"], hh, lambda pin, x, y: (pin["cx"] - x, 85.0 - y))
+    ok &= check("J3", pads["J3"], *part["J3"], lambda pin, x, y: (pin["cx"] - x, 85.0 - y))
     # J4: pin row along y, the leads toward +x
-    ok &= check("J4", pads["J4"], hv, lambda pin, x, y: (j4x - y, pin["cy"] + x))
-    print("all feet on their pads, all pegs in their holes" if ok else "FIT CHECK FAILED")
+    ok &= check("J4", pads["J4"], *part["J4"], lambda pin, x, y: (j4x - y, pin["cy"] + x))
+    print("every foot on its pad, every peg in its hole" if ok else "FIT CHECK FAILED")
     sys.exit(0 if ok else 1)
 
 

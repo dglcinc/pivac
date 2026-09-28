@@ -16,7 +16,7 @@ Rev C replaces every edge connector on the EXT board with the surface-mount PTSM
 
 **Boundaries assumed.**
 
-- The housing accepts a plug with the header's entry face on the board edge, 1.7 mm further in than rev B (David, 2026-09-27).
+- The housing accepts a plug with the header's entry face on the board edge, 1.7 mm further in than rev B (David, confirmed 2026-09-27).
 - Both ends of EXT are open, so the sockets may move along the top edge, and the openings pass a latching plug, which is 16.8 mm wide on a 3-way socket.
 - Two probe sockets are enough (David, 2026-09-27). H3 was a spare, and `U2` is unfitted on rev A and rev B.
 
@@ -157,11 +157,13 @@ Quantities are for one EXT board. Buy one spare of each header.
 
 | Ref | Part | Qty | Digi-Key | Amazon |
 |---|---|---|---|---|
-| H1, H2 | Phoenix PTSM 0,5/3-HH-2,5-SMD R32, 1778777, black | 2 | [Phoenix page](https://www.phoenixcontact.com/en-us/products/pcb-header-ptsm-05-3-hh-25-smd-r32-1778777); search Digi-Key for 1778777 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778777) |
+| H1, H2 | Phoenix PTSM 0,5/3-HH0-2,5-SMD R32, 1808200, black | 2 | search Digi-Key for 1808200 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1808200) |
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-SMD R32, 1778764, black | 1 | [Phoenix page](https://www.phoenixcontact.com/en-pc/products/pcb-header-ptsm-05-2-hh-25-smd-r32-1778764); search Digi-Key for 1778764 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778764) |
 | J4 | Phoenix PTSM 0,5/2-HV-2,5-SMD WH R24, 1778696, white | 1 | [Phoenix page](https://www.phoenixcontact.com/en-pc/products/pcb-header-ptsm-05-2-hv-25-smd-wh-r24-1778696); search Digi-Key for 1778696 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778696) |
 | plugs | PTSM 0,5/3-P-2,5 1778845, 0,5/2-P-2,5 1778832 and 0,5/2-P-2,5 WH 1704853 | 0 | on hand from rev A and rev B | |
 | latching plugs, optional | 1709443 for H1 and H2, 1709442 for J3, 1709457 for J4 | 2 + 1 + 1 | search Digi-Key for the order number | [1709443](https://www.amazon.com/s?k=Phoenix+Contact+1709443), [1709442](https://www.amazon.com/s?k=Phoenix+Contact+1709442), [1709457](https://www.amazon.com/s?k=Phoenix+Contact+1709457) |
+
+H1 and H2 are the HH0 version, which is the HH header without its two locating pegs: the body, the anchors, the leads and the latch windows are the same, measured from Phoenix's STEP models of 1808200 and 1778764. The footprint keeps the peg holes, which stay empty under an HH0 header, so the board also takes the HH version, 1778777.
 
 The Digi-Key product pages would not open on 2026-09-27 and no Amazon listing was found, so stock and price are unchecked. Phoenix's packing unit of 600 applies to factory orders; distributors sell cut tape. Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
@@ -197,13 +199,12 @@ Checks done:
 - DRC at error severity: no violation, nothing unconnected, clean on the first routing attempt.
 - Copper under U3 and vias under legends, measured on the routed board: four pin escapes on the solder side, and no via under any legend.
 - Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
-- `hardware/fit-check.py` lays the STEP models in `hardware/vendor/` on the generated board's footprints: every solder foot lies on its pad and every peg in its hole.
+- `hardware/fit-check.py` lays the STEP models in `hardware/vendor/` on the generated board's footprints: every solder foot lies on its pad and every peg in its hole, each connector against the model of the part fitted there.
 
 Before ordering:
 
-1. Confirm the housing openings pass the plugs with the header faces on the board edge.
-2. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
-3. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
+1. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
+2. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
 
 ## 9. Open questions
 

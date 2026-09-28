@@ -922,7 +922,7 @@ def build_extc():
     # sit side by side; entry face on the top edge
     for ref, xc, what in (("H1", 10.5, "TRUNK"), ("H2", 28.0, "SPARE")):
         h = ptsm_hh_smd(B, 3)
-        custom.append(B.place(ref, h, xc, 0.0, 0, value="PTSM 0,5/3-HH-2,5-SMD"))
+        custom.append(B.place(ref, h, xc, 0.0, 0, value="PTSM 0,5/3-HH0-2,5-SMD"))
         for k, (dx, letter) in enumerate(((-2.5, "V"), (0.0, "D"), (2.5, "G")), start=1):
             x, y = B.pad_xy(ref, k)
             if abs(x - (xc + dx)) > 0.01 or abs(y - 8.2) > 0.01:

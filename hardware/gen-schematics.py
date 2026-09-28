@@ -305,9 +305,9 @@ def build_extc():
     S.lib("pivac:TMR12WI", tmr, tmr_pins)
     S.place("pivac:DS2482-100", "U1", "DS2482-100 (0x18)", 80, 60, {1: "VCC", 2: "DATA", 3: "GND", 4: "SCL", 5: "SDA", 7: "GND", 8: "GND"}, footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
     S.place("Device:C", "C1", "100n", 130, 60, {1: "VCC", 2: "GND"}, footprint="Capacitor_THT:C_Rect_L7.0mm_W2.5mm_P5.00mm")
-    S.text("Probe sockets PTSM 0,5/3-HH-2,5-SMD: 1 VCC, 2 DATA, 3 GND. H1 is the trunk, H2 a spare on the same bus.", 20, 160, 1.6)
+    S.text("Probe sockets PTSM 0,5/3-HH0-2,5-SMD: 1 VCC, 2 DATA, 3 GND. H1 is the trunk, H2 a spare on the same bus.", 20, 160, 1.6)
     for i, ref in enumerate(("H1", "H2")):
-        S.place("Connector_Generic:Conn_01x03", ref, "PTSM 0,5/3-HH-SMD", 50 + i * 45, 180, {1: "VCC", 2: "DATA", 3: "GND"}, footprint="pivac:PTSM_0.5_3-HH-2.5-SMD")
+        S.place("Connector_Generic:Conn_01x03", ref, "PTSM 0,5/3-HH0-SMD", 50 + i * 45, 180, {1: "VCC", 2: "DATA", 3: "GND"}, footprint="pivac:PTSM_0.5_3-HH-2.5-SMD")
     S.text("Rollback to w1-gpio: fit R1 and bridge JP1, and GPIO4 becomes the bus data line.", 20, 215, 1.6)
     S.place("Device:R", "R1", "2k2 (not fitted)", 50, 235, {1: "VCC", 2: "DATA"}, footprint="Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal", dnp=True)
     S.place("Jumper:SolderJumper_2_Open", "JP1", "GPIO4 -> DATA", 90, 235, {1: "GPIO4", 2: "DATA"}, footprint="Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
