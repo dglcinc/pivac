@@ -7,7 +7,7 @@
 	(property "Reference" "J4"
 		(at -6.700001 2.5 90)
 		(layer "F.SilkS")
-		(uuid "9604ab5d-bdda-408f-a5c5-07a22200239b")
+		(uuid "36c0b5f1-9553-4a8b-b38e-3744982a51c0")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -19,7 +19,7 @@
 		(at 0 7.8 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "6cb3b4ab-eeb6-4984-935c-27b6afe62360")
+		(uuid "2f3e5e39-fad9-4d9d-951d-2ad33f204f7a")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -30,7 +30,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "8b1398ed-40bd-4d36-a8f1-78884cd679eb")
+		(uuid "3bc78d7d-f629-4804-a52d-6031932c4698")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -41,7 +41,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "6f80b37b-97f3-4c57-bbbf-f97c8ab0e058")
+		(uuid "ea00dd5c-1b6d-48fe-937c-b6df43b8bdb8")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -59,7 +59,7 @@
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "2f319386-a731-448b-96e9-68ceebd95d06")
+		(uuid "c6e63cf7-f987-446e-ae7e-10bed838c2df")
 	)
 	(fp_rect
 		(start -5.8 -2.55)
@@ -70,7 +70,7 @@
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "d0c237e7-e063-47d3-bf34-7ccfb2b78715")
+		(uuid "4d1672eb-c59e-463c-a6b8-8e797ec3642a")
 	)
 	(fp_rect
 		(start -3.35 0)
@@ -81,49 +81,49 @@
 		)
 		(fill no)
 		(layer "F.Fab")
-		(uuid "0d049048-d338-4e52-bb9b-69c4ffbc736e")
+		(uuid "09ff6bfb-43b4-4fe9-8011-cc93ce9f3791")
 	)
 	(pad "" np_thru_hole circle
 		(at -2.65 0.4)
 		(size 1 1)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
-		(uuid "38eee267-c3af-492d-b3e3-fb0a4bb79f91")
+		(uuid "c08526df-8ffb-4930-8f91-85518d3d5d85")
 	)
 	(pad "" np_thru_hole circle
 		(at 2.65 0.4)
 		(size 1 1)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
-		(uuid "e92369a3-977d-4437-b5f1-22dedc5229fc")
+		(uuid "5256ae7b-8ee2-49f2-9805-adb37a85b901")
 	)
 	(pad "1" smd rect
 		(at -1.25 -0.2)
 		(size 1.2 4.4)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
-		(uuid "e50f6955-fcc0-4a20-8688-039b06852263")
+		(uuid "5badc382-d91a-49f9-8e25-b50e6ef1b27d")
 	)
 	(pad "2" smd rect
 		(at 1.25 -0.2)
 		(size 1.2 4.4)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
-		(uuid "40bcc7e6-3aca-4060-b0a9-4d9249db5cc8")
+		(uuid "cec547b1-4f4b-456f-930d-b3be889cbf91")
 	)
 	(pad "MP" smd rect
 		(at -4.6 2.5)
 		(size 2.1 5.6)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
-		(uuid "59c321e0-afe5-4b9e-a6b1-5a23d4c62e4a")
+		(uuid "861371ff-1cb7-4c12-98a6-2f8e146a993c")
 	)
 	(pad "MP" smd rect
 		(at 4.6 2.5)
 		(size 2.1 5.6)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
-		(uuid "4ba08d3e-59cd-4215-a45e-70da2f947141")
+		(uuid "211bc177-bfe6-4d14-bbcd-677b1772ccaf")
 	)
 	(embedded_fonts no)
 )

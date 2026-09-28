@@ -43,7 +43,7 @@ The hold-down points span 8 mm front to back and 15.6 mm side to side on the 4-w
 | Width over the anchors | a + 8.1 |
 | Depth with leads | 9.5 |
 | Signal pads | 1.2 × 3.2, at x = pin, y 6.6 to 9.8 |
-| Anchor pads | 2.2 × 5.6, centred x = ±(a/2 + 3.25), y 0.8 to 6.4; the inner edge stands 1.55 from the edge of the outer signal pad |
+| Anchor pads | 2.2 × 5.6, centred x = ±(a/2 + 3.25), y 1.2 to 6.8, centred on the anchor's foot; the inner edge stands 1.55 from the edge of the outer signal pad |
 | Peg holes | ⌀1.1 unplated, at x = ±(a/2 + 1.1), y 2.85 |
 | Pad pattern width | a + 8.7 |
 | Rating | 6 A, 160 V, 26–20 AWG |
@@ -54,7 +54,7 @@ The hold-down points span 8 mm front to back and 15.6 mm side to side on the 4-w
 | 3 | 9.2 | 13.1 | 13.7 |
 | 4 | 11.7 | 15.6 | 16.2 |
 
-With the face on the edge, the anchor pads start 0.8 mm from the edge and the peg holes leave 2.3 mm of board in front of them. Each anchor pad covers its foot, which the STEP model puts 2.4 to 4.05 mm outside the outer pin, with 0.25 mm to spare on each side, and stands 0.5 mm from the peg hole.
+With the face on the edge, the anchor pads start 1.2 mm from the edge and the peg holes leave 2.3 mm of board in front of them. Each anchor pad covers its foot, which the STEP model puts 2.4 to 4.05 mm outside the outer pin and 1.5 to 6.5 mm in from the face, with 0.25 to 0.3 mm to spare on every side, and stands 0.5 mm from the peg hole.
 
 ## 4. EXT layout
 
@@ -197,14 +197,13 @@ Checks done:
 - DRC at error severity: no violation, nothing unconnected, clean on the first routing attempt.
 - Copper under U3 and vias under legends, measured on the routed board: four pin escapes on the solder side, and no via under any legend.
 - Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
-- The pads of both footprints cover the feet measured from the STEP models (§3, §4.2).
+- `hardware/fit-check.py` lays the STEP models in `hardware/vendor/` on the generated board's footprints: every solder foot lies on its pad and every peg in its hole.
 
 Before ordering:
 
-1. Open the board in KiCad's 3D viewer with the STEP models attached: pegs in holes, anchors on pads, faces on the edges.
-2. Print `extc-board-copper-front.svg` at 1:1 and lay a header on it.
-3. Confirm the housing openings pass the plugs with the header faces on the board edge.
-4. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
+1. Confirm the housing openings pass the plugs with the header faces on the board edge.
+2. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
+3. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
 
 ## 9. Open questions
 
