@@ -3118,7 +3118,7 @@
 		(layer "F.Cu")
 		(uuid "43ef431c-acbb-4626-93a4-14ead6dadf5a")
 		(at 28 0)
-		(descr "Phoenix Contact PTSM 0,5/3-HH0-2,5-SMD horizontal header, surface mount")
+		(descr "Phoenix Contact PTSM 0,5/3-HH-2,5-SMD horizontal header, surface mount")
 		(property "Reference" "H2"
 			(at -5.3 8.199999 0)
 			(layer "F.SilkS")
@@ -3130,7 +3130,7 @@
 				)
 			)
 		)
-		(property "Value" "PTSM 0,5/3-HH0-2,5-SMD"
+		(property "Value" "PTSM 0,5/3-HH-2,5-SMD"
 			(at 0 12.2 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -5066,7 +5066,7 @@
 		(layer "F.Cu")
 		(uuid "bffb845d-2d3a-4936-8ff9-7af4959e1d8f")
 		(at 10.5 0)
-		(descr "Phoenix Contact PTSM 0,5/3-HH0-2,5-SMD horizontal header, surface mount")
+		(descr "Phoenix Contact PTSM 0,5/3-HH-2,5-SMD horizontal header, surface mount")
 		(property "Reference" "H1"
 			(at -5.3 8.199999 0)
 			(layer "F.SilkS")
@@ -5078,7 +5078,7 @@
 				)
 			)
 		)
-		(property "Value" "PTSM 0,5/3-HH0-2,5-SMD"
+		(property "Value" "PTSM 0,5/3-HH-2,5-SMD"
 			(at 0 12.2 0)
 			(layer "F.Fab")
 			(hide yes)

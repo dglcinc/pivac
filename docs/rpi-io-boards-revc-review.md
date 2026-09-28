@@ -37,8 +37,8 @@ Two probe sockets on the top edge and the 24 VAC input on the bottom edge are su
 
 | Ref | Part | Purpose |
 |---|---|---|
-| H1 | PTSM 0,5/3-HH0-2,5-SMD, black, top edge | The 1-wire trunk: V, D, G. |
-| H2 | PTSM 0,5/3-HH0-2,5-SMD, black, top edge | Spare probe socket on the same bus. |
+| H1 | PTSM 0,5/3-HH-2,5-SMD, black, top edge | The 1-wire trunk: V, D, G. |
+| H2 | PTSM 0,5/3-HH-2,5-SMD, black, top edge | Spare probe socket on the same bus. |
 | U1 | DS2482-100 at 0x18 | The I²C 1-wire master that drives the bus. |
 | C1 | 100 nF | Supply decoupling for U1. |
 | JP1 | solder jumper | Joins GPIO4 to DATA to run the bus from the Pi's own 1-wire again. |
@@ -54,7 +54,7 @@ Two probe sockets on the top edge and the 24 VAC input on the bottom edge are su
 | J2 | three pads | VCC, DATA, GND of the bus, for wires or a scope. |
 | PF1 | 8 × 3 proto pads | Bodge field. |
 
-**Fitted parts:** C1 100 nF; C3 470 µF 63 V; C4 1 µF; D1–D4 1N4007; F1 Littelfuse 60R110XU; H1, H2 PTSM 0,5/3-HH0-2,5-SMD 1808200; J1 JST BM07B-GHS-TBT; J3 PTSM 0,5/2-HH-2,5-SMD 1778764; J4 PTSM 0,5/2-HV-2,5-SMD WH 1778696; JP1 solder jumper; U1 DS2482-100 SOIC-8; U3 TMR 12-4811WI. **Placed, not fitted:** R1 2.2 kΩ.
+**Fitted parts:** C1 100 nF; C3 470 µF 63 V; C4 1 µF; D1–D4 1N4007; F1 Littelfuse 60R110XU; H1, H2 PTSM 0,5/3-HH-2,5-SMD 1778777; J1 JST BM07B-GHS-TBT; J3 PTSM 0,5/2-HH-2,5-SMD 1778764; J4 PTSM 0,5/2-HV-2,5-SMD WH 1778696; JP1 solder jumper; U1 DS2482-100 SOIC-8; U3 TMR 12-4811WI. **Placed, not fitted:** R1 2.2 kΩ.
 
 ### Hand-laid tracks
 
@@ -101,7 +101,7 @@ No via stands under a legend or under the references `H1`, `H2`, `U1`, `C1`, `JP
 
 1. **The board routes and passes DRC**, 0 violations at error severity and 0 unconnected items, on the last `build.sh extc` run, clean on the first routing attempt.
 2. **Every connector pad is where the plan puts it.** The generator asserts the pad rows of H1 and H2, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, and C4 pad 2 at (20.0, 72.0).
-3. **Every solder foot lies on its pad and every peg in its hole**, by `hardware/fit-check.py`, which lays Phoenix's STEP models on the footprints of the generated board. Each connector is checked against the model of every part that may be fitted there: 1778777 and 1808200 on H1 and H2, 1778764 on J3, 1778696 on J4. The smallest margin of a foot inside its pad is 0.25 mm on the horizontal headers and 0.10 mm on J4; the pegs of J3 and J4 have 0.15 and 0.10 mm of play. On H1 and H2 the HH header 1778777 has pegs with 0.15 mm of play; the HH0 header 1808200 has none, and the holes stay empty under it.
+3. **Every solder foot lies on its pad and every peg in its hole**, by `hardware/fit-check.py`, which lays Phoenix's STEP models on the footprints of the generated board. Each connector is checked against the model of every part that may be fitted there: 1778777 and 1808200 on H1 and H2, 1778764 on J3, 1778696 on J4. The smallest margin of a foot inside its pad is 0.25 mm on the horizontal headers and 0.10 mm on J4; the pegs of J3 and J4 have 0.15 and 0.10 mm of play. H1 and H2 are fitted with the HH header 1778777, whose pegs have 0.15 mm of play; the HH0 header 1808200 has none and also fits, with the holes left empty.
 4. **Copper under U3** is the four pin escapes on the solder side and nothing else, measured on the routed board.
 5. **No via under a legend**, checked on the routed board against every legend's area.
 6. **No through-hole pad sits in a rib band.** J4's pad pattern starts at y 65.65, 0.16 mm below the lower rib.

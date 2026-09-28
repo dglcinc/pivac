@@ -153,11 +153,11 @@ The probe plugs are white by David's choice (2026-09-27); a 3-way plug does not 
 
 ## 6. Parts list
 
-Quantities are those of the Mouser cart of 2026-09-27 (`~/OneDrive - DGLC/Claude/My Shopping Cart - Mouser.pdf`), $33.43 of parts, every line in stock. One board takes two 3-way headers, one of each 2-way header, and a plug per header.
+Quantities are those of the Mouser order of 2026-09-27, about $33 of parts. One board takes two 3-way headers, one of each 2-way header, and a plug per header.
 
 | Ref | Part | Order no. | Qty | Each |
 |---|---|---|---|---|
-| H1, H2 | PTSM 0,5/3-HH0-2,5-SMD R32, black | 1808200 | 6 | $0.98 |
+| H1, H2 | PTSM 0,5/3-HH-2,5-SMD R32, black, with locating pegs | 1778777 | 6 | |
 | J3 | PTSM 0,5/2-HH-2,5-SMD R32, black | 1778764 | 5 | $0.70 |
 | J4 | PTSM 0,5/2-HV-2,5-SMD WH R24, white | 1778696 | 5 | $0.70 |
 | probe plugs | PTSM 0,5/3-PL-2,5 WH, latching, white | 1709459 | 10 | $1.17 |
@@ -166,7 +166,7 @@ Quantities are those of the Mouser cart of 2026-09-27 (`~/OneDrive - DGLC/Claude
 
 Mouser's part number is the order number with the prefix `651-`. Six 3-way headers fit three boards with none spare. The plain `-P-` plugs on hand fit the same headers.
 
-H1 and H2 take either 3-way header. 1778777 is the HH version, with two locating pegs that seat in the footprint's holes. 1808200, the part in the cart, is the HH0 version, which is the same header without the pegs; the holes stay empty under it. Body, anchors, leads and latch windows are the same on both, and `hardware/fit-check.py` passes each against its own STEP model.
+H1 and H2 are the HH header, 1778777, whose two locating pegs seat in the footprint's holes, like J3's and J4's. The footprint also takes 1808200, the HH0 version of the same header without the pegs, with the holes left empty. `hardware/fit-check.py` passes each against its own STEP model.
 
 Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
