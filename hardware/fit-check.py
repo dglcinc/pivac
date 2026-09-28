@@ -23,11 +23,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(HERE, "extc-board", "extc-board.kicad_pcb")
 VENDOR = os.path.join(HERE, "vendor")
-# the parts David is fitting (2026-09-27), each checked against its own model
-MODEL = {"H1": "pxc_1808200_01_01_PTSM-0-5-3-HH0-2-5-SMD-R32_3D.stp",
-         "H2": "pxc_1808200_01_01_PTSM-0-5-3-HH0-2-5-SMD-R32_3D.stp",
-         "J3": "pxc_1778764_02_01_PTSM-0-5-2-HH-2-5-SMD-R32_3D.stp",
-         "J4": "pxc_1778696_02_00_PTSM-0-5-2-HV-2-5-SMD-WH-R24_3D.stp"}
+# every part that may be fitted at each reference, each checked against its own model; H1 and
+# H2 take the HH header, which has locating pegs, or the HH0, which has none
+HH3 = ("pxc_1778777_02_01_PTSM-0-5-3-HH-2-5-SMD-R32_3D.stp",
+       "pxc_1808200_01_01_PTSM-0-5-3-HH0-2-5-SMD-R32_3D.stp")
+MODEL = {"H1": HH3, "H2": HH3,
+         "J3": ("pxc_1778764_02_01_PTSM-0-5-2-HH-2-5-SMD-R32_3D.stp",),
+         "J4": ("pxc_1778696_02_00_PTSM-0-5-2-HV-2-5-SMD-WH-R24_3D.stp",)}
 REFS = ("H1", "H2", "J3", "J4")
 
 
@@ -146,17 +148,24 @@ def check(ref, pads, name, model, place):
 
 def main():
     pads = json.load(open(sys.argv[1]))
-    part = {ref: (f.split("_3D")[0].split("_", 3)[-1], features(os.path.join(VENDOR, f)))
-            for ref, f in MODEL.items()}
+    cache = {}
+    def load(f):
+        if f not in cache:
+            cache[f] = (f.split("_")[1] + " " + f.split("_3D")[0].split("_", 4)[-1],
+                        features(os.path.join(VENDOR, f)))
+        return cache[f]
     j4x = max(p["x0"] for p in pads["J4"] if p["num"].isdigit()) + 2.0   # the lead-side face
     ok = True
     # H1, H2: entry face on the top edge, model y runs into the board
     for ref in ("H1", "H2"):
-        ok &= check(ref, pads[ref], *part[ref], lambda pin, x, y: (pin["cx"] + x, y))
+        for f in MODEL[ref]:
+            ok &= check(ref, pads[ref], *load(f), lambda pin, x, y: (pin["cx"] + x, y))
     # J3: turned 180 on the bottom edge
-    ok &= check("J3", pads["J3"], *part["J3"], lambda pin, x, y: (pin["cx"] - x, 85.0 - y))
+    for f in MODEL["J3"]:
+        ok &= check("J3", pads["J3"], *load(f), lambda pin, x, y: (pin["cx"] - x, 85.0 - y))
     # J4: pin row along y, the leads toward +x
-    ok &= check("J4", pads["J4"], *part["J4"], lambda pin, x, y: (j4x - y, pin["cy"] + x))
+    for f in MODEL["J4"]:
+        ok &= check("J4", pads["J4"], *load(f), lambda pin, x, y: (j4x - y, pin["cy"] + x))
     print("every foot on its pad, every peg in its hole" if ok else "FIT CHECK FAILED")
     sys.exit(0 if ok else 1)
 

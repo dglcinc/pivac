@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Generated and routed on 2026-09-27: `hardware/extc-board`, DRC clean with nothing unconnected, gerbers exported. Not ordered. Rev B is on order and is fitted first; rev C follows it on EXT only. · **Owner:** David
+**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). Next: populate and bench-prove when they arrive. Rev B is on order too; rev C replaces its EXT board, and the INT board is rev B's. · **Owner:** David
 
 Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
 
@@ -131,7 +131,7 @@ The latching plug is Phoenix's `-PL-` series, which adds two pivoting side arms 
 |---|---|---|
 | J3, 24 VAC, 2-way black | PTSM 0,5/2-PL-2,5 BK | 1709442 |
 | J4, 5 V, 2-way white | PTSM 0,5/2-PL-2,5 WH | 1709457 |
-| H1, H2 probes, 3-way black | PTSM 0,5/3-PL-2,5 BK | 1709443 |
+| H1, H2 probes, 3-way white | PTSM 0,5/3-PL-2,5 WH | 1709459 |
 
 **The latch engages this header.** Mating Phoenix's STEP models of the plug (`pxc_1709442_05_01_PTSM-0-5-2-PL-2-5-BK_3D.stp`) and the header, with the plug's nose on the bottom of the header's cavity at y 4.5:
 
@@ -149,23 +149,26 @@ The tooth passes through the full thickness of the wall. The arms clear the sold
 | Length | 15.9, of which 11.4 stands outside the board edge |
 | Height | 5.2 |
 
-Availability is unconfirmed. The layout of §4 takes either plug, so the choice can wait for the order.
+The probe plugs are white by David's choice (2026-09-27); a 3-way plug does not enter J3 or J4, so the colour that tells J3 from J4 is the 2-way plugs'. All three latching plugs were in stock at Mouser on 2026-09-27.
 
 ## 6. Parts list
 
-Quantities are for one EXT board. Buy one spare of each header.
+Quantities are those of the Mouser order placed on 2026-09-27, about $33 of parts. One board takes two 3-way headers, one of each 2-way header, and a plug per header.
 
-| Ref | Part | Qty | Digi-Key | Amazon |
+| Ref | Part | Order no. | Qty | Each |
 |---|---|---|---|---|
-| H1, H2 | Phoenix PTSM 0,5/3-HH0-2,5-SMD R32, 1808200, black | 2 | search Digi-Key for 1808200 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1808200) |
-| J3 | Phoenix PTSM 0,5/2-HH-2,5-SMD R32, 1778764, black | 1 | [Phoenix page](https://www.phoenixcontact.com/en-pc/products/pcb-header-ptsm-05-2-hh-25-smd-r32-1778764); search Digi-Key for 1778764 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778764) |
-| J4 | Phoenix PTSM 0,5/2-HV-2,5-SMD WH R24, 1778696, white | 1 | [Phoenix page](https://www.phoenixcontact.com/en-pc/products/pcb-header-ptsm-05-2-hv-25-smd-wh-r24-1778696); search Digi-Key for 1778696 | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778696) |
-| plugs | PTSM 0,5/3-P-2,5 1778845, 0,5/2-P-2,5 1778832 and 0,5/2-P-2,5 WH 1704853 | 0 | on hand from rev A and rev B | |
-| latching plugs, optional | 1709443 for H1 and H2, 1709442 for J3, 1709457 for J4 | 2 + 1 + 1 | search Digi-Key for the order number | [1709443](https://www.amazon.com/s?k=Phoenix+Contact+1709443), [1709442](https://www.amazon.com/s?k=Phoenix+Contact+1709442), [1709457](https://www.amazon.com/s?k=Phoenix+Contact+1709457) |
+| H1, H2 | PTSM 0,5/3-HH-2,5-SMD R32, black, with locating pegs | 1778777 | 6 | |
+| J3 | PTSM 0,5/2-HH-2,5-SMD R32, black | 1778764 | 5 | $0.70 |
+| J4 | PTSM 0,5/2-HV-2,5-SMD WH R24, white | 1778696 | 5 | $0.70 |
+| probe plugs | PTSM 0,5/3-PL-2,5 WH, latching, white | 1709459 | 10 | $1.17 |
+| J3 plug | PTSM 0,5/2-PL-2,5 BK, latching, black | 1709442 | 5 | $0.87 |
+| J4 plug | PTSM 0,5/2-PL-2,5 WH, latching, white | 1709457 | 5 | $0.90 |
 
-H1 and H2 are the HH0 version, which is the HH header without its two locating pegs: the body, the anchors, the leads and the latch windows are the same, measured from Phoenix's STEP models of 1808200 and 1778764. The footprint keeps the peg holes, which stay empty under an HH0 header, so the board also takes the HH version, 1778777.
+Mouser's part number is the order number with the prefix `651-`. Six 3-way headers fit three boards with none spare. The plain `-P-` plugs on hand fit the same headers.
 
-The Digi-Key product pages would not open on 2026-09-27 and no Amazon listing was found, so stock and price are unchecked. Phoenix's packing unit of 600 applies to factory orders; distributors sell cut tape. Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
+H1 and H2 are the HH header, 1778777, whose two locating pegs seat in the footprint's holes, like J3's and J4's. The footprint also takes 1808200, the HH0 version of the same header without the pegs, with the holes left empty. `hardware/fit-check.py` passes each against its own STEP model.
+
+Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
 ## 7. Soldering the header by hand
 
@@ -201,11 +204,8 @@ Checks done:
 - Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
 - `hardware/fit-check.py` lays the STEP models in `hardware/vendor/` on the generated board's footprints: every solder foot lies on its pad and every peg in its hole, each connector against the model of the part fitted there.
 
-Before ordering:
+From here:
 
 1. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
-2. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
-
-## 9. Open questions
-
-- Whether the `-PL-` latching plugs can be bought (§5).
+2. When the boards arrive, populate per §7 and the rev B plan, with the rev B parts for everything but the connectors.
+3. Bench-prove as rev B is: 35 V at VS and COM, 5.1 V at J4, COM open to Pi ground, then the Pi on the pigtail and a 1-wire proof.
