@@ -116,4 +116,4 @@ Bare boards from OSH Park, three of them, hand assembled: two-layer, 1.6 mm, 1 o
 |---|---|---|---|
 | EXT rev C | 5.1 in² | about $26 at $5/in² | 9–12 days |
 
-Parts per `rpi-io-boards-revc-plan.md` §6: three header types, one spare of each. Every other part is a rev B part, and the plain plugs are on hand.
+Parts per `rpi-io-boards-revc-plan.md` §6: three header types and three latching plugs, from Mouser. Every other part is a rev B part.
