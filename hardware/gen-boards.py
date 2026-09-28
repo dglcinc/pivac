@@ -309,7 +309,7 @@ def ptsm_hh_smd(board, n):
     edge. Body (a + 4.2) wide, 7.5 deep and 5.0 tall, a = (n-1)*2.5. Pad pattern from Phoenix's
     drawing for 1778780 and its STEP model: signal pads 1.2 x 3.2 behind the body (y 6.6 to
     9.8), two anchor pads 2.2 x 5.6 whose inner edge is 1.55 from the outer signal pad's edge
-    (y 0.8 to 6.4), two 1.1 mm unplated holes for the pegs, 1.1 outside the outer pins at
+    (y 1.2 to 6.8, centred on the anchor's foot at y 1.5 to 6.5), two 1.1 mm unplated holes for the pegs, 1.1 outside the outer pins at
     y 2.85. The side walls carry the window a latching -PL- plug's tooth enters."""
     fp = pcbnew.FOOTPRINT(board.board)
     fp.SetFPID(pcbnew.LIB_ID("pivac", f"PTSM_0.5_{n}-HH-2.5-SMD"))
@@ -319,7 +319,7 @@ def ptsm_hh_smd(board, n):
     for i in range(n):
         _smd(fp, i + 1, -a / 2 + i * 2.5, 8.2, 1.2, 3.2)
     for sgn in (-1, 1):
-        _smd(fp, "MP", sgn * (a / 2 + 3.25), 3.6, 2.2, 5.6)
+        _smd(fp, "MP", sgn * (a / 2 + 3.25), 4.0, 2.2, 5.6)
         _peg(fp, sgn * (a / 2 + 1.1), 2.85, 1.1)
     hw = a / 2 + 2.1
     _fp_rect(fp, -hw, 0, hw, 7.5, pcbnew.F_Fab, 0.1)
@@ -922,7 +922,7 @@ def build_extc():
     # sit side by side; entry face on the top edge
     for ref, xc, what in (("H1", 10.5, "TRUNK"), ("H2", 28.0, "SPARE")):
         h = ptsm_hh_smd(B, 3)
-        custom.append(B.place(ref, h, xc, 0.0, 0, value="PTSM 0,5/3-HH-2,5-SMD"))
+        custom.append(B.place(ref, h, xc, 0.0, 0, value="PTSM 0,5/3-HH0-2,5-SMD"))
         for k, (dx, letter) in enumerate(((-2.5, "V"), (0.0, "D"), (2.5, "G")), start=1):
             x, y = B.pad_xy(ref, k)
             if abs(x - (xc + dx)) > 0.01 or abs(y - 8.2) > 0.01:
