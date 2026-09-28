@@ -1,0 +1,39 @@
+* pivac EXT board power section: 24 VAC -> F1 -> D1-D4 bridge -> C3 -> U3 (constant-power load)
+* Parameters are substituted by run.sh: VRMS, PLOAD (W into U3), RSRC (transformer), PHASE (deg)
+.param vrms=@VRMS@ pload=@PLOAD@ rsrc=@RSRC@ phase=@PHASE@ isense=@ISENSE@
+.model D1N4007 D(IS=7.02767n RS=0.0341512 N=1.80803 EG=1.05743 XTI=5 BV=1000 IBV=5e-08 CJO=1e-11 VJ=0.7 M=0.5 FC=0.5 TT=1e-07)
+
+Vac   ac1 acc  SIN(0 {vrms*sqrt(2)} 60 0 0 {phase})
+Rsrc  ac1 ac2  {rsrc}
+* F1 Littelfuse 60R110XU, untripped: 0.15 to 0.38 ohm; 0.25 used
+Rf1   ac2 acf  0.25
+Vf1   acf acr  0
+D1 acr vs  D1N4007
+D2 acc vs  D1N4007
+D3 com acr D1N4007
+D4 com acc D1N4007
+* C3 470 uF 63 V with 0.1 ohm ESR
+Resr  vs  c3  0.1
+C3    c3  com 470u ic=0
+* U3: constant power above the 16.4 V lockout (worst case), nothing below it
+Erail rail 0 vs com 1
+Rrail rail 0 1meg
+Bu3   vs  com I = pload / max(v(vs,com), 10) * 0.5 * (1 + tanh((v(vs,com) - 16.4) / 0.3))
+* sense channels on INT: 2.8 mA each, 35 mA with all twelve closed
+Isns  vs  com {isense}
+Rref  com 0 1meg
+Racc  acc 0 1meg
+
+.options method=gear reltol=1e-3
+.tran 20u 0.5 0 20u uic
+.control
+run
+meas tran v_valley min  v(rail) from=0.4 to=0.5
+meas tran v_peak   max  v(rail) from=0.4 to=0.5
+meas tran v_mean   avg  v(rail) from=0.4 to=0.5
+meas tran i_rms    rms  i(Vac)    from=0.4 to=0.5
+meas tran i_inrush max  i(Vf1)    from=0   to=0.05
+meas tran i_inrmin min  i(Vf1)    from=0   to=0.05
+meas tran i_f1pk   max  i(Vf1)    from=0.4 to=0.5
+.endc
+.end
