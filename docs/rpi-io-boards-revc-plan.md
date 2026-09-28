@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Generated and routed on 2026-09-27: `hardware/extc-board`, DRC clean with nothing unconnected, gerbers exported. Not ordered. Rev B is on order and is fitted first; rev C follows it on EXT only. · **Owner:** David
+**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). Next: populate and bench-prove when they arrive. Rev B is on order too; rev C replaces its EXT board, and the INT board is rev B's. · **Owner:** David
 
 Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
 
@@ -153,7 +153,7 @@ The probe plugs are white by David's choice (2026-09-27); a 3-way plug does not 
 
 ## 6. Parts list
 
-Quantities are those of the Mouser order of 2026-09-27, about $33 of parts. One board takes two 3-way headers, one of each 2-way header, and a plug per header.
+Quantities are those of the Mouser order placed on 2026-09-27, about $33 of parts. One board takes two 3-way headers, one of each 2-way header, and a plug per header.
 
 | Ref | Part | Order no. | Qty | Each |
 |---|---|---|---|---|
@@ -204,7 +204,8 @@ Checks done:
 - Every connector pad's position is asserted in the generator against §4: H1 and H2 pad rows, J3 pin 1 at (9.25, 76.8), J4 pin 1 above pin 2 with the leads toward the right edge, C4 pad 2 at (20.0, 72.0).
 - `hardware/fit-check.py` lays the STEP models in `hardware/vendor/` on the generated board's footprints: every solder foot lies on its pad and every peg in its hole, each connector against the model of the part fitted there.
 
-Before ordering:
+From here:
 
 1. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
-2. Upload `extc-board-gerbers.zip` to OSH Park, order the headers of §6, populate per §7 and the rev B plan, and bench-prove as rev B is.
+2. When the boards arrive, populate per §7 and the rev B plan, with the rev B parts for everything but the connectors.
+3. Bench-prove as rev B is: 35 V at VS and COM, 5.1 V at J4, COM open to Pi ground, then the Pi on the pigtail and a 1-wire proof.
