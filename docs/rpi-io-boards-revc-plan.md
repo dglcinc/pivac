@@ -166,7 +166,7 @@ Quantities are those of the Mouser cart of 2026-09-27 (`~/OneDrive - DGLC/Claude
 
 Mouser's part number is the order number with the prefix `651-`. Six 3-way headers fit three boards with none spare. The plain `-P-` plugs on hand fit the same headers.
 
-H1 and H2 are the HH0 version, which is the HH header without its two locating pegs: the body, the anchors, the leads and the latch windows are the same, measured from Phoenix's STEP models of 1808200 and 1778764. The footprint keeps the peg holes, which stay empty under an HH0 header, so the board also takes the HH version, 1778777.
+H1 and H2 take either 3-way header. 1778777 is the HH version, with two locating pegs that seat in the footprint's holes. 1808200, the part in the cart, is the HH0 version, which is the same header without the pegs; the holes stay empty under it. Body, anchors, leads and latch windows are the same on both, and `hardware/fit-check.py` passes each against its own STEP model.
 
 Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
 
