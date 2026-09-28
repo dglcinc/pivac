@@ -406,8 +406,9 @@ def radial_flat(board, name, pitch, dia, thick, drill=1.0, size=1.8):
 def sip8_converter(board):
     """Traco TMR 12WI SIP-8: pins 1, 2, 3, 6, 7, 8 at 2.54 mm (pins 4 and 5 do not exist on the
     single-output part), 0.5 x 0.4 mm posts in 1.0 mm holes. Body 22.0 x 9.6 with the pin row
-    3.54 mm from one long face and 6.06 from the other; 12.0 mm tall. Origin at pin 1. The four
-    case pins are clipped, so no holes for them, and no copper runs under the body (Traco)."""
+    3.54 mm from one long face and 6.06 from the other; 12.0 mm tall. Origin at pin 1. Pins 9
+    and 12 (case) and 10 and 11 (stand-offs) sit on the long faces at 3.59 and 14.19 mm from pin
+    1 and get no holes (Traco: not connected to any circuit); the shanks are clipped."""
     fp = pcbnew.FOOTPRINT(board.board)
     fp.SetFPID(pcbnew.LIB_ID("pivac", "TMR12WI_SIP-8"))
     fp.SetLibDescription("Traco TMR 12WI isolated DC/DC converter, SIP-8, 22 x 9.6 x 12 mm")

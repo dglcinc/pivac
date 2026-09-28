@@ -48,7 +48,7 @@ Two probe sockets on the top edge and the 24 VAC input on the bottom edge are su
 | F1 | PTC 1.1 A 60 V, standing | Resettable fuse in the R leg. |
 | D1–D4 | 1N4007 | Full-wave bridge to the VS rail and COM. |
 | C3 | 470 µF 63 V, standing | Reservoir on the VS rail. |
-| U3 | Traco TMR 12-4811WI, SIP-8 | Isolated converter, 35 V in to 5.1 V at 2.4 A out. |
+| U3 | Traco TMR 12-4811WI, SIP-8 | Isolated converter, 35 V in to 5.1 V at 2.4 A out. No holes for pins 9 to 12; clip the shanks of 9 and 12 at the shoulder before fitting. |
 | C4 | 1 µF 50 V ceramic | U3's output capacitor. |
 | J4 | PTSM 0,5/2-HV-2,5-SMD, white, vertical | 5VDC output to the Pi's USB-C pigtail: pin 1 +5, pin 2 G. |
 | J2 | three pads | VCC, DATA, GND of the bus, for wires or a scope. |
@@ -74,6 +74,8 @@ Traco's datasheet for the TMR 12WI says "Avoid routing PCB traces under the conv
 |---|---|
 | Component side | none, apart from the converter's own pads |
 | Solder side | four pin escapes of 3.5 mm each, for pins 1, 2, 6 and 7, straight to the nearer edge |
+
+The converter also has pins 9 to 12 on its long faces: pins 9 and 12 are the copper case and pins 10 and 11 are stand-offs, one of each on either long face, 5.7 mm from the body's ends (3.59 and 14.19 mm from pin 1). The datasheet says "Case pins should not be connected to any circuit", so the board has no holes for them. The shanks of pins 9 and 12 are clipped at the shoulder before U3 is fitted, and the four shoulders, 2.5 mm wide, rest on the board at x 17.45 to 19.95 and 28.05 to 30.55 on the lines y 50.5 and 60.1, where the component side carries no copper.
 
 Rule areas on both layers hold this on every rebuild: the component side is closed under the whole body, and the solder side is closed except for a 2 mm channel from each connected pin to the edge. No via stands under the body.
 
