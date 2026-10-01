@@ -21,9 +21,9 @@ Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board t
 | Ref | Part | Value and reason |
 |---|---|---|
 | J3 | Phoenix PTSM 0,5/2-HH-2,5-THR | 24 VAC entry, 6 A 160 V, entry faces the bottom edge; white plug so it cannot be confused with a black probe plug |
-| F1 | Littelfuse 60R110XU | 1.1 A hold, 2.2 A trip, 60 V; the rail carries about 0.45 A at the Pi's peak, and the transformer can supply the trip current |
+| F1 | Littelfuse 60R110XU | 1.1 A hold, 2.2 A trip, 60 V; the AC side carries 0.66 A RMS at the Pi's 1.5 A peak and 0.48 A at 1.0 A, in pulses of 1.8 A (simulated, `hardware/sim`), and the transformer can supply the trip current |
 | D1–D4 | 1N4007 | full-wave bridge, 1 A average, 0.45 A load |
-| C3 | 470 µF 63 V radial, standing | valley near 28 V at the Pi's 0.4 A peak draw, 3 V of ripple at the 0.16 A typical; U3 locks out below 16.4 V |
+| C3 | 470 µF 63 V radial, standing | simulated in `hardware/sim` at 25.9 VAC: valley 29.6 V at the Pi's 1.5 A peak, 2.9 V of ripple at 1.0 A; valley 22.9 V at 21.6 VAC; U3 locks out below 16.4 V |
 | U3 | Traco TMR 12-4811WI | 18–75 V in, 5.1 V ±1 % at 2.4 A out, 1.6 kV isolation; pin 3 Remote left open, which is on |
 | C4 | 1 µF ceramic | across U3 pins 6 and 7 per the datasheet's ripple figure |
 | J4 | JST B2B-XH-A | 5.1 V out, 3 A 250 V; a different family from J3 so the AC plug does not fit it |
