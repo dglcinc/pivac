@@ -79,7 +79,7 @@ The probe end is rev A's: the trunk header H1 (VCC · DATA · GND) and the spare
 | F1 | PTC 1.1 A 60 V, standing | Resettable fuse in the 24 VAC feed. |
 | D1–D4 | 1N4007 | Full-wave bridge to the VS rail and COM. |
 | C3 | 470 µF 63 V, standing | Reservoir on the VS rail: the valley stays near 28 V at the Pi's peak draw against U3's 16.4 V lockout. |
-| U3 | Traco TMR 12-4811WI, SIP-8 | Isolated converter, 35 V in to 5.1 V at 2.4 A out. Pin 3 Remote open (on); pins 4 and 5 do not exist; the case pins are clipped. |
+| U3 | Traco TMR 12-4811WI, SIP-8 | Isolated converter, 35 V in to 5.1 V at 2.4 A out. Pin 3 Remote open (on); pins 4 and 5 do not exist. No holes for pins 9 to 12 (case and stand-offs): clip the shanks of 9 and 12 at the shoulder, and lay polyimide tape on the board under the body, because the VS and +5V tracks on the component side pass under the shoulders of pins 11 and 10. |
 | C4 | 1 µF 50 V ceramic | U3's output capacitor. |
 | J4 | JST XH B2B-XH-A, 2 pins | 5.1 V out to the USB-C pigtail: pin 1 +5V, pin 2 GND. |
 | TS1 | two unplated 1.2 × 2.4 mm slots | Cable tie for the pigtail: down one, across the solder side, up the other. |
