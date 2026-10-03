@@ -830,17 +830,10 @@ between ([3.7](#37-two-limits-on-the-data-itself)). Y2 fraction moves continuous
 and responds to every change in section 7, which makes it the scoring metric for the tuning work
 rather than one more series.
 
-**Ring out the spare pair first.** The run back from the master's air handler once carried a dry
-contact for this signal. If that pair is still good, the measurement is a 24 VAC coil relay across
-Y2 and C at the air handler with its contacts on the pair, landing on a free Pi input under
-`pivac.GPIO` beside the seven already there. About $15, no firmware, no new service, and it is the
-sensing pattern the CDP relays already use. Free inputs with wire runs on the new Pi's I/O board are BCM 13, 16
-and 24.
-
-If the pair is open, the same signal becomes one more input on the air-handler node
-([E.9](#e9-sensing-the-y2-call)). That is the stronger reason to build the node at the master
-bedroom rather than at the family room: the zone that raises the question is the zone whose coil,
-air and water the node would read together.
+**Y2 is read on the air-handler node.** An H11AA1 opto across Y2 and C at the master bedroom's
+air handler feeds the node that also reads the coil's water and air, so the fan stage, the coil and
+the room are sampled together at the zone that raises the question. Wiring and sketch are in
+`docs/mbr-air-handler-node-plan.md`.
 
 ---
 
@@ -1216,6 +1209,19 @@ does not move, the cause is the thermostat or the load, and the air-side sensors
 > thermostat will not lower the fan speed while the second stage of cooling is on, so every minute
 > on Y2 is a minute the zone cannot dehumidify by that route. The high fan stage and the humidity
 > reading may be one problem seen twice.
+
+**The late-morning losses are load, measured 2026-10-03.** Since the strainer cleaning on 22 August
+the master bedroom has run 2 °F over its 75 °F cool setpoint on eleven days, starting between
+10:00 and 12:40 and clearing by 15:30, for 20 to 260 minutes, with outdoor highs from 67 to 84 °F. On 2 and 3 October the
+zone called continuously through the window while Loop A delivered 47 to 51 °F supply at 5 to
+6 °F ΔT, the chiller sat at its 25 Hz floor with the tank at target, and the kids room on the
+same loop held 74 °F. The coil's ΔT per degree of approach on master-only calls held 0.16 to 0.20
+from 17 September to 3 October, so the coil's pickup has not fallen; `.startupFlow` held 51.7 to
+55.2 L/min over the same weeks, so the strainer is clean. A clock-bound window that ignores
+outdoor temperature is solar gain, on the room or on the thermostat, and the node's return-air
+sensor tells the two apart. The thermostat reports the setpoint until the room is about 1.5 °F
+off it, so the reading steps 75 → 77 → 75 within one poll at each end of the window and never
+shows 76; three weeks of two-minute samples hold 76 three times in about 15,000.
 
 ### 5.11 Water temperature is the larger term, and distribution is the smaller one
 
@@ -2346,7 +2352,9 @@ zone.
 
 Build this only after the loop sensors and the primary flow meter, which cost less and answer
 larger questions ([8](#8-sequence)). It remains the only route to attribution within a loop and to
-the sensible and latent split at a single coil.
+the sensible and latent split at a single coil. The build plan for the master bedroom's node,
+with wiring, sketch and pivac config, is `docs/mbr-air-handler-node-plan.md`; this appendix holds
+the reasoning behind it.
 
 ## E.1 Everything hangs off one Arduino at the air handler
 
@@ -2532,8 +2540,9 @@ EEPROM totalizer with a magic marker, a 10 s rolling flow window, the RA4M1 watc
 WiFi and HTTP handling. Add the 12-bit DS18B20 read and the two averaged ADC reads.
 
 Handle disconnected sensors explicitly. A DS18B20 that fails to read returns −127, and an open NTC
-divider rails to full scale. Emit a −999 sentinel rather than a plausible number, so the Pi can
-drop the sample instead of computing a confident and wrong figure.
+divider rails to full scale. Leave that field out of the response line, so `ArduinoSensor` skips
+the path and it goes stale; a numeric sentinel would pass through `type: temperature` and arrive
+in Signal K as a reading.
 
 ## E.9 Sensing the Y2 call
 
@@ -2624,12 +2633,11 @@ water in it and the duct mass all need to reach steady state.
 | `environment.inside.hvac.ah.mbr.capacity.ua` | BTU/hr·°F | derived |
 | `environment.inside.hvac.ah.mbr.shr` | ratio | derived |
 | `environment.inside.hvac.ah.mbr.running` | 0/1 | derived |
-| `environment.inside.hvac.ah.mbr.y2` | 0/1 | node, only if the spare pair is open |
+| `environment.inside.hvac.ah.mbr.y2` | 0/1 | node |
 
-> If the spare pair rings out, Y2 arrives through `pivac.GPIO` instead, as
-> `electrical.ac.switch.utility.MBY2.statenum` beside the seven relays already there
-> ([4.6](#46-reading-the-master-bedrooms-fan-stage)). Choose one and keep it. Publishing the same
-> signal on both paths would split its history the day the other is retired.
+> Y2 is sensed on the node, through an H11AA1 at the air handler
+> (`docs/mbr-air-handler-node-plan.md` §3.3), and never also through `pivac.GPIO`. Publishing the
+> same signal on both paths would split its history the day one is retired.
 
 The four secondary-loop sensors in [4.2](#42-the-sensor-package) go on the Pi's
 1-wire bus instead, under `environment.inside.hvac.{LOOPA_SUP,LOOPA_RET,LOOPB_SUP,LOOPB_RET}`.
