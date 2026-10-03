@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="1180" viewBox="0 0 1640 1180" font-family="Helvetica, Arial, sans-serif" font-size="13">
+<title>Master bedroom air-handler node wiring</title>
+<rect width="1640" height="1180" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" text-anchor="start" font-weight="bold" fill="#000">Master bedroom air-handler node: UNO R4 WiFi, two DS18B20, two 10K NTC, Y2 on a 792 relay</text>
+<text x="20" y="52" font-size="12" text-anchor="start" font-weight="normal" fill="#444">Everything but the sensors mounts on DIN rail. Filled dots are joins; bare crossings are not. Socket terminals as printed on the 70-782EL14-1: NC 1–4, NO 5–8, COM 9–12, coil 13 (A1) and 14 (A2).</text>
+<rect x="30" y="110" width="220" height="250" rx="6" fill="#f4f4f4" stroke="#333" stroke-width="1.5"/>
+<text x="140" y="135" font-size="14" text-anchor="middle" font-weight="bold" fill="#000">Unico M2430</text>
+<text x="140" y="152" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">control terminal strip</text>
+<circle cx="250" cy="170" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="246" y1="166" x2="254" y2="174" stroke="#333" stroke-width="1.2"/>
+<text x="236" y="174" text-anchor="end" font-size="12" font-weight="bold">R  (24 VAC hot)</text>
+<circle cx="250" cy="230" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="246" y1="226" x2="254" y2="234" stroke="#333" stroke-width="1.2"/>
+<text x="236" y="234" text-anchor="end" font-size="12" font-weight="bold">C  (24 VAC common)</text>
+<circle cx="250" cy="290" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="246" y1="286" x2="254" y2="294" stroke="#333" stroke-width="1.2"/>
+<text x="236" y="294" text-anchor="end" font-size="12" font-weight="bold">Y2 (high fan call)</text>
+<text x="140" y="340" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">leave the existing wires in place;</text>
+<text x="140" y="354" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">add these under the same screws</text>
+<rect x="330" y="100" width="230" height="150" rx="6" fill="#eef4fb" stroke="#333" stroke-width="1.5"/>
+<text x="445" y="125" font-size="14" text-anchor="middle" font-weight="bold" fill="#000">PS1  24 VAC → 5 V DC</text>
+<text x="445" y="142" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">buck converter, USB-C out</text>
+<circle cx="330" cy="140" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="326" y1="136" x2="334" y2="144" stroke="#333" stroke-width="1.2"/>
+<text x="342" y="144" text-anchor="start" font-size="12" font-weight="bold">AC</text>
+<circle cx="330" cy="200" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="326" y1="196" x2="334" y2="204" stroke="#333" stroke-width="1.2"/>
+<text x="342" y="204" text-anchor="start" font-size="12" font-weight="bold">AC</text>
+<rect x="548" y="160" width="16" height="22" rx="4" fill="#ddd" stroke="#333"/>
+<text x="445" y="235" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">USB-C</text>
+<polyline points="257,170 290,170 290,140 323,140" fill="none" stroke="#d35400" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="257,230 300,230 300,200 323,200" fill="none" stroke="#7f8c8d" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="300" cy="230" r="4.5" fill="#7f8c8d"/>
+<rect x="330" y="400" width="220" height="300" rx="8" fill="#fbfbf2" stroke="#333" stroke-width="1.5"/>
+<circle cx="370" cy="450" r="14" fill="#fff" stroke="#333"/>
+<text x="370" y="454" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">12</text>
+<circle cx="420" cy="450" r="14" fill="#fff" stroke="#333"/>
+<text x="420" y="454" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">11</text>
+<circle cx="470" cy="450" r="14" fill="#fff" stroke="#333"/>
+<text x="470" y="454" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">10</text>
+<circle cx="520" cy="450" r="14" fill="#fff" stroke="#333"/>
+<text x="520" y="454" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">9</text>
+<circle cx="370" cy="515" r="14" fill="#fff" stroke="#333"/>
+<text x="370" y="519" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">8</text>
+<circle cx="420" cy="515" r="14" fill="#fff" stroke="#333"/>
+<text x="420" y="519" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">7</text>
+<circle cx="470" cy="515" r="14" fill="#fff" stroke="#333"/>
+<text x="470" y="519" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">6</text>
+<circle cx="520" cy="515" r="14" fill="#fff" stroke="#333"/>
+<text x="520" y="519" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">5</text>
+<circle cx="370" cy="580" r="14" fill="#fff" stroke="#333"/>
+<text x="370" y="584" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">4</text>
+<circle cx="420" cy="580" r="14" fill="#fff" stroke="#333"/>
+<text x="420" y="584" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">3</text>
+<circle cx="470" cy="580" r="14" fill="#fff" stroke="#333"/>
+<text x="470" y="584" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">2</text>
+<circle cx="520" cy="580" r="14" fill="#fff" stroke="#333"/>
+<text x="520" y="584" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">1</text>
+<circle cx="395" cy="655" r="14" fill="#fff" stroke="#333"/>
+<text x="395" y="659" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">14</text>
+<circle cx="495" cy="655" r="14" fill="#fff" stroke="#333"/>
+<text x="495" y="659" font-size="12" text-anchor="middle" font-weight="bold" fill="#000">13</text>
+<text x="350" y="450" font-size="10" fill="#666" text-anchor="end" transform="rotate(-90 350 450)">COM</text>
+<text x="350" y="515" font-size="10" fill="#666" text-anchor="end" transform="rotate(-90 350 515)">NO</text>
+<text x="350" y="580" font-size="10" fill="#666" text-anchor="end" transform="rotate(-90 350 580)">NC</text>
+<text x="395" y="682" font-size="10" text-anchor="middle" font-weight="normal" fill="#666">A2</text>
+<text x="495" y="682" font-size="10" text-anchor="middle" font-weight="normal" fill="#666">A1</text>
+<text x="440" y="692" font-size="10" text-anchor="middle" font-weight="normal" fill="#666">coil</text>
+<text x="440" y="388" font-size="14" text-anchor="middle" font-weight="bold" fill="#000">K1  792, 24 VAC coil, on socket</text>
+<polyline points="257,290 262,290 262,760 495,760 495,669" fill="none" stroke="#8e44ad" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="300,230 300,730 395,730 395,669" fill="none" stroke="#7f8c8d" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="470,436 470,424 520,424 520,436" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="470,529 470,539 520,539 520,529" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round"/>
+<text x="495" y="413" font-size="10" text-anchor="middle" font-weight="normal" fill="#444">jumper</text>
+<rect x="700" y="330" width="400" height="500" rx="6" fill="#f2f8f2" stroke="#333" stroke-width="1.5"/>
+<text x="900" y="318" font-size="14" text-anchor="middle" font-weight="bold" fill="#000">U1  Arduino UNO R4 WiFi + Proto-ScrewShield, on a DIN bracket</text>
+<rect x="692" y="349" width="16" height="22" rx="4" fill="#ddd" stroke="#333"/>
+<text x="714" y="364" font-size="11" text-anchor="start" font-weight="normal" fill="#000">USB-C</text>
+<polyline points="564,171 620,171 620,360 692,360" fill="none" stroke="#555555" stroke-width="4" stroke-linejoin="round"/>
+<text x="626" y="270" font-size="11" text-anchor="start" font-weight="normal" fill="#555">USB-C cable</text>
+<circle cx="700" cy="470" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="696" y1="466" x2="704" y2="474" stroke="#333" stroke-width="1.2"/>
+<text x="712" y="461" text-anchor="start" font-size="12" font-weight="bold">D6</text>
+<circle cx="700" cy="540" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="696" y1="536" x2="704" y2="544" stroke="#333" stroke-width="1.2"/>
+<text x="712" y="531" text-anchor="start" font-size="12" font-weight="bold">GND</text>
+<polyline points="534,450 640,450 640,470 693,470" fill="none" stroke="#2ca02c" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="534,515 660,515 660,540 693,540" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1100" cy="378" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="374" x2="1104" y2="382" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="369" text-anchor="end" font-size="12" font-weight="bold">5V</text>
+<circle cx="1100" cy="492" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="488" x2="1104" y2="496" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="483" text-anchor="end" font-size="12" font-weight="bold">D2</text>
+<circle cx="1100" cy="548" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="544" x2="1104" y2="552" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="539" text-anchor="end" font-size="12" font-weight="bold">GND</text>
+<circle cx="1100" cy="610" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="606" x2="1104" y2="614" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="601" text-anchor="end" font-size="12" font-weight="bold">A0</text>
+<circle cx="1100" cy="660" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="656" x2="1104" y2="664" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="651" text-anchor="end" font-size="12" font-weight="bold">GND</text>
+<circle cx="1100" cy="720" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="716" x2="1104" y2="724" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="711" text-anchor="end" font-size="12" font-weight="bold">A1</text>
+<circle cx="1100" cy="770" r="7" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<line x1="1096" y1="766" x2="1104" y2="774" stroke="#333" stroke-width="1.2"/>
+<text x="1088" y="761" text-anchor="end" font-size="12" font-weight="bold">GND</text>
+<polyline points="800,378 1093,378" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="707,470 800,470" fill="none" stroke="#2ca02c" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="800" cy="470" r="4.5" fill="#2ca02c"/>
+<polyline points="800,378 800,406.0" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="800,442.0 800,470" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="793" y="406.0" width="14" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="812" y="428.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">R5 1k</text>
+<circle cx="800" cy="378" r="4.5" fill="#d62728"/>
+<polyline points="1040,378 1040,417.0" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1040,453.0 1040,492" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="1033" y="417.0" width="14" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="1052" y="439.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">R1 4.7k</text>
+<circle cx="1040" cy="378" r="4.5" fill="#d62728"/>
+<polyline points="1040,492 1093,492" fill="none" stroke="#b8960b" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1040" cy="492" r="4.5" fill="#b8960b"/>
+<polyline points="970,378 970,476.0" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="970,512.0 970,610" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="963" y="476.0" width="14" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="982" y="498.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">R2 10.0k</text>
+<circle cx="970" cy="378" r="4.5" fill="#d62728"/>
+<polyline points="970,610 1093,610" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="970" cy="610" r="4.5" fill="#1f77b4"/>
+<polyline points="970,610 970,631.0" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="970,639.0 970,660" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<line x1="959" y1="631.0" x2="981" y2="631.0" stroke="#333" stroke-width="2.5"/>
+<line x1="959" y1="639.0" x2="981" y2="639.0" stroke="#333" stroke-width="2.5"/>
+<text x="985" y="639.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">C1 0.1µ</text>
+<polyline points="970,660 1093,660" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="900,378 900,531.0" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="900,567.0 900,720" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="893" y="531.0" width="14" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="912" y="553.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">R3 10.0k</text>
+<circle cx="900" cy="378" r="4.5" fill="#d62728"/>
+<polyline points="900,720 1093,720" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="900" cy="720" r="4.5" fill="#1f77b4"/>
+<polyline points="900,720 900,741.0" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="900,749.0 900,770" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<line x1="889" y1="741.0" x2="911" y2="741.0" stroke="#333" stroke-width="2.5"/>
+<line x1="889" y1="749.0" x2="911" y2="749.0" stroke="#333" stroke-width="2.5"/>
+<text x="915" y="749.0" font-size="11" text-anchor="start" font-weight="normal" fill="#000">C2 0.1µ</text>
+<polyline points="900,770 1093,770" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1055,548 1055,800" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1093,548 1055,548" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1055" cy="548" r="4.5" fill="#000"/>
+<circle cx="1055" cy="660" r="4.5" fill="#000"/>
+<circle cx="1055" cy="770" r="4.5" fill="#000"/>
+<polyline points="707,540 740,540 740,800 1055,800" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="760" y="818" font-size="10" text-anchor="start" font-weight="normal" fill="#555">shield GND rail</text>
+<text x="760" y="700" font-size="11" text-anchor="start" font-weight="normal" fill="#555">D3 free (flow meter)</text>
+<polyline points="1107,378 1560,378" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1107,492 1560,492" fill="none" stroke="#b8960b" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1107,548 1560,548" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="1150" y="370" font-size="11" text-anchor="start" font-weight="normal" fill="#d62728">VDD</text>
+<text x="1150" y="484" font-size="11" text-anchor="start" font-weight="normal" fill="#b8960b">DQ</text>
+<text x="1150" y="540" font-size="11" text-anchor="start" font-weight="normal" fill="#000">GND</text>
+<rect x="1180" y="150" width="200" height="110" rx="6" fill="#fff8e8" stroke="#333" stroke-width="1.5"/>
+<text x="1280" y="175" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">T1  water to coil</text>
+<text x="1280" y="192" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">coil supply pipe</text>
+<text x="1280" y="208" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">DS18B20 stainless probe</text>
+<polyline points="1220,260 1220,378" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1220" cy="378" r="4.5" fill="#d62728"/>
+<text x="1220" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">VDD</text>
+<polyline points="1280,260 1280,492" fill="none" stroke="#b8960b" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1280" cy="492" r="4.5" fill="#b8960b"/>
+<text x="1280" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">DQ</text>
+<polyline points="1340,260 1340,548" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1340" cy="548" r="4.5" fill="#000000"/>
+<text x="1340" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">GND</text>
+<rect x="1400" y="150" width="200" height="110" rx="6" fill="#fff8e8" stroke="#333" stroke-width="1.5"/>
+<text x="1500" y="175" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">T2  water from coil</text>
+<text x="1500" y="192" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">coil return pipe</text>
+<text x="1500" y="208" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">DS18B20 stainless probe</text>
+<polyline points="1440,260 1440,378" fill="none" stroke="#d62728" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1440" cy="378" r="4.5" fill="#d62728"/>
+<text x="1440" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">VDD</text>
+<polyline points="1500,260 1500,492" fill="none" stroke="#b8960b" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1500" cy="492" r="4.5" fill="#b8960b"/>
+<text x="1500" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">DQ</text>
+<polyline points="1560,260 1560,548" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="1560" cy="548" r="4.5" fill="#000000"/>
+<text x="1560" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">GND</text>
+<rect x="1430" y="580" width="180" height="110" rx="6" fill="#eef4fb" stroke="#333" stroke-width="1.5"/>
+<text x="1520" y="602" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">RA  return air</text>
+<text x="1520" y="620" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">return plenum, before coil</text>
+<text x="1520" y="678" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">10K NTC duct sensor</text>
+<polyline points="1107,610 1430,610" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1107,660 1430,660" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="1190" y="598" width="220" height="74" rx="10" fill="none" stroke="#888" stroke-width="1.5" stroke-dasharray="6 4"/>
+<polyline points="1190,666 1150,666 1150,660" fill="none" stroke="#888" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="4 3"/>
+<circle cx="1150" cy="660" r="4.5" fill="#555"/>
+<text x="1300" y="688" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">Belden 8451; drain to GND at the board only</text>
+<rect x="1430" y="690" width="180" height="110" rx="6" fill="#eef4fb" stroke="#333" stroke-width="1.5"/>
+<text x="1520" y="712" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">SA  supply air</text>
+<text x="1520" y="730" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">supply plenum, after blower</text>
+<text x="1520" y="788" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">10K NTC duct sensor</text>
+<polyline points="1107,720 1430,720" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
+<polyline points="1107,770 1430,770" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="1190" y="708" width="220" height="74" rx="10" fill="none" stroke="#888" stroke-width="1.5" stroke-dasharray="6 4"/>
+<polyline points="1190,776 1150,776 1150,770" fill="none" stroke="#888" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="4 3"/>
+<circle cx="1150" cy="770" r="4.5" fill="#555"/>
+<text x="1300" y="798" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">Belden 8451; drain to GND at the board only</text>
+<rect x="30" y="860" width="1580" height="26" fill="#d9d9d9" stroke="#999"/>
+<text x="40" y="878" font-size="12" text-anchor="start" font-weight="normal" fill="#000">35 mm DIN rail, left to right:  PS1 buck converter   ·   K1 792 relay on its socket   ·   U1 Arduino + screw shield on DIN bracket</text>
+<polyline points="30,920 70,920" fill="none" stroke="#d35400" stroke-width="3" stroke-linejoin="round"/>
+<text x="78" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">24 VAC R</text>
+<polyline points="202,920 242,920" fill="none" stroke="#7f8c8d" stroke-width="3" stroke-linejoin="round"/>
+<text x="250" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">24 VAC C</text>
+<polyline points="374,920 414,920" fill="none" stroke="#8e44ad" stroke-width="3" stroke-linejoin="round"/>
+<text x="422" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">Y2</text>
+<polyline points="546,920 586,920" fill="none" stroke="#d62728" stroke-width="3" stroke-linejoin="round"/>
+<text x="594" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">+5 V</text>
+<polyline points="718,920 758,920" fill="none" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
+<text x="766" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">GND</text>
+<polyline points="890,920 930,920" fill="none" stroke="#b8960b" stroke-width="3" stroke-linejoin="round"/>
+<text x="938" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">1-Wire DQ</text>
+<polyline points="1062,920 1102,920" fill="none" stroke="#1f77b4" stroke-width="3" stroke-linejoin="round"/>
+<text x="1110" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">analog A0/A1</text>
+<polyline points="1234,920 1274,920" fill="none" stroke="#2ca02c" stroke-width="3" stroke-linejoin="round"/>
+<text x="1282" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">D6 relay sense</text>
+<polyline points="1406,920 1446,920" fill="none" stroke="#555555" stroke-width="3" stroke-linejoin="round"/>
+<text x="1454" y="924" font-size="12" text-anchor="start" font-weight="normal" fill="#000">USB-C cable</text>
+<text x="30" y="970" font-size="12" text-anchor="start" font-weight="normal" fill="#000">1. K1: Y2 to coil 13 (A1), C to coil 14 (A2). Poles 1 and 2 are paralleled (COM 9–10, NO 5–6) so a dirty contact on one does not drop the reading.</text>
+<text x="30" y="992" font-size="12" text-anchor="start" font-weight="normal" fill="#000">   COM goes to D6 and NO to GND; R5 pulls D6 to 5 V, so D6 reads LOW while Y2 is on and the contact carries 5 mA, enough to keep it clean.</text>
+<text x="30" y="1014" font-size="12" text-anchor="start" font-weight="normal" fill="#000">2. T1 and T2: like-coloured leads share one screw (5V, D2, GND), two wires in a twin ferrule. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.</text>
+<text x="30" y="1036" font-size="12" text-anchor="start" font-weight="normal" fill="#000">3. On the shield's prototyping area: R1 4.7 kΩ, R2 and R3 10.0 kΩ 0.1 % 25 ppm, R5 1 kΩ, C1 and C2 0.1 µF ceramic close to the A0 and A1 pins.</text>
+<text x="30" y="1058" font-size="12" text-anchor="start" font-weight="normal" fill="#000">4. PS1 and the probes: with a non-isolated converter, the Arduino's GND rides on the 24 VAC transformer. Check PS1 input-to-output with an ohmmeter (open = isolated)</text>
+<text x="30" y="1080" font-size="12" text-anchor="start" font-weight="normal" fill="#000">   and each probe sheath and NTC body to its leads (open). Unplug PS1's USB-C before plugging a laptop into U1.</text>
+</svg>

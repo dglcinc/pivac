@@ -830,8 +830,8 @@ between ([3.7](#37-two-limits-on-the-data-itself)). Y2 fraction moves continuous
 and responds to every change in section 7, which makes it the scoring metric for the tuning work
 rather than one more series.
 
-**Y2 is read on the air-handler node.** An H11AA1 opto across Y2 and C at the master bedroom's
-air handler feeds the node that also reads the coil's water and air, so the fan stage, the coil and
+**Y2 is read on the air-handler node.** A 792 relay with its 24 VAC coil across Y2 and C at the
+master bedroom's air handler feeds the node that also reads the coil's water and air, so the fan stage, the coil and
 the room are sampled together at the zone that raises the question. Wiring and sketch are in
 `docs/mbr-air-handler-node-plan.md`.
 
@@ -2635,7 +2635,7 @@ water in it and the duct mass all need to reach steady state.
 | `environment.inside.hvac.ah.mbr.running` | 0/1 | derived |
 | `environment.inside.hvac.ah.mbr.y2` | 0/1 | node |
 
-> Y2 is sensed on the node, through an H11AA1 at the air handler
+> Y2 is sensed on the node, through a 24 VAC relay at the air handler
 > (`docs/mbr-air-handler-node-plan.md` §3.3), and never also through `pivac.GPIO`. Publishing the
 > same signal on both paths would split its history the day one is retired.
 
