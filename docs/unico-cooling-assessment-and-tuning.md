@@ -1219,7 +1219,14 @@ same loop held 74 °F. The coil's ΔT per degree of approach on master-only call
 from 17 September to 3 October, so the coil's pickup has not fallen; `.startupFlow` held 51.7 to
 55.2 L/min over the same weeks, so the strainer is clean. A clock-bound window that ignores
 outdoor temperature is solar gain, on the room or on the thermostat, and the node's return-air
-sensor tells the two apart. The thermostat reports the setpoint until the room is about 1.5 °F
+sensor tells the two apart. On master-only calls from 17 September to 3 October, loop A's ΔT rose
+from 4.9 °F with the room at setpoint to 5.6 °F with it 2 °F over, on the same 49.3 to 49.5 °F
+supply, and the supply sat within 0.2 °F of the tank, so no warm water is mixing in at the tees.
+The coil picks up more heat as the room warms, in step with the wider approach. At 4.5 to 6 GPM
+that is 12,000 to 16,000 BTU/h. Scaling the catalog's 26.9 MBH (45 °F water, 6 GPM, 600 CFM) by
+approach, and assuming its rating is at 80 °F entering air, gives about 21,000 at these conditions,
+so the coil delivers about 60 to 75 % of its rating. Whether air or water falls short needs the
+node's air sensors and a flow figure. The thermostat reports the setpoint until the room is about 1.5 °F
 off it, so the reading steps 75 → 77 → 75 within one poll at each end of the window and never
 shows 76; three weeks of two-minute samples hold 76 three times in about 15,000.
 
