@@ -256,7 +256,7 @@ for i, (col, lab) in enumerate([(C_R, "24 VAC R"), (C_C, "24 VAC C"), (C_Y2, "Y2
 notes = [
     "1. K1: Y2 to coil 13 (A1), C to coil 14 (A2). Poles 1 and 2 are paralleled (COM 9–10, NO 5–6) so a dirty contact on one does not drop the reading.",
     "   COM goes to D6 and NO to GND; R5 pulls D6 to 5 V, so D6 reads LOW while Y2 is on and the contact carries 5 mA, enough to keep it clean.",
-    "2. T1 and T2: like-coloured leads share one terminal (5V, D2, GND), two wires in a twin ferrule. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.",
+    "2. T1 and T2: one terminal per lead on TB1 (5V, D2, GND each), like terminals joined under the shield. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.",
     "3. On the shield's prototyping area, beside its terminal blocks: R1 4.7 kΩ, R2 and R3 10.0 kΩ 0.1 % 25 ppm, R5 1 kΩ, C1 and C2 0.1 µF ceramic close to the A0 and A1 pins.",
     "4. PS1 and the probes: with a non-isolated converter, the Arduino's GND rides on the 24 VAC transformer. Check PS1 input-to-output with an ohmmeter (open = isolated)",
     "   and each probe sheath and NTC body to its leads (open). Unplug PS1's USB-C before plugging a laptop into U1.",

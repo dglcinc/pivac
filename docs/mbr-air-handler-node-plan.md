@@ -36,10 +36,11 @@ also carries `uptime_ms` and `rssi`, for diagnosing reboots and the attic's WiFi
 
 The board is an UNO R4 WiFi, the same as every other pivac node, with an Olimex PROTO-SHIELD on
 top. The shield has no terminals of its own, so a row of PCB terminal blocks soldered along one edge
-of its prototyping area takes every field wire, and the six small parts solder beside them. Blocks
-on a 5.08 mm pitch fit the shield's 2.54 mm grid. Nine positions cover §3.4, in three blocks, one
-per cable group: a 3-way for the 1-Wire bus (5V, D2, GND), a 4-way for the air sensors (A0, GND,
-A1, GND) and a 2-way for the relay (D6, GND).
+of its prototyping area takes every field wire, and the six small parts solder beside them. The
+blocks are 2.54 mm pitch, which drop straight into the shield's grid but take one 22 AWG conductor
+per terminal, so every wire gets its own terminal and like wires join on the underside. That makes
+fourteen positions in three blocks, one per cable group: a 6-way for the two probes, a 6-way for
+the two air sensors and a 2-way for the relay (§3.4). Land each wire bare, stripped about 5 mm.
 The R4's pins run at 5 V, and its ADC reads 14 bits against the board's own 5 V rail.
 
 Everything except the sensors mounts on one 35 mm DIN rail at the air handler, left to right: the
@@ -79,11 +80,12 @@ at 5 V; a 3.3 V pull-up leaves the bus answering presence while every ROM search
 
 | Probe lead | Shield terminal |
 |---|---|
-| VDD, T1 and T2 | 5V |
-| DQ, T1 and T2 | D2 |
-| GND, T1 and T2 | GND, the one beside D2 |
+| VDD, T1 and T2 | 5V, one each |
+| DQ, T1 and T2 | D2, one each |
+| GND, T1 and T2 | GND, one each |
 
-The two like leads go into one terminal together, crimped into a twin ferrule. Lead colours are not
+Each probe has its own three terminals, and the two 5V, two D2 and two GND terminals are joined on
+the underside. Lead colours are not
 consistent between batches of stainless probes, so identify VDD, DQ and GND from the probe's own
 documentation before landing them, and confirm with the bring-up log (§4.8): two ROMs listed means
 the wiring is right, and no ROMs with the bus held low or reading empty means a lead is swapped.
@@ -127,8 +129,8 @@ ADC that charge at once. With the divider it also forms a low-pass filter at abo
 removes hum and blower-motor noise the sensor cable picks up along the duct. Fit both on the shield
 close to their pins.
 
-Run each NTC on its own Belden 8451 shielded pair: one conductor to the A pin, the other to the GND
-terminal beside it, the drain to that same GND terminal, and the drain cut back and taped at the sensor
+Run each NTC on its own Belden 8451 shielded pair: one conductor to the A terminal, the other to the GND
+terminal beside it, the drain to the SH terminal after that, which joins GND on the underside, and the drain cut back and taped at the sensor
 end so the shield is grounded at one end only.
 
 Measure each sensor's resistance at room temperature before wiring. About 10 kΩ at 77 °F confirms
@@ -168,16 +170,23 @@ a high-fan call and near zero otherwise.
 
 | Terminal | Wires |
 |---|---|
-| 5V | VDD of T1 and T2 |
-| D2 | DQ of T1 and T2 |
-| GND by D2 | GND of T1 and T2 |
-| A0 | Return-air NTC |
-| GND by A0 | Return-air NTC, its drain |
-| A1 | Supply-air NTC |
-| GND by A1 | Supply-air NTC, its drain |
-| D6 | K1 COM 9 |
-| GND by D6 | K1 NO 5 |
-| USB-C | Buck converter |
+| Block | Terminal | Wire |
+|---|---|---|
+| TB1, 6-way | 5V | T1 VDD |
+| | D2 | T1 DQ |
+| | GND | T1 GND |
+| | 5V | T2 VDD |
+| | D2 | T2 DQ |
+| | GND | T2 GND |
+| TB2, 6-way | A0 | Return-air NTC |
+| | GND | Return-air NTC |
+| | SH | Return-air drain |
+| | A1 | Supply-air NTC |
+| | GND | Supply-air NTC |
+| | SH | Supply-air drain |
+| TB3, 2-way | D6 | K1 COM 9 |
+| | GND | K1 NO 5 |
+| — | USB-C | Buck converter |
 
 Each terminal is wired on the underside to its header pin. On the prototyping area: R1 4.7 kΩ from 5V to D2, R2 and R3 10.0 kΩ from 5V to A0 and A1, C1 and
 C2 0.1 µF from A0 and A1 to GND, and R5 1 kΩ from 5V to D6.
@@ -417,7 +426,7 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 |---|---|---|---|---|
 | U1 | Arduino UNO R4 WiFi, ABX00087 | 1 | [ABX00087](https://www.digikey.com/en/products/detail/arduino/ABX00087/20371539) | [search](https://www.amazon.com/s?k=Arduino+UNO+R4+WiFi+ABX00087) |
 | — | Olimex PROTO-SHIELD, ordered | 1 | [1188-1055-ND](https://www.digikey.com/en/products/result?keywords=1188-1055-ND) | [search](https://www.amazon.com/s?k=Olimex+PROTO-SHIELD+Arduino) |
-| TB1–TB3 | PCB screw terminal blocks, 3-way, 4-way and 2-way, on hand | 3 | — | — |
+| TB1–TB3 | PCB screw terminal blocks, 2.54 mm pitch: two 6-way and one 2-way, on hand | 3 | — | — |
 | — | Adafruit DIN rail bracket, 4557 | 1 | [4557](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4557/11684810) | [search](https://www.amazon.com/s?k=Adafruit+4557+DIN+rail+bracket) |
 | T1, T2 | PA5A and PA5B, on hand | 2 | — | — |
 | R1 | Yageo MFP-25BRD52-4K7, 4.7 kΩ | 1 | [MFP-25BRD52-4K7](https://www.digikey.com/en/products/detail/yageo/MFP-25BRD52-4K7/2058823) | [search](https://www.amazon.com/s?k=4.7k+ohm+1%2F4W+metal+film+resistor+through+hole) |
@@ -439,7 +448,7 @@ DS18B20, and a new pair needs the bench match in §6 step 1.
    ¼ W resistor works as the pull-up.
 2. C1 and C2 are Z5U, which is fine for an ADC filter; any 0.1 µF 50 V ceramic substitutes.
 3. Solder the shield's stacking headers and the terminal blocks before the small parts.
-4. Also needed: 35 mm DIN rail, twin ferrules for the shared probe leads, thermal compound,
+4. Also needed: 35 mm DIN rail, thermal compound,
    stainless worm clamps, 25 mm pipe insulation for the water probes, and an enclosure for the
    rail if it is not inside the air handler's cabinet.
 
