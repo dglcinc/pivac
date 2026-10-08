@@ -34,8 +34,10 @@ also carries `uptime_ms` and `rssi`, for diagnosing reboots and the attic's WiFi
 
 ## 2. Board, power and mounting
 
-The board is an UNO R4 WiFi, the same as every other pivac node, with an Adafruit Proto-ScrewShield
-on top so every field wire lands on a screw and the five small parts solder to its prototyping area.
+The board is an UNO R4 WiFi, the same as every other pivac node, with an Olimex PROTO-SHIELD on
+top. The shield has no terminals of its own, so a row of PCB terminal blocks soldered along one edge
+of its prototyping area takes every field wire, and the six small parts solder beside them. Blocks
+on a 5.08 mm pitch fit the shield's 2.54 mm grid; nine positions cover §3.4.
 The R4's pins run at 5 V, and its ADC reads 14 bits against the board's own 5 V rail.
 
 Everything except the sensors mounts on one 35 mm DIN rail at the air handler, left to right: the
@@ -73,13 +75,13 @@ Both probes share one 1-Wire bus on the R4's D2, powered from its 5 V, with one 
 from 5 V to D2 on the shield. The R4 runs its logic at 5 V, so the bus and the pull-up must both be
 at 5 V; a 3.3 V pull-up leaves the bus answering presence while every ROM search returns nothing.
 
-| Probe lead | Shield screw |
+| Probe lead | Shield terminal |
 |---|---|
 | VDD, T1 and T2 | 5V |
 | DQ, T1 and T2 | D2 |
 | GND, T1 and T2 | GND, the one beside D2 |
 
-The two like leads go into one screw together, crimped into a twin ferrule. Lead colours are not
+The two like leads go into one terminal together, crimped into a twin ferrule. Lead colours are not
 consistent between batches of stainless probes, so identify VDD, DQ and GND from the probe's own
 documentation before landing them, and confirm with the bring-up log (§4.8): two ROMs listed means
 the wiring is right, and no ROMs with the bus held low or reading empty means a lead is swapped.
@@ -124,7 +126,7 @@ removes hum and blower-motor noise the sensor cable picks up along the duct. Fit
 close to their pins.
 
 Run each NTC on its own Belden 8451 shielded pair: one conductor to the A pin, the other to the GND
-screw beside it, the drain to that same GND screw, and the drain cut back and taped at the sensor
+terminal beside it, the drain to that same GND terminal, and the drain cut back and taped at the sensor
 end so the shield is grounded at one end only.
 
 Measure each sensor's resistance at room temperature before wiring. About 10 kΩ at 77 °F confirms
@@ -144,7 +146,7 @@ The relay is a Magnecraft 792 with a 24 VAC coil, on a 70-782EL14-1 socket, the 
 1. Coil: Y2 from the Unico's terminal strip to 13, C to 14, both added under the existing screws.
    The coil draws 0.9 to 1.2 VA, about 50 mA, which a thermostat output carries easily.
 2. Contacts: pole 1 and pole 2 in parallel, with a jumper from COM 9 to COM 10 and another from
-   NO 5 to NO 6. COM 9 goes to D6 and NO 5 to a GND screw. Either pole closing pulls D6 low, so one
+   NO 5 to NO 6. COM 9 goes to D6 and NO 5 to a GND terminal. Either pole closing pulls D6 low, so one
    oxidised contact cannot hide a call.
 3. Pull-up: R5, 1 kΩ from 5 V to D6 on the shield. D6 reads high with Y2 off and low with Y2 on.
 
@@ -162,7 +164,7 @@ a high-fan call and near zero otherwise.
 
 ### 3.4 Shield terminal map
 
-| Screw | Wires |
+| Terminal | Wires |
 |---|---|
 | 5V | VDD of T1 and T2 |
 | D2 | DQ of T1 and T2 |
@@ -175,7 +177,7 @@ a high-fan call and near zero otherwise.
 | GND by D6 | K1 NO 5 |
 | USB-C | Buck converter |
 
-On the prototyping area: R1 4.7 kΩ from 5V to D2, R2 and R3 10.0 kΩ from 5V to A0 and A1, C1 and
+Each terminal is wired on the underside to its header pin. On the prototyping area: R1 4.7 kΩ from 5V to D2, R2 and R3 10.0 kΩ from 5V to A0 and A1, C1 and
 C2 0.1 µF from A0 and A1 to GND, and R5 1 kΩ from 5V to D6.
 
 Avoid D0 and D1 (serial), D4 and D5 (CAN) and D10 to D13 (SPI). The free general-purpose pins
@@ -412,7 +414,8 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 | Ref | Part | Qty | Digi-Key | Amazon |
 |---|---|---|---|---|
 | U1 | Arduino UNO R4 WiFi, ABX00087 | 1 | [ABX00087](https://www.digikey.com/en/products/detail/arduino/ABX00087/20371539) | [search](https://www.amazon.com/s?k=Arduino+UNO+R4+WiFi+ABX00087) |
-| — | Adafruit Proto-ScrewShield, 196 (kit) | 1 | [196](https://www.digikey.com/en/products/detail/adafruit-industries-llc/196/5011063) | [search](https://www.amazon.com/s?k=Adafruit+Proto-Screwshield+196+Arduino) |
+| — | Olimex PROTO-SHIELD, ordered | 1 | [1188-1055-ND](https://www.digikey.com/en/products/result?keywords=1188-1055-ND) | [search](https://www.amazon.com/s?k=Olimex+PROTO-SHIELD+Arduino) |
+| TB | PCB terminal blocks, 5.08 mm pitch, 9 positions, on hand | — | — | — |
 | — | Adafruit DIN rail bracket, 4557 | 1 | [4557](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4557/11684810) | [search](https://www.amazon.com/s?k=Adafruit+4557+DIN+rail+bracket) |
 | T1, T2 | PA5A and PA5B, on hand | 2 | — | — |
 | R1 | Yageo MFP-25BRD52-4K7, 4.7 kΩ | 1 | [MFP-25BRD52-4K7](https://www.digikey.com/en/products/detail/yageo/MFP-25BRD52-4K7/2058823) | [search](https://www.amazon.com/s?k=4.7k+ohm+1%2F4W+metal+film+resistor+through+hole) |
@@ -433,7 +436,7 @@ DS18B20, and a new pair needs the bench match in §6 step 1.
 1. R1 is a 0.1 % part only because Digi-Key's 1 % 4.7 kΩ page could not be found; any 4.7 kΩ
    ¼ W resistor works as the pull-up.
 2. C1 and C2 are Z5U, which is fine for an ADC filter; any 0.1 µF 50 V ceramic substitutes.
-3. The Proto-ScrewShield is a kit, soldered before anything else goes on it.
+3. Solder the shield's stacking headers and the terminal blocks before the small parts.
 4. Also needed: 35 mm DIN rail, twin ferrules for the shared probe leads, thermal compound,
    stainless worm clamps, 25 mm pipe insulation for the water probes, and an enclosure for the
    rail if it is not inside the air handler's cabinet.

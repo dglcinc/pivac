@@ -135,10 +135,10 @@ wire([(x10, y10 - 14), (x10, y10 - 26), (x9, y9 - 26), (x9, y9 - 14)], "#444", 2
 wire([(x6, y6 + 14), (x6, y6 + 24), (x5, y5 + 24), (x5, y5 + 14)], "#444", 2)
 text(SX + 165, SY + 13, "jumper", 10, "middle", fill="#444")
 
-# --- U1 Arduino + screw shield --------------------------------------------------------------
+# --- U1 Arduino + proto shield --------------------------------------------------------------
 AX0, AY0, AX1, AY1 = 700, 330, 1100, 830
 box(AX0, AY0, AX1 - AX0, AY1 - AY0, "#f2f8f2")
-text(900, 318, "U1  Arduino UNO R4 WiFi + Proto-ScrewShield, on a DIN bracket", 14, "middle", "bold")
+text(900, 318, "U1  Arduino UNO R4 WiFi + Olimex PROTO-SHIELD, on a DIN bracket", 14, "middle", "bold")
 add(f'<rect x="{AX0-8}" y="349" width="16" height="22" rx="4" fill="#ddd" stroke="#333"/>')
 text(AX0 + 14, 364, "USB-C", 11)
 
@@ -242,7 +242,7 @@ ntc(Y_A1, Y_G3, "SA  supply air", "supply plenum, after blower")
 # --- DIN rail order -------------------------------------------------------------------------
 add('<rect x="30" y="860" width="1580" height="26" fill="#d9d9d9" stroke="#999"/>')
 text(40, 878, "35 mm DIN rail, left to right:  PS1 buck converter   ·   K1 792 relay on its socket   ·   "
-     "U1 Arduino + screw shield on DIN bracket", 12)
+     "U1 Arduino + proto shield on DIN bracket", 12)
 
 # --- Legend and notes -----------------------------------------------------------------------
 lx, ly = 30, 920
@@ -256,8 +256,8 @@ for i, (col, lab) in enumerate([(C_R, "24 VAC R"), (C_C, "24 VAC C"), (C_Y2, "Y2
 notes = [
     "1. K1: Y2 to coil 13 (A1), C to coil 14 (A2). Poles 1 and 2 are paralleled (COM 9–10, NO 5–6) so a dirty contact on one does not drop the reading.",
     "   COM goes to D6 and NO to GND; R5 pulls D6 to 5 V, so D6 reads LOW while Y2 is on and the contact carries 5 mA, enough to keep it clean.",
-    "2. T1 and T2: like-coloured leads share one screw (5V, D2, GND), two wires in a twin ferrule. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.",
-    "3. On the shield's prototyping area: R1 4.7 kΩ, R2 and R3 10.0 kΩ 0.1 % 25 ppm, R5 1 kΩ, C1 and C2 0.1 µF ceramic close to the A0 and A1 pins.",
+    "2. T1 and T2: like-coloured leads share one terminal (5V, D2, GND), two wires in a twin ferrule. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.",
+    "3. On the shield's prototyping area, beside its terminal blocks: R1 4.7 kΩ, R2 and R3 10.0 kΩ 0.1 % 25 ppm, R5 1 kΩ, C1 and C2 0.1 µF ceramic close to the A0 and A1 pins.",
     "4. PS1 and the probes: with a non-isolated converter, the Arduino's GND rides on the 24 VAC transformer. Check PS1 input-to-output with an ohmmeter (open = isolated)",
     "   and each probe sheath and NTC body to its leads (open). Unplug PS1's USB-C before plugging a laptop into U1.",
 ]
