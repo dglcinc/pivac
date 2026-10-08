@@ -37,7 +37,9 @@ also carries `uptime_ms` and `rssi`, for diagnosing reboots and the attic's WiFi
 The board is an UNO R4 WiFi, the same as every other pivac node, with an Olimex PROTO-SHIELD on
 top. The shield has no terminals of its own, so a row of PCB terminal blocks soldered along one edge
 of its prototyping area takes every field wire, and the six small parts solder beside them. Blocks
-on a 5.08 mm pitch fit the shield's 2.54 mm grid; nine positions cover §3.4.
+on a 5.08 mm pitch fit the shield's 2.54 mm grid. Nine positions cover §3.4, in three blocks, one
+per cable group: a 3-way for the 1-Wire bus (5V, D2, GND), a 4-way for the air sensors (A0, GND,
+A1, GND) and a 2-way for the relay (D6, GND).
 The R4's pins run at 5 V, and its ADC reads 14 bits against the board's own 5 V rail.
 
 Everything except the sensors mounts on one 35 mm DIN rail at the air handler, left to right: the
@@ -415,7 +417,7 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 |---|---|---|---|---|
 | U1 | Arduino UNO R4 WiFi, ABX00087 | 1 | [ABX00087](https://www.digikey.com/en/products/detail/arduino/ABX00087/20371539) | [search](https://www.amazon.com/s?k=Arduino+UNO+R4+WiFi+ABX00087) |
 | — | Olimex PROTO-SHIELD, ordered | 1 | [1188-1055-ND](https://www.digikey.com/en/products/result?keywords=1188-1055-ND) | [search](https://www.amazon.com/s?k=Olimex+PROTO-SHIELD+Arduino) |
-| TB | PCB terminal blocks, 5.08 mm pitch, 9 positions, on hand | — | — | — |
+| TB1–TB3 | PCB screw terminal blocks, 3-way, 4-way and 2-way, on hand | 3 | — | — |
 | — | Adafruit DIN rail bracket, 4557 | 1 | [4557](https://www.digikey.com/en/products/detail/adafruit-industries-llc/4557/11684810) | [search](https://www.amazon.com/s?k=Adafruit+4557+DIN+rail+bracket) |
 | T1, T2 | PA5A and PA5B, on hand | 2 | — | — |
 | R1 | Yageo MFP-25BRD52-4K7, 4.7 kΩ | 1 | [MFP-25BRD52-4K7](https://www.digikey.com/en/products/detail/yageo/MFP-25BRD52-4K7/2058823) | [search](https://www.amazon.com/s?k=4.7k+ohm+1%2F4W+metal+film+resistor+through+hole) |
