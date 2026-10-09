@@ -206,7 +206,7 @@ def build_int():
             nets[2 * c] = f"K{n}"
             nets[17 - 2 * c] = "GND"
             nets[18 - 2 * c] = f"GPIO{bcm}"
-            S.place("Device:R", f"R{n}", "12k 1/4W", x + 60 + (c - 1) * 30, y - 6, {1: f"K{n}", 2: f"S_{name}"},
+            S.place("Device:R", f"R{n}", "10k 1/4W", x + 60 + (c - 1) * 30, y - 6, {1: f"K{n}", 2: f"S_{name}"},
                     footprint="Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
             S.text(f"ch{n} {name}", x + 52 + (c - 1) * 30, y + 10, 1.2)
             S.text(f"{plug}.{pos} > G{bcm} (p{pin})", x + 52 + (c - 1) * 30, y + 13, 1.0)

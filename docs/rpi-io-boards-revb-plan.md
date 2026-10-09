@@ -75,7 +75,7 @@ Positions are millimetres from the board's top-left corner, component side up, p
 | J6 | JST SM07B-GHS-TB | 12.0 × 5.4, 4.35 tall mated | courtyard x 51.9–58.4, y 27.9–41.2, entry facing +x, pin 1 at the bottom | link to EXT, seven nets of §3 |
 | J9 | shadow column, 16 pads ⌀1.6 | | x 7.31, one pad per free header row from y 13.45 to 56.63 | header breakout: SCL, SDA, GPIO4, 3V3, 5V, GND ×3, GPIO7–11, 18, 20, 21 |
 | U1–U3 | LTV-847 in DIP-16 sockets (`DIP-16_W7.62mm_Socket`) | socket 20.3 × 10.2, about 8 tall with the chip | x 13–32.5; row centres y 28.6, 40.9, 53.2, as rev A | four optocoupler channels each: LED from the relay contact through its resistor, transistor to a BCM pin |
-| R1–R12 | 12 kΩ 1/4 W axial (`R_Axial_DIN0207 P10.16 Horizontal`) | 6.3 × 2.5, flat, pads 10.16 apart along y | columns x 35.2, 39.2, 43.2, 47.2 at 4.0 mm; one row per socket, pads at the row centre ±5.08 | 2.8 mA LED current from the 35 V rail |
+| R1–R12 | 10 kΩ 1/4 W axial (`R_Axial_DIN0207 P10.16 Horizontal`) | 6.3 × 2.5, flat, pads 10.16 apart along y | columns x 35.2, 39.2, 43.2, 47.2 at 4.0 mm; one row per socket, pads at the row centre ±5.08 | 3.4 mA LED current from the 35 V rail, 0.11 W |
 | TP1–TP3 | test pads ⌀1.8 | | (40, 81), (43, 81), (46, 81) | VS, COM, GND for the meter |
 | title block | silkscreen | 29.7 × 9, centred on the board width | ring centre (19.25, 75.4), text from x 25.15 | §6 |
 
@@ -170,7 +170,7 @@ The two PTSM parts are linked to Phoenix's own pages because their Digi-Key page
 | INT J1–J4 | Phoenix PTSM 0,5/4-HH-2,5-THR, 1778641 | 4 | on hand (five bought for rev A) |
 | INT J5 | Phoenix PSTD 0,65X0,65/40-2,54 | 1 | on hand |
 | INT U1–U3 | Lite-On LTV-847 with DIP-16 sockets | 3 + 3 | on hand |
-| INT R1–R12 | 12 kΩ 1/4 W, Stackpole CF14JT12K0 | 12 | on hand |
+| INT R1–R12 | 10 kΩ 1/4 W carbon film, from the assortment | 12 | on hand |
 | EXT H1–H3 | Phoenix PTSM 0,5/3-HH-2,5-THR, 1778638 | 3 | on hand |
 | EXT U1 | Maxim DS2482-100 SOIC-8 | 1 | on hand |
 | EXT C1 | 100 nF box, KEMET SMR5104J50J01L4 | 1 | on hand |

@@ -25,7 +25,7 @@ The copper plots are the view to check traces on: front copper with the front si
 
 ![INT board, back copper, mirrored](../hardware/int-board/int-board-copper-back.svg)
 
-Twelve sense inputs on J1 to J4 through three LTV-847 optocouplers with 12 kΩ series resistors (2.8 mA at about 35 V); the sense rail VS and its return COM arrive from the EXT board on pins 6 and 7 of the 7-way GH link J6, which sits inside the housing's slot on the right edge with its entry facing the slot and pin 1 at the bottom; a shadow column J9 breaks out the free header pins; the test points sit at the bottom right and the title block is centred in the bottom field. The power section of rev A (bridge, PTC, reservoir, J7) has moved to EXT, and J8 has gone because J4 now carries HPCOOL, DHWX and SP-E. The bottom field is otherwise empty on purpose: it lies over the Pi's USB stacks, where a pin tail meets a USB shell. COM is the sense return and is never Pi ground. Header pins 2 and 4 carry nothing: the Pi is fed through its own USB-C. Pins 1, 9, 25 and 39 stay open on the board; the Pi ties each to its twin.
+Twelve sense inputs on J1 to J4 through three LTV-847 optocouplers with 10 kΩ series resistors (3.4 mA at about 35 V); the sense rail VS and its return COM arrive from the EXT board on pins 6 and 7 of the 7-way GH link J6, which sits inside the housing's slot on the right edge with its entry facing the slot and pin 1 at the bottom; a shadow column J9 breaks out the free header pins; the test points sit at the bottom right and the title block is centred in the bottom field. The power section of rev A (bridge, PTC, reservoir, J7) has moved to EXT, and J8 has gone because J4 now carries HPCOOL, DHWX and SP-E. The bottom field is otherwise empty on purpose: it lies over the Pi's USB stacks, where a pin tail meets a USB shell. COM is the sense return and is never Pi ground. Header pins 2 and 4 carry nothing: the Pi is fed through its own USB-C. Pins 1, 9, 25 and 39 stay open on the board; the Pi ties each to its twin.
 
 **Height.** The component side faces the cover, about 8 mm proven on the rev A board for a DIP socket with its chip. Nothing fitted stands taller: the PTSM headers are 7.5 mm, the GH header 4.35 mm mated, the resistors lie flat.
 
@@ -40,10 +40,10 @@ Twelve sense inputs on J1 to J4 through three LTV-847 optocouplers with 12 kΩ s
 | J6 | JST GH SM07B-GHS-TB, right edge, in the slot | Link to the EXT board: 3V3, SDA, SCL, GPIO4, GND, VS, COM, pin 1 at the bottom. |
 | J9 | shadow column beside the header | One labelled pad per free header pin (SCL, GPIO4, GND, GPIO18, SDA, 5V, 3V3, GPIO10, 9, 11, 7, 8, GND, GND, GPIO20, GPIO21). Covered once the Pi is on the header; for bench soldering only. |
 | U1–U3 | LTV-847 in DIP-16 sockets, x 13 | Four optocoupler channels each: U1 for J1's three and CHIL, U2 for BOS1, BOS2, DEHUM, SCALA, U3 for HPHEAT, HPCOOL, DHWX, SP-E. |
-| R1–R12 | 12 kΩ 1/4 W, columns at 4.0 mm | LED series resistor for each channel; R1–R4 beside U1, R5–R8 beside U2, R9–R12 beside U3, each bank level with its optocoupler. |
+| R1–R12 | 10 kΩ 1/4 W, columns at 4.0 mm | LED series resistor for each channel; R1–R4 beside U1, R5–R8 beside U2, R9–R12 beside U3, each bank level with its optocoupler. |
 | TP1–TP3 | test pads | VS, COM and Pi GND for a meter. |
 
-**Fitted parts:** J1–J4 PTSM 0,5/4-HH-2,5-THR; J5 2 × 20 socket on the solder side; J6 JST SM07B-GHS-TB; R1–R12 12 kΩ 1/4 W; U1–U3 LTV-847 in DIP-16 sockets. Nothing is placed unfitted.
+**Fitted parts:** J1–J4 PTSM 0,5/4-HH-2,5-THR; J5 2 × 20 socket on the solder side; J6 JST SM07B-GHS-TB; R1–R12 10 kΩ 1/4 W; U1–U3 LTV-847 in DIP-16 sockets. Nothing is placed unfitted.
 
 ## EXT board: 1-wire master, probe headers, sense supply, the Pi's supply
 

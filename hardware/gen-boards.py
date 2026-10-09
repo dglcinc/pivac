@@ -622,7 +622,7 @@ def build_int():
         for i in range(4):
             n += 1
             r = B.lib(f"R{n}", "Resistor_THT", "R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal",
-                      res_x[i], yc - 5.08, 270, value="12k 1/4W")
+                      res_x[i], yc - 5.08, 270, value="10k 1/4W")
             # reference on the body, along it: the columns sit 3.3 mm apart and leave no room beside
             r.Reference().SetPosition(mm(res_x[i], yc - 5.08)); r.Reference().SetTextAngleDegrees(90)
             r.Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))

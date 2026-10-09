@@ -238,7 +238,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -552,7 +552,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1250,7 +1250,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1430,7 +1430,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1610,7 +1610,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1861,7 +1861,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -2496,7 +2496,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -3337,7 +3337,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -3517,7 +3517,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -3697,7 +3697,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -3877,7 +3877,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -4496,7 +4496,7 @@
 				)
 			)
 		)
-		(property "Value" "12k 1/4W"
+		(property "Value" "10k 1/4W"
 			(at 5.08 2.37 270)
 			(layer "F.Fab")
 			(hide yes)
