@@ -1,9 +1,10 @@
 # Hydronic loop — drain and refill procedure
 
 The shared four-pipe loop (Ti-200 boiler, CX75 chiller with its VCT37C buffer tank, two
-secondary PEX loops, six Unico air-handler coils) holds about 86 gallons of 25 % propylene
+secondary PEX loops, five zone coils) holds about 86 gallons of 25 % propylene
 glycol. This is the procedure for emptying it as completely as a house system allows, and
 refilling it from a drum of pre-mixed fluid with a portable pump instead of the autofill.
+`docs/hydronic-drain-and-refill-checklist.md` is David's step-by-step checklist for the job.
 System facts are from `docs/unico-cooling-assessment-and-tuning.md` §2 and §3.5; the
 glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 
@@ -19,8 +20,8 @@ glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 | Cold fill pressure | 22–23 psi at the boiler gauge | `CLAUDE.md`, glycol top-up rule; `docs/chiltrix-modbus.md`, pump-start pressure step |
 | Head the fill pump must make at zero flow | 53 ft (23 psi × 2.31) | |
 | Boiler relief valve | 30 psi (confirm on the valve tag) | Ti-200 standard fitting |
-| Glycol target | 30 % PG (freezes about −13 °C) | assessment §7.1; 25 % sits on the −10 °C line P109 = 1 is conditioned on |
-| Concentrate for 30 % of 86 gal | about 26 gal, or the equivalent premixed | |
+| Glycol target | about 22 % PG | 25 gal of 75 % premix in about 86 gal; enough with the chiller running all winter (David, 2026-10-09) |
+| Premix on hand | 25 gal of 75 % PG, mixed 2 parts to 5 parts purified water | `docs/hydronic-drain-and-refill-checklist.md` |
 
 ## 2. The fill pump
 
@@ -53,7 +54,7 @@ PEX runs, the plate exchanger and the boiler. The order below gets most of that 
 
 1. Breaker off at the chiller; boiler off; both secondary circulators off. Close the autofill's
    isolation valve so the domestic side cannot refill behind the drains.
-2. Open every zone valve so all six coils are in circuit. Use the HZ-432 valves' manual-open
+2. Open every zone valve so all five coils are in circuit. Use the HZ-432 valves' manual-open
    lever, or power them. A closed zone valve traps its coil full.
 3. Open the high points first so air can enter as fluid leaves: the attic coil vent, each
    coil's manual vent, the tank's top vent and the air separator's cap.
@@ -73,10 +74,10 @@ PEX runs, the plate exchanger and the boiler. The order below gets most of that 
 With the system at zero pressure, two checks that are only possible now:
 
 - Expansion tank air charge, with a tyre gauge at the Schrader valve. Set it to the intended
-  cold fill pressure, about 20 psi for the 25 ft rise. Water at the valve means the bladder has
+  cold fill pressure less 1–2 psi, 21 psi for a 22–23 psi fill, so the bladder holds fluid cold. Water at the valve means the bladder has
   failed; replace the tank.
-- The attic auto-vent. A vent stuck shut is the one failure that air-binds that coil, so replace
-  it while the loop is open.
+- Any automatic vent on the coils or the separator. A vent stuck shut air-binds its coil, so
+  replace it while the loop is open; the attic coils have manual vents.
 
 ## 4. Refilling
 
