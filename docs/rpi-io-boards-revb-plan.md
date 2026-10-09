@@ -170,7 +170,7 @@ The two PTSM parts are linked to Phoenix's own pages because their Digi-Key page
 | INT J1–J4 | Phoenix PTSM 0,5/4-HH-2,5-THR, 1778641 | 4 | on hand (five bought for rev A) |
 | INT J5 | Phoenix PSTD 0,65X0,65/40-2,54 | 1 | on hand |
 | INT U1–U3 | Lite-On LTV-847 with DIP-16 sockets | 3 + 3 | on hand |
-| INT R1–R12 | 12 kΩ 1/4 W, Stackpole CF14JT12K0 | 12 | on hand |
+| INT R1–R12 | 12 kΩ 1/4 W, Ohmite OK1235E-R52, from the rev A Mouser order (invoice 92489596) | 12 | on hand |
 | EXT H1–H3 | Phoenix PTSM 0,5/3-HH-2,5-THR, 1778638 | 3 | on hand |
 | EXT U1 | Maxim DS2482-100 SOIC-8 | 1 | on hand |
 | EXT C1 | 100 nF box, KEMET SMR5104J50J01L4 | 1 | on hand |
