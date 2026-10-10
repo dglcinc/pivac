@@ -366,6 +366,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/hydronic-drain-and-refill.md` | Draining the shared glycol loop as completely as the equipment allows and refilling from a drum of pre-mixed fluid with the Pacific Hydrostar 65836 as a purge cart; head arithmetic, volumes, glycol quantity, checks at zero pressure, the Signal K proofs of a clean purge |
 | `docs/hydronic-drain-and-refill-checklist.md` | David's step-by-step checklist for the drain and refill: staging, shutdown, drain with pail count, air blow-down, Rydlime on the boiler loop, loop-by-loop fill, recommissioning |
 | `docs/unico-cooling-assessment-and-tuning.md` | Hydronic cooling assessment: what the sensors prove, the verdict, the remedy ladder; K.5 collects the Chiltrix heating-mode controls |
+| `docs/mbr-air-handler-node-plan.md` | The master bedroom air-handler node: an UNO R4 WiFi reading coil water in and out (DS18B20), supply and return air (10K NTC) and the Y2 high-fan call (792 relay), powered from the Unico's transformer on DIN rail; wiring, sketch design, pivac config and Signal K paths, calibration, parts. `docs/mbr-air-handler-node-wiring.svg` is its wiring drawing |
 | `docs/onewire-notes.md` | DS18B20 roster history, bus fault diagnosis, decoupled and cross-connected probes, dead-leg ΔT, precision fixes, module behaviour |
 | `docs/ds18b20-bus-topology.md` | 1-wire bus build procedure, EXT board, DS2482 migration, electrical background |
 | `docs/ds18b20-PA1-5-calibration.md` | Probe offsets, pair corrections, reproducibility |
