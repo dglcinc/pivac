@@ -182,6 +182,19 @@ first Pi and left INT with no sense rail; and the 24 VAC plug had been seated in
 transformer on, across DATA and GND, after which the DS2482 answered at 0x18 and failed its
 reset, and the spare chip replaced it. Note the PTSM 2-way plug does enter a 3-way socket.
 
+**Installed, 2026-10-11.** The bench-proven rev B INT and rev C EXT pair went into production
+the same evening on the production Pi `88:a2:9e:3c:c3:73` and its own card, with no tests
+beyond first boot by David's decision. Writers stopped 19:25, `sd-clone.sh` to the spare in
+1 m 53 s (`root=PARTUUID=f9199e61-02` verified against the spare's disk identifier), poweroff
+19:27; plugs moved position for position with J4 and the 24 VAC entry per the rev B plan §4
+and §2, trunk on H1, 7-way GH link, Pi fed from EXT J4 through the pigtail; Pi back at 19:43.
+First boot: power-on reset, unthrottled, UNO R4 bridge and SD reader present, DS2482 with all
+eight probes and no `onewire` node, eleven relays publishing with ZV, HPCALL and HPCOOL closed
+and matching the calls shown in WilhelmSK, Chiltrix answering 184 registers at 60 Hz, RedLink
+logged in, external HTTPS 200, no Grafana alert active and no service warning in the journal.
+The rev A pair is the rollback: 24 VAC back to INT J4.1/J4.2, HPCOOL to the J8 pigtail, 5-way
+PTSM link, Pi on its wall adapter.
+
 **Into the housing.** `rpi-io-boards-pcb-plan.md` §6 steps 6–8: freeze the services, swap
 the pair, move the four field plugs and three probe plugs over, prove every channel and the
 1-wire bus, then release. `HPCOOL` (BCM 13) has no header on rev A: wire it to `SP-C` on
