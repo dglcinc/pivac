@@ -35,7 +35,7 @@ ROWS = [
     ("J4.4  COM",       None),
     None,
     ("EXT J3  24VAC  R·C  bk", None),
-    ("EXT J4  5V to Pi  +5·G  wh", None),
+    ("EXT J4  5V Pi  +5·G  wh", None),
     None,
     ("H1  V·D·G  trunk", None),
     ("H2  V·D·G  spare", None),
