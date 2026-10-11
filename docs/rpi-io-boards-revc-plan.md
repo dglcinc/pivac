@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). Next: populate and bench-prove when they arrive. Rev B is on order too; rev C replaces its EXT board, and the INT board is rev B's. · **Owner:** David
+**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). Populated and bench-proven on 2026-10-11 with the rev B INT board (record in `docs/rpi-io-boards-assembly.md`); U1 was replaced once on the bench. Next: install per the rev B plan §9 step 5. · **Owner:** David
 
 Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
 
@@ -104,7 +104,7 @@ Both are 2-way PTSM, so J3's plug fits J4. The 24 VAC plug seated in J4 puts 36 
 
 **Which leg is R.** The bridge rectifies either way round, U3 isolates the Pi, and the sense contacts are dry, so the board works with the two leads swapped. The legs are marked because F1 is in pin 1's leg: on a transformer whose common is bonded to ground, F1 limits a fault to ground only when the hot lead, R, is on pin 1.
 
-A plug does not enter a header with more positions, so the 2-way plugs do not fit the probe sockets and the probe plugs do not fit J3 or J4: the header's floor ribs stand 1.02 mm high and a plug's nose rides 0.70 mm above the floor.
+**A 2-way plug does enter a 3-way socket.** On 2026-10-11 the 24 VAC plug seated in H1 with the transformer on, across DATA and GND, and the DS2482 did not survive it. The rib-and-nose geometry in the datasheets does not stop it, so the colours and the legends are the only guard: handle the black 24 VAC plug last, with the transformer off, and read `24VAC input` before seating it. Whether a 3-way plug enters J3 or J4 is untested.
 
 ### 4.2 The vertical header
 
@@ -149,7 +149,7 @@ The tooth passes through the full thickness of the wall. The arms clear the sold
 | Length | 15.9, of which 11.4 stands outside the board edge |
 | Height | 5.2 |
 
-The probe plugs are white by David's choice (2026-09-27); a 3-way plug does not enter J3 or J4, so the colour that tells J3 from J4 is the 2-way plugs'. All three latching plugs were in stock at Mouser on 2026-09-27.
+The probe plugs are white by David's choice (2026-09-27); the 2-way black plug enters a probe socket (§4.1), so colour is what tells the 24 VAC plug from everything else on the board. All three latching plugs were in stock at Mouser on 2026-09-27.
 
 ## 6. Parts list
 
@@ -213,3 +213,7 @@ From here:
 ## 9. For the next revision
 
 **Label pin 1 of the GH link on both boards.** INT J6 and EXT J1 carry only the stock KiCad footprint's pin-1 mark, a 1 mm silkscreen tick beside pad 1 that the header body all but hides. Pin 1 is the end nearer the bottom edge on both boards (INT J6 at y 38.25, EXT J1 at y 56.25), and the pins run 3V3 · SDA · SCL · GPIO4 · GND · VS · COM from there. The next layout puts a filled triangle and a "1" beside pad 1 and a "7" beside pad 7 on each board, clear of the header body, with the net names along the row where the space allows. Until then, a meter finds the ends with the board off the Pi: pin 5 beeps to GND (INT TP3), and pin 7 beeps to COM (INT TP2, EXT C3's negative pad).
+
+**Guard the 24 VAC entry against the probe sockets.** A PTSM plug with fewer positions enters any socket with more, so the 2-way 24 VAC plug fits H1 and H2 (§4.1); it did so once on the bench with the transformer on, which cost a DS2482. The next layout gives J3 a connector that cannot reach H1 or H2: a different pitch or family, or a 3-way header at J3 with one position unused and the plug keyed by a filled position, so the AC plug and the probe plugs are no longer interchangeable.
+
+**The link must run 1 to 1, and a mirrored cable is destructive.** With position 1 at one end on position 7 at the other, VS (35 V) lands on the Pi's SDA, COM on 3V3 and the DS2482's supply on a floating node: on 2026-10-11 that killed GPIO2 on the bench Pi `2c:cf:67:80:55:00` and left INT with no sense rail, while the cable still beeped end to end. Pin 1 is the bottom end of both headers, so the leads run straight across with no twist. Before power, beep INT J6 pin 1 to EXT J1 pin 1 through pin 7 to pin 7, and with the transformer on read 35 V between INT J6 pins 6 and 7 before the Pi goes on. The pin-1 legend above is the fix on the boards; a pre-made cable with the housings marked is the fix on the bench.

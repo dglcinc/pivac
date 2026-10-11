@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev B Plan
 
-**Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). Next: populate and bench-prove when they arrive (§9). · **Owner:** David
+**Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). Populated and bench-proven on 2026-10-11 with the rev C EXT board (record in `docs/rpi-io-boards-assembly.md`). Next: install (§9 step 5). · **Owner:** David
 
 Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/rpi-io-boards-pcb-plan.md`; this document states what rev B does, part by part.
 
@@ -27,7 +27,7 @@ Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board t
 | U3 | Traco TMR 12-4811WI | 18–75 V in, 5.1 V ±1 % at 2.4 A out, 1.6 kV isolation; pin 3 Remote left open, which is on |
 | C4 | 1 µF ceramic | across U3 pins 6 and 7 per the datasheet's ripple figure |
 | J4 | JST B2B-XH-A | 5.1 V out, 3 A 250 V; a different family from J3 so the AC plug does not fit it |
-| pigtail | USB-C plug to two 22 AWG leads, 0.25 m | crimped into an XHP-2 housing; the Pi 4 takes 5 V on VBUS with no CC negotiation |
+| pigtail | USB-C plug to two 22 AWG leads, 0.25 m | crimped into an XHP-2 housing; the Pi 4 takes 5 V on VBUS with no CC negotiation. **Black is GND and goes to `G`, red to `+5`; confirm with a beep from the black lead to the USB-C plug's metal shell before the Pi is connected.** The Pi 4's USB-C input has no reverse-polarity protection; reversed on 2026-10-11 it drew nothing and did not start, and survived |
 
 The isolation barrier is inside U3, so COM never meets Pi ground, which is the rule the rev A design was built on. Both sides are SELV, so no safety creepage applies; the EXT board's Power netclass (VS, COM, the AC nets, +5V, GND, VCC) runs at 0.5 mm clearance, twice the default, which is what the GH and XH pad pitches allow. U3's pin-out is 1 −Vin (COM), 2 +Vin (VS), 3 Remote (open), 6 +Vout, 7 −Vout, 8 no connection; the board has no holes for pins 9 to 12: pins 9 and 12 are the copper case and pins 10 and 11 are stand-offs, one of each on either long face, 5.7 mm from the body's ends (3.59 and 14.19 mm from pin 1), and the datasheet says "Case pins should not be connected to any circuit". The shanks of pins 9 and 12 are clipped at the shoulder before U3 is fitted, and the four shoulders stand the body 0.5 mm off the board. Component-side tracks for VS, +5V and GND run under the module, so polyimide tape goes under it (§10).
 
