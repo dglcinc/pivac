@@ -192,8 +192,14 @@ First boot: power-on reset, unthrottled, UNO R4 bridge and SD reader present, DS
 eight probes and no `onewire` node, eleven relays publishing with ZV, HPCALL and HPCOOL closed
 and matching the calls shown in WilhelmSK, Chiltrix answering 184 registers at 60 Hz, RedLink
 logged in, external HTTPS 200, no Grafana alert active and no service warning in the journal.
-The rev A pair is the rollback: 24 VAC back to INT J4.1/J4.2, HPCOOL to the J8 pigtail, 5-way
-PTSM link, Pi on its wall adapter.
+The wall adapter is removed and the rev A pair is kept intact as the rollback: 24 VAC back to
+INT J4.1/J4.2, HPCOOL to the J8 pigtail, 5-way PTSM link, Pi on its wall adapter. One surprise
+at the panel: the probe sockets and the 24 VAC entry on the rev C EXT sit at the opposite ends
+from where the rev A board had them, so the rev A EXT had been mounted the other way up; the
+rev C orientation, H1 and H2 at one end of the opening and J3 at the other, is the one to keep.
+The boiler camera may have been brushed during the work; the Sentry reader's registration score
+fell under its floor at 19:44 while the decode margin held at 72, which is the lighting
+signature, and it is re-read after the room is dark.
 
 **Into the housing.** `rpi-io-boards-pcb-plan.md` §6 steps 6–8: freeze the services, swap
 the pair, move the four field plugs and three probe plugs over, prove every channel and the
