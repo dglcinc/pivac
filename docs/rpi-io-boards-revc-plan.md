@@ -209,3 +209,7 @@ From here:
 1. When the headers arrive, lay one on a 1:1 print of `extc-board-copper-front.svg`.
 2. When the boards arrive, populate per §7 and the rev B plan, with the rev B parts for everything but the connectors.
 3. Bench-prove as rev B is: 35 V at VS and COM, 5.1 V at J4, COM open to Pi ground, then the Pi on the pigtail and a 1-wire proof.
+
+## 9. For the next revision
+
+**Label pin 1 of the GH link on both boards.** INT J6 and EXT J1 carry only the stock KiCad footprint's pin-1 mark, a 1 mm silkscreen tick beside pad 1 that the header body all but hides. Pin 1 is the end nearer the bottom edge on both boards (INT J6 at y 38.25, EXT J1 at y 56.25), and the pins run 3V3 · SDA · SCL · GPIO4 · GND · VS · COM from there. The next layout puts a filled triangle and a "1" beside pad 1 and a "7" beside pad 7 on each board, clear of the header body, with the net names along the row where the space allows. Until then, a meter finds the ends with the board off the Pi: pin 5 beeps to GND (INT TP3), and pin 7 beeps to COM (INT TP2, EXT C3's negative pad).
