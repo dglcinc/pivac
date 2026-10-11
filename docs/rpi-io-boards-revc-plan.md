@@ -1,6 +1,6 @@
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). Populated and bench-proven on 2026-10-11 with the rev B INT board (record in `docs/rpi-io-boards-assembly.md`); U1 was replaced once on the bench. Next: install per the rev B plan §9 step 5. · **Owner:** David
+**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). In production since 2026-10-11 19:43 EDT with the rev B INT board, bench-proven the same day (record in `docs/rpi-io-boards-assembly.md`; U1 was replaced once on the bench). §9 lists what the next revision changes. · **Owner:** David
 
 Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
 
