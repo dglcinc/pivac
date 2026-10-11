@@ -1,7 +1,7 @@
 # Hydronic loop — drain and refill procedure
 
 The shared four-pipe loop (Ti-200 boiler, CX75 chiller with its VCT37C buffer tank, two
-secondary PEX loops, five zone coils) holds about 86 gallons of 25 % propylene
+secondary PEX loops, five zone coils) holds about 75 gallons of 25 % propylene
 glycol. This is the procedure for emptying it as completely as a house system allows, and
 refilling it from a drum of pre-mixed fluid with a portable pump instead of the autofill.
 `docs/hydronic-drain-and-refill-checklist.md` is David's step-by-step checklist for the job.
@@ -12,7 +12,7 @@ glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 
 | Item | Value | Source |
 |---|---|---|
-| Loop volume | about 86 gal | David's estimate, 2026-09-03 top-up |
+| Loop volume | about 75 gal (71–78) | glycol balance after the 2026-10-10 refill: 18.75 gal of glycol (25 gal of 75 % premix, less 2.5 gal of 44 % left over, plus at most 5 gal of old 22 % fluid) at 25 % measured; 55 gal came out by draining |
 | Buffer tank | 37 gal (Chiltrix VCT37C) | assessment §3 |
 | Each secondary loop | about 9 gal in 200 ft of 1¼" PEX | assessment §2.2 |
 | System high point | attic coil, about 25 ft above the boiler gauge | assessment §3.5 |
@@ -20,7 +20,7 @@ glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 | Cold fill pressure | 22–23 psi at the boiler gauge | `CLAUDE.md`, glycol top-up rule; `docs/chiltrix-modbus.md`, pump-start pressure step |
 | Head the fill pump must make at zero flow | 53 ft (23 psi × 2.31) | |
 | Boiler relief valve | 30 psi (confirm on the valve tag) | Ti-200 standard fitting |
-| Glycol target | about 22 % PG | 25 gal of 75 % premix in about 86 gal; enough with the chiller running all winter (David, 2026-10-09) |
+| Glycol | 25 % PG, refractometer 2026-10-11 | 25 gal of 75 % premix; enough with the chiller running all winter (David) |
 | Premix on hand | 25 gal of 75 % PG, mixed 2 parts to 5 parts purified water | `docs/hydronic-drain-and-refill-checklist.md` |
 
 ## 2. The fill pump
