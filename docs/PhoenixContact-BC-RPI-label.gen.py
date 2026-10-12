@@ -3,9 +3,9 @@
 
 The docx is its own template: the script opens it, keeps every style, the page setup and the
 empty side shape, and replaces the rows of the single table with the ROWS list below; the last
-row carries the Pi's eth0 MAC. Run it after any change to the channel map (rev A: docs/rpi-io-boards-reva-install.md §2;
-perfboard: docs/rpi-io-board-design.md §2.1) or the 1-wire sockets (docs/ds18b20-bus-topology.md
-§5.1 and §5.5).
+row carries the Pi's eth0 MAC. Run it after any change to the channel map (rev B INT: docs/rpi-io-boards-revb-plan.md §4; rev A:
+docs/rpi-io-boards-reva-install.md §2; perfboard: docs/rpi-io-board-design.md §2.1), the EXT
+connectors (rev C: docs/rpi-io-boards-revc-plan.md §4) or the 1-wire sockets.
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
 The empty rectangle on the page is the label's bounding box: the table must not outgrow it, so the
@@ -14,7 +14,7 @@ INT-EXT link cable has no row: nothing in the field lands on it.
 """
 import os, re, shutil, tempfile, zipfile
 
-MAC = "88:a2:9e:3c:c3:73"          # the new Pi's eth0, the production Pi from the rev A cutover
+MAC = "88:a2:9e:3c:c3:73"          # the production Pi's eth0 (unchanged by the rev B/C board swap)
 
 ROWS = [
     ("J1.1  ZV",        "(17,11)"),
@@ -29,17 +29,16 @@ ROWS = [
     ("J3.2  SCALA",     "(23,16)"),
     ("J3.3  HPHEAT",    "(24,18)"),
     ("J3.4  COM",       None),
-    ("J4.1  24VAC IN",  None),
-    ("J4.2  24VAC IN",  None),
-    ("J4.3  DHWX",      "(19,35)"),
+    ("J4.1  HPCOOL",    "(13,33)"),
+    ("J4.2  DHWX",      "(19,35)"),
+    ("J4.3  SP-E  spare", "(16,36)"),
     ("J4.4  COM",       None),
-    ("J8.1  HPCOOL",    "(13,33)"),
-    ("J8.2  SP-E  spare", "(16,36)"),
-    ("J8.3  COM",       None),
     None,
-    ("H1  GND·DATA·VCC  trunk", None),
-    ("H2  GND·DATA·VCC  spare", None),
-    ("H3  GND·DATA·VCC  spare", None),
+    ("EXT J3  24VAC  R·C  bk", None),
+    ("EXT J4  5V Pi  +5·G  wh", None),
+    None,
+    ("H1  V·D·G  trunk", None),
+    ("H2  V·D·G  spare", None),
     None,
     (f"eth0  {MAC}", None),
 ]
