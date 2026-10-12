@@ -385,6 +385,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/rpi-io-boards-reva-install.md` | The 2026-09-26 cutover to the rev A boards and the new Pi on the clone card, as run: who did each step, freeze and clone, UCG reservation move, the plug map against the perfboard (24 VAC on J4.1/J4.2, `HPCOOL` to the J8 pigtail), meter checks, first-boot and 1-wire proofs, the pigtail fault, afterwards, rollback |
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 | `docs/valve-lever-replacement.md` | 316 stainless replacement lever for the rusted A.Y. McDonald ball valves: stem, flat-pattern dimensions, ordering and bending; `hardware/valve-lever/` holds the DXF, 1:1 SVG and generator |
+| `docs/butterfly-handle-replacement.md` | Replacement for the red butterfly handle on the hose-end drain valves (M6×1 nut, 7.2 × 9.1 mm double-D drive, groove-and-lug stop): dimensions from the broken base, 85 mm rising wings, 316L print; `hardware/butterfly-handle/` holds the CadQuery generator, STEP, STL and 1:1 SVG |
 
 ## Known Operational Behaviours (Not Bugs)
 
