@@ -1579,25 +1579,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "electrical.ac.switch.utility.DEHUM.statenum.mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "purple",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "DEHUM"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "electrical.ac.switch.utility.BOS2.statenum.mean"
             },
             "properties": [
@@ -1971,47 +1952,6 @@
                   " +.07"
                 ],
                 "type": "math"
-              }
-            ]
-          ],
-          "tags": [],
-          "hide": false
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "bdj9fji0j5logc"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "electrical.ac.switch.utility.DEHUM.statenum",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "G",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
               }
             ]
           ],

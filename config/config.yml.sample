@@ -60,8 +60,10 @@ pivac.GPIO:
             outname: BOS1
         5:
             outname: BOS2
-        12:
-            outname: DEHUM
+    # BCM 12 (J3.1) is spare: the dehumidifier was decommissioned 2026-10-12.
+    # InfluxDB keeps its history under electrical.ac.switch.utility.DEHUM.
+#        12:
+#            outname: DEHUM
         # AquaGuard AG-1250E leak sensor under the Scala booster pump (2026-09-07).
         # The sensor's 24 VAC normally-open output drives a DLI IoT Power Relay
         # (cuts the pump) and a 24 VAC relay whose contact lands on J3.2 / J3.4.
