@@ -13,13 +13,18 @@ import cadquery as cq
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Base, copied from the broken original (caliper readings 2026-10-12)
+# Base, copied from the broken original (caliper readings 2026-10-12). It fits over the
+# bonnet ring: 19 mm OD, 2 mm wall, 7 mm tall outside, 2 mm deep inside to the packing washer.
 BASE_D = 26.42            # outside of the base
 BASE_H = 8.20             # base height, valve face to nut face
 GROOVE_ID = 13.74         # boss around the stem hole
 GROOVE_OD = 19.51         # inside of the skirt; the bonnet rim runs in this groove
-GROOVE_DEPTH = 4.0        # measured 3.8
+GROOVE_DEPTH = 4.3        # measured 3.8 on the worn base; deepened so the rim cannot bottom
+BOSS_RECESS = 2.0         # boss face above the skirt face; the ring is 2 mm deep inside, so
+                          # the boss reaches the packing washer as the rim enters the groove
 LUG_W = 7.93              # stop lug across the groove, tangential width
+LUG_H = 1.5               # lug reaches this far down from the groove floor; must clear the
+                          # floor of the rim's cutaway (estimated from photos, confirm)
 HOLE_FLATS = 7.30         # stem drive 7.16 across the flats, plus clearance
 HOLE_ROUND = 9.20         # stem drive 9.08 across the round, plus clearance
 
@@ -36,12 +41,15 @@ def handle():
     r = BASE_D / 2
     body = cq.Workplane("XY").circle(r).extrude(BASE_H)
 
-    # Annular groove in the valve face, with the stop lug bridging it on +x
+    # Annular groove in the valve face, the boss set back inside it, and the stop lug
+    # hanging from the groove floor on +x
     groove = (cq.Workplane("XY").circle(GROOVE_OD / 2).circle(GROOVE_ID / 2)
               .extrude(GROOVE_DEPTH))
-    lug = (cq.Workplane("XY").center(GROOVE_OD / 4 + GROOVE_ID / 4, 0)
-           .rect(GROOVE_OD / 2 - GROOVE_ID / 2 + 0.2, LUG_W).extrude(GROOVE_DEPTH))
-    body = body.cut(groove.cut(lug))
+    lug = (cq.Workplane("XY").workplane(offset=GROOVE_DEPTH - LUG_H)
+           .center(GROOVE_OD / 4 + GROOVE_ID / 4, 0)
+           .rect(GROOVE_OD / 2 - GROOVE_ID / 2 + 0.2, LUG_W).extrude(LUG_H))
+    recess = cq.Workplane("XY").circle(GROOVE_ID / 2 + 0.01).extrude(BOSS_RECESS)
+    body = body.cut(groove.cut(lug)).cut(recess)
 
     # Two blades in the XZ plane, thickness BLADE_T in y
     tip = SPAN / 2
@@ -95,7 +103,8 @@ def svg(path):
                                    f'stroke="none" fill="#000">{txt}</text>')
     t(ox - tip, sy + 11, "10 mm scale. Print at 100 %.")
     t(5, 5, "Underside, seen from the valve. Grey: stop lug. Dashed circles:")
-    t(5, 9, f"groove {GROOVE_ID}-{GROOVE_OD} mm, {GROOVE_DEPTH} mm deep. Dashed boxes: wings above.")
+    t(5, 9, f"groove {GROOVE_ID}-{GROOVE_OD} mm, {GROOVE_DEPTH} mm deep; boss set back {BOSS_RECESS} mm;")
+    t(5, 13, f"lug {LUG_H} mm deep. Dashed boxes: wings above.")
     t(5, sy - 32, f"Side view. Base {BASE_H} mm, span {SPAN:.0f} mm,")
     t(5, sy - 28, f"hole {HOLE_FLATS} x {HOLE_ROUND} mm double-D.")
     w, h = 2 * ox, sy + 16
