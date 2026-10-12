@@ -17,7 +17,7 @@ glycol and pressure rules are in `CLAUDE.md` under Chiltrix CX75.
 | Each secondary loop | about 9 gal in 200 ft of 1¼" PEX | assessment §2.2 |
 | System high point | attic coil, about 25 ft above the boiler gauge | assessment §3.5 |
 | Static head to the attic coil | 10.8 psi | 25 ft ÷ 2.31 |
-| Cold fill pressure | 22–23 psi at the boiler gauge | `CLAUDE.md`, glycol top-up rule; `docs/chiltrix-modbus.md`, pump-start pressure step |
+| Cold fill pressure | 20 psi at the boiler gauge, on an 18 psi precharge | `CLAUDE.md`, glycol top-up rule; `docs/chiltrix-modbus.md`, pump-start pressure step |
 | Head the fill pump must make at zero flow | 53 ft (23 psi × 2.31) | |
 | Boiler relief valve | 30 psi (confirm on the valve tag) | Ti-200 standard fitting |
 | Glycol | 25 % PG, refractometer 2026-10-11 | 25 gal of 75 % premix; enough with the chiller running all winter (David) |
@@ -74,7 +74,7 @@ PEX runs, the plate exchanger and the boiler. The order below gets most of that 
 With the system at zero pressure, two checks that are only possible now:
 
 - Expansion tank air charge, with a tyre gauge at the Schrader valve. Set it to the intended
-  cold fill pressure less 1–2 psi, 21 psi for a 22–23 psi fill, so the bladder holds fluid cold. Water at the valve means the bladder has
+  cold fill pressure less 2 psi, 18 psi for a 20 psi fill, so the bladder holds fluid cold. Water at the valve means the bladder has
   failed; replace the tank.
 - Any automatic vent on the coils or the separator. A vent stuck shut air-binds its coil, so
   replace it while the loop is open; the attic coils have manual vents.
@@ -97,7 +97,7 @@ Inhibited concentrate carries its own inhibitor, so no 8-Way.
 4. Fill the chiller side, restore its breaker, and let its internal pump's idle trickle and its
    own auto-vent finish. `hvac.chiller.chiltrix.startupFlow` back at 51.7 L/min in the next
    pump-only window proves the exchanger and pump are free of air.
-5. Throttle the discharge to bring the boiler gauge to 22–23 psi cold, close the fill valve,
+5. Throttle the discharge to bring the boiler gauge to 20 psi cold, close the fill valve,
    stop the pump, and cap the fill fitting.
 
 ## 5. After the first day
