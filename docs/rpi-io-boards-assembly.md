@@ -104,16 +104,23 @@ stays low with nothing on the header is a dead pad on the Pi, not a board fault.
 
 **Bench Pi.** The bench card is Raspberry Pi OS Lite 64-bit (Trixie, 2026-09-15 image) with a
 cloud-init first boot: hostname `pibench`, user `pi`, password `pivac-bench`, the M2's keys,
-SSH and I2C on, `io-board-test.py` copied to the home directory; it boots any Pi 3, 4 or 5 and
-takes a DHCP lease on Ethernet. Reach it by its lease on the UCG (`pibench.local` does not
-resolve from the M2). **The bench Pi is the retired production Pi 4 Model B Rev 1.5, MAC
-`2c:cf:67:80:55:00`, with the perfboard pair** (from 2026-10-10; until then it holds its own
-card as the cutover rollback), all channel pads good. The Pi 4 with MAC `dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has **BCM 13, 16 and 25 dead**, low under
-pull-up and pull-down with nothing on the header, so it cannot bench-test CHIL or SP-C. BCM
-16's input and output driver work and only its pull-up is dead: the pin floats and keeps
-whatever level last charged it, so a channel on it is proven by driving the pin high
-(`pinctrl set 16 op dh`, then `ip pu`) and watching it drop on the short; the release is the
-Pi's pull-up and proves nothing on that Pi.
+SSH and I2C on, `io-board-test.py` and `w1-proof.sh` copied to the home directory (cloud-init
+instance `pibench-20261011`; bump `instance-id` in `meta-data` on the card to make it copy them
+again); it boots any Pi 3, 4 or 5 and takes a DHCP lease on Ethernet. Reach it by its lease on the UCG (`pibench.local` does not
+resolve from the M2). **Two bench Pis share the card, and each proves one half of a board set.** The retired
+production Pi 4 Model B Rev 1.5, MAC `2c:cf:67:80:55:00` (with the perfboard pair), has every
+channel pad good and runs the guided walk; **its GPIO2 (SDA, header pin 3) is dead since
+2026-10-11**, shorted to ground inside the chip by about 35 V from a mirrored link cable, so it
+reads low under its own pull-up with nothing on the header, `i2cdetect` shows every address,
+and it cannot reach a DS2482 or serve as a production rollback for a 1-wire board. The Pi 4
+with MAC `dc:a6:32:19:12:ee` (the DS18B20 calibration Pi) has good I2C and runs the 1-wire
+proof; it has **BCM 13, 16 and 25 dead**, low under pull-up and pull-down with nothing on the
+header, so it cannot bench-test CHIL, HPCOOL or SP-E. BCM 16's input and output driver work
+and only its pull-up is dead: the pin floats and keeps whatever level last charged it, so a
+channel on it is proven by driving the pin high (`pinctrl set 16 op dh`, then `ip pu`) and
+watching it drop on the short; the release is the Pi's pull-up and proves nothing on that Pi.
+Before trusting any I2C result, read GPIO2 and GPIO3 bare: `pinctrl set 2 ip pu` then
+`pinctrl get 2` must say `hi`, and `i2cdetect -y 1` must show only the DS2482 at 0x18.
 
 **Running the walk from the bench.** The walk advances on the pin alone and ignores stdin when
 it is not a terminal, so start it detached over ssh and tail its log for live feedback; every
@@ -123,9 +130,14 @@ each line is relayed to the terminal as it lands; the Pi's ACT and PWR LEDs sit 
 seated INT board and are no use as indicators.
 
 ```bash
-ssh pi@<lease> 'setsid nohup sudo python3 -u ~/io-board-test.py > ~/walk.log 2>&1 < /dev/null & disown'
+ssh pi@<lease> 'setsid nohup sudo python3 -u ~/io-board-test.py --revb > ~/walk.log 2>&1 < /dev/null & disown'
 ssh pi@<lease> tail -f ~/walk.log
 ```
+
+`--revb` is the rev B INT map (HPCOOL, DHWX and SP-E on J4.1 to J4.3, no J8); the default is
+rev A. The 1-wire proof is `sudo sh ~/w1-proof.sh 40` (`scripts/w1-proof.sh`): it instantiates
+the DS2482, waits for the bus search, and reads every probe 40 times counting clean CRCs; run
+it once per probe socket, moving the probe.
 
 Kill a running walk in its own ssh call (`pkill -f "io-board-tes[t]"`); an ssh command line
 that names the script and also starts it kills the session instead.
@@ -151,6 +163,43 @@ therefore proven on the bench, and every channel of the rev A INT board has pass
 a Pi with all pads good, a meter proves a channel off the Pi: power J4, short the plug
 position to COM, and the header pin conducts to TP3 in diode mode while shorted and reads
 open when released.
+
+**Bench record, rev B INT and rev C EXT, 2026-10-11.** Boards linked by the 7-way GH cable,
+24 VAC on EXT J3, Pi powered from EXT J4 through the USB-C pigtail. EXT: 5.09 V at J4 with
+the Pi connected; 35 V at INT TP1–TP2 and at J1 pins 6–7 through the link, pin 6 positive;
+TP2 open to TP3; every COM position beeps to TP2; the ZV phototransistor read 5 kΩ from GPIO
+socket pin 11 to pin 6 with J1.1 shorted to J1.4 and open released. INT on Pi
+`2c:cf:67:80:55:00`: all twelve pins idle high, and the `--revb` walk in plug order J1.1 to
+J4.3 reported ACTIVE and a clean release on every channel with no other pin dropping, HPCOOL
+(BCM 13), DHWX (BCM 19) and SP-E (BCM 16) on J4.1 to J4.3 included. EXT on Pi
+`dc:a6:32:19:12:ee` with the same INT and link: DS2482 at 0x18 alone on the bus, instantiated
+with no reset failure, probe `0516a36816ff` enumerated and read 40 of 40 clean on H1 and 40 of
+40 clean on H2. Three faults were found and cleared on the way, none in the boards' copper:
+the pigtail's black (GND) lead was in J4's `+5` position, so the Pi saw −5 V and did not start
+(the Pi survived; black beeps to the USB-C plug's shell); the link cable was mirrored, position
+1 at one end on position 7 at the other, which put VS on the Pi's SDA and killed GPIO2 on the
+first Pi and left INT with no sense rail; and the 24 VAC plug had been seated in H1 with the
+transformer on, across DATA and GND, after which the DS2482 answered at 0x18 and failed its
+reset, and the spare chip replaced it. Note the PTSM 2-way plug does enter a 3-way socket.
+
+**Installed, 2026-10-11.** The bench-proven rev B INT and rev C EXT pair went into production
+the same evening on the production Pi `88:a2:9e:3c:c3:73` and its own card, with no tests
+beyond first boot by David's decision. Writers stopped 19:25, `sd-clone.sh` to the spare in
+1 m 53 s (`root=PARTUUID=f9199e61-02` verified against the spare's disk identifier), poweroff
+19:27; plugs moved position for position with J4 and the 24 VAC entry per the rev B plan §4
+and §2, trunk on H1, 7-way GH link, Pi fed from EXT J4 through the pigtail; Pi back at 19:43.
+First boot: power-on reset, unthrottled, UNO R4 bridge and SD reader present, DS2482 with all
+eight probes and no `onewire` node, eleven relays publishing with ZV, HPCALL and HPCOOL closed
+and matching the calls shown in WilhelmSK, Chiltrix answering 184 registers at 60 Hz, RedLink
+logged in, external HTTPS 200, no Grafana alert active and no service warning in the journal.
+The wall adapter is removed and the rev A pair is kept intact as the rollback: 24 VAC back to
+INT J4.1/J4.2, HPCOOL to the J8 pigtail, 5-way PTSM link, Pi on its wall adapter. One surprise
+at the panel: the probe sockets and the 24 VAC entry on the rev C EXT sit at the opposite ends
+from where the rev A board had them, so the rev A EXT had been mounted the other way up; the
+rev C orientation, H1 and H2 at one end of the opening and J3 at the other, is the one to keep.
+The boiler camera may have been brushed during the work; the Sentry reader's registration score
+fell under its floor at 19:44 while the decode margin held at 72, which is the lighting
+signature, and it is re-read after the room is dark.
 
 **Into the housing.** `rpi-io-boards-pcb-plan.md` §6 steps 6–8: freeze the services, swap
 the pair, move the four field plugs and three probe plugs over, prove every channel and the
