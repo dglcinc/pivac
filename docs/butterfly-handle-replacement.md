@@ -26,7 +26,7 @@ The wider span gives 35 % more leverage than the 63 mm original. The blade root 
 
 Order it printed in 316L stainless (SLM, from JLC3DP or Xometry). It does not rust, and at 10 N·m, the most a stiff ¾" ball valve should need, the blade root sees about 50 MPa, against roughly 500 MPa yield for printed 316L. The double-D flats are about 5 mm long by 8 mm deep and bear 18–36 MPa at 5–10 N·m, which steel carries indefinitely.
 
-PA12 nylon (MJF) is the cheaper option, and it insulates against condensation. At those bearing stresses it creeps, though, and the hole rounds out over the years. The cast zinc original broke at the same section. If it is printed in PA12, put a stainless washer under the nut and expect to replace it.
+PA12 nylon (MJF) is the cheaper option, and it insulates against condensation. At those bearing stresses it creeps, though, and the hole rounds out over the years. If it is printed in PA12, put a stainless washer under the nut and expect to replace it.
 
 ## Before ordering
 
