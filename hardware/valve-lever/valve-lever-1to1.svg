@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="118.0mm" height="137.7mm" viewBox="-23.0 -23.0 118.0 137.7">
+<path d="M 8.000 100.660 L 8.000 32.321 L 10.000 15.000 L 10.000 -10.000 L 8.900 -10.000 L 8.900 -8.500 L 7.300 -8.500 L 7.300 -17.000 L 2.300 -17.000 L 2.300 -8.500 L 0.700 -8.500 L 0.700 -10.000 L -10.000 -10.000 L -10.000 -0.200 L -8.500 -0.200 L -8.500 1.400 L -17.000 1.400 L -17.000 6.400 L -8.500 6.400 L -8.500 8.000 L -10.000 8.000 L -10.000 15.000 L -8.000 32.321 L -8.000 100.660 A 8.000 8.000 0 0 0 8.000 100.660 Z" fill="none" stroke="black" stroke-width="0.25"/>
+<path d="M 2.550 3.146 L 2.550 -3.146 A 4.050 4.050 0 0 0 -2.550 -3.146 L -2.550 3.146 A 4.050 4.050 0 0 0 2.550 3.146 Z" fill="none" stroke="black" stroke-width="0.25"/>
+<line x1="-12.0" y1="15.0" x2="12.0" y2="15.0" stroke="red" stroke-width="0.25" stroke-dasharray="2 1.5"/>
+<line x1="-10.0" y1="32.321" x2="10.0" y2="32.321" stroke="red" stroke-width="0.25" stroke-dasharray="2 1.5"/>
+<line x1="0.6999999999999997" y1="-10.0" x2="8.9" y2="-10.0" stroke="blue" stroke-width="0.25" stroke-dasharray="2 1.5"/>
+<line x1="-10.0" y1="8.0" x2="-10.0" y2="-0.20000000000000018" stroke="blue" stroke-width="0.25" stroke-dasharray="2 1.5"/>
+<text x="14.0" y="16.0" font-size="2.6" font-family="Helvetica">jog bend 1: grip side out 60°</text>
+<text x="12.0" y="33.32050807568878" font-size="2.6" font-family="Helvetica">jog bend 2: back 60°, grip 15 mm off face</text>
+<text x="14.0" y="-9.0" font-size="2.6" font-family="Helvetica">lugs (blue): 90° toward the valve</text>
+<text x="12.0" y="88.66025403784438" font-size="2.6" font-family="Helvetica">outside face up</text>
+<text x="12.0" y="93.66025403784438" font-size="2.6" font-family="Helvetica">316, 3.05 mm; flat length 125.7 mm</text>
+<text x="12.0" y="98.66025403784438" font-size="2.6" font-family="Helvetica">check: 50 mm bar below must print 50 mm</text>
+<line x1="12.0" y1="102.66025403784438" x2="62.0" y2="102.66025403784438" stroke="black" stroke-width="0.4"/>
+</svg>

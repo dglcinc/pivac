@@ -384,6 +384,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/rpi-io-boards-assembly.md` | Bench sheet for populating the I/O boards, with the bench records of every set proven (rev A, rev B INT with rev C EXT): order of work, per-board table of reference, invoiced part and location, handling notes, checks with rev A values, the bench card and Pi, the bench record, link cable, housing swap. `docs/rpi-io-boards-reva-tone-map.svg` is its meter drawing |
 | `docs/rpi-io-boards-reva-install.md` | The 2026-09-26 cutover to the rev A boards and the new Pi on the clone card, as run: who did each step, freeze and clone, UCG reservation move, the plug map against the perfboard (24 VAC on J4.1/J4.2, `HPCOOL` to the J8 pigtail), meter checks, first-boot and 1-wire proofs, the pigtail fault, afterwards, rollback |
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
+| `docs/valve-lever-replacement.md` | 316 stainless replacement lever for the rusted A.Y. McDonald ball valves: stem, flat-pattern dimensions, ordering and bending; `hardware/valve-lever/` holds the DXF, 1:1 SVG and generator |
 
 ## Known Operational Behaviours (Not Bugs)
 
