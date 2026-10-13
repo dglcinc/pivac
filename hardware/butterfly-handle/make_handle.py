@@ -27,10 +27,10 @@ LUG_H = 3.7               # lug reaches this far down from the groove floor, 0.3
                           # the rim, 0.2 below the skirt face, so this leaves 0.5 clearance
 NUT_Z = 5.5               # boss face to nut seat, as the original; the thread starts 2.5 above
                           # the rim, 4.5 above the washer, so the nut clamps with 1.0 to spare
-HOLE_FLATS = 6.30         # across the flats; the lug measured 6.21 and continues the flats
-                          # (IMG_1891), and the M6 thread needs 6.0 to pass
+HOLE_FLATS = 5.05         # stem drive 5 across the flats (the flats run up through the M6
+                          # thread), held tight; file to fit rather than leave play
 LUG_W = HOLE_FLATS        # stop lug: a radial spoke from boss to skirt, sides in line with the flats
-HOLE_ROUND = 9.20         # stem drive 9.08 across the round, plus clearance
+HOLE_ROUND = 8.10         # stem drive 8 across the round ends, plus 0.1
 
 # Wings: blades rising from the base so the grip clears the insulation
 SPAN = 85.0               # tip to tip

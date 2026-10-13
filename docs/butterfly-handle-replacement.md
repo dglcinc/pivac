@@ -11,7 +11,7 @@ The bonnet ends in a ring 19 mm in outside diameter with a 2 mm wall, 7 mm tall 
 | Feature | Value | Source |
 |---|---|---|
 | Base | 26.42 mm OD, 8.20 mm tall | Old base |
-| Stem hole | Double-D, 6.30 mm across the flats, 9.20 mm across the round | Flats from the lug's 6.21 mm, which continues them (IMG_1891); the M6 thread needs 6.0 to pass |
+| Stem hole | Double-D, 5.05 mm across the flats, 8.10 mm across the round, held tight; file to fit | Stem 5 × 8; overlay on IMG_1891 |
 | Groove | 13.74 mm ID, 19.51 mm OD, 4.0 mm deep | Old base 3.8 mm; 2 mm clear above the rim |
 | Boss | Flush with the skirt face | Old base |
 | Stop lug | Radial spoke from boss to skirt, its sides in line with the hole's flats, on the hole's long axis, ending 0.3 mm short of the skirt face | Old base, flush; shortened to clear the cutaway floor by 0.5 mm |
