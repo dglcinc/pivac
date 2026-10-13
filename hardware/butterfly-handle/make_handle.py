@@ -22,13 +22,14 @@ BASE_H = 8.20             # base height, valve face to the top of the nut recess
 GROOVE_ID = 13.74         # boss around the stem hole
 GROOVE_OD = 19.51         # inside of the skirt; the bonnet rim runs in this groove
 GROOVE_DEPTH = 4.0        # 3.8 measured on the worn base; leaves 2 mm above the rim
-LUG_W = 6.21              # stop lug: a radial spoke from boss to skirt, measured across its flats
 LUG_H = 3.7               # lug reaches this far down from the groove floor, 0.3 short of the
                           # skirt face (flush on the original); the cutaway floor is 2.2 below
                           # the rim, 0.2 below the skirt face, so this leaves 0.5 clearance
 NUT_Z = 5.5               # boss face to nut seat, as the original; the thread starts 2.5 above
                           # the rim, 4.5 above the washer, so the nut clamps with 1.0 to spare
-HOLE_FLATS = 7.30         # stem drive 7.16 across the flats, plus clearance
+HOLE_FLATS = 6.30         # across the flats; the lug measured 6.21 and continues the flats
+                          # (IMG_1891), and the M6 thread needs 6.0 to pass
+LUG_W = HOLE_FLATS        # stop lug: a radial spoke from boss to skirt, sides in line with the flats
 HOLE_ROUND = 9.20         # stem drive 9.08 across the round, plus clearance
 
 # Wings: blades rising from the base so the grip clears the insulation
