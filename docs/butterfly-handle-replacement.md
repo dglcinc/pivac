@@ -1,6 +1,6 @@
 # Replacement butterfly handle for the red-handled drain valves
 
-The hose-end drain ball valves on the chilled-water piping carry a red cast butterfly handle held by an M6×1 nut. One handle's wings broke off at the base. No catalog handle publishes a matching hole, so this part copies the broken base and adds longer wings that rise clear of the pipe insulation. `hardware/butterfly-handle/` holds the generator (`make_handle.py`, needs `cadquery`), the STEP and STL to order from, and a 1:1 SVG to check against the old base.
+The hose-end drain ball valves on the chilled-water piping carry a red cast butterfly handle held by an M6×1 nut. One handle's wings broke off at the base. No catalog handle publishes a matching hole, so this part copies the broken base and adds longer wings that rise clear of the pipe insulation. `hardware/butterfly-handle/` holds the generator (`make_handle.py`, needs `cadquery`), the STEP and STL to order from (PA12 and 316L versions), and a 1:1 SVG to check against the old base.
 
 ## The valve
 
@@ -28,12 +28,15 @@ The wider span gives 35 % more leverage than the 63 mm original. The blade root 
 
 ## Material
 
-Order it printed in 316L stainless (SLM, from JLC3DP or Xometry). It does not rust, and at 10 N·m, the most a stiff ¾" ball valve should need, the blade root sees about 50 MPa, against roughly 500 MPa yield for printed 316L. The double-D flats are about 5 mm long by 8 mm deep and bear 18–36 MPa at 5–10 N·m, which steel carries indefinitely.
+The handle is ordered in PA12 nylon (MJF), from `butterfly-handle-pa12.step`, at $29 from Xometry against $178 for 316L DMLS. It insulates against condensation and does not rust. MJF holds about ±0.3 mm, so this version prints the drive at 4.80 × 7.90 mm, to be filed open to fit the 5 × 8 stem, and opens the groove to 19.90 mm so the 19 mm ring cannot bind. The lug stays 5.05 mm wide.
 
-PA12 nylon (MJF) is the cheaper option, and it insulates against condensation. At those bearing stresses it creeps, though, and the hole rounds out over the years. If it is printed in PA12, put a stainless washer under the nut and expect to replace it.
+PA12 has less margin than steel. At 3–5 N·m, what a free ¾" ball valve needs, the blade root sees 15–25 MPa against about 48 MPa for PA12. At 10 N·m, a seized valve, it reaches 50 MPa and a wing can break. The flats creep under load and round out over the years, so put a stainless washer under the nut and expect to replace the handle.
+
+`butterfly-handle.step` is the 316L version (DMLS, which holds about ±0.1 mm), with the drive at 5.05 × 8.10 mm and the groove at 19.51 mm. The blade root sees about 50 MPa at 10 N·m against roughly 500 MPa yield. Choose DMLS over binder jetting, whose sintering shrink cannot hold the drive fit, and 316L over 17-4, which is harder to file and less resistant to a sweating pipe.
 
 ## Before ordering
 
 1. Print `butterfly-handle-1to1.svg` at 100 % and check the 10 mm scale bar with the caliper.
 2. Lay the old base face down on the underside view. The groove, the lug and the double-D should line up with the base's. In particular, the lug should sit on the hole's long axis. If the lug sits on the flats' axis instead, rotate the lug in `make_handle.py` onto the y axis, rebuild, and order from the regenerated STEP.
-3. Ask for the hole and the groove to be held to ±0.1 mm. If the printer cannot hold that, order the hole 0.2 mm undersize and file the flats to fit the stem.
+3. In the order notes, ask for the hole and the groove to be left clean of support material, the hole held to size or undersize, and the boss face and nut seat flat.
+4. When it arrives, file the flats of the hole a few strokes at a time until the handle slides onto the stem with no play.

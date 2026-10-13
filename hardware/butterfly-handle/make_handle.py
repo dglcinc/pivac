@@ -127,10 +127,22 @@ def svg(path):
         + "".join(d) + "</g></svg>\n")
 
 
-if __name__ == "__main__":
+def export(stem):
     h = handle()
-    cq.exporters.export(h, os.path.join(HERE, "butterfly-handle.step"))
-    cq.exporters.export(h, os.path.join(HERE, "butterfly-handle.stl"), tolerance=0.02)
+    cq.exporters.export(h, os.path.join(HERE, stem + ".step"))
+    cq.exporters.export(h, os.path.join(HERE, stem + ".stl"), tolerance=0.02)
     bb = h.val().BoundingBox()
+    print(f"{stem}: bbox {bb.xlen:.1f} x {bb.ylen:.1f} x {bb.zlen:.1f} mm, "
+          f"volume {h.val().Volume():.0f} mm3")
+
+
+if __name__ == "__main__":
+    export("butterfly-handle")                 # 316L: DMLS holds about 0.1 mm
     svg(os.path.join(HERE, "butterfly-handle-1to1.svg"))
-    print(f"bbox {bb.xlen:.1f} x {bb.ylen:.1f} x {bb.zlen:.1f} mm, volume {h.val().Volume():.0f} mm3")
+
+    # PA12 (MJF) holds about 0.3 mm. Print the drive undersize and file it open to fit the
+    # stem, keep the lug at the stem's width, and open the groove so the 19 mm ring cannot bind.
+    LUG_W = 5.05
+    HOLE_FLATS, HOLE_ROUND = 4.80, 7.90
+    GROOVE_OD = 19.90
+    export("butterfly-handle-pa12")
