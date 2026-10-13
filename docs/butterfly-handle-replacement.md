@@ -11,7 +11,7 @@ The bonnet ends in a ring 19 mm in outside diameter with a 2 mm wall, 7 mm tall 
 | Feature | Value | Source |
 |---|---|---|
 | Base | 26.42 mm OD, 8.20 mm tall | Old base |
-| Stem hole | Double-D, 5.05 mm across the flats, 8.10 mm across the round, held tight; file to fit | Stem 5 × 8; overlay on IMG_1891 |
+| Stem hole | Double-D, 4.90 mm across the flats, 8.00 mm across the round, filed to fit | Stem 5 × 8; overlay on IMG_1891; printed under for SLM's ±0.2 mm |
 | Groove | 13.74 mm ID, 19.51 mm OD, 4.0 mm deep | Old base 3.8 mm; 2 mm clear above the rim |
 | Boss | Flush with the skirt face | Old base |
 | Stop lug | Radial spoke from boss to skirt, its sides in line with the hole's flats, on the hole's long axis, ending 0.3 mm short of the skirt face | Old base, flush; shortened to clear the cutaway floor by 0.5 mm |
@@ -28,11 +28,9 @@ The wider span gives 35 % more leverage than the 63 mm original. The blade root 
 
 ## Material
 
-The handle is ordered in PA12 nylon (MJF), from `butterfly-handle-pa12.step`, at $29 from Xometry against $178 for 316L DMLS. It insulates against condensation and does not rust. MJF holds about ±0.3 mm, so this version prints the drive at 4.80 × 7.90 mm, to be filed open to fit the 5 × 8 stem, and opens the groove to 19.90 mm so the 19 mm ring cannot bind. The lug stays 5.05 mm wide.
+The handle is ordered in 316L stainless, SLM, from JLC3DP, from `butterfly-handle.step`. It quoted $18, against $29 for PA12 MJF and $178 for 316L DMLS at Xometry. 316L does not rust on a sweating pipe, and at 10 N·m, the most a stiff ¾" ball valve should need, the blade root sees about 50 MPa against roughly 500 MPa yield. SLM holds about ±0.2 mm, so the drive prints at 4.90 × 8.00 mm, to be filed open to fit the 5 × 8 stem; play there would cost leverage. The lug is 5.05 mm wide, the stem's width. 316L files more easily than 17-4, which is also less resistant to a sweating pipe.
 
-PA12 has less margin than steel. At 3–5 N·m, what a free ¾" ball valve needs, the blade root sees 15–25 MPa against about 48 MPa for PA12. At 10 N·m, a seized valve, it reaches 50 MPa and a wing can break. The flats creep under load and round out over the years, so put a stainless washer under the nut and expect to replace the handle.
-
-`butterfly-handle.step` is the 316L version (DMLS, which holds about ±0.1 mm), with the drive at 5.05 × 8.10 mm and the groove at 19.51 mm. The blade root sees about 50 MPa at 10 N·m against roughly 500 MPa yield. Choose DMLS over binder jetting, whose sintering shrink cannot hold the drive fit, and 316L over 17-4, which is harder to file and less resistant to a sweating pipe.
+`butterfly-handle-pa12.step` is the nylon version. MJF holds about ±0.3 mm, so it prints the drive at 4.80 × 7.90 mm and opens the groove to 19.90 mm so the 19 mm ring cannot bind. PA12 is near its strength at the wing root at 10 N·m and creeps at the flats, so it needs a stainless washer under the nut and eventual replacement.
 
 ## Before ordering
 

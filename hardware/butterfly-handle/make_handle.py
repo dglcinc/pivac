@@ -27,10 +27,10 @@ LUG_H = 3.7               # lug reaches this far down from the groove floor, 0.3
                           # the rim, 0.2 below the skirt face, so this leaves 0.5 clearance
 NUT_Z = 5.5               # boss face to nut seat, as the original; the thread starts 2.5 above
                           # the rim, 4.5 above the washer, so the nut clamps with 1.0 to spare
-HOLE_FLATS = 5.05         # stem drive 5 across the flats (the flats run up through the M6
-                          # thread), held tight; file to fit rather than leave play
-LUG_W = HOLE_FLATS        # stop lug: a radial spoke from boss to skirt, sides in line with the flats
-HOLE_ROUND = 8.10         # stem drive 8 across the round ends, plus 0.1
+HOLE_FLATS = 4.90         # stem drive 5 across the flats (the flats run up through the M6
+                          # thread), printed under so SLM's 0.2 mm cannot leave play; file to fit
+LUG_W = 5.05              # stop lug: a radial spoke from boss to skirt, sides in line with the stem's flats
+HOLE_ROUND = 8.00         # stem drive 8 across the round ends
 
 # Wings: blades rising from the base so the grip clears the insulation
 SPAN = 85.0               # tip to tip
@@ -137,12 +137,11 @@ def export(stem):
 
 
 if __name__ == "__main__":
-    export("butterfly-handle")                 # 316L: DMLS holds about 0.1 mm
+    export("butterfly-handle")                 # 316L SLM (JLC3DP): holds about 0.2 mm
     svg(os.path.join(HERE, "butterfly-handle-1to1.svg"))
 
     # PA12 (MJF) holds about 0.3 mm. Print the drive undersize and file it open to fit the
     # stem, keep the lug at the stem's width, and open the groove so the 19 mm ring cannot bind.
-    LUG_W = 5.05
     HOLE_FLATS, HOLE_ROUND = 4.80, 7.90
     GROOVE_OD = 19.90
     export("butterfly-handle-pa12")
