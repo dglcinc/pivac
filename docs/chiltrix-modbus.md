@@ -202,7 +202,7 @@ and the gas charge corresponds to a precharge of about 18.2 psi.
 | Room in the tank, cold to 27 psi | 0.5 gal | 1.1 gal |
 | Hot peak with 0.9 gal of expansion | about 30 psi | about 25.8 psi |
 
-The equipment sets the band. The Trinity Ti-200 needs at least 15 psi at the boiler outlet, and its pressure switch inhibits firing below 10 psi (Trinity Ti I&O manual, 2015). Chiltrix gives 14.5 psi minimum, 43.5 psi maximum and 20–30 psi ideal for its CX50 and CX34 loops; the CX75 manual has not been checked. The relief opens at 30 psi. A 20 psi cold fill rising to 26 psi hot keeps 5 psi above both minimums at a cold pump start and 4 psi under the relief when hot, so there is no gain in going lower. The first heating night held 24.5–26.3 psi with the tank at 124–132 °F, and the pump-start dips were 1.5–2 psi.
+The equipment sets the band. The Trinity Ti-200 needs at least 15 psi at the boiler outlet, and its pressure switch inhibits firing below 10 psi (Trinity Ti I&O manual, 2015, as quoted online; NTI's troubleshooting sheets give 12 psi, and the boiler has run at 15 psi standing). The CX65-1 IOM, the nearest manual to the CX75 (`HVAC Manuals/cx65-1-iom.pdf` in the Claude OneDrive folder), gives 14.5 psi minimum, 43.5 psi maximum and 20–30 psi ideal. The relief opens at 30 psi. A 20 psi cold fill rising to 26 psi hot keeps 5 psi above both minimums at a cold pump start and 4 psi under the relief when hot, so there is no gain in going lower. The first heating night held 24.5–26.3 psi with the tank at 124–132 °F, and the pump-start dips were 1.5–2 psi.
 
 The pump-step sentinel's floor moves with the precharge to 19.5 psi. The pump-start dips through the
 cold afternoon of 10-12 reached 17.5–18.5 psi from 23.5 psi; they were dips, not the regulator's
