@@ -4,7 +4,7 @@ The hose-end drain ball valves on the chilled-water piping carry a red cast butt
 
 ## The valve
 
-The bonnet ends in a ring 19 mm in outside diameter with a 2 mm wall, 7 mm tall outside. Inside it a white PTFE packing washer sits 2 mm below the rim. The stem rises out of the washer as a double-D drive stub, with an M6×1 thread above it. The flats end and the thread starts 2.5 mm above the rim. The handle slides down over the thread onto the drive, and the nut clamps it. The handle's boss drops inside the ring and bears on the washer, so the ring stands 2 mm into an annular groove in the handle's underside and the skirt hangs 2 mm down the outside of the ring, clear of the bonnet body. The ring has a lowered sector 2.2 mm deep, visible on the left of IMG_1881 and IMG_1884, and a lug filling the groove stops the handle at each end of it.
+The bonnet ends in a ring 19 mm in outside diameter with a 2 mm wall, 7 mm tall outside. Inside it a white PTFE packing washer sits 2 mm below the rim. The stem rises out of the washer as a 5 × 8 mm double-D drive, and the M6×1 thread starts 2.5 mm above the rim. The flats run on up through the thread, so the handle slides down over it onto the drive, and the nut clamps it. The handle's boss drops inside the ring and bears on the washer, so the ring stands 2 mm into an annular groove in the handle's underside and the skirt hangs 2 mm down the outside of the ring, clear of the bonnet body. The ring has a lowered sector 2.2 mm deep, visible on the left of IMG_1881 and IMG_1884, and a lug filling the groove stops the handle at each end of it.
 
 ## The part
 
