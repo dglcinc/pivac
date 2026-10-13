@@ -13,7 +13,7 @@ At a 21 psi precharge the loop read 23.6 psi cold on 2026-10-12 (buffer tank 49 
 | Fluid in the bladder, cold | 0.46 gal | 0.46 gal |
 | Room in the tank, cold to 27 psi | 0.53 gal | 1.05 gal |
 | Hot peak with 0.9 gal of expansion | about 30 psi | about 25.8 psi |
-| Hot peak at 125 °F (the tank's normal heating band) | 25–27.5 psi | 22–23 psi expected |
+| Hot, tank at 125–132 °F (the normal heating band) | 25–27.5 psi | 24.5–26.3 psi |
 
 ## Bring
 
@@ -63,7 +63,7 @@ If the panel has gone back to heat and the tank is above 110 °F, use **22 psi**
 
 Send me the blanks above. I will watch the overnight trend. Expect these readings:
 
-- 20 psi while the tank is cold, 22–23 psi once it is back at about 125 °F in heat mode.
+- 20 psi while the tank is cold, 24.5–26.5 psi once it is back at 125–132 °F in heat mode, with pump-start dips of 1–2 psi.
 - Pump-start dips of 1–2 psi. Today's were 5–6 psi.
 
 Tell me if you see either of these:
