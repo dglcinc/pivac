@@ -22,7 +22,7 @@ BASE_H = 8.20             # base height, valve face to the top of the nut recess
 GROOVE_ID = 13.74         # boss around the stem hole
 GROOVE_OD = 19.51         # inside of the skirt; the bonnet rim runs in this groove
 GROOVE_DEPTH = 4.0        # 3.8 measured on the worn base; leaves 2 mm above the rim
-LUG_W = 7.93              # stop lug across the groove, tangential width
+LUG_W = 6.21              # stop lug: a radial spoke from boss to skirt, measured across its flats
 LUG_H = 3.7               # lug reaches this far down from the groove floor, 0.3 short of the
                           # skirt face (flush on the original); the cutaway floor is 2.2 below
                           # the rim, 0.2 below the skirt face, so this leaves 0.5 clearance

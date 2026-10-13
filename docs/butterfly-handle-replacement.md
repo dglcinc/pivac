@@ -14,7 +14,7 @@ The bonnet ends in a ring 19 mm in outside diameter with a 2 mm wall, 7 mm tall 
 | Stem hole | Double-D, 7.30 mm across the flats, 9.20 mm across the round | Old base 7.16 × 9.08 mm, plus clearance |
 | Groove | 13.74 mm ID, 19.51 mm OD, 4.0 mm deep | Old base 3.8 mm; 2 mm clear above the rim |
 | Boss | Flush with the skirt face | Old base |
-| Stop lug | 7.93 mm wide across the groove, ending 0.3 mm short of the skirt face, on the hole's long axis | Old base, flush; shortened to clear the cutaway floor by 0.5 mm |
+| Stop lug | Radial spoke 6.21 mm wide across the groove, ending 0.3 mm short of the skirt face, on the hole's long axis | Old base, flush; shortened to clear the cutaway floor by 0.5 mm |
 | Nut seat | 5.5 mm above the boss face, in an 18 mm recess | Old base 5.5 mm; 1.0 mm above the thread start |
 | Wings | 85 mm span, 10 mm thick blades, rising at 20° to 24.8 mm overall height | New; the original spanned 63 mm |
 | Socket clearance | Nothing inside 9 mm radius above the nut face | Fits a 10 mm socket |
