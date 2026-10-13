@@ -49,8 +49,9 @@ def handle():
     groove = (cq.Workplane("XY").circle(GROOVE_OD / 2).circle(GROOVE_ID / 2)
               .extrude(GROOVE_DEPTH))
     lug = (cq.Workplane("XY").workplane(offset=GROOVE_DEPTH - LUG_H)
-           .center(GROOVE_OD / 4 + GROOVE_ID / 4, 0)
-           .rect(GROOVE_OD / 2 - GROOVE_ID / 2 + 0.2, LUG_W).extrude(LUG_H))
+           .center(GROOVE_OD / 4 + 0.1, 0)
+           .rect(GROOVE_OD / 2 + 0.2, LUG_W).extrude(LUG_H))   # from the stem axis, so it
+                                                              # meets the round boss in full
     body = body.cut(groove.cut(lug))
 
     # Two blades in the XZ plane, thickness BLADE_T in y
