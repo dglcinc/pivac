@@ -135,6 +135,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 - Grafana config: `/etc/grafana/grafana.ini`
 - Grafana API token: `~/.config/grafana-claude-agent.key` (mode 600) on **both** the Pi and the Mac — service account `sa-1-claude`, Admin role. Use it as `-H "Authorization: Bearer $(cat ~/.config/grafana-claude-agent.key)"` against `http://127.0.0.1:4000/grafana/api/...` on the Pi. **Never ask for the Grafana admin password; this is the credential.** The poller's own Viewer token (service account `pivac-alerts`) lives only in the `pivac.GrafanaAlerts` block of `/etc/pivac/config.yml`.
 - WireGuard keys (unused, kept for reference): `/etc/wireguard/`
+- Equipment manuals (Mac, OneDrive): `~/Library/CloudStorage/OneDrive-DGLC/HVAC Documentation/Equipment Manuals/` holds the full set, including the NTI Trinity Ti100-200 I&O manual (2015-05-12), the Taco, Honeywell and Unico manuals; the Chiltrix CX65-1 and CX50-2 IOMs are in `~/OneDrive - DGLC/Claude/HVAC Manuals/`. Read the manual for any equipment limit or setting before searching the web.
 
 ## Remote Access
 
