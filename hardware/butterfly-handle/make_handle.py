@@ -58,12 +58,15 @@ def handle():
     # Two blades in the XZ plane, thickness BLADE_T in y
     tip = SPAN / 2
     for s in (1, -1):
-        pts = [(s * r, ROOT_Z),
+        # The root runs 3 mm into the skirt along the underside's line, so the flat blade end
+        # is buried in the round base instead of meeting it in a knife edge
+        bury = r - 3.0
+        pts = [(s * bury, ROOT_Z - RISE * (r - bury)),
                (s * tip, ROOT_Z + RISE * (tip - r)),
                (s * tip, ROOT_Z + RISE * (tip - r) + BLADE_H),
                (s * SOCKET_R, ROOT_Z + RISE * (tip - r) + BLADE_H - RISE * (tip - SOCKET_R)),
                (s * SOCKET_R, BASE_H),
-               (s * (r - 0.01), BASE_H - 0.01)]
+               (s * bury, BASE_H)]
         blade = (cq.Workplane("XZ").polyline(pts).close()
                  .extrude(BLADE_T / 2, both=True))
         blade = blade.edges("|Y and >X" if s > 0 else "|Y and <X").fillet(3.0)
