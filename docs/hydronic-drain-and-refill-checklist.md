@@ -23,7 +23,7 @@
 	* Shift drain to true lowest point to catch remaining fluid, close tank inputs and outputs to avoid tank refilling.
 	* Close vents and valves and push air at 20 psi from compressor to a drain port as needed to extract remaining fluid (not using pump). Blow from the vents on the air handlers toward each loop's low drain, in the direction of normal flow: the Taco's integral check valve blocks air pushed the other way. Use a reg on the Jegs, or I can use the portable one in the garage.
 	* Open wye cleanout on compressor (capture fluid and add to a pail). close tank valves to chiller and use air at overhead fill valves to push any remaining fluid out. Review manual to see if drain plugs should be opened too or if air is sufficient (probably governed by how much total fluid I extract from the system.)
-	* Check and set expansion tank pressure to 21 psi, 1–2 psi below the 22–23 psi cold fill, so the bladder holds some fluid when the loop is cold.
+	* Check and set expansion tank pressure to 18 psi, 2 psi below the 20 psi cold fill, so the bladder holds some fluid when the loop is cold.
 	* Do a 30 minute Rydlime flush on the boiler loop only, with the chiller and tank isolated, and rinse with water until it runs neutral so no acid meets the new glycol. Service air separators. Install union if practical to main loop air separator to facilitate future service.
 4. Refill system
 	* replace  wye filter. open the chiller side valves on the tank and use the throttled pump to fill the tank and chiller loop till fluid comes out the hydro tank air vent.
@@ -33,7 +33,7 @@
 	* Use throttled pump to fill loop, close vents as system fills. Once vents are closed, keep pump going until fluid returns without bubbles.
 	* Do other loop.
 	* Close remaining supply valve and verify main loop gets filled.
-	* Watch the boiler gauge while the pump runs on this step: the dead-headed pump makes about 52 psi and the boiler relief opens at 30 psi, so keep the throttle under 30. Bring the gauge to 22–23 psi cold, close the throttle valve, then stop the pump.
+	* Watch the boiler gauge while the pump runs on this step: the dead-headed pump makes about 52 psi and the boiler relief opens at 30 psi, so keep the throttle under 30. Bring the gauge to 20 psi cold, close the throttle valve, then stop the pump.
 	* Calculate difference between fluid removed and fluid added, check all possible air gaps if the difference is significant.
 
 5. Re-commission system
