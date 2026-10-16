@@ -196,13 +196,12 @@ def draw_proto(detail):
 # Drawing 1: the whole board
 # ===================================================================================================
 W, H = 1560, 860
-PAGE_W = 10.0            # inches: fits the printable width of US letter and A4 in landscape
-add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{PAGE_W}in" height="{PAGE_W * H / W:.2f}in" '
-    f'viewBox="0 0 {W} {H}" font-family="Helvetica, Arial, sans-serif" font-size="12">')
+add(f'<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 {W} {H}" '
+    f'font-family="Helvetica, Arial, sans-serif" font-size="12">')
 add('<title>Master bedroom air-handler node: PROTO-SHIELD layout</title>')
 add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 text(20, 32, "Master bedroom air-handler node: parts on the Olimex PROTO-SHIELD rev A, component side", 18, weight="bold")
-text(20, 54, "Prints on one landscape page at 1.8 times actual size. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed "
+text(20, 54, "Scales to fit one page, landscape. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed "
      "wires run on the solder side, drawn as seen through the board.", 12, fill="#444")
 text(20, 72, "Coordinates in mm from the board's bottom-left corner, as on Olimex's mechanical drawing. Columns c1–c13 "
      "run left to right, rows r1–r14 top to bottom. mbr-air-handler-node-shield-holes.svg enlarges the proto area.",
@@ -342,13 +341,12 @@ BX, BY = 40 - X_MIN * S, 110 - (BH - Y_MAX) * S
 PW, PH = (X_MAX - X_MIN) * S, (Y_MAX - Y_MIN) * S
 W, H = int(40 + PW + 470), int(110 + PH + 40)
 
-PAGE_W = 7.25            # inches: fits the printable width of US letter and A4 with the usual margins
-add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{PAGE_W}in" height="{PAGE_W * H / W:.2f}in" '
-    f'viewBox="0 0 {W} {H}" font-family="Helvetica, Arial, sans-serif" font-size="13">')
+add(f'<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 {W} {H}" '
+    f'font-family="Helvetica, Arial, sans-serif" font-size="13">')
 add('<title>Master bedroom air-handler node: PROTO-SHIELD lead holes</title>')
 add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 text(20, 32, "PROTO-SHIELD rev A: the proto area enlarged, component side", 20, weight="bold")
-text(20, 56, "Prints on one page at 2.9 times actual size. Columns c1–c13 left to right, rows r1–r14 top to bottom; the small holes between the "
+text(20, 56, "Scales to fit one page. Columns c1–c13 left to right, rows r1–r14 top to bottom; the small holes between the "
      "columns are the 3V3 (orange) and GND (black) buses.", 13, fill="#444")
 text(20, 76, "Parts are outlines under the pads. Ring: a part's lead hole. Pink pad: a joint on the 5 V rail. "
      "Dot: a solder-side wire lands here.", 13, fill="#444")
