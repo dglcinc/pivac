@@ -5,7 +5,7 @@ Run from the repo root: python3 docs/mbr-air-handler-node-wiring.gen.py
 """
 from pathlib import Path
 
-W, H = 1640, 1180
+W, H = 1640, 1220
 out = []
 add = out.append
 
@@ -16,7 +16,7 @@ C_5V = "#d62728"     # +5 V
 C_GND = "#000000"    # ground
 C_DQ = "#b8960b"     # 1-Wire data
 C_AN = "#1f77b4"     # analog
-C_D6 = "#2ca02c"     # relay sense
+C_D8 = "#2ca02c"     # relay sense
 C_USB = "#555555"    # USB-C cable
 
 
@@ -136,7 +136,7 @@ wire([(x6, y6 + 14), (x6, y6 + 24), (x5, y5 + 24), (x5, y5 + 14)], "#444", 2)
 text(SX + 165, SY + 13, "jumper", 10, "middle", fill="#444")
 
 # --- U1 Arduino + proto shield --------------------------------------------------------------
-AX0, AY0, AX1, AY1 = 700, 330, 1100, 830
+AX0, AY0, AX1, AY1 = 700, 330, 1100, 850
 box(AX0, AY0, AX1 - AX0, AY1 - AY0, "#f2f8f2")
 text(900, 318, "U1  Arduino UNO R4 WiFi + Olimex PROTO-SHIELD, on a DIN bracket", 14, "middle", "bold")
 add(f'<rect x="{AX0-8}" y="349" width="16" height="22" rx="4" fill="#ddd" stroke="#333"/>')
@@ -146,61 +146,65 @@ text(AX0 + 14, 364, "USB-C", 11)
 wire([(564, 171), (620, 171), (620, 360), (AX0 - 8, 360)], C_USB, 4)
 text(626, 270, "USB-C cable", 11, fill="#555")
 
-# Left screws: D6, GND
-Y_D6, Y_GL = 470, 540
-screw(AX0, Y_D6, "D6", "start", 12, -9)
+# Left screws: D8, GND (TB2)
+Y_D8, Y_GL = 470, 540
+screw(AX0, Y_D8, "D8", "start", 12, -9)
 screw(AX0, Y_GL, "GND", "start", 12, -9)
-wire([(x9 + 14, y9), (640, y9), (640, Y_D6), (AX0 - 7, Y_D6)], C_D6)
+wire([(x9 + 14, y9), (640, y9), (640, Y_D8), (AX0 - 7, Y_D8)], C_D8)
 wire([(x5 + 14, y5), (660, y5), (660, Y_GL), (AX0 - 7, Y_GL)], C_GND)
 
 # Right screws
-Y_5V, Y_D2, Y_G1, Y_A0, Y_G2, Y_A1, Y_G3 = 378, 492, 548, 610, 660, 720, 770
-for y, lab in [(Y_5V, "5V"), (Y_D2, "D2"), (Y_G1, "GND"), (Y_A0, "A0"), (Y_G2, "GND"), (Y_A1, "A1"), (Y_G3, "GND")]:
+Y_5V, Y_D2, Y_G1, Y_A0, Y_G2, Y_S2, Y_A1, Y_G3, Y_S3 = 378, 492, 548, 600, 640, 680, 730, 770, 810
+for y, lab in [(Y_5V, "5V"), (Y_D2, "D2"), (Y_G1, "GND"), (Y_A0, "A0"), (Y_G2, "GND"), (Y_S2, "SH"),
+               (Y_A1, "A1"), (Y_G3, "GND"), (Y_S3, "SH")]:
     screw(AX1, y, lab, "end", -12, -9)
 
 # Internal +5 V rail
 wire([(800, Y_5V), (AX1 - 7, Y_5V)], C_5V)
-# R5 1k pull-up for D6
-wire([(AX0 + 7, Y_D6), (800, Y_D6)], C_D6)
-dot(800, Y_D6, C_D6)
-resistor_v(800, Y_5V, Y_D6, C_5V, "R5 1k")
+# R10 1k pull-up for D8
+wire([(AX0 + 7, Y_D8), (800, Y_D8)], C_D8)
+dot(800, Y_D8, C_D8)
+resistor_v(800, Y_5V, Y_D8, C_5V, "R10 1k")
 dot(800, Y_5V, C_5V)
-# R1 4.7k 1-Wire pull-up 5V -> D2
-resistor_v(1040, Y_5V, Y_D2, C_5V, "R1 4.7k")
+# R7 4.7k 1-Wire pull-up 5V -> D2
+resistor_v(1040, Y_5V, Y_D2, C_5V, "R7 4.7k")
 dot(1040, Y_5V, C_5V)
 wire([(1040, Y_D2), (AX1 - 7, Y_D2)], C_DQ)
 dot(1040, Y_D2, C_DQ)
-# R2 / C1 on A0
-resistor_v(970, Y_5V, Y_A0, C_5V, "R2 10.0k")
+# R8 / C6 on A0
+resistor_v(970, Y_5V, Y_A0, C_5V, "R8 10.0k")
 dot(970, Y_5V, C_5V)
 wire([(970, Y_A0), (AX1 - 7, Y_A0)], C_AN)
 dot(970, Y_A0, C_AN)
-cap_v(970, Y_A0, Y_G2, C_AN, "C1 0.1µ")
+cap_v(970, Y_A0, Y_G2, C_AN, "C6 0.1µ")
 wire([(970, Y_G2), (AX1 - 7, Y_G2)], C_GND)
-# R3 / C2 on A1
-resistor_v(900, Y_5V, Y_A1, C_5V, "R3 10.0k")
+# R9 / C7 on A1
+resistor_v(900, Y_5V, Y_A1, C_5V, "R9 10.0k")
 dot(900, Y_5V, C_5V)
 wire([(900, Y_A1), (AX1 - 7, Y_A1)], C_AN)
 dot(900, Y_A1, C_AN)
-cap_v(900, Y_A1, Y_G3, C_AN, "C2 0.1µ")
+cap_v(900, Y_A1, Y_G3, C_AN, "C7 0.1µ")
 wire([(900, Y_G3), (AX1 - 7, Y_G3)], C_GND)
 # GND bus joining the shield's GND screws and the left GND
-wire([(1055, Y_G1), (1055, 800)], C_GND)
+wire([(1055, Y_G1), (1055, 835)], C_GND)
 wire([(AX1 - 7, Y_G1), (1055, Y_G1)], C_GND)
-for y in (Y_G1, Y_G2, Y_G3):
+for y in (Y_S2, Y_S3):
+    wire([(1055, y), (AX1 - 7, y)], C_GND)
+for y in (Y_G1, Y_G2, Y_S2, Y_G3, Y_S3):
     dot(1055, y)
-wire([(AX0 + 7, Y_GL), (740, Y_GL), (740, 800), (1055, 800)], C_GND)
-text(760, 818, "shield GND rail", 10, fill="#555")
+wire([(AX0 + 7, Y_GL), (740, Y_GL), (740, 835), (1055, 835)], C_GND)
+text(760, 828, "shield GND", 10, fill="#555")
 text(760, 700, "D3 free (flow meter)", 11, fill="#555")
+text(760, 716, "layout: shield-layout.svg", 11, fill="#555")
 
 # --- DS18B20 probes on the 1-Wire bus -------------------------------------------------------
 BUS_END = 1560
 wire([(AX1 + 7, Y_5V), (BUS_END, Y_5V)], C_5V)
 wire([(AX1 + 7, Y_D2), (BUS_END, Y_D2)], C_DQ)
 wire([(AX1 + 7, Y_G1), (BUS_END, Y_G1)], C_GND)
-text(1150, Y_5V - 8, "VDD", 11, fill=C_5V)
-text(1150, Y_D2 - 8, "DQ", 11, fill=C_DQ)
-text(1150, Y_G1 - 8, "GND", 11)
+text(1176, Y_5V - 8, "VDD", 11, fill=C_5V)
+text(1176, Y_D2 - 8, "DQ", 11, fill=C_DQ)
+text(1176, Y_G1 - 8, "GND", 11)
 
 
 def probe(x, title, sub):
@@ -220,7 +224,7 @@ probe(1400, "T2  water from coil", "coil return pipe")
 # --- NTC air sensors ------------------------------------------------------------------------
 
 
-def ntc(y_sig, y_gnd, title, sub):
+def ntc(y_sig, y_gnd, y_sh, title, sub):
     bx = 1430
     box(bx, y_sig - 30, 180, y_gnd - y_sig + 60, "#eef4fb")
     text(bx + 90, y_sig - 8, title, 13, "middle", "bold")
@@ -231,38 +235,44 @@ def ntc(y_sig, y_gnd, title, sub):
     # shield around the pair, drain to the GND screw at the board end only
     add(f'<rect x="1190" y="{y_sig-12}" width="220" height="{y_gnd-y_sig+24}" rx="10" fill="none" '
         f'stroke="#888" stroke-width="1.5" stroke-dasharray="6 4"/>')
-    wire([(1190, y_gnd + 6), (1150, y_gnd + 6), (1150, y_gnd)], "#888", 1.8, "4 3")
-    dot(1150, y_gnd, "#555")
-    text(1300, y_gnd + 28, "Belden 8451; drain to GND at the board only", 10, "middle", fill="#555")
+    wire([(1190, y_gnd + 6), (1180, y_gnd + 6), (1180, y_sh), (AX1 + 7, y_sh)], "#888", 1.8, "4 3")
+    text(1300, y_gnd + 28, "Belden 8451; drain to SH, grounded at the board only", 10, "middle", fill="#555")
 
 
-ntc(Y_A0, Y_G2, "RA  return air", "return plenum, before coil")
-ntc(Y_A1, Y_G3, "SA  supply air", "supply plenum, after blower")
+ntc(Y_A0, Y_G2, Y_S2, "RA  return air", "return plenum, before coil")
+ntc(Y_A1, Y_G3, Y_S3, "SA  supply air", "supply plenum, after blower")
+
+# --- XT1-XT9 Phoenix QUATTRO feed-through blocks on the DIN rail ----------------------------
+XT_X = 1128
+text(XT_X + 20, AY0 - 34, "XT1–XT9 QUATTRO", 11, "middle", "bold")
+for i, y in enumerate((Y_5V, Y_D2, Y_G1, Y_A0, Y_G2, Y_S2, Y_A1, Y_G3, Y_S3)):
+    add(f'<rect x="{XT_X}" y="{y-11}" width="40" height="22" rx="3" fill="#e8f0e8" stroke="#2e7d32" stroke-width="1.5"/>')
+    text(XT_X + 20, y + 4, f"XT{i+1}", 10, "middle", "bold", "#1b5e20")
 
 # --- DIN rail order -------------------------------------------------------------------------
-add('<rect x="30" y="860" width="1580" height="26" fill="#d9d9d9" stroke="#999"/>')
-text(40, 878, "35 mm DIN rail, left to right:  PS1 buck converter   ·   K1 792 relay on its socket   ·   "
-     "U1 Arduino + proto shield on DIN bracket", 12)
+add('<rect x="30" y="880" width="1580" height="26" fill="#d9d9d9" stroke="#999"/>')
+text(40, 898, "35 mm DIN rail, left to right:  PS1 buck converter   ·   K1 792 relay on its socket   ·   "
+     "XT1–XT9 QUATTRO feed-through blocks   ·   U1 Arduino + proto shield on DIN bracket", 12)
 
 # --- Legend and notes -----------------------------------------------------------------------
-lx, ly = 30, 920
+lx, ly = 30, 945
 for i, (col, lab) in enumerate([(C_R, "24 VAC R"), (C_C, "24 VAC C"), (C_Y2, "Y2"), (C_5V, "+5 V"),
                                 (C_GND, "GND"), (C_DQ, "1-Wire DQ"), (C_AN, "analog A0/A1"),
-                                (C_D6, "D6 relay sense"), (C_USB, "USB-C cable")]):
+                                (C_D8, "D8 relay sense"), (C_USB, "USB-C cable")]):
     x = lx + i * 172
     wire([(x, ly), (x + 40, ly)], col, 3)
     text(x + 48, ly + 4, lab, 12)
 
 notes = [
     "1. K1: Y2 to coil 13 (A1), C to coil 14 (A2). Poles 1 and 2 are paralleled (COM 9–10, NO 5–6) so a dirty contact on one does not drop the reading.",
-    "   COM goes to D6 and NO to GND; R5 pulls D6 to 5 V, so D6 reads LOW while Y2 is on and the contact carries 5 mA, enough to keep it clean.",
-    "2. T1 and T2: one terminal per lead on TB1 (5V, D2, GND each), like terminals joined under the shield. Lead colours vary by batch: confirm VDD/DQ/GND on the probe before landing.",
-    "3. On the shield's prototyping area, beside its terminal blocks: R1 4.7 kΩ, R2 and R3 10.0 kΩ 0.1 % 25 ppm, R5 1 kΩ, C1 and C2 0.1 µF ceramic close to the A0 and A1 pins.",
+    "   COM goes to D8 and NO to GND; R10 pulls D8 to 5 V, so D8 reads LOW while Y2 is on and the contact carries 5 mA, enough to keep it clean.",
+    "2. Field cables land on XT1–XT9, both probes' like leads on one block; one 22 AWG patch wire runs from each block to its shield terminal. Confirm VDD/DQ/GND on the probe before landing.",
+    "3. Shield parts: R7 4.7 kΩ, R8 and R9 10.0 kΩ 0.1 % 25 ppm, R10 1 kΩ, C6 and C7 0.1 µF. Placement and the 5 V rail: mbr-air-handler-node-shield-layout.svg.",
     "4. PS1 and the probes: with a non-isolated converter, the Arduino's GND rides on the 24 VAC transformer. Check PS1 input-to-output with an ohmmeter (open = isolated)",
     "   and each probe sheath and NTC body to its leads (open). Unplug PS1's USB-C before plugging a laptop into U1.",
 ]
 for i, n in enumerate(notes):
-    text(30, 970 + i * 22, n, 12)
+    text(30, 995 + i * 22, n, 12)
 
 add("</svg>")
 Path(__file__).with_name("mbr-air-handler-node-wiring.svg").write_text("\n".join(out) + "\n")
