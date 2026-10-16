@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1282" height="1216" viewBox="0 0 1282 1216" font-family="Helvetica, Arial, sans-serif" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" width="7.25in" height="6.88in" viewBox="0 0 1282 1216" font-family="Helvetica, Arial, sans-serif" font-size="13">
 <title>Master bedroom air-handler node: PROTO-SHIELD lead holes</title>
 <rect width="1282" height="1216" fill="#ffffff"/>
 <text x="20.0" y="32.0" font-size="20" text-anchor="start" font-weight="bold" fill="#000">PROTO-SHIELD rev A: the proto area enlarged, component side</text>
-<text x="20.0" y="56.0" font-size="13" text-anchor="start" font-weight="normal" fill="#444">20 px per mm. Columns c1–c13 left to right, rows r1–r14 top to bottom; the small holes between the columns are the 3V3 (orange) and GND (black) buses.</text>
+<text x="20.0" y="56.0" font-size="13" text-anchor="start" font-weight="normal" fill="#444">Prints on one page at 2.9 times actual size. Columns c1–c13 left to right, rows r1–r14 top to bottom; the small holes between the columns are the 3V3 (orange) and GND (black) buses.</text>
 <text x="20.0" y="76.0" font-size="13" text-anchor="start" font-weight="normal" fill="#444">Parts are outlines under the pads. Ring: a part's lead hole. Pink pad: a joint on the 5 V rail. Dot: a solder-side wire lands here.</text>
 <clipPath id="area"><rect x="40.0" y="110.0" width="772.0" height="1066.8"/></clipPath>
 <rect x="40.0" y="110.0" width="772.0" height="1066.8" fill="#fbeaea" stroke="#8b1e1e" stroke-width="1.5" stroke-dasharray="6 4"/>
