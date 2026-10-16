@@ -26,6 +26,7 @@
 	* Check and set expansion tank pressure to 21 psi, 1–2 psi below the 22–23 psi cold fill, so the bladder holds some fluid when the loop is cold.
 	* Do a 30 minute Rydlime flush on the boiler loop only, with the chiller and tank isolated, and rinse with water until it runs neutral so no acid meets the new glycol. Service air separators. Install union if practical to main loop air separator to facilitate future service.
 4. Refill system
+	* For any significant fill, temporarily remove the demineralization filter and fill through the bypass valve behind the auto-fill pressure regulator, to avoid over-pressurizing the system. Refit the filter when the fill is done.
 	* replace  wye filter. open the chiller side valves on the tank and use the throttled pump to fill the tank and chiller loop till fluid comes out the hydro tank air vent.
 	* Close tank and hydro air vent, chiller loop is done.
 	* Use drain on system-side auto-fill section to fill rest of system. do the kids and MBR loop first.
