@@ -196,12 +196,13 @@ def draw_proto(detail):
 # Drawing 1: the whole board
 # ===================================================================================================
 W, H = 1560, 860
-add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
-    f'font-family="Helvetica, Arial, sans-serif" font-size="12">')
+PAGE_W = 10.0            # inches: fits the printable width of US letter and A4 in landscape
+add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{PAGE_W}in" height="{PAGE_W * H / W:.2f}in" '
+    f'viewBox="0 0 {W} {H}" font-family="Helvetica, Arial, sans-serif" font-size="12">')
 add('<title>Master bedroom air-handler node: PROTO-SHIELD layout</title>')
 add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 text(20, 32, "Master bedroom air-handler node: parts on the Olimex PROTO-SHIELD rev A, component side", 18, weight="bold")
-text(20, 54, "To scale, 11 px per mm. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed "
+text(20, 54, "Prints on one landscape page at 1.8 times actual size. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed "
      "wires run on the solder side, drawn as seen through the board.", 12, fill="#444")
 text(20, 72, "Coordinates in mm from the board's bottom-left corner, as on Olimex's mechanical drawing. Columns c1–c13 "
      "run left to right, rows r1–r14 top to bottom. mbr-air-handler-node-shield-holes.svg enlarges the proto area.",

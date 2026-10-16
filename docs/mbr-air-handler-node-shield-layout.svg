@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="860" viewBox="0 0 1560 860" font-family="Helvetica, Arial, sans-serif" font-size="12">
+<svg xmlns="http://www.w3.org/2000/svg" width="10.0in" height="5.51in" viewBox="0 0 1560 860" font-family="Helvetica, Arial, sans-serif" font-size="12">
 <title>Master bedroom air-handler node: PROTO-SHIELD layout</title>
 <rect width="1560" height="860" fill="#ffffff"/>
 <text x="20.0" y="32.0" font-size="18" text-anchor="start" font-weight="bold" fill="#000">Master bedroom air-handler node: parts on the Olimex PROTO-SHIELD rev A, component side</text>
-<text x="20.0" y="54.0" font-size="12" text-anchor="start" font-weight="normal" fill="#444">To scale, 11 px per mm. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed wires run on the solder side, drawn as seen through the board.</text>
+<text x="20.0" y="54.0" font-size="12" text-anchor="start" font-weight="normal" fill="#444">Prints on one landscape page at 1.8 times actual size. Parts are outlines under the pads; the red 5 V rail is on the component side; dashed wires run on the solder side, drawn as seen through the board.</text>
 <text x="20.0" y="72.0" font-size="12" text-anchor="start" font-weight="normal" fill="#444">Coordinates in mm from the board's bottom-left corner, as on Olimex's mechanical drawing. Columns c1–c13 run left to right, rows r1–r14 top to bottom. mbr-air-handler-node-shield-holes.svg enlarges the proto area.</text>
 <polygon points="240.0,706.7 966.4,706.7 994.4,678.8 994.4,287.6 966.4,259.7 966.4,120.0 240.0,120.0 240.0,706.7" fill="#fbeaea" stroke="#8b1e1e" stroke-width="2"/>
 <circle cx="393.7" cy="678.8" r="17.6" fill="#fff" stroke="#8b1e1e" stroke-width="1.5"/>
