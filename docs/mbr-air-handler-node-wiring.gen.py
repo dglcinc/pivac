@@ -66,7 +66,7 @@ def cap_v(x, y1, y2, color, label, side="right"):
     text(tx, mid + 4, label, 11, anchor)
 
 
-add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
+add(f'<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 {W} {H}" '
     f'font-family="Helvetica, Arial, sans-serif" font-size="13">')
 add('<title>Master bedroom air-handler node wiring</title>')
 add(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
