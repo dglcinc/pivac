@@ -453,6 +453,7 @@ Rules only. The measurements, incident history and reasoning behind each rule ar
 
 ### Pressure Arduinos
 
+- **The DHW expansion tank is an Amtrol ST-25 since about noon on 2026-10-17** (an ST-12 before). In the 21 hours after the swap, `electrical.ac.arduinoPSI.psi` (.114) ran 51.5–69.0 psi, against 40.9–87.0 over the four days before. A water-heater recovery with no draw now raises the pressure 3–4 psi, against 11–19 psi to 73–86 psi before, so a rise of 10 psi or more on a no-draw recovery means the tank's air charge has gone. The ST-25 ships precharged at 40 psi; it works best precharged to the supply pressure, about 54 psi at the low end of the idle band.
 - Both boards occasionally time out (one WARNING, self-recover). After a mains blip the .219 board sometimes fails to rejoin WiFi; `arduino-watchdog.timer` power-cycles the shared Shelly after 15 min down and `arduino-{dhw,hydronic}-psi-stale` email at 30 min. Manual recovery: `curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=false"; sleep 8; curl "http://10.0.0.61/rpc/Switch.Set?id=0&on=true"`. A low `uptime_ms` means a recent reboot; `http=000` means off WiFi.
 
 ### Platform
