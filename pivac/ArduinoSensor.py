@@ -22,6 +22,14 @@ def _to_kelvin(value, scale):
     return pytemperature.f2k(float(value))
 
 
+def _apply_offset(kelvin, offset):
+    """Add a per-input calibration offset in Kelvin (the OneWireTherm convention),
+    before rounding. A missing or null offset leaves the reading alone."""
+    if offset in (None, ""):
+        return kelvin
+    return kelvin + float(offset)
+
+
 def _round_temp(kelvin, digits):
     """Apply the OneWireTherm rounding convention to a Kelvin reading: 0 rounds
     to whole Kelvin, a positive value keeps that many decimals, and a negative
@@ -73,6 +81,8 @@ def status(config = {}, output = "default"):
         # from the module block, then DEFAULT_ROUNDING. Checking the module block directly
         # means it works whether or not the operator remembered to list it in `propagate`.
         # It applies only to the temperature branch; pass-through values are never rounded.
+        # `offset` (Kelvin, per input) is added before rounding, as OneWireTherm does, so a
+        # pair calibration from the bench lives in config rather than in the sketch.
         for field, scfg in sensors.items():
             if field not in parsed:
                 logger.warning("Arduino at %s: field '%s' missing from response %s"
@@ -84,7 +94,8 @@ def status(config = {}, output = "default"):
 
             if scfg.get("type") == "temperature":
                 digits = scfg.get("rounding", config.get("rounding", DEFAULT_ROUNDING))
-                kelvin = _round_temp(_to_kelvin(raw, scfg.get("scale", "fahrenheit")), digits)
+                kelvin = _to_kelvin(raw, scfg.get("scale", "fahrenheit"))
+                kelvin = _round_temp(_apply_offset(kelvin, scfg.get("offset")), digits)
                 if output == "signalk":
                     sk_add_value(sk_source, "%s.%s.temperature" % (sk_path, outname), kelvin)
                 else:

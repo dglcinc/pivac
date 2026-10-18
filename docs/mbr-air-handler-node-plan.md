@@ -66,6 +66,14 @@ Arduino's ground to C or to earth. The relay keeps Y2 off the Arduino, so two ch
 Unplug the converter's USB-C from the R4 before plugging a laptop in to flash it, so the laptop
 never shares a ground with the 24 VAC side.
 
+The converter on hand is isolated (ohmmeter check 1, 2026-10-18), so check 2 is not needed. On the
+bench it delivered 4.65 V at the shield's 5 V terminal with the node running and WiFi up, against
+4.86 V at the same terminal from a laptop's USB, so its output sits about 0.2 V low under load.
+Every part on the node accepts that, and the node ran on it without a reset, so it goes into
+service as is. The node's `uptime_ms` is the evidence to watch: a reset to near zero with no WiFi
+message in the log is a supply dropout, and the remedy is a converter specified at 5.1 to 5.2 V or
+with a trim pot.
+
 ## 3. Wiring
 
 The drawing carries every connection; this section gives the reasons and the checks.
@@ -236,7 +244,10 @@ The new header reuses the pressure boards' proven skeleton unchanged: the RA4M1 
 first in `setup()` and refreshed each `loop()` at 5 s, the bounded `connectWiFi()` that resets the
 board with `NVIC_SystemReset()` after 20 s, the 2 s cap on serving one HTTP client, and the
 single-line single-quoted response that `pivac.ArduinoSensor` parses with `ast.literal_eval`.
-`loop()` must never block, so every sensor read below is non-blocking.
+`loop()` must never block, so every sensor read below is non-blocking. The sketch does not call
+`WiFi.setHostname()`: on the R4 WiFi it blocks for longer than the 5 s watchdog and the board
+reboots in a loop before reaching `begin()` (bench, 2026-10-18). The node is named on the UCG
+instead, `AirHandler-MBR`, reserved to 10.0.0.180 by its WiFi MAC `e8:f6:0a:aa:a3:88`.
 
 ### 4.3 Loop timing
 
@@ -256,8 +267,9 @@ single-line single-quoted response that `pivac.ArduinoSensor` parses with `ast.l
 `DallasTemperature` with `setResolution(12)` and `setWaitForConversion(false)`, exactly as the DHW
 board runs it. Every 2 s the sketch reads both probes by ROM with `getTempF(rom)`, then calls
 `requestTemperatures()` to start the next conversion, which takes 750 ms and so is always finished
-by the following read. A read that returns `DEVICE_DISCONNECTED_F` (−196.6 °F) or the power-on
-value of exactly 185.0 °F is a fault, and the field is left out of the response (§4.7).
+by the following read. A read below −100 °F (the library's `DEVICE_DISCONNECTED_F`, −196.6 °F, is a double
+expression and never compares equal to the float it returns) or at the 185.0 °F power-on value is
+a fault, and the field is left out of the response (§4.7).
 
 ### 4.5 Air temperatures
 
@@ -341,7 +353,7 @@ pivac.UnicoAH_MBR:
     description: Master bedroom Unico M2430, coil water and air temperatures and the Y2 call
     module: pivac.ArduinoSensor
     enabled: true
-    ipaddr: 10.0.0.xxx
+    ipaddr: 10.0.0.180
     rounding: 2
     inputs:
         wsup:
@@ -406,7 +418,8 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 6. `CLAUDE.md`: the Active Services table, the restart, stop and log commands, the Current
    Modules entry, and the board's MAC and IP. The Arduino repo's `CLAUDE.md` gains the board in its
    hardware table.
-7. A DHCP reservation on the UCG for the board's MAC.
+7. A DHCP reservation on the UCG for the board's MAC: `AirHandler-MBR`, `e8:f6:0a:aa:a3:88`,
+   10.0.0.180 (set 2026-10-18).
 
 ## 6. Calibration and commissioning
 

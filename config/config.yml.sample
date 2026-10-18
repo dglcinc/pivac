@@ -328,6 +328,49 @@ pivac.ArduinoThermPSI:
             sk_path: propulsion.mainEngine.fuel
             outname: pressure
 
+pivac.UnicoAH_MBR:
+    # Master bedroom Unico air handler node: UNO R4 WiFi at 10.0.0.180 (MAC e8:f6:0a:aa:a3:88),
+    # two DS18B20 on the coil's water pipes, two 10K NTC duct sensors, and the thermostat's Y2
+    # call through a relay. Design: docs/mbr-air-handler-node-plan.md. Shares pivac.ArduinoSensor.
+    description: Master bedroom Unico M2430, coil water and air temperatures and the Y2 call
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.180
+    rounding: 2
+    inputs:
+        # Each key is a field in the node's response. A field the node leaves out (a probe that
+        # failed to read) logs one warning and that path goes stale; it is never a sentinel.
+        # `offset` is a per-input calibration in KELVIN, added before rounding (plan section 6).
+        wsup:
+            sk_path: environment.inside.hvac.ah.mbr.water
+            outname: supply
+            type: temperature
+            offset: 0.0
+        wret:
+            sk_path: environment.inside.hvac.ah.mbr.water
+            outname: return
+            type: temperature
+            offset: 0.0
+        aret:
+            sk_path: environment.inside.hvac.ah.mbr.air
+            outname: return
+            type: temperature
+            offset: 0.0
+        asup:
+            sk_path: environment.inside.hvac.ah.mbr.air
+            outname: supply
+            type: temperature
+            offset: 0.0
+        y2:
+            sk_path: environment.inside.hvac.ah.mbr
+            outname: y2
+        y2_s:
+            sk_path: environment.inside.hvac.ah.mbr
+            outname: y2Seconds
+        uptime_ms:
+            sk_path: environment.inside.hvac.ah.mbr
+            outname: uptimeMs
+
 # ---------------------------------------------------------------------------
 # Template for a new module — copy and adapt this block.
 # The key (pivac.MyModule) must match your Python file name (pivac/MyModule.py),
