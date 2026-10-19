@@ -183,7 +183,7 @@ spread does not change.
 | Primary distribution, tank to header | Taco 0015-MSF3-IFC | HIGH, read at the switch | 1/20 HP, 18 GPM and 17 ft maximum |
 | Chiller to tank | CX75 internal circulator | controller-modulated | On the far side of the buffer tank. 51.7 L/min in the pump-only window before a start, trimmed to 21 to 53 L/min against inlet temperature while running |
 | Loop A secondary | Grundfos UP26-99F | MEDIUM | 2 zones year-round |
-| Loop B secondary | Grundfos UP26-99F | LOW | 1 zone in summer, 3 in winter |
+| Loop B secondary | Grundfos UP26-99F | HIGH in heating, LOW in cooling | 1 zone in summer, 3 in winter |
 
 Both secondary loops are **insulated PEX, part 1¼" and part 1"**, with the long main runs believed
 to be 1¼" and the smaller size appearing nearer the air handlers. The split is not measured. PEX
