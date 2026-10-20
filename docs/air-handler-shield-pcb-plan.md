@@ -200,10 +200,13 @@ which can raise an interrupt on the R4. TB4, R17, R18 and C9 stay off the board 
 
 ## 5. Layout
 
-The board is laid out in bands, each running from its terminals on the tab to the Arduino pins it serves.
+The board is laid out in bands, each running from its terminals on the tab to the Arduino pins it serves. Every
+part stands at least 1.5 mm from its neighbour, pad to pad, and the larger parts 2 mm or more, so an iron reaches
+every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps before routing.
 
 1. **Top band, 24 VAC.** The entry (F1, D2) sits beside TB1. The Y2 and W2 chains run left from TB1 in two rows
-   to U3 and U4, whose outputs face D8 and D9 on the header above. R and C cross to the top-left on the solder side,
+   to U3 and U4, whose outputs face D8 and D9 on the header above. The two rows stand 7.5 mm apart, and each pair
+   of 2.2 kΩ series resistors stands one above the other. R and C cross to the top-left on the solder side,
    between the two rows, to D1, C1 and U1, which stand under the left half of the digital header. U1's input pins
    face C1, and its output pins face the left edge.
 2. **Left edge, 5 V.** U1's output capacitors, the PWR LED and the +5 and GND test pads sit above the R4's USB-C.
@@ -214,14 +217,14 @@ The board is laid out in bands, each running from its terminals on the tab to th
 | Ref | Part | Centre (x, y) |
 |---|---|---|
 | U1 | TMR 3-4811WI, SIP-8 | body 3.0–24.8, 37.6–46.8 |
-| C1 | 100 µF 63 V, 10 × 10.2 | 31.5, 42.3 |
-| D1 | S1M | 33.5, 35.0 |
-| F1, D2 | entry | 75.5 / 70.0, 50.3 |
-| U3, U4 | LTV-814S | 57.5, 46.0 / 40.3 |
+| C1 | 100 µF 63 V, 10 × 10.2 | 32.5, 42.3 |
+| D1 | S1M | 35.0, 34.0 |
+| F1, D2 | entry | 76.8 / 70.5, 50.5 |
+| U3, U4 | LTV-814S | 54.0, 45.0 / 37.5 |
 | U2 | DS2482-100, SOIC-8 | 72.0, 4.6 |
 | R1–R4, C5, C6 | air dividers | 44.5–52.5, 11.0 / 15.5 |
-| TP1, TP2 | VS, C | 25.6 / 28.4, 35.0 |
-| TP3 | R after F1 | 65.6, 50.3 |
+| TP1, TP2 | VS, C | 26.8 / 29.9, 34.0 |
+| TP3 | R after F1 | 65.0, 47.8 |
 | J1 | test row, 12 pads | 17.0–44.9, 26.0 |
 | TB4, R17, R18, C9 | water meter, not fitted | left edge, y 22 |
 | title block | ring and DL | ring centre 8.6, 9.8 |
