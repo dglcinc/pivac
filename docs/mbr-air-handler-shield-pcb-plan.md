@@ -58,8 +58,10 @@ The Unico Smart Control Board's thermostat block (Bulletin 30-39, Table 5) has t
 4. **E, W3, S3.** No electric heat is fitted.
 
 The accessories block offers one signal the thermostat side cannot: the EAC contact (Table 7), a dry relay contact
-that closes whenever the blower runs on high or low. It proves the blower ran, which separates a dead motor from a
-coil that is short of water. The board reads it on TB2 if the EAC terminals are unused. Check that before wiring it:
+that closes whenever the blower runs on high or low. It proves the blower ran, which separates a dead motor or a
+controller fault from a coil that is short of water; air ΔT alone cannot, since a small ΔT means either no air or
+little load. It also marks blower runs with no call (fan-only, the controller's run-on), whose supply-air readings are
+room air, and counts blower hours. The board reads it on TB2 if the EAC terminals are unused. Check that before wiring it:
 Diagram 12 shows the EAC contact switching 120 V or 24 V to an air cleaner when one is fitted.
 
 ## 3. Board and terminal edge
@@ -133,14 +135,15 @@ phototransistor, surface-mount, 5 kV between input and output. Each call runs to
 | Ref (Y2 / W2) | Part | Job |
 |---|---|---|
 | R5 R6 / R7 R8 | 2.2 kΩ 1206, in series | set the current |
-| LED2 / LED3 | amber 0805 | lights on the call |
+| LED2 / LED3 | blue / red 0805 | lights on the call |
 | D3 / D4 | 1N4148W | carries LED2's reverse half |
 | R9 / R10 | 1 kΩ 0805 | across the opto's input |
 | U3 / U4 | LTV-814S | the isolation |
 | R11 / R12 | 10 kΩ 0805 | pulls D8 or D9 up |
 | C7 / C8 | 1 µF 0805 | bridges the zero crossings |
 
-1. At 25.9 VAC the call peaks at 36.6 V and drives 7.6 mA through the 4.4 kΩ string. R9 takes about 1.2 mA of it,
+1. At 25.9 VAC the call peaks at 36.6 V and drives 7.6 mA through the 4.4 kΩ string (7.3 mA on Y2, whose blue
+   LED drops 3.2 V). R9 takes about 1.2 mA of it,
    and the opto's LEDs carry about 4.5 mA RMS. Each 2.2 kΩ resistor dissipates 0.06 W of its 0.25 W rating.
 2. R9 sets a threshold. A current under about 1 mA leaves less than 1 V across the opto's LEDs, which stay dark, so a
    thermostat's off-state leakage cannot read as a call. The 792 relay achieved the same thing with its 19 V
@@ -270,8 +273,10 @@ own pads; none needs a breakout adapter.
 | R11, R12, R16 | Yageo RC0805FR-0710KL | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-0710KL) | in the kit |
 | R17 | Yageo RC0805FR-07100RL | 1 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-07100RL) | in the kit |
 | R18–R20 | Yageo RC0805FR-074K7L | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-074K7L) | in the kit |
-| LED1 | Lite-On LTST-C171GKT, green | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171GKT) | [search](https://www.amazon.com/s?k=0805+LED+green) |
-| LED2–LED4 | Lite-On LTST-C171AKT, amber | 3 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171AKT) | [search](https://www.amazon.com/s?k=0805+LED+amber) |
+| LED1 | Lite-On LTST-C171GKT, green, PWR | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171GKT) | [search](https://www.amazon.com/s?k=0805+LED+green) |
+| LED2 | Lite-On LTST-C171TBKT, blue, Y2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171TBKT) | [search](https://www.amazon.com/s?k=0805+LED+blue) |
+| LED3 | Lite-On LTST-C171KRKT, red, W2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KRKT) | [search](https://www.amazon.com/s?k=0805+LED+red) |
+| LED4 | Lite-On LTST-C171KSKT, yellow, FAN | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KSKT) | [search](https://www.amazon.com/s?k=0805+LED+yellow) |
 | TB1 | Phoenix MKDS 1/4-3,81, 1727036 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1727036) | [search](https://www.amazon.com/s?k=Phoenix+1727036) |
 | TB2, TB4, TB5 | Phoenix MPT 0,5/2-2,54, 1725656 | 3 | [search](https://www.digikey.com/en/products/result?keywords=1725656) | [search](https://www.amazon.com/s?k=Phoenix+1725656) |
 | TB3, TB6 | Phoenix MPT 0,5/3-2,54, 1725669 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1725669) | [search](https://www.amazon.com/s?k=Phoenix+1725669) |

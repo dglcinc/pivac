@@ -291,7 +291,7 @@ for i, (col, lab) in enumerate(items):
     add(f'<text x="{lx + 24}" y="{yy}" font-size="10.5" fill="#222" font-family="{FONT}">{lab}</text>')
 notes = ["Header pins used: 5V (supply in from U1), GND, A0 A1 air, A2 FAN, A3 FLOW, SDA SCL to U2, D8 Y2, D9 W2,",
          "D2 only through JP1. Red ticks mark the isolation barriers inside U1, U3 and U4.",
-         "LED2 and LED3 light on the 24 VAC side when the call is present; LED4 when the blower contact closes."]
+         "LEDs: LED1 green PWR, LED2 blue Y2 and LED3 red W2 on the 24 VAC side, LED4 yellow FAN."]
 for i, n in enumerate(notes):
     add(f'<text x="{BX}" y="{ly + 92 + i * 18}" font-size="10.5" fill="#444" font-family="{FONT}">{n}</text>')
 
