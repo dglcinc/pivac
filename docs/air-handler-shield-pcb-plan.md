@@ -302,7 +302,7 @@ own pads; none needs a breakout adapter.
 | D2 | Littelfuse SMAJ43CA | 1 | [search](https://www.digikey.com/en/products/result?keywords=SMAJ43CA) | [search](https://www.amazon.com/s?k=SMAJ43CA) |
 | D3, D4 | Diodes 1N4148W-7-F | 2 | [search](https://www.digikey.com/en/products/result?keywords=1N4148W-7-F) | [search](https://www.amazon.com/s?k=1N4148W+SOD-123) |
 | C1 | Panasonic EEE-FK1J101P | 1 | [search](https://www.digikey.com/en/products/result?keywords=EEE-FK1J101P) | [search](https://www.amazon.com/s?k=100uF+63V+SMD+aluminum+electrolytic) |
-| C2 | Murata GRM31CR71A106KA01L | 1 | [search](https://www.digikey.com/en/products/result?keywords=GRM31CR71A106KA01L) | [search](https://www.amazon.com/s?k=10uF+10V+1206+X7R) |
+| C2 | Murata GRM31CR71A106KA01L, or GCM31CR71A106KA64L or GCJ31CR71A106KA13L | 1 | [search](https://www.digikey.com/en/products/result?keywords=GRM31CR71A106KA01L) | [search](https://www.amazon.com/s?k=10uF+10V+1206+X7R) |
 | C3 | Samsung CL31A226KPHNNNE | 1 | [search](https://www.digikey.com/en/products/result?keywords=CL31A226KPHNNNE) | [search](https://www.amazon.com/s?k=22uF+10V+1206) |
 | C4–C6 | Yageo CC0805KRX7R9BB104 | 3 | [search](https://www.digikey.com/en/products/result?keywords=CC0805KRX7R9BB104) | [search](https://www.amazon.com/s?k=100nF+0805+X7R) |
 | C7, C8 | Murata GRM21BR71C105KA01L | 2 | [search](https://www.digikey.com/en/products/result?keywords=GRM21BR71C105KA01L) | [search](https://www.amazon.com/s?k=1uF+0805+X7R) |
