@@ -403,16 +403,20 @@ def radial_flat(board, name, pitch, dia, thick, drill=1.0, size=1.8):
     return fp
 
 
-def sip8_converter(board):
+def sip8_converter(board, pin5=False):
     """Traco TMR 12WI SIP-8: pins 1, 2, 3, 6, 7, 8 at 2.54 mm (pins 4 and 5 do not exist on the
     single-output part), 0.5 x 0.4 mm posts in 1.0 mm holes. Body 22.0 x 9.6 with the pin row
     3.54 mm from one long face and 6.06 from the other; 12.0 mm tall. Origin at pin 1. Pins 9
     and 12 (case) and 10 and 11 (stand-offs) sit on the long faces at 3.59 and 14.19 mm from pin
-    1 and get no holes (Traco: not connected to any circuit); the shanks are clipped."""
+    1 and get no holes (Traco: not connected to any circuit); the shanks are clipped.
+
+    With pin5 the footprint also takes the TMR 3WI, 21.8 x 9.2 x 11.2, whose single-output pins
+    are 1, 2, 3, 5 (no connection), 6, 7 and 8 at the same positions: pin 5 gets a hole and no net."""
     fp = pcbnew.FOOTPRINT(board.board)
-    fp.SetFPID(pcbnew.LIB_ID("pivac", "TMR12WI_SIP-8"))
-    fp.SetLibDescription("Traco TMR 12WI isolated DC/DC converter, SIP-8, 22 x 9.6 x 12 mm")
-    for n in (1, 2, 3, 6, 7, 8):
+    fp.SetFPID(pcbnew.LIB_ID("pivac", "TMR3WI_TMR12WI_SIP-8" if pin5 else "TMR12WI_SIP-8"))
+    fp.SetLibDescription("Traco TMR 3WI or TMR 12WI isolated DC/DC converter, SIP-8" if pin5 else
+                         "Traco TMR 12WI isolated DC/DC converter, SIP-8, 22 x 9.6 x 12 mm")
+    for n in ((1, 2, 3, 5, 6, 7, 8) if pin5 else (1, 2, 3, 6, 7, 8)):
         _pad(fp, n, (n - 1) * PITCH, 0, 1.8, 1.0, pcbnew.PAD_SHAPE_ROUNDRECT if n == 1 else pcbnew.PAD_SHAPE_CIRCLE)
     x0, x1 = -2.11, 7 * PITCH + 2.11
     _fp_rect(fp, x0, -3.54, x1, 6.06, pcbnew.F_Fab, 0.1)
@@ -421,7 +425,8 @@ def sip8_converter(board):
     for n, name in ((1, "-Vin"), (2, "+Vin"), (3, "Rmt"), (6, "+Vo"), (7, "-Vo"), (8, "NC")):
         _fp_text(fp, name, (n - 1) * PITCH, -1.7, pcbnew.F_SilkS, 0.6)
         _fp_text(fp, str(n), (n - 1) * PITCH, 1.7, pcbnew.F_SilkS, 0.6)
-    _fp_text(fp, "TMR 12-4811WI  12 mm tall", 7 * PITCH / 2, 3.2, pcbnew.F_Fab, 0.7)
+    _fp_text(fp, "TMR 3-4811WI or TMR 12-4811WI" if pin5 else "TMR 12-4811WI  12 mm tall", 7 * PITCH / 2, 3.2,
+             pcbnew.F_Fab, 0.7)
     fp.Reference().SetPosition(mm(7 * PITCH / 2, 4.6))
     fp.Value().SetPosition(mm(7 * PITCH / 2, 7.4))
     return fp
@@ -1114,6 +1119,269 @@ def build_extc():
     return B
 
 
+# --------------------------------------------------------------------------- air-handler shield
+def build_ah():
+    """The air-handler node shield for the UNO R4 WiFi (docs/air-handler-shield-pcb-plan.md).
+
+    86.36 x 53.34: the R4's outline plus a 17.78 mm tab past its right edge carrying TB1 to TB3.
+    The plan and its floor plan give positions from the bottom-left corner, y up; here y = 53.34
+    minus that, so the DIGITAL header is the row at y 2.54 and the power and analog row at 50.8."""
+    W, H = 86.36, 53.34
+    Y = lambda yup: H - yup
+    out = os.path.join(HERE, "ah-board")
+    os.makedirs(out, exist_ok=True)
+    B = Board(os.path.join(out, "ah-board.kicad_pcb"), W, H, power_clearance=0.5)
+    custom = []
+    for x0, y0, x1, y1 in ((0, 0, 0.8, H), (W - 0.8, 0, W, H), (0, 0, W, 0.8), (0, H - 0.8, W, H)):
+        B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name="edge via keepout",
+                       pads=False, footprints=False, tracks=False, vias=True, pour=False)
+
+    # --- Arduino headers, Arduino's top-view positions: DIGITAL row along the top edge
+    HDR = (("J10", 18.80, 2.54, ("SCL", "SDA", "", "GND", "", "", "", "", "D9", "D8")),
+           ("J11", 45.72, 2.54, ("", "", "", "", "", "D2", "", "")),
+           ("J12", 27.94, 50.80, ("", "", "", "", "+5V", "GND", "GND", "")),
+           ("J13", 50.80, 50.80, ("A0", "A1", "", "A3", "", "")))
+    names = {"J10": "SCL SDA AREF GND D13 D12 D11 D10 D9 D8", "J11": "D7 D6 D5 D4 D3 D2 D1 D0",
+             "J12": "NC IOREF RST 3V3 5V GND GND VIN", "J13": "A0 A1 A2 A3 A4 A5"}
+    for ref, x0, y0, nets in HDR:
+        fp = pad_array(B, f"ArduinoHeader_1x{len(nets)}", len(nets), 1, square_first=False, margin=1.27)
+        custom.append(B.place(ref, fp, x0, y0, 0, value="Arduino header"))
+        fp.Reference().SetVisible(False)
+        for i, (n, lab) in enumerate(zip(nets, names[ref].split()), start=1):
+            if n:
+                B.connect(ref, i, n)
+            B.text(lab, x0 + (i - 1) * PITCH, y0 + (2.2 if y0 < 10 else -2.2), size=0.6, rot=90)
+    # ICSP: six clearance holes, no copper, for the R4's ICSP pins under the shield
+    icsp = pcbnew.FOOTPRINT(B.board)
+    icsp.SetFPID(pcbnew.LIB_ID("pivac", "ICSP_Clearance_2x3"))
+    for ix in (0.0, 2.54):
+        for iy in (0.0, 2.54, 5.08):
+            _peg(icsp, ix, iy, 1.3)
+    _fp_rect(icsp, -1.0, -1.0, 3.54, 6.08, pcbnew.F_CrtYd, 0.05)
+    custom.append(B.place("H1", icsp, 62.36, Y(29.21), 0, value="ICSP clearance"))
+    icsp.Reference().SetVisible(False)
+    B.rect_keepout(61.2, Y(30.5), 66.1, Y(22.8), layers=("F.Cu", "B.Cu"), name="ICSP clearance",
+                   pads=False, footprints=False, tracks=True, vias=True, pour=True)
+
+    # --- 24 VAC entry: TB1 on the right edge, the MC 1,5 screw plug's header, entry facing +x
+    tb1 = B.lib("TB1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_4-G-3.81_1x04_P3.81mm_Horizontal",
+                0, 0, 0, value="MC 1,5/4-G-3,81 24VAC")
+    for rot in (0, 90, 180, 270):
+        tb1.SetOrientationDegrees(rot); tb1.SetPosition(mm(70.0, 10.0))
+        (x1, y1), (x4, y4) = B.pad_xy("TB1", 1), B.pad_xy("TB1", 4)
+        bb = tb1.GetCourtyard(pcbnew.F_CrtYd).BBox()
+        if abs(x1 - x4) < 0.01 and pcbnew.ToMM(bb.GetRight()) > x1 + 5:
+            break      # body toward +x; the footprint then puts pin 4 at the top
+    else:
+        raise SystemExit("could not orient TB1")
+    top = 4 if y4 < y1 else 1
+    dx = W - pcbnew.ToMM(bb.GetRight()); dy = Y(50.785) - B.pad_xy("TB1", top)[1]
+    tb1.SetPosition(mm(70.0 + dx, 10.0 + dy))
+    tb1.Reference().SetVisible(False)
+    order = (4, 3, 2, 1) if top == 4 else (1, 2, 3, 4)
+    tb1x = B.pad_xy("TB1", 1)[0]
+    for k, n, lab in zip(order, ("ACR", "COM", "Y2", "W2"), ("R", "C", "Y2", "W2")):
+        B.connect("TB1", k, n)
+        B.text(lab, tb1x - 3.4, B.pad_xy("TB1", k)[1], size=0.9, bold=True)
+
+    f1 = B.lib("F1", "Fuse", "Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder", 69.0, Y(51.1), 0,
+               value="1812L020/60DR")
+    B.connect("F1", 1, "ACF"); B.connect("F1", 2, "ACR")
+    d2 = B.lib("D2", "Diode_SMD", "D_SMA", 69.5, Y(47.0), 0, value="SMAJ43CA")
+    B.connect("D2", 1, "ACF"); B.connect("D2", 2, "COM")
+    custom.append(B.place("TP3", pad_array(B, "TestLoop", 1, 1, size=1.8, drill=1.0, square_first=False,
+                                           margin=1.1), 63.8, Y(47.4), 0, value="RF"))
+    B.connect("TP3", 1, "ACF")
+    B.text("RF", 63.8, Y(45.6), size=0.8, bold=True)
+    B.refs["TP3"].Reference().SetVisible(False)
+
+    # --- converter: U1 at the top-left of the R4 outline, pin 1 at the right; C1 and D1 beside it
+    u1 = sip8_converter(B, pin5=True)
+    custom.append(B.place("U1", u1, 22.8, Y(41.1), 180, value="TMR 3-4811WI"))
+    for n, net in ((1, "COM"), (2, "VS"), (6, "+5V"), (7, "GND")):
+        B.connect("U1", n, net)
+    if abs(B.pad_xy("U1", 8)[0] - 5.02) > 0.01:
+        raise SystemExit("U1 pin 8 misplaced")
+    u1.Reference().SetPosition(mm(13.9, Y(44.6)))
+    # Traco: no copper under the converter. Body x 2.7 to 24.9, y_up 37.6 to 47.2.
+    B.rect_keepout(2.6, Y(47.3), 25.0, Y(37.5), layers=("F.Cu",), name="no copper under U1",
+                   pads=False, footprints=False, tracks=True, vias=True, pour=True)
+    pins = [22.8 - (n - 1) * PITCH for n in (1, 2, 6, 7)]
+    edges = [2.6] + [v for x in sorted(pins) for v in (x - 1.0, x + 1.0)] + [25.0]
+    for x0, x1 in zip(edges[0::2], edges[1::2]):
+        B.rect_keepout(x0, Y(47.3), x1, Y(41.1) - 0.0, layers=("B.Cu",), name="no copper under U1",
+                       pads=False, footprints=False, tracks=True, vias=True, pour=True)
+    c1 = B.lib("C1", "Capacitor_SMD", "CP_Elec_10x10.5", 32.5, Y(42.3), 0, value="100u 63V")
+    c1.Reference().SetPosition(mm(32.5, Y(42.3) + 6.2))
+    B.connect("C1", 1, "VS"); B.connect("C1", 2, "COM")
+    d1 = B.lib("D1", "Diode_SMD", "D_SMA", 35.0, Y(34.0), 0, value="S1M")
+    B.connect("D1", 1, "VS"); B.connect("D1", 2, "ACF")
+    for ref, x, net, lab in (("TP1", 25.3, "VS", "VS"), ("TP2", 28.8, "COM", "C")):
+        custom.append(B.place(ref, pad_array(B, "TestLoop", 1, 1, size=1.8, drill=1.0, square_first=False,
+                                              margin=1.1), x, Y(34.0), 0, value=lab))
+        B.connect(ref, 1, net)
+        B.text(lab, x, Y(32.2), size=0.8, bold=True)
+    c2 = B.lib("C2", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 5.4, Y(34.8), 0, value="10u")
+    c3 = B.lib("C3", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 11.8, Y(34.8), 0, value="22u")
+    for ref in ("C2", "C3"):
+        B.connect(ref, 1, "+5V"); B.connect(ref, 2, "GND")
+    B.lib("R16", "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", 9.6, Y(31.4), 0, value="1k")
+    B.lib("LED1", "LED_SMD", "LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder", 4.6, Y(31.4), 0, value="green PWR")
+    B.connect("R16", 1, "PWRLED"); B.connect("R16", 2, "+5V")
+    B.connect("LED1", 1, "GND"); B.connect("LED1", 2, "PWRLED")
+    B.text("PWR", 12.4, Y(31.4), size=0.7, bold=True, left=True)
+
+    # --- Y2 and W2: series resistors, shunt, LED and its diode, optocoupler, output pull-up and filter
+    OX = 53.0
+    for row, call, pin, refs, led in ((42.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3", "U3", "R11", "C7"), "blue"),
+                                      (34.5, "W2", "D9", ("R7", "R8", "R10", "LED3", "D4", "U4", "R12", "C8"), "red")):
+        ra, rb, rsh, ld, dap, opt, rpu, cf = refs
+        y = Y(row)
+        B.lib(ra, "Resistor_SMD", "R_1206_3216Metric_Pad1.30x1.75mm_HandSolder", 71.6, y - 1.65, 0, value="2k2")
+        B.lib(rb, "Resistor_SMD", "R_1206_3216Metric_Pad1.30x1.75mm_HandSolder", 71.6, y + 1.65, 0, value="2k2")
+        B.lib(rsh, "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", 67.0, y, 90, value="1k")
+        B.lib(ld, "LED_SMD", "LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder", 62.6, y - 1.45, 0, value=led)
+        B.lib(dap, "Diode_SMD", "D_SOD-123", 62.6, y + 1.45, 0, value="1N4148W")
+        B.lib(opt, "Package_DIP", "SMDIP-4_W9.53mm", OX, y, 0, value="LTV-814S")
+        B.lib(rpu, "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", 44.8, y, 90, value="10k")
+        B.lib(cf, "Capacitor_SMD", "C_0805_2012Metric_Pad1.18x1.45mm_HandSolder", 41.4, y, 90, value="1u")
+        a, b, c, o = call + "A", call + "B", call + "C", call + "O"
+        B.connect(ra, 1, call); B.connect(ra, 2, a)
+        B.connect(rb, 1, a); B.connect(rb, 2, b)
+        B.connect(ld, 2, b); B.connect(ld, 1, c)          # LED: pad 1 cathode
+        B.connect(dap, 1, b); B.connect(dap, 2, c)        # diode anti-parallel: pad 1 cathode
+        B.connect(rsh, 1, c); B.connect(rsh, 2, "COM")
+        B.connect(opt, 1, c); B.connect(opt, 2, "COM")
+        B.connect(opt, 3, "GND"); B.connect(opt, 4, pin)
+        B.connect(rpu, 1, pin); B.connect(rpu, 2, "+5V")
+        B.connect(cf, 1, pin); B.connect(cf, 2, "GND")
+    for ref, row, call in (("U3", 42.0, "Y2"), ("U4", 34.5, "W2")):
+        B.refs[ref].Reference().SetPosition(mm(OX, Y(row)))
+        B.text(call, OX, Y(row) + 3.3, size=0.9, bold=True)
+    for ref in ("LED2", "D3", "LED3", "D4"):
+        r = B.refs[ref].Reference()
+        r.SetPosition(mm(65.1, pcbnew.ToMM(B.refs[ref].GetPosition().y)))
+        r.SetTextSize(VECTOR2I(FromMM(0.6), FromMM(0.6))); r.SetTextThickness(FromMM(0.1))
+
+    # --- air temperatures: dividers beside TB2, filter capacitors at A0 and A1
+    for ref, x, row, n1, n2, val in (("R2", 68.4, 29.6, "+5V", "AIRS", "10k0 0.1%"), ("R4", 73.2, 29.6, "AIRS", "A1", "1k"),
+                                     ("R1", 68.4, 25.1, "+5V", "AIRR", "10k0 0.1%"), ("R3", 73.2, 25.1, "AIRR", "A0", "1k")):
+        B.lib(ref, "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", x, Y(row), 0, value=val)
+        B.connect(ref, 1, n1); B.connect(ref, 2, n2)
+    # R1's +5 V pad faces the ICSP clearance and the router leaves it open: join it to R2's
+    (xa, ya), (xb, yb) = B.pad_xy("R1", 1), B.pad_xy("R2", 1)
+    B.track("+5V", xa, ya, xb, yb, width=0.5)
+    for ref, x, net in (("C5", 50.8, "A0"), ("C6", 54.0, "A1")):
+        B.lib(ref, "Capacitor_SMD", "C_0805_2012Metric_Pad1.18x1.45mm_HandSolder", x, Y(7.0), 90, value="100n")
+        B.connect(ref, 1, net); B.connect(ref, 2, "GND")
+
+    # --- PTSM surface-mount headers, entry face on the edge
+    def ptsm(ref, n, side, yc, nets, value, dnp=False):
+        h = ptsm_hh_smd(B, n)
+        custom.append(B.place(ref, h, W if side > 0 else 0.0, Y(yc), 0, value=value, dnp=dnp))
+        for rot in (0, 90, 180, 270):
+            h.SetOrientationDegrees(rot); h.SetPosition(mm(W if side > 0 else 0.0, Y(yc)))
+            xs = [B.pad_xy(ref, k)[0] for k in range(1, n + 1)]
+            ys = [B.pad_xy(ref, k)[1] for k in range(1, n + 1)]
+            if max(xs) - min(xs) < 0.01 and ((xs[0] < W - 5) if side > 0 else (xs[0] > 5)):
+                break
+        else:
+            raise SystemExit(f"could not orient {ref}")
+        # nets and labels are listed top to bottom; pad numbering runs whichever way the
+        # rotation leaves it
+        order = sorted(range(1, n + 1), key=lambda k: B.pad_xy(ref, k)[1])
+        for k, net in zip(order, nets):
+            if net:
+                B.connect(ref, k, net)
+        h.Reference().SetVisible(False)
+        tops[ref] = order
+        return h
+    tops = {}
+    ptsm("TB2", 4, 1, 27.7, ("AIRS", "GND", "AIRR", "GND"), "PTSM 0,5/4-HH-2,5-SMD air")
+    ptsm("TB3", 3, 1, 7.8, ("OWV", "OWD", "GND"), "PTSM 0,5/3-HH-2,5-SMD 1-wire")
+    ptsm("TB4", 3, -1, 22.0, ("+5V", "FLOW", "GND"), "PTSM 0,5/3-HH-2,5-SMD flow", dnp=True)
+    for ref, labs in (("TB2", ("SUP", "G", "RET", "G")), ("TB3", ("V", "D", "G")), ("TB4", ("+5", "FLOW", "G"))):
+        for k, lab in zip(tops[ref], labs):
+            x, y = B.pad_xy(ref, k)
+            B.text(lab, x - 2.6 if x > 40 else x + 2.6, y, size=0.8, bold=True)
+    B.text("AIR", 74.6, Y(33.6), size=0.9, bold=True)
+    B.text("1-WIRE", 74.2, Y(14.6), size=0.9, bold=True)
+    B.text("FLOW: option, not fitted", 16.0, Y(22.6), size=0.6, left=True)
+
+    # --- water meter, optional: pull-up, series resistor and filter into A3, all unfitted
+    for ref, x, fpn, val, n1, n2 in (("R17", 13.6, "R", "10k", "+5V", "FLOW"), ("R18", 17.2, "R", "100R", "FLOW", "A3"),
+                                     ("C9", 20.8, "C", "1n C0G", "A3", "GND")):
+        lib = ("Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder") if fpn == "R" else \
+              ("Capacitor_SMD", "C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+        B.lib(ref, lib[0], lib[1], x, Y(20.4), 90, value=val, dnp=True)
+        B.connect(ref, 1, n1); B.connect(ref, 2, n2)
+
+    # --- 1-wire master beside TB3
+    u2 = B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 61.5, Y(13.0), 0, value="DS2482S-100+")
+    for n, net in ((1, "+5V"), (2, "OWD"), (3, "GND"), (4, "SCL"), (5, "SDA"), (7, "GND"), (8, "GND")):
+        B.connect("U2", n, net)
+    B.lib("C4", "Capacitor_SMD", "C_0805_2012Metric_Pad1.18x1.45mm_HandSolder", 61.5, Y(8.5), 0, value="100n")
+    B.connect("C4", 1, "+5V"); B.connect("C4", 2, "GND")
+    B.lib("F2", "Fuse", "Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder", 72.0, Y(10.6), 0, value="1812L020/60DR")
+    B.connect("F2", 1, "+5V"); B.connect("F2", 2, "OWV")
+    for ref, x, row, val, n1, n2, dnp in (("R13", 69.0, 18.6, "4k7", "+5V", "SDA", False),
+                                          ("R14", 73.8, 18.6, "4k7", "+5V", "SCL", False),
+                                          ("R15", 63.8, 18.6, "4k7", "OWV", "OWD", True)):
+        B.lib(ref, "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", x, Y(row), 0, value=val, dnp=dnp)
+        B.connect(ref, 1, n1); B.connect(ref, 2, n2)
+    B.lib("JP1", "Jumper", "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm", 67.8, Y(15.2), 0, value="DATA->D2")
+    B.connect("JP1", 1, "OWD"); B.connect("JP1", 2, "D2")
+    B.text("JP1 to D2", 67.8, Y(13.4), size=0.6)
+
+    # --- J1 test row
+    J1N = (("GND", "GND"), ("+5V", "+5"), ("D8", "Y2"), ("D9", "W2"), ("A3", "FLOW"), ("A0", "AIR-R"),
+           ("A1", "AIR-S"), ("OWV", "1W-V"), ("OWD", "1W-D"), ("SDA", "SDA"), ("SCL", "SCL"), ("GND", "GND"))
+    j1 = pad_array(B, f"TestRow_1x{len(J1N)}", len(J1N), 1, square_first=True)
+    custom.append(B.place("J1", j1, 17.0, Y(26.0), 0, value="test row"))
+    j1.Reference().SetPosition(mm(14.4, Y(26.0)))
+    for i, (net, lab) in enumerate(J1N, start=1):
+        B.connect("J1", i, net)
+        B.text(lab, 17.0 + (i - 1) * PITCH, Y(26.0) - 2.6, size=0.6, rot=90)
+
+    # --- pad gaps: every pad stands at least 1.5 mm from any pad of another part, so an iron
+    # reaches each joint (the plan's rule; the check allows 0.05 for rounding)
+    pads = [(fp.GetReference(), p) for fp in B.board.GetFootprints() for p in fp.Pads()
+            if p.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH]
+    worst = (99, None)
+    close = {}
+    for i, (ra, pa) in enumerate(pads):
+        ba = pa.GetBoundingBox()
+        for rb, pb in pads[i + 1:]:
+            if ra == rb:
+                continue
+            bb2 = pb.GetBoundingBox()
+            dx = max(0, pcbnew.ToMM(max(ba.GetLeft() - bb2.GetRight(), bb2.GetLeft() - ba.GetRight())))
+            dy = max(0, pcbnew.ToMM(max(ba.GetTop() - bb2.GetBottom(), bb2.GetTop() - ba.GetBottom())))
+            d = (dx * dx + dy * dy) ** 0.5
+            if d < 1.5 and not (ra.startswith("J1") and rb.startswith("J1")):
+                key = tuple(sorted((ra, rb)))
+                close[key] = min(close.get(key, 99), d)
+            if d < worst[0]:
+                worst = (d, f"{ra}.{pa.GetNumber()} - {rb}.{pb.GetNumber()}")
+    print(f"closest pads of different parts: {worst[0]:.2f} mm ({worst[1]})")
+    for (ra, rb), d in sorted(close.items(), key=lambda kv: kv[1]):
+        print(f"  under 1.5 mm: {ra} - {rb} {d:.2f}")
+
+    # --- legends and title block
+    title_block(B, 8.6, Y(9.8), 1.0, "AIR HANDLER", rev="A")
+    tx = 8.6 + 4.425 + 1.6
+    # a box under the version line for the zone, in marker
+    zy0, zy1 = Y(9.8) + 3.3, Y(9.8) + 5.3
+    for x0, y0, x1, y1 in ((tx, zy0, tx + 12.0, zy0), (tx + 12.0, zy0, tx + 12.0, zy1),
+                           (tx + 12.0, zy1, tx, zy1), (tx, zy1, tx, zy0)):
+        B.line(x0, y0, x1, y1, width=0.15)
+    B.text("ZONE", tx + 0.4, zy0 + 1.0, size=0.6, left=True)
+    B.save()
+    save_pretty(custom)
+    if worst[0] < 1.45:
+        raise SystemExit("pads closer than 1.5 mm: " + worst[1])
+    return B
+
 if __name__ == "__main__":
     which = sys.argv[1:] or ["int", "ext"]
     if "int" in which:
@@ -1125,3 +1393,6 @@ if __name__ == "__main__":
     if "extc" in which:
         build_extc()
         print("wrote extc-board")
+    if "ah" in which:
+        build_ah()
+        print("wrote ah-board")

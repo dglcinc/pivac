@@ -328,6 +328,78 @@ def build_extc():
     return S
 
 
+# ------------------------------------------------------------------ air-handler shield
+def build_ah():
+    S = Sheet(os.path.join(HERE, "ah-board", "ah-board.kicad_sch"), "ah-board")
+    ds, ds_pins = box_symbol("DS2482-100", [(1, "VCC"), (2, "IO"), (3, "GND"), (4, "SCL")], [(8, "AD0"), (7, "AD1"), (6, "PCTLZ"), (5, "SDA")],
+                             desc="Analog Devices DS2482S-100+ I2C to 1-Wire bridge, SO-8")
+    S.lib("pivac:DS2482-100", ds, ds_pins)
+    tmr, tmr_pins = box_symbol("TMR3WI", [(1, "-Vin"), (2, "+Vin"), (3, "Remote")], [(6, "+Vout"), (7, "-Vout"), (5, "NC"), (8, "NC")],
+                               desc="Traco TMR 3-4811WI isolated DC/DC, 18-75 V in, 5 V 0.6 A out, SIP-8")
+    S.lib("pivac:TMR3WI", tmr, tmr_pins)
+    opto, opto_pins = box_symbol("LTV-814S", [(1, "A/K"), (2, "K/A")], [(4, "C"), (3, "E")], width=12.7,
+                                 desc="Lite-On LTV-814S AC-input optocoupler, SMD-4")
+    S.lib("pivac:LTV-814S", opto, opto_pins)
+    S.text("pivac air-handler node shield for the UNO R4 WiFi (docs/air-handler-shield-pcb-plan.md)", 20, 15, 3)
+    S.text("24 VAC on TB1 (R, C, Y2, W2). F1, D2 TVS, D1 half-wave into C1: VS about 35 V against C (net COM). U1 isolates and feeds the R4's 5V pin.", 20, 21, 1.6)
+    S.place("Connector_Generic:Conn_01x04", "TB1", "MC 1,5/4-G-3,81 24VAC", 30, 50, {4: "ACR", 3: "COM", 2: "Y2", 1: "W2"}, footprint="Connector_Phoenix_MC:PhoenixContact_MC_1,5_4-G-3.81_1x04_P3.81mm_Horizontal")
+    S.place("Device:Fuse", "F1", "1812L020/60DR", 60, 50, {2: "ACR", 1: "ACF"}, footprint="Fuse:Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder")
+    S.place("Device:D_TVS", "D2", "SMAJ43CA", 85, 50, {1: "ACF", 2: "COM"}, footprint="Diode_SMD:D_SMA")
+    S.place("Device:D", "D1", "S1M", 110, 50, {2: "ACF", 1: "VS"}, footprint="Diode_SMD:D_SMA")
+    S.place("Device:C_Polarized", "C1", "100u 63V", 135, 50, {1: "VS", 2: "COM"}, footprint="Capacitor_SMD:CP_Elec_10x10.5")
+    S.place("pivac:TMR3WI", "U1", "TMR 3-4811WI", 175, 50, {1: "COM", 2: "VS", 6: "+5V", 7: "GND"}, footprint="pivac:TMR3WI_TMR12WI_SIP-8")
+    S.place("Device:C", "C2", "10u", 215, 50, {1: "+5V", 2: "GND"}, footprint="Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder")
+    S.place("Device:C", "C3", "22u", 235, 50, {1: "+5V", 2: "GND"}, footprint="Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder")
+    S.place("Device:R", "R16", "1k", 255, 50, {2: "+5V", 1: "PWRLED"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+    S.place("Device:LED", "LED1", "green PWR", 275, 50, {2: "PWRLED", 1: "GND"}, footprint="LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder")
+    S.text("Y2 and W2: 2 x 2.2k in series, LED and anti-parallel diode, 1k across the optocoupler's input, to C. Output pulled up 10k, 1 uF to GND.", 20, 90, 1.6)
+    for i, (call, pin, ra, rb, rsh, led, dap, opt, rpu, cf, col) in enumerate((
+            ("Y2", "D8", "R5", "R6", "R9", "LED2", "D3", "U3", "R11", "C7", "blue"),
+            ("W2", "D9", "R7", "R8", "R10", "LED3", "D4", "U4", "R12", "C8", "red"))):
+        y = 110 + i * 40
+        a, b, c = call + "A", call + "B", call + "C"
+        S.place("Device:R", ra, "2k2", 30, y, {1: call, 2: a}, footprint="Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
+        S.place("Device:R", rb, "2k2", 55, y, {1: a, 2: b}, footprint="Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
+        S.place("Device:LED", led, col, 80, y, {2: b, 1: c}, footprint="LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder")
+        S.place("Device:D", dap, "1N4148W", 105, y, {1: b, 2: c}, footprint="Diode_SMD:D_SOD-123")
+        S.place("Device:R", rsh, "1k", 130, y, {1: c, 2: "COM"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+        S.place("pivac:LTV-814S", opt, "LTV-814S", 165, y, {1: c, 2: "COM", 3: "GND", 4: pin}, footprint="Package_DIP:SMDIP-4_W9.53mm")
+        S.place("Device:R", rpu, "10k", 200, y, {1: pin, 2: "+5V"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+        S.place("Device:C", cf, "1u", 220, y, {1: pin, 2: "GND"}, footprint="Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+    S.text("Air temperatures: 10.0k 0.1% from 5 V to each NTC on TB2, 1k to A0 and A1, 100n at the pins.", 20, 200, 1.6)
+    S.place("Connector_Generic:Conn_01x04", "TB2", "PTSM 0,5/4-HH-2,5-SMD air", 30, 220, {1: "AIRS", 2: "GND", 3: "AIRR", 4: "GND"}, footprint="pivac:PTSM_0.5_4-HH-2.5-SMD")
+    for j, (rd, rs, cc, node, pin) in enumerate((("R1", "R3", "C5", "AIRR", "A0"), ("R2", "R4", "C6", "AIRS", "A1"))):
+        x = 70 + j * 70
+        S.place("Device:R", rd, "10k0 0.1%", x, 220, {1: "+5V", 2: node}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+        S.place("Device:R", rs, "1k", x + 20, 220, {1: node, 2: pin}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+        S.place("Device:C", cc, "100n", x + 40, 220, {1: pin, 2: "GND"}, footprint="Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+    S.text("1-wire: DS2482 at 0x18 on SDA/SCL, bus on TB3 with VCC through F2. JP1 and R15 (not fitted) are the rollback to D2 with U2 removed.", 20, 255, 1.6)
+    S.place("pivac:DS2482-100", "U2", "DS2482S-100+ (0x18)", 60, 280, {1: "+5V", 2: "OWD", 3: "GND", 4: "SCL", 5: "SDA", 7: "GND", 8: "GND"}, footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+    S.place("Device:C", "C4", "100n", 100, 280, {1: "+5V", 2: "GND"}, footprint="Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder")
+    S.place("Device:R", "R13", "4k7", 120, 280, {1: "+5V", 2: "SDA"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+    S.place("Device:R", "R14", "4k7", 140, 280, {1: "+5V", 2: "SCL"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder")
+    S.place("Device:Fuse", "F2", "1812L020/60DR", 160, 280, {1: "+5V", 2: "OWV"}, footprint="Fuse:Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder")
+    S.place("Connector_Generic:Conn_01x03", "TB3", "PTSM 0,5/3-HH-2,5-SMD 1-wire", 190, 280, {1: "OWV", 2: "OWD", 3: "GND"}, footprint="pivac:PTSM_0.5_3-HH-2.5-SMD")
+    S.place("Device:R", "R15", "4k7 (not fitted)", 220, 280, {1: "OWV", 2: "OWD"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", dnp=True)
+    S.place("Jumper:SolderJumper_2_Open", "JP1", "DATA -> D2", 245, 280, {1: "OWD", 2: "D2"}, footprint="Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    S.text("Water meter, optional and not fitted: TB4 (+5, FLOW, GND), R17 10k pull-up, R18 100R and C9 1n into A3.", 20, 310, 1.6)
+    S.place("Connector_Generic:Conn_01x03", "TB4", "PTSM 0,5/3-HH-2,5-SMD flow (not fitted)", 30, 330, {1: "+5V", 2: "FLOW", 3: "GND"}, footprint="pivac:PTSM_0.5_3-HH-2.5-SMD", dnp=True)
+    S.place("Device:R", "R17", "10k (not fitted)", 70, 330, {1: "+5V", 2: "FLOW"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", dnp=True)
+    S.place("Device:R", "R18", "100R (not fitted)", 95, 330, {1: "FLOW", 2: "A3"}, footprint="Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", dnp=True)
+    S.place("Device:C", "C9", "1n C0G (not fitted)", 120, 330, {1: "A3", 2: "GND"}, footprint="Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder", dnp=True)
+    S.text("Arduino headers (5V, GND, A0, A1, A3, SDA, SCL, D2, D8, D9 used) and J1, the 12-pad test row.", 20, 355, 1.6)
+    S.place("Connector_Generic:Conn_01x10", "J10", "SCL..D8", 30, 380, {1: "SCL", 2: "SDA", 4: "GND", 9: "D9", 10: "D8"}, footprint="pivac:ArduinoHeader_1x10")
+    S.place("Connector_Generic:Conn_01x08", "J11", "D7..D0", 70, 380, {6: "D2"}, footprint="pivac:ArduinoHeader_1x8")
+    S.place("Connector_Generic:Conn_01x08", "J12", "NC..VIN", 110, 380, {5: "+5V", 6: "GND", 7: "GND"}, footprint="pivac:ArduinoHeader_1x8")
+    S.place("Connector_Generic:Conn_01x06", "J13", "A0..A5", 150, 380, {1: "A0", 2: "A1", 4: "A3"}, footprint="pivac:ArduinoHeader_1x6")
+    S.place("Connector_Generic:Conn_01x12", "J1", "test row", 200, 380, dict(enumerate(("GND", "+5V", "D8", "D9", "A3", "A0", "A1", "OWV", "OWD", "SDA", "SCL", "GND"), start=1)), footprint="pivac:TestRow_1x12")
+    for ref, x, net in (("TP1", 240, "VS"), ("TP2", 255, "COM"), ("TP3", 270, "ACF")):
+        S.place("Connector:TestPoint", ref, net, x, 380, {1: net}, footprint="pivac:TestLoop")
+    S.pwr_flags(("GND", "VS", "COM", "+5V", "ACR"), 300, 240)
+    S.save()
+    return S
+
+
 if __name__ == "__main__":
     import sys
     which = sys.argv[1:] or ["int", "ext"]
@@ -337,4 +409,6 @@ if __name__ == "__main__":
         build_ext()
     if "extc" in which:
         build_extc()
+    if "ah" in which:
+        build_ah()
     print("wrote", ", ".join(w + "-board.kicad_sch" for w in which))

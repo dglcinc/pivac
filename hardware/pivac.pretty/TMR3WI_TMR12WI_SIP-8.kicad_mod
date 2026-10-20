@@ -1,0 +1,287 @@
+(footprint "TMR3WI_TMR12WI_SIP-8"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Traco TMR 3WI or TMR 12WI isolated DC/DC converter, SIP-8")
+	(property "Reference" "U1"
+		(at 8.9 3.5 0)
+		(layer "F.SilkS")
+		(uuid "eed98a9b-e948-4285-8e40-13b664ab1896")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Value" "TMR 3-4811WI"
+		(at 8.89 7.4 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "84fed216-5169-4c66-95be-321539901ff1")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1c1fb3cf-c07f-41f8-a7ed-4835f39963dc")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "24a4c026-cf02-4b81-8c0c-c1d4c61d78af")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -2.21 -3.64)
+		(end 19.99 6.16)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "b47a2865-64f9-4c09-a453-524619e6aee0")
+	)
+	(fp_rect
+		(start -2.36 -3.79)
+		(end 20.14 6.31)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "96d25079-1cbf-4aad-9be6-00e08aa45222")
+	)
+	(fp_rect
+		(start -2.11 -3.54)
+		(end 19.89 6.06)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "97d8ac17-9c7a-4322-8467-c8735ea9764c")
+	)
+	(fp_text user "-Vin"
+		(at 0 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "83e9414b-17ab-43f3-8e0f-f142eb73569c")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "1"
+		(at 0 1.7 0)
+		(layer "F.SilkS")
+		(uuid "0e05410a-f770-41eb-a09c-f5999bda700e")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "+Vin"
+		(at 2.54 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "57cc1ab0-eb43-48f4-834f-c12e2721b786")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "2"
+		(at 2.54 1.7 0)
+		(layer "F.SilkS")
+		(uuid "cec7aa6d-b1c2-4117-b157-01f3708c623f")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "Rmt"
+		(at 5.08 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "13499c54-2e20-4710-bea0-7598065d329c")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "3"
+		(at 5.08 1.7 0)
+		(layer "F.SilkS")
+		(uuid "ff2c7796-6d2d-4dc7-9343-9f0af1f3844a")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "+Vo"
+		(at 12.7 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "47c67a90-e823-4677-bd59-fe84184d3cc6")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "6"
+		(at 12.7 1.7 0)
+		(layer "F.SilkS")
+		(uuid "93a6f240-0162-46d5-a3e7-0a407b5614ee")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "-Vo"
+		(at 15.24 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "02e80bb4-030f-42c9-aa86-e190a4a7356d")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "7"
+		(at 15.24 1.7 0)
+		(layer "F.SilkS")
+		(uuid "db800b7f-7905-45e2-acf6-126f22ab5197")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "NC"
+		(at 17.78 -1.7 0)
+		(layer "F.SilkS")
+		(uuid "37464495-d2f7-4542-b875-8732db35784d")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "8"
+		(at 17.78 1.7 0)
+		(layer "F.SilkS")
+		(uuid "99e8cd60-7a7d-4f83-8600-bd9ba5c61b95")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+		)
+	)
+	(fp_text user "TMR 3-4811WI or TMR 12-4811WI"
+		(at 8.89 3.2 0)
+		(layer "F.Fab")
+		(uuid "67a75fae-69f9-4a81-98b9-f1bc63db0ec5")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.105)
+			)
+		)
+	)
+	(pad "1" thru_hole roundrect
+		(at 0 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(roundrect_rratio 0.25)
+		(thermal_bridge_angle 45)
+		(uuid "d5bb47c0-69d9-4546-b3af-1f392b1c7390")
+	)
+	(pad "2" thru_hole circle
+		(at 2.54 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "850f2df3-cfdd-40a4-9c34-6c9d1386bac7")
+	)
+	(pad "3" thru_hole circle
+		(at 5.08 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "2b86a908-3066-495e-99aa-1c93b800ab4e")
+	)
+	(pad "5" thru_hole circle
+		(at 10.16 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "eff9f3ba-2cda-4a9b-ab37-5ef695696f52")
+	)
+	(pad "6" thru_hole circle
+		(at 12.7 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "7205d98b-7ae2-4598-a0eb-a667ff02dbd8")
+	)
+	(pad "7" thru_hole circle
+		(at 15.24 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "249d11dd-1699-4f10-89e1-42f3357dd332")
+	)
+	(pad "8" thru_hole circle
+		(at 17.78 0)
+		(size 1.8 1.8)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "b83cc79d-0baf-4e44-89c8-7a974610af64")
+	)
+	(embedded_fonts no)
+)

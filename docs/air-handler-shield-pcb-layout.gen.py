@@ -112,9 +112,9 @@ text(63.63, 21.3, "ICSP holes", 6.5, C_FAINT)
 # ---- 24 VAC side ------------------------------------------------------------------------------------------------
 zone([(15.2, 31.6), (39.0, 31.6), (39.0, 47.9), (15.2, 47.9)],
      "24 VAC side", (24.0, 30.2))
-zone([(59.6, 34.6), (79.06, 34.6), (79.06, 53.04), (59.6, 53.04)])
-rect(39.0, 40.8, 59.6, 41.7, C_PRI, sw=1.0, dash="2 2")
-text(40.0, 39.8, "R · C on the solder side", 6, C_PRI, anchor="start")
+zone([(58.6, 31.9), (79.06, 31.9), (79.06, 53.04), (58.6, 53.04)])
+rect(39.0, 37.8, 58.6, 38.7, C_PRI, sw=1.0, dash="2 2")
+text(39.4, 39.2, "R · C on the solder side", 6, C_PRI, anchor="start")
 
 # ---- Arduino headers -----------------------------------------------------------------------------------------------
 bottom = [("NC", 27.94), ("IOREF", 30.48), ("RST", 33.02), ("3V3", 35.56), ("5V", 38.10), ("GND", 40.64),
@@ -150,16 +150,16 @@ text(32.5, 42.9, "C1", 8, C_PRI, weight="bold")
 text(32.5, 41.5, "100 µF 63 V", 6.5, C_PRI)
 text(32.5, 40.3, "VS ≈ 35 V", 6.5, C_PRI)
 part("D1", 35.0, 34.0, 5.2, 2.8, C_PRI, "S1M")
-for tx, ty, tl in ((26.8, 34.0, "TP1 VS"), (29.9, 34.0, "TP2 C")):
+for tx, ty, tl in ((25.3, 34.0, "TP1 VS"), (28.8, 34.0, "TP2 C")):
     circle(tx, ty, 0.9, C_PRI, fill="#ffffff", sw=1.4)
     text(tx, ty + 1.3, tl, 6, C_PRI)
 
 # 5 V side of the converter: output capacitors, power LED, test pads
-part("C2", 5.0, 34.4, 3.2, 1.6, C_PWR, label_at="in")
-part("C3", 9.8, 34.4, 3.2, 1.6, C_PWR, label_at="in")
-part("LED1", 4.6, 31.2, 2.0, 1.25, C_PWR, label_at="a")
-part("R16", 8.6, 31.2, 2.0, 1.25, C_PWR, label_at="a")
-text(12.6, 30.9, "PWR", 6.5, C_PWR, anchor="start", weight="bold")
+part("C2", 5.4, 34.8, 3.2, 1.6, C_PWR, label_at="in")
+part("C3", 11.8, 34.8, 3.2, 1.6, C_PWR, label_at="in")
+part("LED1", 4.6, 31.4, 2.0, 1.25, C_PWR, label_at="b")
+part("R16", 9.6, 31.4, 2.0, 1.25, C_PWR, label_at="b")
+text(12.6, 31.05, "PWR", 6.5, C_PWR, anchor="start", weight="bold")
 # J1: the test row, 13 plated pads at 2.54 mm that also take a pin header
 J1 = [("GND", C_GND), ("+5", C_PWR), ("Y2", C_IN), ("W2", C_IN), ("FLOW", C_IN), ("AIR-R", C_AN),
       ("AIR-S", C_AN), ("1W-V", C_OW), ("1W-D", C_OW), ("SDA", C_OW), ("SCL", C_OW), ("GND", C_GND)]
@@ -173,19 +173,19 @@ text(12.8, 24.3, "1", 6, "#333")
 
 
 # ---- entry and the two call inputs beside TB1 -----------------------------------------------------------------------
-part("F1", 76.8, 50.6, 3.4, 4.8, C_PRI, "PTC")
-part("D2", 70.5, 50.3, 5.2, 2.8, C_PRI, "TVS")
-circle(65.0, 47.8, 0.9, C_PRI, fill="#ffffff", sw=1.4)
-text(65.0, 49.4, "TP3 RF", 6, C_PRI)
-OX = 54.0     # optocoupler centre
-for row, call, pin, refs in ((45.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3", "U3", "R11", "C7")),
-                             (37.5, "W2", "D9", ("R7", "R8", "R10", "LED3", "D4", "U4", "R12", "C8"))):
+part("F1", 69.0, 51.1, 4.8, 3.4, C_PRI, "PTC")
+part("D2", 69.5, 47.0, 5.2, 2.8, C_PRI, "TVS")
+circle(63.8, 47.4, 0.9, C_PRI, fill="#ffffff", sw=1.4)
+text(63.8, 45.4, "TP3 RF", 6, C_PRI)
+OX = 53.0     # optocoupler centre
+for row, call, pin, refs in ((42.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3", "U3", "R11", "C7")),
+                             (34.5, "W2", "D9", ("R7", "R8", "R10", "LED3", "D4", "U4", "R12", "C8"))):
     ra, rb, rsh, led, dap, opt, rpu, cf = refs
-    part(ra, 71.5, row + 1.4, 3.2, 1.6, C_PRI, label_at="in")
-    part(rb, 71.5, row - 1.4, 3.2, 1.6, C_PRI, label_at="in")
-    part(rsh, 66.5, row, 2.0, 1.25, C_PRI, label_at="b")
-    part(led, 62.5, row + 1.2, 3.0, 1.25, C_PRI, label_at="in")
-    part(dap, 62.5, row - 1.2, 3.0, 1.25, C_PRI, label_at="in")
+    part(ra, 71.6, row + 1.65, 3.2, 1.6, C_PRI, label_at="in")
+    part(rb, 71.6, row - 1.65, 3.2, 1.6, C_PRI, label_at="in")
+    part(rsh, 67.0, row, 1.25, 2.0, C_PRI, label_at="b")
+    part(led, 62.6, row + 1.45, 3.0, 1.25, C_PRI, label_at="in")
+    part(dap, 62.6, row - 1.45, 3.0, 1.25, C_PRI, label_at="in")
     rect(OX - 5.1, row - 2.3, OX + 5.1, row + 2.3, C_OPT, fill=C_OPT, sw=1.0, opacity=0.15, rx=2)
     rect(OX - 5.1, row - 2.3, OX + 5.1, row + 2.3, C_OPT, sw=1.2, rx=2)
     for sx in (OX - 4.3, OX + 4.3):
@@ -196,25 +196,25 @@ for row, call, pin, refs in ((45.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3",
     for y0, y1 in ((row + 2.3, row + 3.2), (row - 3.2, row - 2.3)):
         add(f'<line x1="{X(OX):.1f}" y1="{Y(y0):.1f}" x2="{X(OX):.1f}" y2="{Y(y1):.1f}" stroke="{C_PRI}" '
             f'stroke-width="1.6"/>')
-    part(rpu, 45.6, row, 2.0, 1.25, C_IN, label_at="b")
-    part(cf, 42.0, row, 2.0, 1.25, C_IN, label_at="b")
+    part(rpu, 44.8, row, 1.25, 2.0, C_IN, label_at="b")
+    part(cf, 41.4, row, 1.25, 2.0, C_IN, label_at="b")
 
 # ---- air temperatures: dividers beside TB2, filter capacitors at A0 and A1 -------------------------------------------
-for ref, x, y in (("R2", 70.5, 31.0), ("R4", 74.0, 31.0), ("R1", 70.5, 26.0), ("R3", 74.0, 26.0)):
+for ref, x, y in (("R2", 68.4, 29.6), ("R4", 73.2, 29.6), ("R1", 68.4, 25.1), ("R3", 73.2, 25.1)):
     part(ref, x, y, 2.0, 1.25, C_AN, label_at="a")
-text(72.2, 33.6, "air dividers", 6.5, C_AN, weight="bold")
-part("C5", 50.8, 6.6, 1.25, 2.0, C_AN, label_at="a")
-part("C6", 53.34, 6.6, 1.25, 2.0, C_AN, label_at="a")
+text(70.8, 27.35, "air dividers", 6.5, C_AN, weight="bold")
+part("C5", 50.8, 7.0, 1.25, 2.0, C_AN, label_at="a")
+part("C6", 54.0, 7.0, 1.25, 2.0, C_AN, label_at="a")
 
 # ---- 1-wire master beside TB6 -----------------------------------------------------------------------------------------
-part("U2", 72.0, 4.6, 6.2, 5.0, C_OW, "DS2482-100")
-part("C4", 76.4, 2.2, 1.25, 2.0, C_OW, label_at="in")
-part("F2", 72.5, 10.2, 4.8, 3.4, C_OW, "PTC 0.2 A")
-part("JP1", 70.3, 14.0, 2.0, 1.2, C_OW, label_at="a")
-part("R15", 73.3, 14.0, 2.0, 1.25, C_OW, label_at="a")
-part("R13", 70.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
-part("R14", 73.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
-text(71.8, 20.0, "JP1 to D2: rollback", 6, C_OW)
+part("U2", 61.5, 13.0, 6.2, 5.0, C_OW, "DS2482-100")
+part("C4", 61.5, 8.5, 2.0, 1.25, C_OW, label_at="b")
+part("F2", 72.0, 10.6, 4.8, 3.4, C_OW, "PTC 0.2 A")
+part("JP1", 67.8, 15.2, 2.0, 1.2, C_OW, label_at="b")
+part("R15", 63.8, 18.6, 2.0, 1.25, C_OW, label_at="a")
+part("R13", 69.0, 18.6, 2.0, 1.25, C_OW, label_at="a")
+part("R14", 73.8, 18.6, 2.0, 1.25, C_OW, label_at="a")
+text(67.8, 12.6, "JP1 to D2: rollback", 6, C_OW)
 
 # ---- title block, as on INT: ring and DL from hardware/dl-monogram.svg, name, rule, version --------------------------
 cx, cy, s = 8.6, 9.8, 1.0

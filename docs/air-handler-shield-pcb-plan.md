@@ -1,6 +1,7 @@
 # Air-handler node shield: PCB plan
 
-**Status:** Plan and floor plan drawn; no board generated yet. · **Owner:** David
+**Status:** Board generated, routed and DRC-clean: `hardware/build.sh ah` writes `hardware/ah-board/`, with the OSH Park
+upload `ah-board-gerbers.zip`. Not yet ordered. · **Owner:** David
 
 The first node, at the master bedroom, is an Arduino UNO R4 WiFi with a hand-wired Olimex PROTO-SHIELD, a DIN-rail 24 VAC to
 USB-C buck converter, a Magnecraft 792 relay on a socket and nine feed-through blocks
@@ -32,30 +33,33 @@ specifies them, except that the air sensors no longer need shielded cable (§3).
   terminals take 18 AWG thermostat wire; the sensor terminals take up to 20 AWG.
 - Nothing is stacked on this shield. The Arduino header holes take plain male headers.
 
-## 2. Signals at the Unico thermostat block
+## 2. Signals at the RedLINK EIM
 
-The Unico Smart Control Board's thermostat block (Bulletin 30-39, Table 5) has these inputs, all 24 VAC from R:
+The board takes its 24 VAC and its two calls from the terminals of the Honeywell RedLINK Equipment Interface Module
+(THM5421R1021) at each air handler. The EIM receives the thermostat's calls wirelessly and closes a relay from R to
+each output terminal, which wires on to the Unico Smart Control Board's thermostat block. A call therefore reads the
+same at the EIM as at the Unico, and a relay contact leaks nothing when open.
 
-| Terminal | Call | On this board |
+| EIM terminal | Call | On this board |
 |---|---|---|
-| R, C | 24 VAC supply | power entry |
-| Y1 | cool, low fan | no |
-| Y2 | cool, high fan | U3 |
-| W1 | heat, low fan | no |
-| W2/S1 | heat, high fan | U4 |
+| R, C | 24 VAC supply | TB1 R, C |
+| Y | cool, low fan | no |
+| Y2 | cool, high fan | TB1 Y2, U3 |
+| W | heat, low fan | no |
+| W2 | heat, high fan | TB1 W2, U4 |
 | G | fan only | no |
-| O-b | reversing valve | no |
-| E, W3, S3 | emergency and electric heat | no |
+| W3, U1–U3 | third stage, accessory relays | no |
 
-1. **W2.** The thermostats are two-stage in heat and cool, and stage 2 is the air handler's high fan, so W2 is the
-   heating twin of Y2. Through the winter, with the Chiltrix on in heat mode, the question the node exists to answer
-   (was the coil already on high fan when the room lost ground?) is a W2 question.
-2. **Y1, W1, G.** RedLink reports the first-stage calls and the fan-only state, and `HPCALL` confirms the hydronic
+1. **W2.** The thermostats are two-stage in heat and cool, and stage 2 is the air handler's high fan: a W2 call at
+   the EIM drives the Unico's W2 input, which runs the blower on high. Through the winter, with the Chiltrix on in
+   heat mode, the question the node exists to answer (was the coil already on high fan when the room lost ground?)
+   is a W2 question.
+2. **Y, W, G.** RedLink reports the first-stage calls and the fan-only state, and `HPCALL` confirms the hydronic
    call at the panel. An input here would duplicate them.
-3. **O-b.** The `HPHEAT` and `HPCOOL` relays already report the system's mode.
-4. **E, W3, S3.** No electric heat is fitted.
-
-The accessories block's EAC contact closes whenever the blower runs. The board does not read it.
+3. **One transformer.** The EIM's jumpers join R and Rc when one transformer serves the air handler, which the
+   board needs: its C on TB1 is the return for both call inputs and for its own supply. The EIM's manual says to
+   remove the jumpers for separate transformers; on such a unit, the C wires must be common before the board's
+   inputs read correctly.
 
 ## 3. Board and terminal edge
 
@@ -144,15 +148,13 @@ phototransistor, surface-mount, 5 kV between input and output. Each call runs to
    LED drops 3.2 V). R9 takes about 1.2 mA of it,
    and the opto's LEDs carry about 4.5 mA RMS. Each 2.2 kΩ resistor dissipates 0.06 W of its 0.25 W rating.
 2. R9 sets a threshold. A current under about 1 mA leaves less than 1 V across the opto's LEDs, which stay dark, so a
-   thermostat's off-state leakage cannot read as a call. The 792 relay achieved the same thing with its 19 V
-   operate voltage.
+   leaking output cannot read as a call. The EIM's relay outputs do not leak, so this is margin.
 3. The LTV-814's transfer ratio is at least 20 %, so 6 mA of LED current gives at least 1.2 mA of collector current
    against the 0.5 mA R11 needs. D8 reads low through the call.
 4. The opto lets go for about 1.5 ms around each zero crossing, where the call falls under about 10 V. Through
    R11, C7 rises 0.7 V in that time, so D8 stays low. After the call ends, D8 reads high within 20 ms. The sketch's
    100 ms release hold (node plan §4.6) stays.
-5. Each input draws about 5 mA from the thermostat output, as the relay coil did. The SCB input already loads the
-   same terminal.
+5. Each input draws about 5 mA through the EIM's output relay, alongside the Unico input on the same terminal.
 6. The opto replaces a relay, its coil drive and its flyback diode, and it has no contacts to wet or wear.
 
 ### 4.4 Air temperatures
@@ -164,7 +166,7 @@ and the ADC reference share the 5 V rail.
 
 ### 4.5 1-wire
 
-U2 is a DS2482-100 at address 0x18 (AD0 and AD1 to GND, SLPZ to 5 V), running at 5 V on the R4's SDA and SCL pins,
+U2 is a DS2482-100 at address 0x18 (AD0 and AD1 to GND, PCTLZ unconnected), running at 5 V on the R4's SDA and SCL pins,
 which are A4 and A5. R13 and R14 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB3.D and supplies the bus
 pull-up itself. TB3.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
 drops the R4's rail. C4 decouples U2.
@@ -201,11 +203,11 @@ which can raise an interrupt on the R4. TB4, R17, R18 and C9 stay off the board 
 ## 5. Layout
 
 The board is laid out in bands, each running from its terminals on the tab to the Arduino pins it serves. Every
-part stands at least 1.5 mm from its neighbour, pad to pad, and the larger parts 2 mm or more, so an iron reaches
-every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps before routing.
+pad stands at least 1.5 mm from any pad of another part, so an iron reaches every joint, and the passives use
+KiCad's hand-solder footprints. `build_ah()` in `hardware/gen-boards.py` asserts the gap before routing.
 
 1. **Top band, 24 VAC.** The entry (F1, D2) sits beside TB1. The Y2 and W2 chains run left from TB1 in two rows
-   to U3 and U4, whose outputs face D8 and D9 on the header above. The two rows stand 7.5 mm apart, and each pair
+   to U3 and U4, whose outputs face D8 and D9 on the header above. The two rows stand 7.5 mm apart, 42.0 and 34.5 mm up, and each pair
    of 2.2 kΩ series resistors stands one above the other. R and C cross to the top-left on the solder side,
    between the two rows, to D1, C1 and U1, which stand under the left half of the digital header. U1's input pins
    face C1, and its output pins face the left edge.
@@ -213,7 +215,8 @@ every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps befor
    The 5 V track runs down the left to the 5V header pin.
 3. **Air temperatures.** R1 to R4 stand on the tab beside TB2, and C5 and C6 at the A0 and A1 pins, where the
    ADC draws its sample charge. The trace between carries no DC, so its 30 mm add no error.
-4. **Lower band.** The DS2482 group sits on the tab beside TB3.
+4. **Lower band.** The DS2482 group sits inside the R4 outline left of the tab, between A5 and the ICSP holes;
+   F2 stands beside TB3.
 5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
 
 | Ref | Part | Centre (x, y) |
@@ -221,13 +224,13 @@ every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps befor
 | U1 | TMR 3-4811WI, SIP-8 | body 3.0–24.8, 37.6–46.8 |
 | C1 | 100 µF 63 V, 10 × 10.2 | 32.5, 42.3 |
 | D1 | S1M | 35.0, 34.0 |
-| F1, D2 | entry | 76.8 / 70.5, 50.5 |
-| U3, U4 | LTV-814S | 54.0, 45.0 / 37.5 |
-| U2 | DS2482-100, SOIC-8 | 72.0, 4.6 |
-| R1–R4 | air dividers | 70.5 / 74.0, 26.0 / 31.0 |
-| C5, C6 | at A0, A1 | 50.8 / 53.3, 6.6 |
-| TP1, TP2 | VS, C | 26.8 / 29.9, 34.0 |
-| TP3 | R after F1 | 65.0, 47.8 |
+| F1, D2 | entry | 69.0, 51.1 / 69.5, 47.0 |
+| U3, U4 | LTV-814S | 53.0, 42.0 / 34.5 |
+| U2 | DS2482-100, SOIC-8 | 61.5, 13.0 |
+| R1–R4 | air dividers | 68.4 / 73.2, 25.1 / 29.6 |
+| C5, C6 | at A0, A1 | 50.8 / 54.0, 7.0 |
+| TP1, TP2 | VS, C | 25.3 / 28.8, 34.0 |
+| TP3 | R after F1 | 63.8, 47.4 |
 | J1 | test row, 12 pads | 17.0–44.9, 26.0 |
 | TB4, R17, R18, C9 | water meter, not fitted | left edge, y 22 |
 | title block | ring and DL | ring centre 8.6, 9.8 |
@@ -352,10 +355,10 @@ node's pivac side unchanged.
 
 ## 8. Issues and concerns
 
-1. **Confirm the Unico terminals carry what §2 says.** With a meter on the SCB's thermostat block, read W2 to C
-   during a second-stage heat call and Y2 to C during a second-stage cool call: 24 VAC on the call, near zero
-   otherwise. A thermostat wired single-stage to the SCB leaves W2 dead.
-2. **Transformer capacity.** The SCB's transformer is 50 VA (Unico part A00057). The board adds about 3 VA: 2 W at
+1. **Confirm the EIM terminals carry what §2 says.** With a meter on the EIM, read W2 to C during a second-stage
+   heat call and Y2 to C during a second-stage cool call: 24 VAC on the call, zero otherwise. Check the R–Rc
+   jumpers are in (§2, item 3). A thermostat set up single-stage leaves W2 dead.
+2. **Transformer capacity.** The Unico's transformer, which also powers the EIM, is 50 VA (Unico part A00057). The board adds about 3 VA: 2 W at
    the converter's input at full WiFi load, plus 5 mA per active call input. Read the nameplate.
 3. **The tab has no support under it.** The header pins alone hold the board to the R4, so hold the tab behind a
    header while seating or pulling a plug, and land TB1's screws with the plug off the board.
@@ -369,8 +372,25 @@ node's pivac side unchanged.
 ## 9. From here
 
 1. Answer §8 item 1 at the air handler, and read the transformer nameplate (item 2).
-2. Lay a printed floor plan on an R4 to confirm the ICSP holes and the jack.
-3. Add an `ah` board to `hardware/gen-boards.py`, reusing EXT's converter footprint, `title_block()` and the DRC
-   loop, and build it with `hardware/build.sh ah`.
-4. Review the renders against §5, then order three boards and the §6 parts.
-5. Bench-prove on the M2 down the check table of §5.1, then the R4 on and two ROMs on the bus through U2.
+2. Print `hardware/ah-board/ah-board-copper-front.svg` at 1:1 and lay it on an R4 to confirm the ICSP holes and the
+   barrel jack, and on the PTSM and MC headers to confirm their pads.
+3. Order three boards from OSH Park with `hardware/ah-board/ah-board-gerbers.zip` (also copied to
+   `~/OneDrive - DGLC/Claude/ah-shield-revA-gerbers.zip`).
+4. Bench-prove on the M2 down the check table of §5.1, then the R4 on and two ROMs on the bus through U2.
+
+## 10. What `hardware/` produces
+
+`build_ah()` in `hardware/gen-boards.py` places every part at the positions of §5, asserts the 1.5 mm pad gap,
+and lays one track by hand (R1's +5 V pad to R2's, beside the ICSP clearance, which the router left open).
+`hardware/build.sh ah` then routes with Freerouting, runs DRC until it is clean, renders both faces landscape and
+exports the gerbers.
+
+| File in `hardware/ah-board/` | Content |
+|---|---|
+| `ah-board.kicad_pcb`, `.kicad_sch`, `.kicad_pro` | board, schematic, project |
+| `ah-board-top.png`, `-bottom.png` | renders |
+| `ah-board-copper-front.svg`, `-back.svg` | copper and silkscreen plots |
+| `ah-board-schematic.svg` | schematic |
+| `ah-board-bom.csv` | parts by value and footprint |
+| `ah-board-drc.json` | DRC report: no violation, nothing unconnected |
+| `ah-board-gerbers.zip` | OSH Park upload, 12 files |

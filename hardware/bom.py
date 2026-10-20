@@ -15,7 +15,7 @@ import pcbnew
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKIP_PREFIX = ("PF", "TP")
 
-for b in ("int", "ext", "extc"):
+for b in ("int", "ext", "extc", "ah"):
     path = os.path.join(HERE, f"{b}-board", f"{b}-board.kicad_pcb")
     if not os.path.exists(path):
         continue
