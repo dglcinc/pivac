@@ -16,8 +16,8 @@ from pathlib import Path
 S = 10.0                       # px per mm
 BW, BH = 86.36, 53.34          # shield
 UNO_W = 68.58                  # R4 outline under it
-BX, BY = 70, 120               # SVG position of the shield's top-left corner
-W, H = int(BX + BW * S + 520), int(BY + BH * S + 300)
+BX, BY = 290, 120               # SVG position of the shield's top-left corner
+W, H = int(BX + BW * S + 480), int(BY + BH * S + 300)
 FONT = "IBM Plex Mono, ui-monospace, monospace"
 
 C_PRI = "#c0392b"      # 24 VAC side
@@ -102,9 +102,7 @@ rect(0, 0, BW, BH, "#1d6b3a", fill="#eef6ef", sw=2.2, rx=8)
 rect(0, 0, UNO_W, BH, C_FAINT, sw=1.2, dash="6 4")
 text(UNO_W - 0.6, 15.0, "R4 edge", 7, C_FAINT, anchor="end", rotate=-90)
 rect(-1.0, 35.5, 7.5, 44.5, C_FAINT, sw=1.0, dash="3 3")
-text(0.4, 36.0, "R4 USB-C (under)", 6, C_FAINT, anchor="start")
 rect(-1.8, 3.2, 13.5, 12.6, C_FAINT, sw=1.0, dash="3 3")
-text(-1.2, 4.0, "R4 barrel jack (under), 11 mm", 6.5, C_FAINT, anchor="start")
 rect(60.8, 22.6, 66.5, 30.8, C_FAINT, fill="#ffffff", sw=1.0, dash="3 3")
 for ix in (62.36, 64.90):
     for iy in (24.13, 26.67, 29.21):
@@ -116,7 +114,7 @@ for hx, hy in ((13.97, 2.54), (15.24, 50.8), (66.04, 7.62), (66.04, 35.56)):
 
 # ---- 24 VAC side ------------------------------------------------------------------------------------------------
 zone([(15.2, 33.0), (37.2, 33.0), (37.2, 48.0), (15.2, 48.0)],
-     "24 VAC side", (15.6, 31.6))
+     "24 VAC side", (24.0, 31.6))
 zone([(63.0, 37.4), (79.06, 37.4), (79.06, 53.04), (63.0, 53.04)])
 rect(37.2, 42.75, 63.0, 43.65, C_PRI, sw=1.0, dash="2 2")
 text(37.6, 41.75, "R · C on the solder side", 6, C_PRI, anchor="start")
@@ -160,11 +158,11 @@ for tx, ty, tl in ((25.6, 35.0, "TP1 VS"), (28.4, 35.0, "TP2 C")):
     text(tx, ty + 1.3, tl, 6, C_PRI)
 
 # 5 V side of the converter: output capacitors, power LED, test pads
-part("C2", 6.0, 34.6, 3.2, 1.6, C_PWR, label_at="b")
-part("C3", 10.2, 34.6, 3.2, 1.6, C_PWR, label_at="b")
-part("LED1", 4.6, 29.6, 2.0, 1.25, C_PWR, label_at="a")
-part("R21", 8.2, 29.6, 2.0, 1.25, C_PWR, label_at="a")
-text(6.4, 27.3, "PWR", 6.5, C_PWR, weight="bold")
+part("C2", 5.0, 35.9, 3.2, 1.6, C_PWR, label_at="in")
+part("C3", 9.5, 35.9, 3.2, 1.6, C_PWR, label_at="in")
+part("LED1", 13.0, 31.6, 2.0, 1.25, C_PWR, label_at="a")
+part("R21", 16.4, 31.6, 2.0, 1.25, C_PWR, label_at="a")
+text(14.7, 29.4, "PWR", 6.5, C_PWR, weight="bold")
 # J1: the test row, 13 plated pads at 2.54 mm that also take a pin header
 J1 = [("GND", C_GND), ("+5", C_PWR), ("Y2", C_IN), ("W2", C_IN), ("FAN", C_IN), ("FLOW", C_IN), ("AIR-R", C_AN),
       ("AIR-S", C_AN), ("1W-V", C_OW), ("1W-D", C_OW), ("SDA", C_OW), ("SCL", C_OW), ("GND", C_GND)]
@@ -213,24 +211,23 @@ for ref, x in (("R17", 57.5), ("R16", 54.0), ("C10", 50.5)):
 text(46.9, 21.05, "FLOW → A3", 7, C_IN, anchor="end", weight="bold")
 
 # ---- air temperatures above A0 and A1 -------------------------------------------------------------------------------
-for ref, x, y in (("R2", 41.5, 15.5), ("R4", 45.5, 15.5), ("C6", 49.5, 15.5),
-                  ("R1", 41.5, 11.0), ("R3", 45.5, 11.0), ("C5", 49.5, 11.0)):
+for ref, x, y in (("R2", 44.5, 15.5), ("R4", 48.5, 15.5), ("C6", 52.5, 15.5),
+                  ("R1", 44.5, 11.0), ("R3", 48.5, 11.0), ("C5", 52.5, 11.0)):
     part(ref, x, y, 2.0, 1.25, C_AN, label_at="a")
-text(38.6, 15.15, "supply → A1", 7, C_AN, anchor="end", weight="bold")
-text(38.6, 10.65, "return → A0", 7, C_AN, anchor="end", weight="bold")
+text(48.5, 18.6, "air: SUP → A1, RET → A0", 6.5, C_AN, weight="bold")
 
 # ---- 1-wire master beside TB6 -----------------------------------------------------------------------------------------
-part("U2", 72.5, 4.8, 6.2, 5.0, C_OW, "DS2482-100")
-part("C4", 77.6, 6.0, 1.25, 2.0, C_OW, label_at="a")
+part("U2", 72.0, 4.6, 6.2, 5.0, C_OW, "DS2482-100")
+part("C4", 76.4, 2.2, 1.25, 2.0, C_OW, label_at="in")
 part("F2", 72.5, 10.2, 4.8, 3.4, C_OW, "PTC 0.2 A")
-part("JP1", 71.0, 14.6, 2.0, 1.2, C_OW, label_at="a")
-part("R20", 74.0, 14.6, 2.0, 1.25, C_OW, label_at="a")
-part("R18", 77.4, 9.6, 2.0, 1.25, C_OW, label_at="a")
-part("R19", 77.4, 12.6, 2.0, 1.25, C_OW, label_at="a")
-text(72.5, 17.6, "JP1 to D2: rollback", 6, C_OW)
+part("JP1", 70.3, 14.0, 2.0, 1.2, C_OW, label_at="a")
+part("R20", 73.3, 14.0, 2.0, 1.25, C_OW, label_at="a")
+part("R18", 70.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
+part("R19", 73.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
+text(71.8, 20.0, "JP1 to D2: rollback", 6, C_OW)
 
 # ---- title block, as on INT: ring and DL from hardware/dl-monogram.svg, name, rule, version --------------------------
-cx, cy, s = 8.6, 21.0, 1.0
+cx, cy, s = 8.6, 9.8, 1.0
 D_PATH = ("M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 "
           "L -2.11 1.25 A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z")
 L_PATH = ("M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 "
@@ -250,30 +247,56 @@ rect(tx + 17.6, cy - 2.55, tx + 27.0, cy - 0.6, C_SILK, sw=1.2)
 text(tx + 18.0, cy - 2.05, "ZONE", 5.5, C_SILK, anchor="start")
 
 # ---- terminals on the tab ---------------------------------------------------------------------------------------------
-PLUG = 12.0     # plug length outside the board edge, drawn dashed
-TB = [("TB1", "MC 1,5/4-G-3,81", 37.45, 52.69, [("R", 50.785), ("C", 46.975), ("Y2", 43.165), ("W2", 39.355)],
-       C_PRI, "24 VAC: Unico SCB thermostat block"),
-      ("TB2", "MC 1,5/4-G-3,5", 22.65, 36.65, [("FAN", 34.90), ("FLOW", 31.40), ("+5", 27.90), ("GND", 24.40)], C_IN,
-       "EAC blower contact; water meter (reserved)"),
-      ("TB3", "MC 1,5/3-G-3,5", 11.65, 22.15, [("SUP", 20.40), ("RET", 16.90), ("GND", 13.40)], C_AN,
-       "air 10K NTCs, twisted pairs"),
-      ("TB4", "MC 1,5/3-G-3,5", 0.65, 11.15, [("V", 9.40), ("D", 5.90), ("G", 2.40)], C_OW,
-       "1-wire: DS18B20 water probes")]
-x0 = 79.0
-for ref, kind, y0, y1, pins, col, desc in TB:
-    rect(x0, y0, BW, y1, col, fill=col, sw=1.0, opacity=0.14)
-    rect(x0, y0, BW, y1, col, sw=1.3)
-    rect(BW, y0 + 0.1, BW + PLUG, y1 - 0.1, col, fill=col, sw=1.0, dash="4 3", opacity=0.06)
-    for name, py in pins:
-        circle(x0 + 2.6, py, 0.8, C_PAD, fill="#ffffff", sw=1.2)
-        rect(BW + 6.0, py - 0.9, BW + PLUG - 0.4, py + 0.9, col, fill="#ffffff", sw=0.8, dash="2 2")
-        text(BW + 1.0, py - 0.35, name, 7.5, col, anchor="start", weight="bold")
-    mid = (y0 + y1) / 2
-    text(BW + PLUG + 4.4, mid + 0.6, f"{ref}  {kind}", 8.5, col, anchor="start", weight="bold")
-    text(BW + PLUG + 4.4, mid - 0.9, desc, 7, col, anchor="start")
-    add(f'<line x1="{X(BW + PLUG + 3.2):.1f}" y1="{Y(y0 + 0.3):.1f}" x2="{X(BW + PLUG + 3.2):.1f}" '
-        f'y2="{Y(y1 - 0.3):.1f}" stroke="{col}" stroke-width="1.4"/>')
-text(BW + PLUG / 2, BH + 1.3, "screw plugs (dashed)", 7, "#555")
+PLUG = 11.4     # plug length outside the board edge, drawn dashed
+
+
+def ptsm(ref, kind, side, yc, pins, col, desc):
+    """Surface-mount PTSM 0,5/n-HH-2,5-SMD, entry face on the board edge (EXT rev C footprint), and its
+    plain -P- plug outside. side +1 is the right edge, -1 the left."""
+    a = 2.5 * (len(pins) - 1)
+    latch = a + 4.2                          # plug body width; no latch arms
+    edge = BW if side > 0 else 0.0
+    inn = lambda d: edge - side * d          # x at depth d inside the edge
+    xs = sorted((inn(0), inn(7.5)))
+    rect(xs[0], yc - (a + 4.2) / 2, xs[1], yc + (a + 4.2) / 2, col, fill=col, sw=1.0, opacity=0.14)
+    rect(xs[0], yc - (a + 4.2) / 2, xs[1], yc + (a + 4.2) / 2, col, sw=1.3)
+    for sy in (-1, 1):
+        ay = yc + sy * (a / 2 + 3.25)
+        xa = sorted((inn(1.2), inn(6.8)))
+        rect(xa[0], ay - 1.1, xa[1], ay + 1.1, C_PAD, fill=C_PAD, sw=0.5)
+    xo = sorted((edge, edge + side * PLUG))
+    rect(xo[0], yc - latch / 2, xo[1], yc + latch / 2, col, fill=col, sw=1.0, dash="4 3", opacity=0.06)
+    for i, name in enumerate(pins):
+        py = yc + a / 2 - 2.5 * i
+        xp = sorted((inn(6.6), inn(9.8)))
+        rect(xp[0], py - 0.6, xp[1], py + 0.6, C_PAD, fill=C_PAD, sw=0.5)
+        text(edge + side * 1.2, py - 0.35, name, 7, col, anchor="start" if side > 0 else "end", weight="bold")
+    lx = edge + side * (PLUG + 4.4)
+    text(lx, yc + 0.6, f"{ref}  {kind}", 8.5, col, anchor="start" if side > 0 else "end", weight="bold")
+    text(lx, yc - 0.9, desc, 7, col, anchor="start" if side > 0 else "end")
+    bx = edge + side * (PLUG + 3.2)
+    add(f'<line x1="{X(bx):.1f}" y1="{Y(yc - latch / 2 + 0.3):.1f}" x2="{X(bx):.1f}" '
+        f'y2="{Y(yc + latch / 2 - 0.3):.1f}" stroke="{col}" stroke-width="1.4"/>')
+
+
+# TB1: the 24 VAC screw plug, COMBICON MC 1,5 3.81 mm, at the top of the right edge
+y0, y1 = 37.45, 52.69
+rect(79.0, y0, BW, y1, C_PRI, fill=C_PRI, sw=1.0, opacity=0.14)
+rect(79.0, y0, BW, y1, C_PRI, sw=1.3)
+rect(BW, y0 + 0.1, BW + 12.0, y1 - 0.1, C_PRI, fill=C_PRI, sw=1.0, dash="4 3", opacity=0.06)
+for name, py in (("R", 50.785), ("C", 46.975), ("Y2", 43.165), ("W2", 39.355)):
+    circle(81.6, py, 0.8, C_PAD, fill="#ffffff", sw=1.2)
+    rect(BW + 6.0, py - 0.9, BW + 11.6, py + 0.9, C_PRI, fill="#ffffff", sw=0.8, dash="2 2")
+    text(BW + 1.0, py - 0.35, name, 7.5, C_PRI, anchor="start", weight="bold")
+text(BW + 16.4, 45.7, "TB1  MC 1,5/4-G-3,81", 8.5, C_PRI, anchor="start", weight="bold")
+text(BW + 16.4, 44.2, "24 VAC, screw plug: Unico SCB", 7, C_PRI, anchor="start")
+add(f'<line x1="{X(BW + 15.2):.1f}" y1="{Y(y0 + 0.3):.1f}" x2="{X(BW + 15.2):.1f}" y2="{Y(y1 - 0.3):.1f}" '
+    f'stroke="{C_PRI}" stroke-width="1.4"/>')
+ptsm("TB2", "PTSM 0,5/4-HH-2,5-SMD", 1, 27.8, ["FAN", "FLOW", "+5", "GND"], C_IN,
+     "EAC blower contact; water meter (reserved)")
+ptsm("TB3", "PTSM 0,5/3-HH-2,5-SMD", 1, 9.75, ["V", "D", "G"], C_OW, "1-wire: DS18B20 water probes")
+ptsm("TB4", "PTSM 0,5/4-HH-2,5-SMD", -1, 26.0, ["SUP", "GND", "RET", "GND"], C_AN, "air 10K NTCs")
+text(BW + 6.0, BH + 1.3, "plugs dashed", 7, "#555")
 
 # ---- dimensions ---------------------------------------------------------------------------------------------------------
 yd = -5.5
@@ -283,10 +306,7 @@ for xd in (0, UNO_W, BW):
         f'stroke-width="1"/>')
 text(UNO_W / 2, yd + 0.6, "68.58 (R4)", 8.5, "#555")
 text((UNO_W + BW) / 2, yd + 0.6, "17.78 tab, no R4 under it", 8.5, "#555")
-text(BW / 2, yd - 2.0, "86.36", 9.5, "#333", weight="bold")
-xd = -3.5
-add(f'<line x1="{X(xd):.1f}" y1="{Y(0):.1f}" x2="{X(xd):.1f}" y2="{Y(BH):.1f}" stroke="#555" stroke-width="1"/>')
-text(xd - 0.8, BH / 2, "53.34", 9.5, "#333", weight="bold", rotate=-90)
+text(BW / 2, yd - 2.0, "86.36 x 53.34", 9.5, "#333", weight="bold")
 
 # ---- legend ------------------------------------------------------------------------------------------------------------
 ly = Y(0) + 105

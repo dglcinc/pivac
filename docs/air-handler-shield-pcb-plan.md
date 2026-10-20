@@ -68,39 +68,39 @@ Diagram 12 shows the EAC contact switching 120 V or 24 V to an air cleaner when 
 ## 3. Board and terminal edge
 
 The shield is 86.36 × 53.34 mm. It follows the R4's outline for 68.58 mm and continues 17.78 mm past the R4's right
-edge as a tab with nothing under it. The terminals are Phoenix COMBICON MC 1,5 pluggable screw terminals: an angled header on the tab and a screw
-plug that takes the field wires and pulls straight off. A board swaps between air handlers without unscrewing a wire.
-The headers stand on the tab with their plugs entering from the right. Inside the R4's outline the right edge is
-blocked: the ICSP header stands 8.5 mm tall at mid-height, and the header rows reach the corners.
+edge as a tab with nothing under it. Every field connection is pluggable, so a board swaps between air handlers without unscrewing a wire. The 24 VAC
+group takes a COMBICON MC 1,5 screw plug, because 18 AWG thermostat cable needs a 3.81 mm clamp. The sensor groups
+take the PTSM push-in parts of the EXT board: the surface-mount header with its entry face on the board edge (EXT
+rev C plan §3) and a plain `-P-` plug. Inside the R4's outline the right edge is blocked by the ICSP header and the
+header-row corners, so the right edge carries three groups on the tab and the left short edge carries the fourth.
 
-| Ref | Header | Plug | Positions |
-|---|---|---|---|
-| TB1 | MC 1,5/4-G-3,81 | MC 1,5/4-ST-3,81 | R · C · Y2 · W2 |
-| TB2 | MC 1,5/4-G-3,5 | MC 1,5/4-ST-3,5 | FAN · FLOW · +5 · GND |
-| TB3 | MC 1,5/3-G-3,5 | MC 1,5/3-ST-3,5 | SUP · RET · GND |
-| TB4 | MC 1,5/3-G-3,5 | MC 1,5/3-ST-3,5 | V · D · G |
+| Ref | Edge | Header | Plug | Positions |
+|---|---|---|---|---|
+| TB1 | right, top | MC 1,5/4-G-3,81 | MC 1,5/4-ST-3,81 | R · C · Y2 · W2 |
+| TB2 | right | PTSM 0,5/4-HH-2,5-SMD | PTSM 0,5/4-P-2,5 | FAN · FLOW · +5 · GND |
+| TB3 | right, bottom | PTSM 0,5/3-HH-2,5-SMD | PTSM 0,5/3-P-2,5 | V · D · G |
+| TB4 | left | PTSM 0,5/4-HH-2,5-SMD | PTSM 0,5/4-P-2,5 | SUP · GND · RET · GND |
 
-1. TB1 is the 24 VAC group, at the top of the edge, 3.81 mm pitch. The sensor groups are 3.5 mm pitch, the smallest
-   pitch at which Phoenix makes a pluggable screw plug; its 2.5 mm plugs are spring-cage. The pitch is also the
-   guard against the EXT board's plug mix-up (rev C plan §4.1): the 24 VAC plug is 15.2 mm wide and every sensor
-   header opening is 14 mm or less, so it seats only on TB1. A sensor plug may enter TB1's wider opening, which
-   carries no voltage once its own plug is off, so the danger is the 24 VAC plug alone.
+1. TB1 is the 24 VAC group. Its plug takes 28–16 AWG, so the thermostat cable lands directly.
 2. TB2 carries the blower-running contact (FAN, from the Unico's EAC terminals, with its other side on GND) and the
    coil water meter, reserved (§4.7): FLOW, +5 and GND.
-3. TB3 carries the supply-air and return-air NTCs, their two returns sharing GND. Each divider is a 5 kΩ source with
-   100 nF at the pin, and the sketch averages several hundred readings a second, so mains hum averages out. Any
-   twisted pair serves: a pair of CAT6 or of thermostat cable. If Belden 8451 is already run, use it and cut the
-   drain back at both ends.
-4. TB4 is the 1-wire bus to the two DS18B20 water probes, in the V · D · G order of the EXT board's legend.
-5. Every MC 1,5 plug takes one conductor of 28–16 AWG, or two of the same size up to 0.5 mm² (20 AWG) in one clamp,
-   which is how two returns share a GND position. 18 AWG thermostat cable lands in TB1 directly.
-6. TB3 and TB4 are both 3-way 3.5 mm, so their plugs interchange. Either plug in the other's header puts only 5 V
-   logic and sensor wiring together, which harms nothing; the silkscreen names each header, and the plugs take a
-   marker.
-7. The four groups take 51.7 mm of the 53.34 mm edge, the plugs side by side. The headers are through-hole, and a
-   plug pulls straight back: never lever it, since one row of pins holds a header, as on the EXT rev A boards. The
-   four mounting holes on the UNO pattern take M3 standoffs to the R4; fit the two right-hand standoffs before
-   pulling or seating a plug, because they carry the tab.
+3. TB3 is the 1-wire bus to the two DS18B20 water probes, in the V · D · G order of the EXT board's legend, beside
+   the DS2482 on the tab.
+4. TB4 carries the supply-air and return-air NTCs, each with its own GND position, since a push-in clamp takes one
+   conductor. Each divider is a 5 kΩ source with 100 nF at the pin, and the sketch averages several hundred readings
+   a second, so mains hum averages out. Any twisted pair serves: a pair of CAT6 or of thermostat cable. If Belden
+   8451 is already run, use it and cut the drain back at both ends.
+5. TB4 sits on the left edge between the R4's USB-C and its barrel jack, at the height of the shield. A USB-C cable
+   still plugs into the R4 under it.
+6. The PTSM header carries two locating pegs that drop into unplated holes in the board, and solder anchors at both
+   ends, so it sits flat and square and does not fold when a plug is pulled. The plain plug seats positively without
+   a latch. The PTSM plugs take 26–20 AWG, one conductor per position.
+7. **Mixing up plugs.** The 24 VAC plug is 15.2 mm wide and every PTSM header opening is 11.7 mm or less, so it
+   seats only on TB1. A PTSM plug with fewer positions enters a larger PTSM socket (EXT rev C plan §4.1), so the
+   3-way 1-wire plug can enter TB2 or TB4; every PTSM position is 5 V logic or sensor wiring, so that harms nothing.
+   The silkscreen names each header.
+8. Pull a plug straight back. The four mounting holes on the UNO pattern take M3 standoffs to the R4; fit them
+   before seating plugs, because the two on the right carry the tab.
 
 ## 4. Circuit
 
@@ -181,8 +181,8 @@ and the ADC reference share the 5 V rail.
 ### 4.6 1-wire
 
 U2 is a DS2482-100 at address 0x18 (AD0 and AD1 to GND, SLPZ to 5 V), running at 5 V on the R4's SDA and SCL pins,
-which are A4 and A5. R18 and R19 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB4.D and supplies the bus
-pull-up itself. TB4.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
+which are A4 and A5. R18 and R19 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB3.D and supplies the bus
+pull-up itself. TB3.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
 drops the R4's rail. C4 decouples U2.
 
 JP1 is the rollback, open as built. Closed, it joins the bus to D2, and R20 (4.7 kΩ, not fitted) becomes the
@@ -227,8 +227,8 @@ The board is laid out in bands, each running from its terminals on the tab to th
    The 5 V track runs down the left to the 5V header pin.
 3. **Middle band.** The FAN chain runs left from TB2 above the ICSP holes, and the FLOW chain below them.
    Both turn down to A2 and A3.
-4. **Lower band.** The air dividers stand in two rows above A0 and A1. The DS2482 group sits on the tab beside TB4.
-5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
+4. **Lower band.** The air dividers stand in two rows above A0 and A1, fed from TB4 on the left edge. The DS2482 group sits on the tab beside TB3.
+5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack, below TB4.
 
 | Ref | Part | Centre (x, y) |
 |---|---|---|
@@ -237,12 +237,13 @@ The board is laid out in bands, each running from its terminals on the tab to th
 | D1 | S1M | 33.5, 35.0 |
 | F1, D2 | entry | 75.5 / 70.0, 50.3 |
 | U3, U4 | LTV-814S | 57.5, 46.0 / 40.3 |
-| U2 | DS2482-100, SOIC-8 | 72.5, 4.8 |
-| R1–R4, C5, C6 | air dividers | 41.5–49.5, 11.0 / 15.5 |
+| U2 | DS2482-100, SOIC-8 | 72.0, 4.6 |
+| TB4 | air header, left edge | centre y 26.0 |
+| R1–R4, C5, C6 | air dividers | 44.5–52.5, 11.0 / 15.5 |
 | TP1, TP2 | VS, C | 25.6 / 28.4, 35.0 |
 | TP3 | R after F1 | 65.6, 50.3 |
 | J1 | test row, 13 pads | 17.0–47.5, 26.0 |
-| title block | ring and DL | ring centre 8.6, 21.0 |
+| title block | ring and DL | ring centre 8.6, 9.8 |
 
 1. The barrel jack under the bottom-left corner stands 11 mm, and the shield rests on it. Nothing through-hole goes
    there, and polyimide tape goes on the shield's underside over it.
@@ -333,10 +334,10 @@ own pads; none needs a breakout adapter.
 | LED4 | Lite-On LTST-C171KSKT, yellow, FAN | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KSKT) | [search](https://www.amazon.com/s?k=0805+LED+yellow) |
 | TB1 header | Phoenix MC 1,5/4-G-3,81, 1803293 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803293) | [search](https://www.amazon.com/s?k=Phoenix+1803293) |
 | TB1 plug | Phoenix MC 1,5/4-ST-3,81, 1803594 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803594) | [search](https://www.amazon.com/s?k=Phoenix+1803594) |
-| TB2 header | Phoenix MC 1,5/4-G-3,5, 1844236 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1844236) | [search](https://www.amazon.com/s?k=Phoenix+1844236) |
-| TB2 plug | Phoenix MC 1,5/4-ST-3,5, 1840382 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1840382) | [search](https://www.amazon.com/s?k=Phoenix+1840382) |
-| TB3, TB4 headers | Phoenix MC 1,5/3-G-3,5, 1844223 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1844223) | [search](https://www.amazon.com/s?k=Phoenix+1844223) |
-| TB3, TB4 plugs | Phoenix MC 1,5/3-ST-3,5, 1840379 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1840379) | [search](https://www.amazon.com/s?k=Phoenix+1840379) |
+| TB2, TB4 headers | Phoenix PTSM 0,5/4-HH-2,5-SMD R32, 1778780 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1778780) | [search](https://www.amazon.com/s?k=Phoenix+1778780) |
+| TB3 header | Phoenix PTSM 0,5/3-HH-2,5-SMD R32, 1778777 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1778777) | [search](https://www.amazon.com/s?k=Phoenix+1778777) |
+| TB2, TB4 plugs | Phoenix PTSM 0,5/4-P-2,5, 1778858 | 2 | [1778858](https://www.digikey.com/en/products/detail/phoenix-contact/1778858/2625558) | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778858) |
+| TB3 plug | Phoenix PTSM 0,5/3-P-2,5, 1778845 | 1 | [1778845](https://www.digikey.com/en/products/detail/phoenix-contact/1778845/2625557) | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778845) |
 | — | Arduino shield male headers, 6, 8, 8 and 10 way | 1 set | [search](https://www.digikey.com/en/products/result?keywords=Arduino%20shield%20header%20kit) | [search](https://www.amazon.com/s?k=Arduino+R3+shield+headers) |
 | — | M3 standoffs, nylon, 10 mm | 4 | [search](https://www.digikey.com/en/products/result?keywords=M3%20nylon%20standoff%2010mm) | [search](https://www.amazon.com/s?k=M3+nylon+standoff+kit) |
 
@@ -345,8 +346,10 @@ own pads; none needs a breakout adapter.
 3. R1 and R2 set the air-temperature accuracy: 0.1 % at 25 ppm/°C costs about 0.04 °F.
 4. R16, R17 and C10 wait for a water meter (§4.7); R20 stays unfitted (§4.6).
 5. JP1 is a solder-jumper pad on the board and needs no part.
-6. The order numbers 1803293, 1803594, 1844223, 1844236 and 1840379 match distributor listings for their names;
-   1840382 (the 4-way 3.5 mm plug) follows the series and is not yet confirmed. Buy a spare plug of each size.
+6. TB1's order numbers 1803293 and 1803594 match distributor listings for their names. The PTSM headers and plugs
+   are the parts of the INT and EXT boards (`docs/rpi-io-boards-parts.md`, `docs/rpi-io-boards-revc-plan.md` §6),
+   and spare plugs from those orders may be on hand. Phoenix's STEP models of both headers are in
+   `hardware/vendor/` for the fit check.
 7. Boards: at OSH Park's $5 per square inch, 7.1 sq in buys three boards for about $36. A JLCPCB order with its
    assembly service would place every SMD part; the plan assumes hand assembly with an iron, as on EXT.
 
