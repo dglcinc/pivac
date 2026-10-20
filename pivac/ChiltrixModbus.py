@@ -111,6 +111,10 @@ _state = {
 # down and are excluded from the plateau.  See _derive.
 STOP_SETTLE_S = 180
 
+# Pump command (register 248, %) below which an idle-side flow sample is not a
+# pre-start plateau.  See _derive.
+FULL_PUMP_PCT = 90
+
 
 def _open(port, baud):
     import serial                       # imported late so the rest is testable
@@ -197,7 +201,8 @@ def _convert(kind, raw):
     return int(raw)
 
 
-def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
+def _derive(regs, result, stop_settle_s=STOP_SETTLE_S,
+            full_pump_pct=FULL_PUMP_PCT):
     """Compressor run duration, and the flow plateau around a start.
 
     Flow is NOT a fixed reference at an arbitrary moment: the pump nearly stops
@@ -224,9 +229,18 @@ def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
     Note this does not establish that the plateau is a FIXED commanded speed —
     an adaptive re-trim by the controller would move it too.  See the header of
     grafana/provisioning/alerting/chiltrix.yaml.
+
+    The idle side also requires the pump at full command (register 248 at
+    `full_pump_pct` or more) whenever 248 is known.  During a latched fault the
+    controller holds the pump at its P53 minimum of 40 % with the compressor
+    off: 23-24 L/min through a clean screen for 72 minutes on 2026-10-20, read
+    as a 24.1 L/min plateau, which fired chiltrix-pump-only-flow-low on a P1
+    high-pressure lockout.  The pump-only window before a genuine start runs at
+    100 %, so the gate leaves it intact.
     """
     hz = regs.get(227)
     flow = regs.get(213)
+    pump = regs.get(248)
     if hz is None:
         return
     now = time.time()
@@ -255,7 +269,8 @@ def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
         lpm = flow / 10.0
         settling = (_state["stopped_at"] is not None
                     and now - _state["stopped_at"] < stop_settle_s)
-        in_window = ((hz == 0 and not settling)
+        pump_full = pump is None or pump >= full_pump_pct
+        in_window = ((hz == 0 and not settling and pump_full)
                      or (_state["run_started"] is not None
                          and now - _state["run_started"] <= 150))
         if in_window and lpm > 15.0:     # excludes the deep-idle sensing trickle

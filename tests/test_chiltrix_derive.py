@@ -40,12 +40,15 @@ def _reset():
 
 
 def _feed(clock, samples, **kw):
-    """samples: (hz, flow L/min).  Returns published startupFlow per sample."""
+    """samples: (hz, flow L/min[, pump %]).  Returns startupFlow per sample."""
     out = []
-    for hz, lpm in samples:
+    for hz, lpm, *pump in samples:
         clock.now += PERIOD
         result = {}
-        m._derive({227: hz, 213: int(round(lpm * 10))}, result, **kw)
+        regs = {227: hz, 213: int(round(lpm * 10))}
+        if pump:
+            regs[248] = pump[0]
+        m._derive(regs, result, **kw)
         out.append(result.get("startupFlow"))
     return out
 
@@ -108,6 +111,29 @@ def test_run_duration_holds_last_run_while_stopped():
     m._derive({227: 0, 213: 69}, result)
     # run_started is the first >0 Hz sample; the stop sample is 17 periods on
     assert abs(result["runDuration"] - 17 * PERIOD) < 1e-6, result
+
+
+# 2026-10-20: the 08:11 start, the run trimmed to 34 Hz, the P1 stop at 08:30,
+# then the latched lockout with the pump held at its 40 % minimum.
+P1_LOCKOUT = [
+    (0, 8.0, 10), (0, 8.0, 10),
+    (0, 54.0, 100),                               # pump-only pre-start
+    (50, 55.2, 100), (55, 54.0, 100), (67, 54.0, 100), (64, 55.2, 100),
+    (34, 50.5, 88), (34, 40.2, 69), (34, 39.0, 69), (34, 36.8, 63),
+    (0, 35.6, 62),                                # stop sample
+] + [(0, 8.0, 10)] * 9 + [(0, 24.1, 40)] * 50     # lockout, 40 % pump
+
+
+def test_lockout_minimum_pump_is_not_the_plateau():
+    clock = _reset()
+    out = _feed(clock, P1_LOCKOUT)
+    assert out[-1] == 55.2, out[-1]
+
+
+def test_lockout_old_behaviour_reproduced_without_the_pump_gate():
+    clock = _reset()
+    out = _feed(clock, P1_LOCKOUT, full_pump_pct=0)
+    assert out[-1] == 24.1, out[-1]
 
 
 if __name__ == "__main__":
