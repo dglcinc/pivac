@@ -16,14 +16,6 @@
 <circle cx="1069.0" cy="386.7" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
 <circle cx="1069.0" cy="361.3" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
 <text x="1056.3" y="440.4" font-size="6.5" fill="#9a9a9a" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">ICSP holes</text>
-<circle cx="559.7" cy="628.0" r="16.0" stroke="#555" fill="#ffffff" stroke-width="1.2"/>
-<circle cx="559.7" cy="628.0" r="27.5" stroke="#999" fill="none" stroke-width="0.8" stroke-dasharray="2 2"/>
-<circle cx="572.4" cy="145.4" r="16.0" stroke="#555" fill="#ffffff" stroke-width="1.2"/>
-<circle cx="572.4" cy="145.4" r="27.5" stroke="#999" fill="none" stroke-width="0.8" stroke-dasharray="2 2"/>
-<circle cx="1080.4" cy="577.2" r="16.0" stroke="#555" fill="#ffffff" stroke-width="1.2"/>
-<circle cx="1080.4" cy="577.2" r="27.5" stroke="#999" fill="none" stroke-width="0.8" stroke-dasharray="2 2"/>
-<circle cx="1080.4" cy="297.8" r="16.0" stroke="#555" fill="#ffffff" stroke-width="1.2"/>
-<circle cx="1080.4" cy="297.8" r="27.5" stroke="#999" fill="none" stroke-width="0.8" stroke-dasharray="2 2"/>
 <polygon points="572.0,323.4 792.0,323.4 792.0,173.4 572.0,173.4" fill="#c0392b" fill-opacity="0.06" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="7 4"/>
 <text x="660.0" y="337.4" font-size="7.5" fill="#c0392b" text-anchor="start" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">24 VAC side</text>
 <polygon points="1050.0,279.4 1210.6,279.4 1210.6,123.0 1050.0,123.0" fill="#c0392b" fill-opacity="0.06" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="7 4"/>
@@ -169,7 +161,7 @@
 <text x="550.0" y="327.2" font-size="7.5" fill="#d35400" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">LED1</text>
 <rect x="574.0" y="331.2" width="20.0" height="12.5" rx="2" stroke="#d35400" fill="#d35400" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="574.0" y="331.2" width="20.0" height="12.5" rx="2" stroke="#d35400" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="584.0" y="327.2" font-size="7.5" fill="#d35400" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R19</text>
+<text x="584.0" y="327.2" font-size="7.5" fill="#d35400" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R16</text>
 <text x="567.0" y="359.4" font-size="6.5" fill="#d35400" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">PWR</text>
 <circle cx="590.0" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="590.0" cy="393.4" r="5.0" stroke="#333333" fill="#333333" stroke-width="0.6"/>
@@ -185,31 +177,28 @@
 <text x="668.7" y="381.4" font-size="6" fill="#2e8b3a" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 668.7 381.4)">W2</text>
 <circle cx="691.6" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="691.6" cy="393.4" r="5.0" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="0.6"/>
-<text x="694.1" y="381.4" font-size="6" fill="#2e8b3a" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 694.1 381.4)">FAN</text>
+<text x="694.1" y="381.4" font-size="6" fill="#2e8b3a" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 694.1 381.4)">FLOW</text>
 <circle cx="717.0" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
-<circle cx="717.0" cy="393.4" r="5.0" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="0.6"/>
-<text x="719.5" y="381.4" font-size="6" fill="#2e8b3a" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 719.5 381.4)">FLOW</text>
+<circle cx="717.0" cy="393.4" r="5.0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="0.6"/>
+<text x="719.5" y="381.4" font-size="6" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 719.5 381.4)">AIR-R</text>
 <circle cx="742.4" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="742.4" cy="393.4" r="5.0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="0.6"/>
-<text x="744.9" y="381.4" font-size="6" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 744.9 381.4)">AIR-R</text>
+<text x="744.9" y="381.4" font-size="6" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 744.9 381.4)">AIR-S</text>
 <circle cx="767.8" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
-<circle cx="767.8" cy="393.4" r="5.0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="0.6"/>
-<text x="770.3" y="381.4" font-size="6" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 770.3 381.4)">AIR-S</text>
+<circle cx="767.8" cy="393.4" r="5.0" stroke="#b8860b" fill="#b8860b" stroke-width="0.6"/>
+<text x="770.3" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 770.3 381.4)">1W-V</text>
 <circle cx="793.2" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="793.2" cy="393.4" r="5.0" stroke="#b8860b" fill="#b8860b" stroke-width="0.6"/>
-<text x="795.7" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 795.7 381.4)">1W-V</text>
+<text x="795.7" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 795.7 381.4)">1W-D</text>
 <circle cx="818.6" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="818.6" cy="393.4" r="5.0" stroke="#b8860b" fill="#b8860b" stroke-width="0.6"/>
-<text x="821.1" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 821.1 381.4)">1W-D</text>
+<text x="821.1" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 821.1 381.4)">SDA</text>
 <circle cx="844.0" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
 <circle cx="844.0" cy="393.4" r="5.0" stroke="#b8860b" fill="#b8860b" stroke-width="0.6"/>
-<text x="846.5" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 846.5 381.4)">SDA</text>
+<text x="846.5" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 846.5 381.4)">SCL</text>
 <circle cx="869.4" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
-<circle cx="869.4" cy="393.4" r="5.0" stroke="#b8860b" fill="#b8860b" stroke-width="0.6"/>
-<text x="871.9" y="381.4" font-size="6" fill="#b8860b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 871.9 381.4)">SCL</text>
-<circle cx="894.8" cy="393.4" r="8.5" stroke="#c9a227" fill="#ffffff" stroke-width="1.3"/>
-<circle cx="894.8" cy="393.4" r="5.0" stroke="#333333" fill="#333333" stroke-width="0.6"/>
-<text x="897.3" y="381.4" font-size="6" fill="#333333" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 897.3 381.4)">GND</text>
+<circle cx="869.4" cy="393.4" r="5.0" stroke="#333333" fill="#333333" stroke-width="0.6"/>
+<text x="871.9" y="381.4" font-size="6" fill="#333333" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 871.9 381.4)">GND</text>
 <text x="576.0" y="396.9" font-size="6.5" fill="#333" text-anchor="end" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">J1 TEST</text>
 <text x="548.0" y="410.4" font-size="6" fill="#333" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">1</text>
 <rect x="1151.0" y="133.4" width="48.0" height="34.0" rx="2" stroke="#c0392b" fill="#c0392b" stroke-width="1.0" fill-opacity="0.18"/>
@@ -284,22 +273,6 @@
 <rect x="868.0" y="244.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="868.0" y="244.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
 <text x="878.0" y="268.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">C8</text>
-<rect x="985.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
-<rect x="985.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="995.0" y="353.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R15</text>
-<rect x="950.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
-<rect x="950.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="960.0" y="353.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R13</text>
-<rect x="915.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
-<rect x="915.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="925.0" y="353.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">C9</text>
-<rect x="880.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
-<rect x="880.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="890.0" y="353.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">LED4</text>
-<rect x="845.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
-<rect x="845.0" y="329.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="855.0" y="353.7" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R14</text>
-<text x="814.0" y="338.9" font-size="7" fill="#2e8b3a" text-anchor="end" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">FAN → A2</text>
 <rect x="855.0" y="492.2" width="20.0" height="12.5" rx="2" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="855.0" y="492.2" width="20.0" height="12.5" rx="2" stroke="#1f6fb4" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
 <text x="865.0" y="488.2" font-size="7.5" fill="#1f6fb4" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R2</text>
@@ -335,13 +308,13 @@
 <text x="1123.0" y="503.4" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">JP1</text>
 <rect x="1143.0" y="507.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="#b8860b" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="1143.0" y="507.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="1153.0" y="503.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R18</text>
+<text x="1153.0" y="503.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R15</text>
 <rect x="1113.0" y="473.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="#b8860b" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="1113.0" y="473.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="1123.0" y="469.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R16</text>
+<text x="1123.0" y="469.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R13</text>
 <rect x="1143.0" y="473.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="#b8860b" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="1143.0" y="473.2" width="20.0" height="12.5" rx="2" stroke="#b8860b" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="1153.0" y="469.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R17</text>
+<text x="1153.0" y="469.2" font-size="7.5" fill="#b8860b" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R14</text>
 <text x="1138.0" y="453.4" font-size="6" fill="#b8860b" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">JP1 to D2: rollback</text>
 <g transform="translate(506.0 555.4) scale(10.0)"><circle cx="0" cy="0" r="4.425" fill="none" stroke="#1a1a1a" stroke-width="0.35"/><path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill="#1a1a1a"/><path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z" fill="#1a1a1a"/></g>
 <text x="566.2" y="547.4" font-size="14.5" font-weight="700" fill="#1a1a1a" letter-spacing="1.2" font-family="IBM Plex Mono, ui-monospace, monospace">PIVAC MONITORING BOARD</text>
@@ -367,26 +340,22 @@
 <text x="1447.6" y="196.4" font-size="8.5" fill="#c0392b" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">TB1  MC 1,5/4-G-3,81</text>
 <text x="1447.6" y="211.4" font-size="7" fill="#c0392b" text-anchor="start" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">24 VAC, screw plug: Unico SCB</text>
 <line x1="1435.6" y1="275.9" x2="1435.6" y2="129.5" stroke="#c0392b" stroke-width="1.4"/>
-<rect x="1208.6" y="309.4" width="75.0" height="167.0" rx="0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="1.0" fill-opacity="0.14"/>
-<rect x="1208.6" y="309.4" width="75.0" height="167.0" rx="0" stroke="#1f6fb4" fill="none" stroke-width="1.3" fill-opacity="1.0"/>
-<rect x="1215.6" y="476.9" width="56.0" height="22.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<rect x="1215.6" y="286.9" width="56.0" height="22.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<rect x="1283.6" y="309.4" width="114.0" height="167.0" rx="0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="1.0" fill-opacity="0.06" stroke-dasharray="4 3"/>
-<rect x="1185.6" y="324.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="333.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">FAN</text>
-<rect x="1185.6" y="349.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="358.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">GND</text>
-<rect x="1185.6" y="374.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="383.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">SUP</text>
-<rect x="1185.6" y="399.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="408.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">GND</text>
-<rect x="1185.6" y="424.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="433.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">RET</text>
-<rect x="1185.6" y="449.4" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
-<text x="1295.6" y="458.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">GND</text>
-<text x="1441.6" y="386.9" font-size="8.5" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">TB2  PTSM 0,5/6-HH-2,5-SMD</text>
-<text x="1441.6" y="401.9" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">EAC blower contact; air 10K NTCs</text>
-<line x1="1429.6" y1="473.4" x2="1429.6" y2="312.4" stroke="#1f6fb4" stroke-width="1.4"/>
+<rect x="1208.6" y="314.9" width="75.0" height="117.0" rx="0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="1.0" fill-opacity="0.14"/>
+<rect x="1208.6" y="314.9" width="75.0" height="117.0" rx="0" stroke="#1f6fb4" fill="none" stroke-width="1.3" fill-opacity="1.0"/>
+<rect x="1215.6" y="432.4" width="56.0" height="22.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<rect x="1215.6" y="292.4" width="56.0" height="22.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<rect x="1283.6" y="314.9" width="114.0" height="117.0" rx="0" stroke="#1f6fb4" fill="#1f6fb4" stroke-width="1.0" fill-opacity="0.06" stroke-dasharray="4 3"/>
+<rect x="1185.6" y="329.9" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<text x="1295.6" y="339.4" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">SUP</text>
+<rect x="1185.6" y="354.9" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<text x="1295.6" y="364.4" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">GND</text>
+<rect x="1185.6" y="379.9" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<text x="1295.6" y="389.4" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">RET</text>
+<rect x="1185.6" y="404.9" width="32.0" height="12.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
+<text x="1295.6" y="414.4" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">GND</text>
+<text x="1441.6" y="367.4" font-size="8.5" fill="#1f6fb4" text-anchor="start" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">TB2  PTSM 0,5/4-HH-2,5-SMD</text>
+<text x="1441.6" y="382.4" font-size="7" fill="#1f6fb4" text-anchor="start" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">air 10K NTCs</text>
+<line x1="1429.6" y1="428.9" x2="1429.6" y2="317.9" stroke="#1f6fb4" stroke-width="1.4"/>
 <rect x="1208.6" y="529.4" width="75.0" height="92.0" rx="0" stroke="#b8860b" fill="#b8860b" stroke-width="1.0" fill-opacity="0.14"/>
 <rect x="1208.6" y="529.4" width="75.0" height="92.0" rx="0" stroke="#b8860b" fill="none" stroke-width="1.3" fill-opacity="1.0"/>
 <rect x="1215.6" y="621.9" width="56.0" height="22.0" rx="0" stroke="#c9a227" fill="#c9a227" stroke-width="0.5" fill-opacity="1.0"/>
@@ -417,13 +386,13 @@
 <line x1="274.0" y1="476.4" x2="274.0" y2="390.4" stroke="#2e8b3a" stroke-width="1.4"/>
 <rect x="545.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="545.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="555.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R20</text>
+<text x="555.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R17</text>
 <rect x="580.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="580.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="590.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R21</text>
+<text x="590.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">R18</text>
 <rect x="615.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="#2e8b3a" stroke-width="1.0" fill-opacity="0.18"/>
 <rect x="615.0" y="441.2" width="20.0" height="12.5" rx="2" stroke="#2e8b3a" fill="none" stroke-width="1.0" fill-opacity="1.0"/>
-<text x="625.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">C10</text>
+<text x="625.0" y="437.2" font-size="7.5" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">C9</text>
 <text x="590.0" y="471.4" font-size="6" fill="#2e8b3a" text-anchor="middle" font-weight="bold" font-family="IBM Plex Mono, ui-monospace, monospace">FLOW → A3, not fitted</text>
 <text x="1343.6" y="107.0" font-size="7" fill="#555" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">plugs dashed</text>
 <line x1="420.0" y1="708.4" x2="1283.6" y2="708.4" stroke="#555" stroke-width="1"/>
@@ -440,14 +409,14 @@
 <rect x="420" y="769.4000000000001" width="16" height="12" fill="#d35400" fill-opacity="0.25" stroke="#d35400"/>
 <text x="444" y="780.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">5.1 V from the converter to the R4's 5V pin</text>
 <rect x="890" y="769.4000000000001" width="16" height="12" fill="#2e8b3a" fill-opacity="0.25" stroke="#2e8b3a"/>
-<text x="914" y="780.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">logic inputs Y2, W2, FAN</text>
+<text x="914" y="780.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">logic inputs Y2, W2; FLOW optional</text>
 <rect x="420" y="791.4000000000001" width="16" height="12" fill="#1f6fb4" fill-opacity="0.25" stroke="#1f6fb4"/>
 <text x="444" y="802.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">air-temperature dividers</text>
 <rect x="890" y="791.4000000000001" width="16" height="12" fill="#b8860b" fill-opacity="0.25" stroke="#b8860b"/>
 <text x="914" y="802.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">I2C to 1-wire master</text>
 <rect x="420" y="813.4000000000001" width="16" height="12" fill="#9a9a9a" fill-opacity="0.25" stroke="#9a9a9a"/>
 <text x="444" y="824.4000000000001" font-size="10.5" fill="#222" font-family="IBM Plex Mono, ui-monospace, monospace">dashed grey: the R4 under the shield</text>
-<text x="420" y="850.4000000000001" font-size="10.5" fill="#444" font-family="IBM Plex Mono, ui-monospace, monospace">Header pins used: 5V (supply in from U1), GND, A0 A1 air, A2 FAN, A3 FLOW (optional), SDA SCL to U2, D8 Y2, D9 W2,</text>
+<text x="420" y="850.4000000000001" font-size="10.5" fill="#444" font-family="IBM Plex Mono, ui-monospace, monospace">Header pins used: 5V (supply in from U1), GND, A0 A1 air, A3 FLOW (optional), SDA SCL to U2, D8 Y2, D9 W2,</text>
 <text x="420" y="868.4000000000001" font-size="10.5" fill="#444" font-family="IBM Plex Mono, ui-monospace, monospace">D2 only through JP1. Red ticks mark the isolation barriers inside U1, U3 and U4.</text>
-<text x="420" y="886.4000000000001" font-size="10.5" fill="#444" font-family="IBM Plex Mono, ui-monospace, monospace">LEDs: LED1 green PWR, LED2 blue Y2 and LED3 red W2 on the 24 VAC side, LED4 yellow FAN.</text>
+<text x="420" y="886.4000000000001" font-size="10.5" fill="#444" font-family="IBM Plex Mono, ui-monospace, monospace">LEDs: LED1 green PWR, LED2 blue Y2 and LED3 red W2 on the 24 VAC side.</text>
 </svg>
