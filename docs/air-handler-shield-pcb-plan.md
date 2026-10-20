@@ -67,8 +67,8 @@ The shield is 86.36 × 53.34 mm. It follows the R4's outline for 68.58 mm and co
 edge as a tab with nothing under it. Every field connection is pluggable, so a board swaps between air handlers without unscrewing a wire. The 24 VAC
 group takes a COMBICON MC 1,5 screw plug, because 18 AWG thermostat cable needs a 3.81 mm clamp. The sensor groups
 take the PTSM push-in parts of the EXT board: the surface-mount header with its entry face on the board edge (EXT
-rev C plan §3) and a plain `-P-` plug. Inside the R4's outline the right edge is blocked by the ICSP header and the
-header-row corners, so the three fitted groups stand on the tab's right edge. The left short edge carries an
+rev C plan §3) and a plain `-P-` plug. Inside the R4's outline the header rows reach the right edge's corners and the
+R4's own parts stand under it, so the three fitted groups stand on the tab's right edge. The left short edge carries an
 optional fourth, for a coil water meter, unfitted until one is chosen.
 
 | Ref | Edge | Header | Plug | Positions |
@@ -196,8 +196,8 @@ which can raise an interrupt on the R4. TB4, R17, R18 and C9 stay off the board 
 | D2 | JP1 only |
 
 1. D8 keeps the Y2 pin the present sketch reads.
-2. D0 and D1 (serial), D4 and D5 (CAN) and D10 to D13 (SPI) stay unused. The ICSP header passes through six
-   clearance holes with no copper.
+2. D0 and D1 (serial), D4 and D5 (CAN) and D10 to D13 (SPI) stay unused. The shield rests on the R4's barrel
+   jack (11 mm), which holds it about 2.5 mm above the ICSP pins (8.5 mm), so the ICSP needs no holes.
 3. A2 and D3 stay free.
 
 ## 5. Layout
@@ -215,7 +215,7 @@ KiCad's hand-solder footprints. `build_ah()` in `hardware/gen-boards.py` asserts
    The 5 V track runs down the left to the 5V header pin.
 3. **Air temperatures.** R1 to R4 stand on the tab beside TB2, and C5 and C6 at the A0 and A1 pins, where the
    ADC draws its sample charge. The trace between carries no DC, so its 30 mm add no error.
-4. **Lower band.** The DS2482 group sits inside the R4 outline left of the tab, between A5 and the ICSP holes;
+4. **Lower band.** The DS2482 group sits inside the R4 outline left of the tab, between A5 and the air dividers;
    F2 stands beside TB3.
 5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
 
@@ -235,8 +235,8 @@ KiCad's hand-solder footprints. `build_ah()` in `hardware/gen-boards.py` asserts
 | TB4, R17, R18, C9 | water meter, not fitted | left edge, y 22 |
 | title block | ring and DL | ring centre 8.6, 9.8 |
 
-1. The barrel jack under the bottom-left corner stands 11 mm, and the shield rests on it. Nothing through-hole goes
-   there, and polyimide tape goes on the shield's underside over it.
+1. The barrel jack under the bottom-left corner stands 11 mm in a plastic shell, and the shield rests on it.
+   Nothing through-hole goes there.
 2. U1's pins pass over the R4's USB-C, which stands 3.2 mm. Clip them to 1.5 mm.
 3. U1 needs a rule area with no copper under its body (Traco's datasheet), as on EXT rev C.
 4. The test pads follow EXT rev C §9 and §5.1 below: every check has a pad on the component side, so the board
@@ -362,8 +362,8 @@ node's pivac side unchanged.
    the converter's input at full WiFi load, plus 5 mA per active call input. Read the nameplate.
 3. **The tab has no support under it.** The header pins alone hold the board to the R4, so hold the tab behind a
    header while seating or pulling a plug, and land TB1's screws with the plug off the board.
-4. **The ICSP and barrel-jack positions come from the UNO standard and Arduino's R4 WiFi drawing.** Check both
-   against the board in hand before generating the footprint: set an R4 under a 1:1 print of the floor plan.
+4. **The barrel-jack position comes from Arduino's R4 WiFi drawing.** Only the title block stands over it; the
+   1:1 print in §9 confirms it with the header pads.
 5. **The firmware has to change for U2.** Until the DS2482 code is proven, the board can run with JP1 closed and U2
    off on the present sketch.
 6. **The 1-wire bus runs at 5 V.** Both the DS2482 and the probes take 5 V; the bus never meets 3.3 V.
@@ -372,7 +372,7 @@ node's pivac side unchanged.
 ## 9. From here
 
 1. Answer §8 item 1 at the air handler, and read the transformer nameplate (item 2).
-2. Print `hardware/ah-board/ah-board-copper-front.svg` at 1:1 and lay it on an R4 to confirm the ICSP holes and the
+2. Print `hardware/ah-board/ah-board-copper-front.svg` at 1:1 and lay it on an R4 to confirm the header rows and the
    barrel jack, and on the PTSM and MC headers to confirm their pads.
 3. Order three boards from OSH Park with `hardware/ah-board/ah-board-gerbers.zip` (also copied to
    `~/OneDrive - DGLC/Claude/ah-shield-revA-gerbers.zip`).
@@ -381,7 +381,7 @@ node's pivac side unchanged.
 ## 10. What `hardware/` produces
 
 `build_ah()` in `hardware/gen-boards.py` places every part at the positions of §5, asserts the 1.5 mm pad gap,
-and lays one track by hand (R1's +5 V pad to R2's, beside the ICSP clearance, which the router left open).
+and lays one track by hand (R1's +5 V pad to R2's, which the router once left open).
 `hardware/build.sh ah` then routes with Freerouting, runs DRC until it is clean, renders both faces landscape and
 exports the gerbers.
 

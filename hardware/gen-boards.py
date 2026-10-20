@@ -1151,17 +1151,7 @@ def build_ah():
             if n:
                 B.connect(ref, i, n)
             B.text(lab, x0 + (i - 1) * PITCH, y0 + (2.2 if y0 < 10 else -2.2), size=0.6, rot=90)
-    # ICSP: six clearance holes, no copper, for the R4's ICSP pins under the shield
-    icsp = pcbnew.FOOTPRINT(B.board)
-    icsp.SetFPID(pcbnew.LIB_ID("pivac", "ICSP_Clearance_2x3"))
-    for ix in (0.0, 2.54):
-        for iy in (0.0, 2.54, 5.08):
-            _peg(icsp, ix, iy, 1.3)
-    _fp_rect(icsp, -1.0, -1.0, 3.54, 6.08, pcbnew.F_CrtYd, 0.05)
-    custom.append(B.place("H1", icsp, 62.36, Y(29.21), 0, value="ICSP clearance"))
-    icsp.Reference().SetVisible(False)
-    B.rect_keepout(61.2, Y(30.5), 66.1, Y(22.8), layers=("F.Cu", "B.Cu"), name="ICSP clearance",
-                   pads=False, footprints=False, tracks=True, vias=True, pour=True)
+    # The shield rests on the R4's barrel jack (11 mm, plastic), which holds it clear of the ICSP pins (8.5 mm).
 
     # --- 24 VAC entry: TB1 on the right edge, the MC 1,5 screw plug's header, entry facing +x
     tb1 = B.lib("TB1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_4-G-3.81_1x04_P3.81mm_Horizontal",
@@ -1268,7 +1258,7 @@ def build_ah():
                                      ("R1", 68.4, 25.1, "+5V", "AIRR", "10k0 0.1%"), ("R3", 73.2, 25.1, "AIRR", "A0", "1k")):
         B.lib(ref, "Resistor_SMD", "R_0805_2012Metric_Pad1.20x1.40mm_HandSolder", x, Y(row), 0, value=val)
         B.connect(ref, 1, n1); B.connect(ref, 2, n2)
-    # R1's +5 V pad faces the ICSP clearance and the router leaves it open: join it to R2's
+    # the router once left R1's +5 V pad open beside the ICSP area: join it to R2's
     (xa, ya), (xb, yb) = B.pad_xy("R1", 1), B.pad_xy("R2", 1)
     B.track("+5V", xa, ya, xb, yb, width=0.5)
     for ref, x, net in (("C5", 50.8, "A0"), ("C6", 54.0, "A1")):

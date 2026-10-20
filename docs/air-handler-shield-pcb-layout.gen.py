@@ -103,11 +103,8 @@ rect(0, 0, UNO_W, BH, C_FAINT, sw=1.2, dash="6 4")
 text(UNO_W - 0.6, 15.0, "R4 edge", 7, C_FAINT, anchor="end", rotate=-90)
 rect(-1.0, 35.5, 7.5, 44.5, C_FAINT, sw=1.0, dash="3 3")
 rect(-1.8, 3.2, 13.5, 12.6, C_FAINT, sw=1.0, dash="3 3")
-rect(60.8, 22.6, 66.5, 30.8, C_FAINT, fill="#ffffff", sw=1.0, dash="3 3")
-for ix in (62.36, 64.90):
-    for iy in (24.13, 26.67, 29.21):
-        circle(ix, iy, 0.5, C_FAINT, fill="#ffffff", sw=1.0)
-text(63.63, 21.3, "ICSP holes", 6.5, C_FAINT)
+rect(60.8, 22.6, 66.5, 30.8, C_FAINT, sw=1.0, dash="3 3")
+text(63.63, 21.3, "R4 ICSP (under, clear)", 6, C_FAINT)
 
 # ---- 24 VAC side ------------------------------------------------------------------------------------------------
 zone([(15.2, 31.6), (39.0, 31.6), (39.0, 47.9), (15.2, 47.9)],

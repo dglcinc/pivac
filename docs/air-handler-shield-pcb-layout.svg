@@ -8,14 +8,8 @@
 <text x="1099.8" y="503.4" font-size="7" fill="#9a9a9a" text-anchor="end" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace" transform="rotate(-90 1099.8 503.4)">R4 edge</text>
 <rect x="410.0" y="208.4" width="85.0" height="90.0" rx="0" stroke="#9a9a9a" fill="none" stroke-width="1.0" fill-opacity="1.0" stroke-dasharray="3 3"/>
 <rect x="402.0" y="527.4" width="153.0" height="94.0" rx="0" stroke="#9a9a9a" fill="none" stroke-width="1.0" fill-opacity="1.0" stroke-dasharray="3 3"/>
-<rect x="1028.0" y="345.4" width="57.0" height="82.0" rx="0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0" fill-opacity="1.0" stroke-dasharray="3 3"/>
-<circle cx="1043.6" cy="412.1" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<circle cx="1043.6" cy="386.7" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<circle cx="1043.6" cy="361.3" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<circle cx="1069.0" cy="412.1" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<circle cx="1069.0" cy="386.7" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<circle cx="1069.0" cy="361.3" r="5.0" stroke="#9a9a9a" fill="#ffffff" stroke-width="1.0"/>
-<text x="1056.3" y="440.4" font-size="6.5" fill="#9a9a9a" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">ICSP holes</text>
+<rect x="1028.0" y="345.4" width="57.0" height="82.0" rx="0" stroke="#9a9a9a" fill="none" stroke-width="1.0" fill-opacity="1.0" stroke-dasharray="3 3"/>
+<text x="1056.3" y="440.4" font-size="6" fill="#9a9a9a" text-anchor="middle" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">R4 ICSP (under, clear)</text>
 <polygon points="572.0,337.4 810.0,337.4 810.0,174.4 572.0,174.4" fill="#c0392b" fill-opacity="0.06" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="7 4"/>
 <text x="660.0" y="351.4" font-size="7.5" fill="#c0392b" text-anchor="start" font-weight="normal" font-family="IBM Plex Mono, ui-monospace, monospace">24 VAC side</text>
 <polygon points="1006.0,334.4 1210.6,334.4 1210.6,123.0 1006.0,123.0" fill="#c0392b" fill-opacity="0.06" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="7 4"/>

@@ -9,9 +9,8 @@ qty,value,footprint,references,fitted
 1,SMAJ43CA,D_SMA,D2,yes
 2,1N4148W,D_SOD-123,D3 D4,yes
 2,1812L020/60DR,Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder,F1 F2,yes
-1,ICSP clearance,ICSP_Clearance_2x3,H1,yes
-1,DATA->D2,SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm,JP1,yes
 1,test row,TestRow_1x12,J1,yes
+1,DATA->D2,SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm,JP1,yes
 1,Arduino header,ArduinoHeader_1x10,J10,yes
 2,Arduino header,ArduinoHeader_1x8,J11 J12,yes
 1,Arduino header,ArduinoHeader_1x6,J13,yes
