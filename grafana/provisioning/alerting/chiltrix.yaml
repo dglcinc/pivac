@@ -584,10 +584,11 @@ groups:
             2. Panel Error reset did not clear E14 and was not tried on the P1 lockout;
                a breaker power cycle cleared both. Off about a minute, then on.
             3. If startupFlow also dropped, ignore it until the unit restarts: during a
-               lockout the pump runs at its 40 % minimum (raw.r248 = 40), about 24 L/min
-               through a clean screen. Judge the strainer on the first start afterwards.
+               lockout the pump runs at its P53 minimum (raw.r248 = 50 since 2026-10-20,
+               about 30 L/min; 40 and 24 L/min before) through a clean screen. Judge the
+               strainer on the first start afterwards.
             4. Repeated P1 in heating: the end-of-run head pressure is at the cutout. See
-               docs/chiltrix-modbus.md (P1 in heating) for the target recommendation.
+               docs/chiltrix-modbus.md (P1 in heating) for the settings Chiltrix advised.
         labels:
           severity: warning
           source: chiltrix

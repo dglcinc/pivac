@@ -134,7 +134,7 @@ before suspecting the HZ-432's `B` terminal.
 
 Same method as the cooling figures: water side from registers 213, 281 and 205 with glycol at 0.98
 of water's heat capacity, electricity from `electrical.emporia.house.chiltrix`, every figure ±10 %.
-The heating target is 50 °C, so steady running holds a 120 °F return and a 128 °F supply. Steady
+The heating target over this period was 50 °C, so steady running held a 120 °F return and a 128 °F supply. Steady
 means heating mode, compressor running and return above 110 °F: 568 minutes in all.
 
 | Chiller ambient | Minutes | Input | Output | COP |
@@ -196,11 +196,30 @@ matched P1 stops ended at a median 125 °F return and 132 °F leaving; the 317 o
 at 127 °F and 134 °F. About 4 % of heating runs end in P1 under the same water conditions, so at
 the 50 °C target every run ends near the high-pressure cutout. Startup flow held 54–55 L/min
 throughout, the loop held 22–25 psi, and the trips follow the number of heating runs, so nothing
-points at a worsening fault. Lowering the heating target moves every run end down by the same
-amount, which is also what Chiltrix support advised on 2026-09-16.
+points at a worsening fault.
+
+**Settings since 2026-10-20 12:23 EDT, on Chiltrix support's advice (Devon Powell, Hotspot
+Energy, 10-20):** P1 comes when return water nears 130 °F, and P1 and P4 can come in pairs at
+defrost; one or two on a cold night are no concern.
+
+| Setting | Meaning | Before | Now |
+|---|---|---|---|
+| Heating target | Register 143 | 50 °C | 48 °C |
+| P38 | Coil temperature that ends defrost | 30 °C | 15 °C |
+| P39 | Air-to-coil difference that starts defrost | 8 °C | 12 °C |
+| P53 | Pump minimum speed | 40 % | 50 % |
+
+1. Heating target: entered as 119 °F. The controller truncates a °F entry to whole °C, so 118 °F
+   stored as 47 °C. Return water at the end of a run should fall to about 118–122 °F.
+2. P38 and P39: later and shorter defrosts. Inspect the outdoor coil after the first freezing
+   rain or snowy night for frost left behind.
+3. P53: the pump floor in every mode. A lockout now idles the pump at about 30 L/min, and in
+   cooling the higher floor narrows the evaporator ΔT at low load, which adds margin to `P59`.
+4. Judge the change by the P1 count in the panel log and by `chiltrix-fault-latched`; go back up a
+   degree if a room falls 1 °F below setpoint overnight.
 
 The 2026-10-20 lockout fired only `chiltrix-pump-only-flow-low`, because the module took the
-40 % pump of the lockout as a start plateau. The module now takes an idle-side plateau only at a
+40 % pump of the lockout as a start plateau (50 % since P53 changed). The module now takes an idle-side plateau only at a
 pump command of 90 % or more, and `chiltrix-fault-latched` fires when `284` holds non-zero for six
 minutes.
 
