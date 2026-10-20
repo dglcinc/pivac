@@ -295,7 +295,7 @@ own pads; none needs a breakout adapter.
 | Ref | Part | Qty | Digi-Key | Amazon |
 |---|---|---|---|---|
 | U1 | Traco TMR 3-4811WI | 1 | [search](https://www.digikey.com/en/products/result?keywords=TMR%203-4811WI) | [search](https://www.amazon.com/s?k=Traco+TMR+3-4811WI) |
-| U2 | Analog Devices DS2482-100S+ | 1 | [search](https://www.digikey.com/en/products/result?keywords=DS2482-100S%2B) | [search](https://www.amazon.com/s?k=DS2482-100) |
+| U2 | Analog Devices DS2482S-100+ | 1 | [search](https://www.digikey.com/en/products/result?keywords=DS2482S-100%2B) | [search](https://www.amazon.com/s?k=DS2482S-100) |
 | U3, U4 | Lite-On LTV-814S | 2 | [search](https://www.digikey.com/en/products/result?keywords=LTV-814S) | [search](https://www.amazon.com/s?k=LTV-814S) |
 | F1, F2 | Bourns MF-MSMF020/60-2 | 2 | [3438084](https://www.digikey.com/en/products/detail/bourns-inc/MF-MSMF020-60-2/3438084) | [search](https://www.amazon.com/s?k=MF-MSMF020%2F60-2) |
 | D1 | onsemi S1M | 1 | [search](https://www.digikey.com/en/products/result?keywords=S1M%20onsemi) | [search](https://www.amazon.com/s?k=S1M+SMA+diode) |
@@ -303,7 +303,7 @@ own pads; none needs a breakout adapter.
 | D3, D4 | Diodes 1N4148W-7-F | 2 | [search](https://www.digikey.com/en/products/result?keywords=1N4148W-7-F) | [search](https://www.amazon.com/s?k=1N4148W+SOD-123) |
 | C1 | Panasonic EEE-FK1J101P | 1 | [search](https://www.digikey.com/en/products/result?keywords=EEE-FK1J101P) | [search](https://www.amazon.com/s?k=100uF+63V+SMD+aluminum+electrolytic) |
 | C2 | Murata GRM31CR71A106KA01L | 1 | [search](https://www.digikey.com/en/products/result?keywords=GRM31CR71A106KA01L) | [search](https://www.amazon.com/s?k=10uF+10V+1206+X7R) |
-| C3 | 22 µF 10 V X5R 1206 | 1 | [search](https://www.digikey.com/en/products/result?keywords=22uF%2010V%201206%20X5R) | [search](https://www.amazon.com/s?k=22uF+10V+1206) |
+| C3 | Samsung CL31A226KPHNNNE | 1 | [search](https://www.digikey.com/en/products/result?keywords=CL31A226KPHNNNE) | [search](https://www.amazon.com/s?k=22uF+10V+1206) |
 | C4–C6 | Yageo CC0805KRX7R9BB104 | 3 | [search](https://www.digikey.com/en/products/result?keywords=CC0805KRX7R9BB104) | [search](https://www.amazon.com/s?k=100nF+0805+X7R) |
 | C7, C8 | Murata GRM21BR71C105KA01L | 2 | [search](https://www.digikey.com/en/products/result?keywords=GRM21BR71C105KA01L) | [search](https://www.amazon.com/s?k=1uF+0805+X7R) |
 | R1, R2 | Yageo RT0805BRD0710KL | 2 | [search](https://www.digikey.com/en/products/result?keywords=RT0805BRD0710KL) | [search](https://www.amazon.com/s?k=10k+0.1%25+0805+25ppm) |
@@ -311,6 +311,9 @@ own pads; none needs a breakout adapter.
 | R5–R8 | Yageo RC1206FR-072K2L | 4 | [search](https://www.digikey.com/en/products/result?keywords=RC1206FR-072K2L) | [search](https://www.amazon.com/s?k=1206+resistor+kit) |
 | R11, R12 | Yageo RC0805FR-0710KL | 2 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-0710KL) | in the kit |
 | R13–R15 | Yageo RC0805FR-074K7L | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-074K7L) | in the kit |
+| C9 (optional) | KEMET C0805C102J5GACTU | 1 | [search](https://www.digikey.com/en/products/result?keywords=C0805C102J5GACTU) | [search](https://www.amazon.com/s?k=1nF+0805+C0G) |
+| R17 (optional) | Yageo RC0805FR-0710KL | 1 | as R11 | in the kit |
+| R18 (optional) | Yageo RC0805FR-07100RL | 1 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-07100RL) | in the kit |
 | LED1 | Lite-On LTST-C171GKT, green, PWR | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171GKT) | [search](https://www.amazon.com/s?k=0805+LED+green) |
 | LED2 | Lite-On LTST-C171TBKT, blue, Y2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171TBKT) | [search](https://www.amazon.com/s?k=0805+LED+blue) |
 | LED3 | Lite-On LTST-C171KRKT, red, W2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KRKT) | [search](https://www.amazon.com/s?k=0805+LED+red) |
@@ -325,8 +328,7 @@ own pads; none needs a breakout adapter.
 1. C1's ripple at 100 µF is set out in §4.1. A 220 µF part at 63 V needs a 12.5 mm can.
 2. C2 and C3 are U1's output capacitors.
 3. R1 and R2 set the air-temperature accuracy: 0.1 % at 25 ppm/°C costs about 0.04 °F.
-4. R15 stays unfitted (§4.5). TB4, R17, R18 and C9 wait for a water meter (§4.6): a 3-way PTSM header and
-   plug as TB3, 10 kΩ, 100 Ω and 1 nF C0G 0805 parts from the kits above.
+4. R15 stays unfitted (§4.5). TB4, R17, R18 and C9 wait for a water meter (§4.6); TB4 is TB3's header and plug.
 5. JP1 is a solder-jumper pad on the board and needs no part.
 6. TB1's order numbers 1803293 and 1803594 match distributor listings for their names. The PTSM headers and plugs
    are the INT and EXT boards' parts (`docs/rpi-io-boards-parts.md`, `docs/rpi-io-boards-revc-plan.md` §6), so spare
