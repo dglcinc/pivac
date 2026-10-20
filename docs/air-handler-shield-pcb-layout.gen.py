@@ -17,7 +17,7 @@ S = 10.0                       # px per mm
 BW, BH = 86.36, 53.34          # shield
 UNO_W = 68.58                  # R4 outline under it
 BX, BY = 70, 120               # SVG position of the shield's top-left corner
-W, H = int(BX + BW * S + 430), int(BY + BH * S + 300)
+W, H = int(BX + BW * S + 520), int(BY + BH * S + 300)
 FONT = "IBM Plex Mono, ui-monospace, monospace"
 
 C_PRI = "#c0392b"      # 24 VAC side
@@ -250,31 +250,30 @@ rect(tx + 17.6, cy - 2.55, tx + 27.0, cy - 0.6, C_SILK, sw=1.2)
 text(tx + 18.0, cy - 2.05, "ZONE", 5.5, C_SILK, anchor="start")
 
 # ---- terminals on the tab ---------------------------------------------------------------------------------------------
-TB = [("TB1", "MKDS 1/4-3,81", 79.06, 37.47, 52.71, [("R", 50.80), ("C", 46.99), ("Y2", 43.18), ("W2", 39.37)],
-       C_PRI, "24 VAC: Unico SCB thermostat block, 26-16 AWG"),
-      ("TB2", "MPT 0,5/2", 80.16, 30.20, 35.28, [("FAN", 34.01), ("GND", 31.47)], C_IN,
-       "SCB EAC dry contact: blower running"),
-      ("TB3", "MPT 0,5/3", 80.16, 21.38, 29.00, [("+5", 27.73), ("SIG", 25.19), ("GND", 22.65)], C_IN,
-       "coil water meter, pulse (reserved)"),
-      ("TB4", "MPT 0,5/2", 80.16, 15.10, 20.18, [("SIG", 18.91), ("GND", 16.37)], C_AN,
-       "supply-air 10K NTC, twisted pair"),
-      ("TB5", "MPT 0,5/2", 80.16, 9.22, 14.30, [("SIG", 13.03), ("GND", 10.49)], C_AN,
-       "return-air 10K NTC, twisted pair"),
-      ("TB6", "MPT 0,5/3", 80.16, 0.80, 8.42, [("V", 7.15), ("D", 4.61), ("G", 2.07)], C_OW,
+PLUG = 12.0     # plug length outside the board edge, drawn dashed
+TB = [("TB1", "MC 1,5/4-G-3,81", 37.45, 52.69, [("R", 50.785), ("C", 46.975), ("Y2", 43.165), ("W2", 39.355)],
+       C_PRI, "24 VAC: Unico SCB thermostat block"),
+      ("TB2", "MC 1,5/4-G-3,5", 22.65, 36.65, [("FAN", 34.90), ("FLOW", 31.40), ("+5", 27.90), ("GND", 24.40)], C_IN,
+       "EAC blower contact; water meter (reserved)"),
+      ("TB3", "MC 1,5/3-G-3,5", 11.65, 22.15, [("SUP", 20.40), ("RET", 16.90), ("GND", 13.40)], C_AN,
+       "air 10K NTCs, twisted pairs"),
+      ("TB4", "MC 1,5/3-G-3,5", 0.65, 11.15, [("V", 9.40), ("D", 5.90), ("G", 2.40)], C_OW,
        "1-wire: DS18B20 water probes")]
-for ref, kind, x0, y0, y1, pins, col, desc in TB:
+x0 = 79.0
+for ref, kind, y0, y1, pins, col, desc in TB:
     rect(x0, y0, BW, y1, col, fill=col, sw=1.0, opacity=0.14)
     rect(x0, y0, BW, y1, col, sw=1.3)
+    rect(BW, y0 + 0.1, BW + PLUG, y1 - 0.1, col, fill=col, sw=1.0, dash="4 3", opacity=0.06)
     for name, py in pins:
-        circle(x0 + 3.4, py, 0.95, C_PAD, fill="#ffffff", sw=1.2)
-        rect(BW - 1.6, py - 0.9, BW, py + 0.9, col, fill="#ffffff", sw=0.8)
-        text(BW + 1.2, py - 0.35, name, 8.5, col, anchor="start", weight="bold")
+        circle(x0 + 2.6, py, 0.8, C_PAD, fill="#ffffff", sw=1.2)
+        rect(BW + 6.0, py - 0.9, BW + PLUG - 0.4, py + 0.9, col, fill="#ffffff", sw=0.8, dash="2 2")
+        text(BW + 1.0, py - 0.35, name, 7.5, col, anchor="start", weight="bold")
     mid = (y0 + y1) / 2
-    text(BW + 7.6, mid + 0.6, f"{ref}  {kind}", 8.5, col, anchor="start", weight="bold")
-    text(BW + 7.6, mid - 0.9, desc, 7, col, anchor="start")
-    add(f'<line x1="{X(BW + 6.4):.1f}" y1="{Y(y0 + 0.3):.1f}" x2="{X(BW + 6.4):.1f}" y2="{Y(y1 - 0.3):.1f}" '
-        f'stroke="{col}" stroke-width="1.4"/>')
-text(BW + 0.3, BH + 1.3, "wire entries →", 7.5, "#555", anchor="end")
+    text(BW + PLUG + 4.4, mid + 0.6, f"{ref}  {kind}", 8.5, col, anchor="start", weight="bold")
+    text(BW + PLUG + 4.4, mid - 0.9, desc, 7, col, anchor="start")
+    add(f'<line x1="{X(BW + PLUG + 3.2):.1f}" y1="{Y(y0 + 0.3):.1f}" x2="{X(BW + PLUG + 3.2):.1f}" '
+        f'y2="{Y(y1 - 0.3):.1f}" stroke="{col}" stroke-width="1.4"/>')
+text(BW + PLUG / 2, BH + 1.3, "screw plugs (dashed)", 7, "#555")
 
 # ---- dimensions ---------------------------------------------------------------------------------------------------------
 yd = -5.5

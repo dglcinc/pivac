@@ -62,42 +62,45 @@ The accessories block offers one signal the thermostat side cannot: the EAC cont
 that closes whenever the blower runs on high or low. It proves the blower ran, which separates a dead motor or a
 controller fault from a coil that is short of water; air ΔT alone cannot, since a small ΔT means either no air or
 little load. It also marks blower runs with no call (fan-only, the controller's run-on), whose supply-air readings are
-room air, and counts blower hours. The board reads it on TB2 if the EAC terminals are unused. Check that before wiring it:
+room air, and counts blower hours. The board reads it on TB2.1 if the EAC terminals are unused. Check that before wiring it:
 Diagram 12 shows the EAC contact switching 120 V or 24 V to an air cleaner when one is fitted.
 
 ## 3. Board and terminal edge
 
 The shield is 86.36 × 53.34 mm. It follows the R4's outline for 68.58 mm and continues 17.78 mm past the R4's right
-edge as a tab with nothing under it. The terminals stand on that tab with their wire entries facing right. Inside
-the R4's outline the right edge is blocked: the ICSP header stands 8.5 mm tall at mid-height, and the header rows
-reach the corners.
+edge as a tab with nothing under it. The terminals are Phoenix COMBICON MC 1,5 pluggable screw terminals: an angled header on the tab and a screw
+plug that takes the field wires and pulls straight off. A board swaps between air handlers without unscrewing a wire.
+The headers stand on the tab with their plugs entering from the right. Inside the R4's outline the right edge is
+blocked: the ICSP header stands 8.5 mm tall at mid-height, and the header rows reach the corners.
 
-| Ref | Part | Positions |
-|---|---|---|
-| TB1 | Phoenix MKDS 1/4-3,81 | R · C · Y2 · W2 |
-| TB2 | Phoenix MPT 0,5/2-2,54 | FAN · GND |
-| TB3 | Phoenix MPT 0,5/3-2,54 | +5 · SIG · GND |
-| TB4 | Phoenix MPT 0,5/2-2,54 | SIG · GND |
-| TB5 | Phoenix MPT 0,5/2-2,54 | SIG · GND |
-| TB6 | Phoenix MPT 0,5/3-2,54 | V · D · G |
+| Ref | Header | Plug | Positions |
+|---|---|---|---|
+| TB1 | MC 1,5/4-G-3,81 | MC 1,5/4-ST-3,81 | R · C · Y2 · W2 |
+| TB2 | MC 1,5/4-G-3,5 | MC 1,5/4-ST-3,5 | FAN · FLOW · +5 · GND |
+| TB3 | MC 1,5/3-G-3,5 | MC 1,5/3-ST-3,5 | SUP · RET · GND |
+| TB4 | MC 1,5/3-G-3,5 | MC 1,5/3-ST-3,5 | V · D · G |
 
-1. TB1 is the 24 VAC group, at the top of the edge, 3.81 mm pitch, 26–16 AWG. An 18 AWG thermostat conductor fits
-   it and will not enter the 2.54 mm terminals below, so the AC wires cannot be landed on a sensor terminal.
-2. TB2 is the blower-running contact from the Unico's EAC terminals.
-3. TB3 is the coil water meter, reserved (§4.7).
-4. TB4 is the supply-air NTC and TB5 the return-air NTC. Each divider is a 5 kΩ source with 100 nF at the pin, and
-   the sketch averages several hundred readings a second, so mains hum averages out. Any twisted pair serves: a pair
-   of CAT6 or of thermostat cable. If Belden 8451 is already run, use it and cut the drain back at both ends.
-5. TB6 is the 1-wire bus to the two DS18B20 water probes, in the V · D · G order of the EXT board's legend.
-6. The MPT terminals take 26–20 AWG. The blocks are fixed screw terminals, so the plug mix-ups recorded on the EXT
-   board (rev C plan §4.1) cannot happen here.
-7. All six blocks are fixed through-hole screw terminals. A screw terminal takes torque at every landing, and through-hole pins hold it.
-   The four mounting holes on the UNO pattern take M3 standoffs to the R4; fit the two right-hand standoffs before
-   landing wires, because they carry the tab.
-8. **Pluggable option.** With five boards in service, a pluggable screw terminal would let a board be swapped without
-   unscrewing a field wire: Phoenix MC 1,5/4-G-3,81 with an MC 1,5/4-ST-3,81 plug for TB1, and the MC 0,5 2.5 mm
-   family for the sensors. The 2.5 mm parts need about 2 % more edge than the 2.54 mm ones, which the tab has. The
-   plan keeps the fixed terminals until that is decided.
+1. TB1 is the 24 VAC group, at the top of the edge, 3.81 mm pitch. The sensor groups are 3.5 mm pitch, the smallest
+   pitch at which Phoenix makes a pluggable screw plug; its 2.5 mm plugs are spring-cage. The pitch is also the
+   guard against the EXT board's plug mix-up (rev C plan §4.1): the 24 VAC plug is 15.2 mm wide and every sensor
+   header opening is 14 mm or less, so it seats only on TB1. A sensor plug may enter TB1's wider opening, which
+   carries no voltage once its own plug is off, so the danger is the 24 VAC plug alone.
+2. TB2 carries the blower-running contact (FAN, from the Unico's EAC terminals, with its other side on GND) and the
+   coil water meter, reserved (§4.7): FLOW, +5 and GND.
+3. TB3 carries the supply-air and return-air NTCs, their two returns sharing GND. Each divider is a 5 kΩ source with
+   100 nF at the pin, and the sketch averages several hundred readings a second, so mains hum averages out. Any
+   twisted pair serves: a pair of CAT6 or of thermostat cable. If Belden 8451 is already run, use it and cut the
+   drain back at both ends.
+4. TB4 is the 1-wire bus to the two DS18B20 water probes, in the V · D · G order of the EXT board's legend.
+5. Every MC 1,5 plug takes one conductor of 28–16 AWG, or two of the same size up to 0.5 mm² (20 AWG) in one clamp,
+   which is how two returns share a GND position. 18 AWG thermostat cable lands in TB1 directly.
+6. TB3 and TB4 are both 3-way 3.5 mm, so their plugs interchange. Either plug in the other's header puts only 5 V
+   logic and sensor wiring together, which harms nothing; the silkscreen names each header, and the plugs take a
+   marker.
+7. The four groups take 51.7 mm of the 53.34 mm edge, the plugs side by side. The headers are through-hole, and a
+   plug pulls straight back: never lever it, since one row of pins holds a header, as on the EXT rev A boards. The
+   four mounting holes on the UNO pattern take M3 standoffs to the R4; fit the two right-hand standoffs before
+   pulling or seating a plug, because they carry the tab.
 
 ## 4. Circuit
 
@@ -164,7 +167,7 @@ phototransistor, surface-mount, 5 kV between input and output. Each call runs to
 
 ### 4.4 Blower-running input
 
-TB2 takes the EAC contact. R13 pulls the net up to 5 V through 1 kΩ, so the contact carries 5 mA, and LED4 lights
+TB2.1 takes the EAC contact. R13 pulls the net up to 5 V through 1 kΩ, so the contact carries 5 mA, and LED4 lights
 through R14 when it closes. R15 (1 kΩ) and C9 (10 nF) filter the net into A2. The net is a field wire, so the series
 resistor limits the current into the pin if anything foreign lands on it.
 
@@ -178,8 +181,8 @@ and the ADC reference share the 5 V rail.
 ### 4.6 1-wire
 
 U2 is a DS2482-100 at address 0x18 (AD0 and AD1 to GND, SLPZ to 5 V), running at 5 V on the R4's SDA and SCL pins,
-which are A4 and A5. R18 and R19 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB6.D and supplies the bus
-pull-up itself. TB6.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
+which are A4 and A5. R18 and R19 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB4.D and supplies the bus
+pull-up itself. TB4.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
 drops the R4's rail. C4 decouples U2.
 
 JP1 is the rollback, open as built. Closed, it joins the bus to D2, and R20 (4.7 kΩ, not fitted) becomes the
@@ -187,7 +190,7 @@ bit-banged pull-up the present sketch uses. Leave U2 off the board while running
 
 ### 4.7 Coil water meter (reserved)
 
-TB3 carries 5 V, SIG and GND for a pulse meter. R16 (10 kΩ) pulls SIG up, and R17 (100 Ω) with C10 (1 nF) feeds A3,
+TB2 carries FLOW, +5 and GND for a pulse meter. R16 (10 kΩ) pulls SIG up, and R17 (100 Ω) with C10 (1 nF) feeds A3,
 which can raise an interrupt on the R4. Fit the three parts when a meter is chosen (Appendix E.6 of the cooling
 assessment).
 
@@ -222,9 +225,9 @@ The board is laid out in bands, each running from its terminals on the tab to th
    face C1, and its output pins face the left edge.
 2. **Left edge, 5 V.** U1's output capacitors, the PWR LED and the +5 and GND test pads sit above the R4's USB-C.
    The 5 V track runs down the left to the 5V header pin.
-3. **Middle band.** The FAN chain runs left from TB2 above the ICSP holes, and the FLOW chain from TB3 below them.
+3. **Middle band.** The FAN chain runs left from TB2 above the ICSP holes, and the FLOW chain below them.
    Both turn down to A2 and A3.
-4. **Lower band.** The air dividers stand in two rows above A0 and A1. The DS2482 group sits on the tab beside TB6.
+4. **Lower band.** The air dividers stand in two rows above A0 and A1. The DS2482 group sits on the tab beside TB4.
 5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
 
 | Ref | Part | Centre (x, y) |
@@ -328,9 +331,12 @@ own pads; none needs a breakout adapter.
 | LED2 | Lite-On LTST-C171TBKT, blue, Y2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171TBKT) | [search](https://www.amazon.com/s?k=0805+LED+blue) |
 | LED3 | Lite-On LTST-C171KRKT, red, W2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KRKT) | [search](https://www.amazon.com/s?k=0805+LED+red) |
 | LED4 | Lite-On LTST-C171KSKT, yellow, FAN | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KSKT) | [search](https://www.amazon.com/s?k=0805+LED+yellow) |
-| TB1 | Phoenix MKDS 1/4-3,81, 1727036 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1727036) | [search](https://www.amazon.com/s?k=Phoenix+1727036) |
-| TB2, TB4, TB5 | Phoenix MPT 0,5/2-2,54, 1725656 | 3 | [search](https://www.digikey.com/en/products/result?keywords=1725656) | [search](https://www.amazon.com/s?k=Phoenix+1725656) |
-| TB3, TB6 | Phoenix MPT 0,5/3-2,54, 1725669 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1725669) | [search](https://www.amazon.com/s?k=Phoenix+1725669) |
+| TB1 header | Phoenix MC 1,5/4-G-3,81, 1803293 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803293) | [search](https://www.amazon.com/s?k=Phoenix+1803293) |
+| TB1 plug | Phoenix MC 1,5/4-ST-3,81, 1803594 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803594) | [search](https://www.amazon.com/s?k=Phoenix+1803594) |
+| TB2 header | Phoenix MC 1,5/4-G-3,5, 1844236 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1844236) | [search](https://www.amazon.com/s?k=Phoenix+1844236) |
+| TB2 plug | Phoenix MC 1,5/4-ST-3,5, 1840382 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1840382) | [search](https://www.amazon.com/s?k=Phoenix+1840382) |
+| TB3, TB4 headers | Phoenix MC 1,5/3-G-3,5, 1844223 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1844223) | [search](https://www.amazon.com/s?k=Phoenix+1844223) |
+| TB3, TB4 plugs | Phoenix MC 1,5/3-ST-3,5, 1840379 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1840379) | [search](https://www.amazon.com/s?k=Phoenix+1840379) |
 | — | Arduino shield male headers, 6, 8, 8 and 10 way | 1 set | [search](https://www.digikey.com/en/products/result?keywords=Arduino%20shield%20header%20kit) | [search](https://www.amazon.com/s?k=Arduino+R3+shield+headers) |
 | — | M3 standoffs, nylon, 10 mm | 4 | [search](https://www.digikey.com/en/products/result?keywords=M3%20nylon%20standoff%2010mm) | [search](https://www.amazon.com/s?k=M3+nylon+standoff+kit) |
 
@@ -339,7 +345,9 @@ own pads; none needs a breakout adapter.
 3. R1 and R2 set the air-temperature accuracy: 0.1 % at 25 ppm/°C costs about 0.04 °F.
 4. R16, R17 and C10 wait for a water meter (§4.7); R20 stays unfitted (§4.6).
 5. JP1 is a solder-jumper pad on the board and needs no part.
-6. Boards: at OSH Park's $5 per square inch, 7.1 sq in buys three boards for about $36. A JLCPCB order with its
+6. The order numbers 1803293, 1803594, 1844223, 1844236 and 1840379 match distributor listings for their names;
+   1840382 (the 4-way 3.5 mm plug) follows the series and is not yet confirmed. Buy a spare plug of each size.
+7. Boards: at OSH Park's $5 per square inch, 7.1 sq in buys three boards for about $36. A JLCPCB order with its
    assembly service would place every SMD part; the plan assumes hand assembly with an iron, as on EXT.
 
 ## 7. Firmware and pivac
@@ -362,8 +370,8 @@ node's pivac side unchanged.
 1. **Confirm the Unico terminals carry what §2 says.** With a meter on the SCB's thermostat block, read W2 to C
    during a second-stage heat call and Y2 to C during a second-stage cool call: 24 VAC on the call, near zero
    otherwise. A thermostat wired single-stage to the SCB leaves W2 dead.
-2. **The EAC contact must be unused.** If an air cleaner, ERV or UV lamp hangs on it, TB2 would see 24 or 120 VAC.
-   Leave TB2 empty in that case.
+2. **The EAC contact must be unused.** If an air cleaner, ERV or UV lamp hangs on it, TB2.1 would see 24 or 120 VAC.
+   Leave FAN unwired in that case.
 3. **Transformer capacity.** The SCB's transformer is 50 VA (Unico part A00057). The board adds about 3 VA: 2 W at
    the converter's input at full WiFi load, plus 5 mA per active call input. Read the nameplate.
 4. **The tab carries terminal torque.** Fit both right-hand standoffs before landing wires, and support the tab with
