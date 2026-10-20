@@ -211,8 +211,10 @@ every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps befor
    face C1, and its output pins face the left edge.
 2. **Left edge, 5 V.** U1's output capacitors, the PWR LED and the +5 and GND test pads sit above the R4's USB-C.
    The 5 V track runs down the left to the 5V header pin.
-3. **Lower band.** The air dividers stand in two rows above A0 and A1, fed from TB2. The DS2482 group sits on the tab beside TB3.
-4. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
+3. **Air temperatures.** R1 to R4 stand on the tab beside TB2, and C5 and C6 at the A0 and A1 pins, where the
+   ADC draws its sample charge. The trace between carries no DC, so its 30 mm add no error.
+4. **Lower band.** The DS2482 group sits on the tab beside TB3.
+5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
 
 | Ref | Part | Centre (x, y) |
 |---|---|---|
@@ -222,7 +224,8 @@ every joint. The `ah` board in `hardware/gen-boards.py` asserts these gaps befor
 | F1, D2 | entry | 76.8 / 70.5, 50.5 |
 | U3, U4 | LTV-814S | 54.0, 45.0 / 37.5 |
 | U2 | DS2482-100, SOIC-8 | 72.0, 4.6 |
-| R1–R4, C5, C6 | air dividers | 44.5–52.5, 11.0 / 15.5 |
+| R1–R4 | air dividers | 70.5 / 74.0, 26.0 / 31.0 |
+| C5, C6 | at A0, A1 | 50.8 / 53.3, 6.6 |
 | TP1, TP2 | VS, C | 26.8 / 29.9, 34.0 |
 | TP3 | R after F1 | 65.0, 47.8 |
 | J1 | test row, 12 pads | 17.0–44.9, 26.0 |

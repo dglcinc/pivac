@@ -199,11 +199,12 @@ for row, call, pin, refs in ((45.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3",
     part(rpu, 45.6, row, 2.0, 1.25, C_IN, label_at="b")
     part(cf, 42.0, row, 2.0, 1.25, C_IN, label_at="b")
 
-# ---- air temperatures above A0 and A1 -------------------------------------------------------------------------------
-for ref, x, y in (("R2", 44.5, 15.5), ("R4", 48.5, 15.5), ("C6", 52.5, 15.5),
-                  ("R1", 44.5, 11.0), ("R3", 48.5, 11.0), ("C5", 52.5, 11.0)):
+# ---- air temperatures: dividers beside TB2, filter capacitors at A0 and A1 -------------------------------------------
+for ref, x, y in (("R2", 70.5, 31.0), ("R4", 74.0, 31.0), ("R1", 70.5, 26.0), ("R3", 74.0, 26.0)):
     part(ref, x, y, 2.0, 1.25, C_AN, label_at="a")
-text(48.5, 18.6, "air: SUP → A1, RET → A0", 6.5, C_AN, weight="bold")
+text(72.2, 33.6, "air dividers", 6.5, C_AN, weight="bold")
+part("C5", 50.8, 6.6, 1.25, 2.0, C_AN, label_at="a")
+part("C6", 53.34, 6.6, 1.25, 2.0, C_AN, label_at="a")
 
 # ---- 1-wire master beside TB6 -----------------------------------------------------------------------------------------
 part("U2", 72.0, 4.6, 6.2, 5.0, C_OW, "DS2482-100")
