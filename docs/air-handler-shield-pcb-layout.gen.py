@@ -16,7 +16,7 @@ from pathlib import Path
 S = 10.0                       # px per mm
 BW, BH = 86.36, 53.34          # shield
 UNO_W = 68.58                  # R4 outline under it
-BX, BY = 290, 120               # SVG position of the shield's top-left corner
+BX, BY = 420, 120               # SVG position of the shield's top-left corner
 W, H = int(BX + BW * S + 480), int(BY + BH * S + 300)
 FONT = "IBM Plex Mono, ui-monospace, monospace"
 
@@ -161,7 +161,7 @@ for tx, ty, tl in ((25.6, 35.0, "TP1 VS"), (28.4, 35.0, "TP2 C")):
 part("C2", 5.0, 35.9, 3.2, 1.6, C_PWR, label_at="in")
 part("C3", 9.5, 35.9, 3.2, 1.6, C_PWR, label_at="in")
 part("LED1", 13.0, 31.6, 2.0, 1.25, C_PWR, label_at="a")
-part("R21", 16.4, 31.6, 2.0, 1.25, C_PWR, label_at="a")
+part("R19", 16.4, 31.6, 2.0, 1.25, C_PWR, label_at="a")
 text(14.7, 29.4, "PWR", 6.5, C_PWR, weight="bold")
 # J1: the test row, 13 plated pads at 2.54 mm that also take a pin header
 J1 = [("GND", C_GND), ("+5", C_PWR), ("Y2", C_IN), ("W2", C_IN), ("FAN", C_IN), ("FLOW", C_IN), ("AIR-R", C_AN),
@@ -206,9 +206,6 @@ for row, call, pin, refs in ((46.0, "Y2", "D8", ("R5", "R6", "R9", "LED2", "D3",
 for ref, x in (("R15", 57.5), ("R13", 54.0), ("C9", 50.5), ("LED4", 47.0), ("R14", 43.5)):
     part(ref, x, 31.8, 2.0, 1.25, C_IN, label_at="b")
 text(39.4, 31.45, "FAN → A2", 7, C_IN, anchor="end", weight="bold")
-for ref, x in (("R17", 57.5), ("R16", 54.0), ("C10", 50.5)):
-    part(ref, x, 21.4, 2.0, 1.25, C_IN, label_at="b")
-text(46.9, 21.05, "FLOW → A3", 7, C_IN, anchor="end", weight="bold")
 
 # ---- air temperatures above A0 and A1 -------------------------------------------------------------------------------
 for ref, x, y in (("R2", 44.5, 15.5), ("R4", 48.5, 15.5), ("C6", 52.5, 15.5),
@@ -221,9 +218,9 @@ part("U2", 72.0, 4.6, 6.2, 5.0, C_OW, "DS2482-100")
 part("C4", 76.4, 2.2, 1.25, 2.0, C_OW, label_at="in")
 part("F2", 72.5, 10.2, 4.8, 3.4, C_OW, "PTC 0.2 A")
 part("JP1", 70.3, 14.0, 2.0, 1.2, C_OW, label_at="a")
-part("R20", 73.3, 14.0, 2.0, 1.25, C_OW, label_at="a")
-part("R18", 70.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
-part("R19", 73.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
+part("R18", 73.3, 14.0, 2.0, 1.25, C_OW, label_at="a")
+part("R16", 70.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
+part("R17", 73.3, 17.4, 2.0, 1.25, C_OW, label_at="a")
 text(71.8, 20.0, "JP1 to D2: rollback", 6, C_OW)
 
 # ---- title block, as on INT: ring and DL from hardware/dl-monogram.svg, name, rule, version --------------------------
@@ -292,10 +289,13 @@ text(BW + 16.4, 45.7, "TB1  MC 1,5/4-G-3,81", 8.5, C_PRI, anchor="start", weight
 text(BW + 16.4, 44.2, "24 VAC, screw plug: Unico SCB", 7, C_PRI, anchor="start")
 add(f'<line x1="{X(BW + 15.2):.1f}" y1="{Y(y0 + 0.3):.1f}" x2="{X(BW + 15.2):.1f}" y2="{Y(y1 - 0.3):.1f}" '
     f'stroke="{C_PRI}" stroke-width="1.4"/>')
-ptsm("TB2", "PTSM 0,5/4-HH-2,5-SMD", 1, 27.8, ["FAN", "FLOW", "+5", "GND"], C_IN,
-     "EAC blower contact; water meter (reserved)")
-ptsm("TB3", "PTSM 0,5/3-HH-2,5-SMD", 1, 9.75, ["V", "D", "G"], C_OW, "1-wire: DS18B20 water probes")
-ptsm("TB4", "PTSM 0,5/4-HH-2,5-SMD", -1, 26.0, ["SUP", "GND", "RET", "GND"], C_AN, "air 10K NTCs")
+ptsm("TB2", "PTSM 0,5/6-HH-2,5-SMD", 1, 26.05, ["FAN", "GND", "SUP", "GND", "RET", "GND"], C_AN,
+     "EAC blower contact; air 10K NTCs")
+ptsm("TB3", "PTSM 0,5/3-HH-2,5-SMD", 1, 7.8, ["V", "D", "G"], C_OW, "1-wire: DS18B20 water probes")
+ptsm("TB4", "PTSM 0,5/3-HH-2,5-SMD", -1, 22.0, ["+5", "FLOW", "GND"], C_IN, "water meter, optional, not fitted")
+for ref, x in (("R20", 13.5), ("R21", 17.0), ("C10", 20.5)):
+    part(ref, x, 20.6, 2.0, 1.25, C_IN, label_at="a")
+text(17.0, 18.2, "FLOW → A3, not fitted", 6, C_IN, weight="bold")
 text(BW + 6.0, BH + 1.3, "plugs dashed", 7, "#555")
 
 # ---- dimensions ---------------------------------------------------------------------------------------------------------
@@ -311,7 +311,7 @@ text(BW / 2, yd - 2.0, "86.36 x 53.34", 9.5, "#333", weight="bold")
 # ---- legend ------------------------------------------------------------------------------------------------------------
 ly = Y(0) + 105
 items = [(C_PRI, "24 VAC side: entry, rectifier, call inputs"), (C_OPT, "AC optocouplers, 5 kV input to output"),
-         (C_PWR, "5.1 V from the converter to the R4's 5V pin"), (C_IN, "logic inputs Y2, W2, FAN, FLOW"),
+         (C_PWR, "5.1 V from the converter to the R4's 5V pin"), (C_IN, "logic inputs Y2, W2, FAN"),
          (C_AN, "air-temperature dividers"), (C_OW, "I2C to 1-wire master"),
          (C_FAINT, "dashed grey: the R4 under the shield")]
 for i, (col, lab) in enumerate(items):
@@ -319,7 +319,7 @@ for i, (col, lab) in enumerate(items):
     yy = ly + (i // 2) * 22
     add(f'<rect x="{lx}" y="{yy - 11}" width="16" height="12" fill="{col}" fill-opacity="0.25" stroke="{col}"/>')
     add(f'<text x="{lx + 24}" y="{yy}" font-size="10.5" fill="#222" font-family="{FONT}">{lab}</text>')
-notes = ["Header pins used: 5V (supply in from U1), GND, A0 A1 air, A2 FAN, A3 FLOW, SDA SCL to U2, D8 Y2, D9 W2,",
+notes = ["Header pins used: 5V (supply in from U1), GND, A0 A1 air, A2 FAN, A3 FLOW (optional), SDA SCL to U2, D8 Y2, D9 W2,",
          "D2 only through JP1. Red ticks mark the isolation barriers inside U1, U3 and U4.",
          "LEDs: LED1 green PWR, LED2 blue Y2 and LED3 red W2 on the 24 VAC side, LED4 yellow FAN."]
 for i, n in enumerate(notes):

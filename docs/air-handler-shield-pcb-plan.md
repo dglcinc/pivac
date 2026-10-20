@@ -19,13 +19,12 @@ headers. `docs/air-handler-shield-pcb-layout.svg` is the floor plan, generated b
 
 **In scope.** One two-layer shield for the UNO R4 WiFi carrying the 24 VAC entry, the rectifier and an isolated
 24 VAC to 5.1 V converter feeding the R4's 5V header pin, two AC optocoupler inputs for Y2 and W2, a dry-contact
-input for the Unico's blower-running contact, a pulse input reserved for a coil water meter, the two air-temperature
+input for the Unico's blower-running contact, the two air-temperature
 dividers, a DS2482-100 driving the 1-wire bus, status LEDs, a test pad for every bench check and the title block. The generator, the routing
 and the gerbers follow the EXT board's toolchain in `hardware/`.
 
 **Out of scope.** The probes, the NTC sensors and their mounting stay as `docs/mbr-air-handler-node-plan.md` §3
-specifies them, except that the air sensors no longer need shielded cable (§3). The water meter itself is not chosen.
-No change to the Unico controller's settings.
+specifies them, except that the air sensors no longer need shielded cable (§3). No change to the Unico controller's settings.
 
 **Boundaries assumed.**
 
@@ -72,34 +71,35 @@ edge as a tab with nothing under it. Every field connection is pluggable, so a b
 group takes a COMBICON MC 1,5 screw plug, because 18 AWG thermostat cable needs a 3.81 mm clamp. The sensor groups
 take the PTSM push-in parts of the EXT board: the surface-mount header with its entry face on the board edge (EXT
 rev C plan §3) and a plain `-P-` plug. Inside the R4's outline the right edge is blocked by the ICSP header and the
-header-row corners, so the right edge carries three groups on the tab and the left short edge carries the fourth.
+header-row corners, so the three fitted groups stand on the tab's right edge. The left short edge carries an
+optional fourth, for a coil water meter, unfitted until one is chosen.
 
 | Ref | Edge | Header | Plug | Positions |
 |---|---|---|---|---|
 | TB1 | right, top | MC 1,5/4-G-3,81 | MC 1,5/4-ST-3,81 | R · C · Y2 · W2 |
-| TB2 | right | PTSM 0,5/4-HH-2,5-SMD | PTSM 0,5/4-P-2,5 | FAN · FLOW · +5 · GND |
+| TB2 | right | PTSM 0,5/6-HH-2,5-SMD | PTSM 0,5/6-P-2,5 | FAN · GND · SUP · GND · RET · GND |
 | TB3 | right, bottom | PTSM 0,5/3-HH-2,5-SMD | PTSM 0,5/3-P-2,5 | V · D · G |
-| TB4 | left | PTSM 0,5/4-HH-2,5-SMD | PTSM 0,5/4-P-2,5 | SUP · GND · RET · GND |
+| TB4 | left, not fitted | PTSM 0,5/3-HH-2,5-SMD | PTSM 0,5/3-P-2,5 | +5 · FLOW · GND |
 
 1. TB1 is the 24 VAC group. Its plug takes 28–16 AWG, so the thermostat cable lands directly.
-2. TB2 carries the blower-running contact (FAN, from the Unico's EAC terminals, with its other side on GND) and the
-   coil water meter, reserved (§4.7): FLOW, +5 and GND.
+2. TB2 carries the blower-running contact (FAN, from the Unico's EAC terminals, its other side on the GND beside it)
+   and the supply-air and return-air NTCs, each with its own GND position, since a push-in clamp takes one conductor.
+   All three come from the air-handler cabinet, and one 6-way header takes less edge than a 2-way and a 4-way,
+   whose solder anchors would not fit beside TB1 and TB3. Each air divider is a 5 kΩ source with 100 nF at the pin,
+   and the sketch averages several hundred readings a second, so mains hum averages out. Any twisted pair serves: a
+   pair of CAT6 or of thermostat cable. If Belden 8451 is already run, use it and cut the drain back at both ends.
 3. TB3 is the 1-wire bus to the two DS18B20 water probes, in the V · D · G order of the EXT board's legend, beside
    the DS2482 on the tab.
-4. TB4 carries the supply-air and return-air NTCs, each with its own GND position, since a push-in clamp takes one
-   conductor. Each divider is a 5 kΩ source with 100 nF at the pin, and the sketch averages several hundred readings
-   a second, so mains hum averages out. Any twisted pair serves: a pair of CAT6 or of thermostat cable. If Belden
-   8451 is already run, use it and cut the drain back at both ends.
-5. TB4 sits on the left edge between the R4's USB-C and its barrel jack, at the height of the shield. A USB-C cable
-   still plugs into the R4 under it.
-6. The PTSM header carries two locating pegs that drop into unplated holes in the board, and solder anchors at both
+4. TB4 is the coil water meter's footprint, optional (§4.7), between the R4's USB-C and its barrel jack at the
+   height of the shield; a USB-C cable still plugs into the R4 under a fitted plug.
+5. The PTSM header carries two locating pegs that drop into unplated holes in the board, and solder anchors at both
    ends, so it sits flat and square and does not fold when a plug is pulled. The plain plug seats positively without
    a latch. The PTSM plugs take 26–20 AWG, one conductor per position.
-7. **Mixing up plugs.** The 24 VAC plug is 15.2 mm wide and every PTSM header opening is 11.7 mm or less, so it
-   seats only on TB1. A PTSM plug with fewer positions enters a larger PTSM socket (EXT rev C plan §4.1), so the
-   3-way 1-wire plug can enter TB2 or TB4; every PTSM position is 5 V logic or sensor wiring, so that harms nothing.
+6. **Mixing up plugs.** The 24 VAC plug's 3.81 mm contacts do not line up with a 2.5 mm header's pins, and it is wider than
+   TB3's opening, so it seats only on TB1; the silkscreen marks TB2 against it. A PTSM plug with fewer positions enters a larger PTSM socket (EXT rev C plan §4.1), so the
+   3-way plugs can enter TB2; every PTSM position is 5 V logic or sensor wiring, so that harms nothing.
    The silkscreen names each header.
-8. Pull a plug straight back. The four mounting holes on the UNO pattern take M3 standoffs to the R4; fit them
+7. Pull a plug straight back. The four mounting holes on the UNO pattern take M3 standoffs to the R4; fit them
    before seating plugs, because the two on the right carry the tab.
 
 ## 4. Circuit
@@ -181,18 +181,18 @@ and the ADC reference share the 5 V rail.
 ### 4.6 1-wire
 
 U2 is a DS2482-100 at address 0x18 (AD0 and AD1 to GND, SLPZ to 5 V), running at 5 V on the R4's SDA and SCL pins,
-which are A4 and A5. R18 and R19 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB3.D and supplies the bus
+which are A4 and A5. R16 and R17 (4.7 kΩ) pull SDA and SCL up to 5 V. U2's IO drives TB3.D and supplies the bus
 pull-up itself. TB3.V comes from 5 V through F2, a second 0.2 A PTC, so a shorted probe cable trips F2 before it
 drops the R4's rail. C4 decouples U2.
 
-JP1 is the rollback, open as built. Closed, it joins the bus to D2, and R20 (4.7 kΩ, not fitted) becomes the
+JP1 is the rollback, open as built. Closed, it joins the bus to D2, and R18 (4.7 kΩ, not fitted) becomes the
 bit-banged pull-up the present sketch uses. Leave U2 off the board while running that way.
 
-### 4.7 Coil water meter (reserved)
+### 4.7 Coil water meter (optional)
 
-TB2 carries FLOW, +5 and GND for a pulse meter. R16 (10 kΩ) pulls SIG up, and R17 (100 Ω) with C10 (1 nF) feeds A3,
-which can raise an interrupt on the R4. Fit the three parts when a meter is chosen (Appendix E.6 of the cooling
-assessment).
+TB4 takes a pulse meter's +5, FLOW and GND. R20 (10 kΩ) pulls FLOW up, and R21 (100 Ω) with C10 (1 nF) feeds A3,
+which can raise an interrupt on the R4. TB4, R20, R21 and C10 stay off the board until a meter is chosen
+(Appendix E.6 of the cooling assessment); fitting them is the whole change.
 
 ### 4.8 Pin map
 
@@ -203,7 +203,7 @@ assessment).
 | A0 | return air |
 | A1 | supply air |
 | A2 | FAN |
-| A3 | FLOW |
+| A3 | FLOW, optional |
 | A4 / SDA | U2 SDA |
 | A5 / SCL | U2 SCL |
 | D8 | Y2 |
@@ -213,7 +213,7 @@ assessment).
 1. D8 keeps the Y2 pin the present sketch reads.
 2. D0 and D1 (serial), D4 and D5 (CAN) and D10 to D13 (SPI) stay unused. The ICSP header passes through six
    clearance holes with no copper.
-3. A3 replaces the node plan's D3 for the flow meter, so each input lands on the header row nearest its terminal.
+3. D3 stays free.
 
 ## 5. Layout
 
@@ -225,10 +225,9 @@ The board is laid out in bands, each running from its terminals on the tab to th
    face C1, and its output pins face the left edge.
 2. **Left edge, 5 V.** U1's output capacitors, the PWR LED and the +5 and GND test pads sit above the R4's USB-C.
    The 5 V track runs down the left to the 5V header pin.
-3. **Middle band.** The FAN chain runs left from TB2 above the ICSP holes, and the FLOW chain below them.
-   Both turn down to A2 and A3.
-4. **Lower band.** The air dividers stand in two rows above A0 and A1, fed from TB4 on the left edge. The DS2482 group sits on the tab beside TB3.
-5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack, below TB4.
+3. **Middle band.** The FAN chain runs left from TB2 above the ICSP holes and turns down to A2.
+4. **Lower band.** The air dividers stand in two rows above A0 and A1, fed from TB2. The DS2482 group sits on the tab beside TB3.
+5. **Title block.** The INT board's block, at full scale, in the bottom-left over the R4's barrel jack.
 
 | Ref | Part | Centre (x, y) |
 |---|---|---|
@@ -238,11 +237,11 @@ The board is laid out in bands, each running from its terminals on the tab to th
 | F1, D2 | entry | 75.5 / 70.0, 50.3 |
 | U3, U4 | LTV-814S | 57.5, 46.0 / 40.3 |
 | U2 | DS2482-100, SOIC-8 | 72.0, 4.6 |
-| TB4 | air header, left edge | centre y 26.0 |
 | R1–R4, C5, C6 | air dividers | 44.5–52.5, 11.0 / 15.5 |
 | TP1, TP2 | VS, C | 25.6 / 28.4, 35.0 |
 | TP3 | R after F1 | 65.6, 50.3 |
 | J1 | test row, 13 pads | 17.0–47.5, 26.0 |
+| TB4, R20, R21, C10 | water meter, not fitted | left edge, y 22 |
 | title block | ring and DL | ring centre 8.6, 9.8 |
 
 1. The barrel jack under the bottom-left corner stands 11 mm, and the shield rests on it. Nothing through-hole goes
@@ -289,7 +288,7 @@ TP1 to TP3 are plated loops on the 24 VAC side, sized for a probe hook. J1 is a 
 | Y2 input | J1.3 and J1.1 | under 0.5 V on a call, 5 V idle |
 | W2 input | J1.4 and J1.1 | as Y2 |
 | FAN input | J1.5 and J1.1 | under 0.5 V while the blower runs |
-| FLOW input | J1.6 and J1.1 | pulses with flow |
+| FLOW input | J1.6 and J1.1 | pulses with flow, once fitted |
 | Air dividers | J1.7, J1.8 and J1.1 | 2.5 V at 77 °F |
 | F2 | J1.9 and J1.1 | 5 V; 0 V means a shorted probe cable |
 | 1-wire bus | J1.10 and J1.1 | 5 V idle, pulses while reading |
@@ -321,22 +320,21 @@ own pads; none needs a breakout adapter.
 | C3 | 22 µF 10 V X5R 1206 | 1 | [search](https://www.digikey.com/en/products/result?keywords=22uF%2010V%201206%20X5R) | [search](https://www.amazon.com/s?k=22uF+10V+1206) |
 | C4–C6 | Yageo CC0805KRX7R9BB104 | 3 | [search](https://www.digikey.com/en/products/result?keywords=CC0805KRX7R9BB104) | [search](https://www.amazon.com/s?k=100nF+0805+X7R) |
 | C7, C8 | Murata GRM21BR71C105KA01L | 2 | [search](https://www.digikey.com/en/products/result?keywords=GRM21BR71C105KA01L) | [search](https://www.amazon.com/s?k=1uF+0805+X7R) |
-| C9, C10 | 10 nF and 1 nF C0G 0805 | 2 | [search](https://www.digikey.com/en/products/result?keywords=0805%20C0G%2010nF) | [search](https://www.amazon.com/s?k=0805+C0G+capacitor+kit) |
+| C9 | 10 nF C0G 0805 | 1 | [search](https://www.digikey.com/en/products/result?keywords=0805%20C0G%2010nF) | [search](https://www.amazon.com/s?k=0805+C0G+capacitor+kit) |
 | R1, R2 | Yageo RT0805BRD0710KL | 2 | [search](https://www.digikey.com/en/products/result?keywords=RT0805BRD0710KL) | [search](https://www.amazon.com/s?k=10k+0.1%25+0805+25ppm) |
-| R3, R4, R9, R10, R13–R15, R21 | Yageo RC0805FR-071KL | 8 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-071KL) | [search](https://www.amazon.com/s?k=0805+resistor+kit) |
+| R3, R4, R9, R10, R13–R15, R19 | Yageo RC0805FR-071KL | 8 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-071KL) | [search](https://www.amazon.com/s?k=0805+resistor+kit) |
 | R5–R8 | Yageo RC1206FR-072K2L | 4 | [search](https://www.digikey.com/en/products/result?keywords=RC1206FR-072K2L) | [search](https://www.amazon.com/s?k=1206+resistor+kit) |
-| R11, R12, R16 | Yageo RC0805FR-0710KL | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-0710KL) | in the kit |
-| R17 | Yageo RC0805FR-07100RL | 1 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-07100RL) | in the kit |
-| R18–R20 | Yageo RC0805FR-074K7L | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-074K7L) | in the kit |
+| R11, R12 | Yageo RC0805FR-0710KL | 2 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-0710KL) | in the kit |
+| R16–R18 | Yageo RC0805FR-074K7L | 3 | [search](https://www.digikey.com/en/products/result?keywords=RC0805FR-074K7L) | in the kit |
 | LED1 | Lite-On LTST-C171GKT, green, PWR | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171GKT) | [search](https://www.amazon.com/s?k=0805+LED+green) |
 | LED2 | Lite-On LTST-C171TBKT, blue, Y2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171TBKT) | [search](https://www.amazon.com/s?k=0805+LED+blue) |
 | LED3 | Lite-On LTST-C171KRKT, red, W2 | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KRKT) | [search](https://www.amazon.com/s?k=0805+LED+red) |
 | LED4 | Lite-On LTST-C171KSKT, yellow, FAN | 1 | [search](https://www.digikey.com/en/products/result?keywords=LTST-C171KSKT) | [search](https://www.amazon.com/s?k=0805+LED+yellow) |
 | TB1 header | Phoenix MC 1,5/4-G-3,81, 1803293 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803293) | [search](https://www.amazon.com/s?k=Phoenix+1803293) |
 | TB1 plug | Phoenix MC 1,5/4-ST-3,81, 1803594 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1803594) | [search](https://www.amazon.com/s?k=Phoenix+1803594) |
-| TB2, TB4 headers | Phoenix PTSM 0,5/4-HH-2,5-SMD R32, 1778780 | 2 | [search](https://www.digikey.com/en/products/result?keywords=1778780) | [search](https://www.amazon.com/s?k=Phoenix+1778780) |
+| TB2 header | Phoenix PTSM 0,5/6-HH-2,5-SMD R32 | 1 | [search](https://www.digikey.com/en/products/result?keywords=PTSM%200%2C5%2F%206-HH-2%2C5-SMD) | [search](https://www.amazon.com/s?k=Phoenix+PTSM+0%2C5%2F6-HH-2%2C5-SMD) |
 | TB3 header | Phoenix PTSM 0,5/3-HH-2,5-SMD R32, 1778777 | 1 | [search](https://www.digikey.com/en/products/result?keywords=1778777) | [search](https://www.amazon.com/s?k=Phoenix+1778777) |
-| TB2, TB4 plugs | Phoenix PTSM 0,5/4-P-2,5, 1778858 | 2 | [1778858](https://www.digikey.com/en/products/detail/phoenix-contact/1778858/2625558) | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778858) |
+| TB2 plug | Phoenix PTSM 0,5/6-P-2,5 | 1 | [search](https://www.digikey.com/en/products/result?keywords=PTSM%200%2C5%2F%206-P-2%2C5) | [search](https://www.amazon.com/s?k=Phoenix+PTSM+0%2C5%2F6-P-2%2C5) |
 | TB3 plug | Phoenix PTSM 0,5/3-P-2,5, 1778845 | 1 | [1778845](https://www.digikey.com/en/products/detail/phoenix-contact/1778845/2625557) | [search](https://www.amazon.com/s?k=Phoenix+Contact+1778845) |
 | — | Arduino shield male headers, 6, 8, 8 and 10 way | 1 set | [search](https://www.digikey.com/en/products/result?keywords=Arduino%20shield%20header%20kit) | [search](https://www.amazon.com/s?k=Arduino+R3+shield+headers) |
 | — | M3 standoffs, nylon, 10 mm | 4 | [search](https://www.digikey.com/en/products/result?keywords=M3%20nylon%20standoff%2010mm) | [search](https://www.amazon.com/s?k=M3+nylon+standoff+kit) |
@@ -344,25 +342,26 @@ own pads; none needs a breakout adapter.
 1. C1's ripple at 100 µF is set out in §4.1. A 220 µF part at 63 V needs a 12.5 mm can.
 2. C2 and C3 are U1's output capacitors.
 3. R1 and R2 set the air-temperature accuracy: 0.1 % at 25 ppm/°C costs about 0.04 °F.
-4. R16, R17 and C10 wait for a water meter (§4.7); R20 stays unfitted (§4.6).
+4. R18 stays unfitted (§4.6). TB4, R20, R21 and C10 wait for a water meter (§4.7): a 3-way PTSM header and
+   plug as TB3, 10 kΩ, 100 Ω and 1 nF C0G 0805 parts from the kits above.
 5. JP1 is a solder-jumper pad on the board and needs no part.
 6. TB1's order numbers 1803293 and 1803594 match distributor listings for their names. The PTSM headers and plugs
-   are the parts of the INT and EXT boards (`docs/rpi-io-boards-parts.md`, `docs/rpi-io-boards-revc-plan.md` §6),
-   and spare plugs from those orders may be on hand. Phoenix's STEP models of both headers are in
-   `hardware/vendor/` for the fit check.
+   are the INT and EXT boards' families; TB3's are their exact parts (`docs/rpi-io-boards-parts.md`, `docs/rpi-io-boards-revc-plan.md` §6),
+   and spare 3-way plugs from those orders may be on hand. The 6-way header and plug need their order numbers looked
+   up, and the 6-way header's STEP model added to `hardware/vendor/` for the fit check.
 7. Boards: at OSH Park's $5 per square inch, 7.1 sq in buys three boards for about $36. A JLCPCB order with its
    assembly service would place every SMD part; the plan assumes hand assembly with an iron, as on EXT.
 
 ## 7. Firmware and pivac
 
-The board changes the sketch in four places. Everything else in `AirHandler_impl.h` stays.
+The board changes the sketch in three places, and a fourth once a water meter is fitted. Everything else in `AirHandler_impl.h` stays.
 
 1. **Water temperatures** read through the DS2482 over `Wire` at 0x18, using a DS2482 driver that presents the
    OneWire interface `DallasTemperature` expects, or Adafruit's DS248x library with its own DS18B20 read. Bring-up
    mode prints the ROMs as before. With JP1 closed and U2 removed, the present D2 code runs unchanged.
 2. **W2** on D9 gets the same treatment as Y2: `w2` now, and `w2_s` as seconds since boot.
 3. **FAN** on A2, read digitally and published as `fan` (1 while the blower runs) and `fan_s`.
-4. **FLOW** on A3 waits for a meter.
+4. **FLOW** on A3, counted by interrupt, once a meter is fitted.
 
 On the pivac side, the `pivac.UnicoAH_MBR` block gains `w2`, `w2_s`, `fan` and `fan_s` inputs, publishing
 `environment.inside.hvac.ah.mbr.w2`, `.w2Seconds`, `.fan` and `.fanSeconds`. PR #240 carries the rest of the
@@ -384,9 +383,7 @@ node's pivac side unchanged.
 6. **The firmware has to change for U2.** Until the DS2482 code is proven, the board can run with JP1 closed and U2
    off on the present sketch.
 7. **The 1-wire bus runs at 5 V.** Both the DS2482 and the probes take 5 V; the bus never meets 3.3 V.
-8. **The new pin map moves the flow meter from D3 to A3**, and the node plan's §3.4 and §4 tables need updating when
-   this board is built.
-9. **Part availability is unconfirmed** (§6).
+8. **Part availability is unconfirmed** (§6).
 
 ## 9. From here
 
