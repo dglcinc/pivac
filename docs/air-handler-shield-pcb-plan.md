@@ -297,7 +297,7 @@ own pads; none needs a breakout adapter.
 | U1 | Traco TMR 3-4811WI | 1 | [search](https://www.digikey.com/en/products/result?keywords=TMR%203-4811WI) | [search](https://www.amazon.com/s?k=Traco+TMR+3-4811WI) |
 | U2 | Analog Devices DS2482S-100+ | 1 | [search](https://www.digikey.com/en/products/result?keywords=DS2482S-100%2B) | [search](https://www.amazon.com/s?k=DS2482S-100) |
 | U3, U4 | Lite-On LTV-814S | 2 | [search](https://www.digikey.com/en/products/result?keywords=LTV-814S) | [search](https://www.amazon.com/s?k=LTV-814S) |
-| F1, F2 | Bourns MF-MSMF020/60-2 | 2 | [3438084](https://www.digikey.com/en/products/detail/bourns-inc/MF-MSMF020-60-2/3438084) | [search](https://www.amazon.com/s?k=MF-MSMF020%2F60-2) |
+| F1, F2 | Littelfuse 1812L020/60DR, or Bourns MF-MSMF020/60-2 | 2 | [3305610](https://www.digikey.com/en/products/detail/littelfuse-inc/1812L020-60DR/3305610) | [search](https://www.amazon.com/s?k=1812L020%2F60DR) |
 | D1 | onsemi S1M | 1 | [search](https://www.digikey.com/en/products/result?keywords=S1M%20onsemi) | [search](https://www.amazon.com/s?k=S1M+SMA+diode) |
 | D2 | Littelfuse SMAJ43CA | 1 | [search](https://www.digikey.com/en/products/result?keywords=SMAJ43CA) | [search](https://www.amazon.com/s?k=SMAJ43CA) |
 | D3, D4 | Diodes 1N4148W-7-F | 2 | [search](https://www.digikey.com/en/products/result?keywords=1N4148W-7-F) | [search](https://www.amazon.com/s?k=1N4148W+SOD-123) |
