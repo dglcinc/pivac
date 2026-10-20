@@ -187,9 +187,10 @@ Modbus record.
    24.8 A at the same transition. These were the first defrosts on record.
 3. 10-20 08:28 latched: the only pair of P1s within 30 minutes. `284` held 2 from 08:30 to 09:42,
    the compressor never restarted while the return fell from 126 to 98 °F, and the pump ran at its
-   `P53` minimum of 40 % (`248` = 40, 23–24 L/min). A breaker power cycle cleared it. The pairs
-   88 and 103 minutes apart cleared on their own, which suggests a repeat-within-a-window latch
-   like E14's; the window is not known.
+   `P53` minimum of 40 % (`248` = 40, 23–24 L/min). A breaker power cycle cleared it. Chiltrix
+   support (2026-10-20): after a P1 the unit restarts on its own shortly after, a couple of P1s
+   in a row put it in full lockout, and a power cycle is usually needed to clear it. Support gave
+   no window; the pairs 88 and 103 minutes apart cleared on their own.
 
 **Water temperature alone does not predict a P1.** Over the 329 heating stops since 09-27, the 12
 matched P1 stops ended at a median 125 °F return and 132 °F leaving; the 317 ordinary stops ended
