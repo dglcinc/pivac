@@ -136,10 +136,18 @@ ADC that charge at once. With the divider it also forms a low-pass filter at abo
 removes hum and blower-motor noise the sensor cable picks up along the duct. Fit both on the shield
 close to their pins.
 
-Run each NTC on its own Belden 8451 shielded pair: one conductor to the A0 or A1 block, the other
-to the GND block beside it and the drain to the SH block after that (XT4–XT6 for supply air,
-XT7–XT9 for return air). The SH terminal joins GND on the shield. Cut the drain back and tape it at
-the sensor end, so the shield is grounded at one end only.
+Run each NTC on its own two-conductor cable: one conductor to the A0 or A1 block and the other
+to the GND block beside it (XT4 and XT5 for supply air, XT7 and XT8 for return air). Plain 18/2 or
+two-pair thermostat wire is enough, which is what Honeywell's own duct sensors ship on. The
+measurement is DC through a 10 kΩ divider at 55 mV per kelvin and the node averages every sample
+of the second before it reports, so a few millivolts of hum is a few hundredths of a kelvin before
+averaging and nothing after it. Keep the pair in its own cable, out of any run that carries the
+24 VAC to the relay, line voltage or the blower leads: a shared thermostat cable couples about
+15 mV at 60 Hz onto the divider through its conductor capacitance, which averages away but is
+worth avoiding. A shielded pair (Belden 8451) is an option where sharing a run cannot be
+helped: drain to the SH block (XT6 or XT9, joined to GND on the shield), cut back and taped at
+the sensor end so the shield is grounded at one end only. The installed node runs on 8451
+because it was on hand.
 
 Measure each sensor's resistance at room temperature before wiring. About 10 kΩ at 77 °F confirms
 a 10K part. Honeywell also sells 20K duct sensors, and a 20K part wants 20.0 kΩ for R8 and R9.
@@ -457,7 +465,7 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 | R8, R9 | Yageo MFP-25BRD52-10K, 10.0 kΩ 0.1 % 25 ppm | 2 | [MFP-25BRD52-10K](https://www.digikey.com/en/products/detail/yageo/MFP-25BRD52-10K/2059114) | [search](https://www.amazon.com/s?k=10k+ohm+0.1%25+25ppm+1%2F4W+metal+film+resistor) |
 | C6, C7 | Kemet C315C104M5U5TA, 0.1 µF 50 V | 2 | [C315C104M5U5TA](https://www.digikey.com/en/products/detail/kemet/C315C104M5U5TA/817927) | [search](https://www.amazon.com/s?k=0.1uF+50V+ceramic+capacitor+radial+through+hole) |
 | R10 | Yageo MFR-25FBF52-1K, 1 kΩ | 1 | [MFR-25FBF52-1K](https://www.digikey.com/en/products/detail/yageo/MFR-25FBF52-1K/13011) | [search](https://www.amazon.com/s?k=1k+ohm+1%2F4W+1%25+metal+film+resistor) |
-| W1, W2 | Belden 8451, 2 × 22 AWG shielded, 100 ft | 1 | [8451 010100](https://www.digikey.com/product-detail/en/belden-inc/8451-010100/BEL1311-100-ND/7007722) | [search](https://www.amazon.com/s?k=Belden+8451+22+AWG+2+conductor+shielded+cable) |
+| W1, W2 | NTC cable: 18/2 thermostat wire, or Belden 8451 2 × 22 AWG shielded where the run is shared, 100 ft | 1 | [8451 010100](https://www.digikey.com/product-detail/en/belden-inc/8451-010100/BEL1311-100-ND/7007722) | [search](https://www.amazon.com/s?k=Belden+8451+22+AWG+2+conductor+shielded+cable) |
 | K1 | Magnecraft 792, 24 VAC coil, on 70-782EL14-1 socket | 1 | on hand | — |
 | PS1 | 24 VAC to 5 V DC buck converter, USB-C out | 1 | on hand | — |
 
