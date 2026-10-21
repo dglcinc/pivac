@@ -42,6 +42,10 @@ When the Pi boots into (or rides through) a DNS-less window, `pivac-redlink` acc
 
 ## Relays and GPIO
 
+### A RedLink zone calling with no relay response is a break between the EIM and the HZ-432 (2026-10-20)
+
+The master bedroom thermostat went to a heat call at 23:23 EDT, five minutes after the air-handler node was installed at the Unico. `HPCALL` stayed open for 17 minutes (its 23:40 closure was the great room starting to call), the panel's zone 1 light stayed dark, and the node showed the consequence: coil water at 82 °F and falling while loop A's supply sat at 114 °F, and the duct pair in its fan-off pattern. The thermostat kept reporting the call because it is wireless to its EIM, which still had power. David found a loose R and C pair in that EIM, the module whose W, Y and G outputs are what the zone panel sees. Seated, the coil went from 82 to 108 °F inside two minutes and the supply air from 71 to 108 °F. On the previous call that evening the relay had led RedLink's state by 24 s, so the panel normally answers at once. The air-handler node's two `LoopDelta` pairs were open throughout, on `HPCALL` from the great room and the master's reported call, and published a 3.5 °F air delta that was fiction; the gate cannot see a call that never reaches the panel, which a per-zone call sense on the HZ-432 would fix.
+
 ### `CHIL` renamed `HPCALL` (2026-09-15)
 
 The input on BCM 25 is the HZ-432's `Y1`, a heat-pump call of either kind that runs the Taco 0015 and enables the calling zones' secondary pumps; it has selected nothing about the chiller since `HPHEAT` and `HPCOOL` took the mode contacts, and the name `CHIL` read as a chiller state. Renamed in place: config `outname`, `~/.signalk/baseDeltas.json` order metadata (still 6), the `pivac.LoopDelta` relay, the Relays panel series and the docs. InfluxDB keeps the history under `electrical.ac.switch.utility.CHIL`; `HPCALL` starts on the rename date. The rev A I/O board silkscreen and the J2.1 plug label still read `CHIL`, and `hardware/` and the board docs keep that spelling because they describe the boards as ordered.
