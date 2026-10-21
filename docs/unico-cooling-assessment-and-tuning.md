@@ -1250,11 +1250,18 @@ and the thermostat stepped to 77 °F at 10:44 as cold water arrived (plan §7.1 
 air from 49 to 56 °F water, Y2 held for 92 % of the call, and the call ended at 13:45 with the
 return air at 72.2 °F.
 
-Through the cooling part of that call the thermostat read 75 to 77 °F and the return air 72.2 to
-73.9 °F. Overnight the two agreed, with a colder attic around the return duct, so duct loss does not
-explain the gap. The fan-on check of `docs/mbr-air-handler-node-plan.md` §6 step 3, run once at
-night and once at about 10:30 on a sunny morning, shows whether the thermostat sees warmer air than
-the return grille draws, which would make the call run longer than the room needs.
+The thermostat and the return air agree whenever the fan is not moving conditioned air: on the
+overnight heat calls, and at 10:44, when the thermostat read 77 °F and the return air 76.7 °F. They
+part once cold air flows. By 11:10 the return air had fallen to 72.7 °F with the thermostat still
+at 77 °F. From 11:15 to 13:45 the thermostat showed its 75 °F setpoint and kept calling, so its true
+reading lay between 75 and 76.4 °F, while the return air read 72.2 to 73.9 °F. The gap is 1 to 4 °F,
+probably about 2. Three causes fit: the thermostat runs warm, from sun on it or its wall and from
+its slower response; the Unico's high-velocity outlets short-circuit some 55 °F supply air to the
+return grille; or the grille draws from a cooler part of the room. The fan-on check of
+`docs/mbr-air-handler-node-plan.md` §6 step 3, run at about 10:30 on a sunny morning, separates
+them. A thermostat still 2 °F above the return air with no conditioned air moving is reading warm,
+and the call runs longer than the room needs. If the two agree, the gap belongs to the running
+coil, and the thermostat reads the room.
 
 A morning heat setback on the master thermostat, about 68 °F from 08:30 to late afternoon, would
 have prevented the 09:34 call, which added about 115 °F air to the room just before the sun did.
