@@ -1223,10 +1223,8 @@ sensor tells the two apart. On master-only calls from 17 September to 3 October,
 from 4.9 °F with the room at setpoint to 5.6 °F with it 2 °F over, on the same 49.3 to 49.5 °F
 supply, and the supply sat within 0.2 °F of the tank, so no warm water is mixing in at the tees.
 The coil picks up more heat as the room warms, in step with the wider approach. At 4.5 to 6 GPM
-that is 12,000 to 16,000 BTU/h. Scaling the catalog's 26.9 MBH (45 °F water, 6 GPM, 600 CFM) by
-approach, and assuming its rating is at 80 °F entering air, gives about 21,000 at these conditions,
-so the coil delivers about 60 to 75 % of its rating. Whether air or water falls short needs the
-node's air sensors and a flow figure. The thermostat reports the setpoint until the room is about 1.5 °F
+that is 12,000 to 16,000 BTU/h. The air-handler node measures the coil against its catalog (below),
+and it delivers its rated sensible capacity. The thermostat reports the setpoint until the room is about 1.5 °F
 off it, so the reading steps 75 → 77 → 75 within one poll at each end of the window and never
 shows 76; three weeks of two-minute samples hold 76 three times in about 15,000.
 
@@ -1265,6 +1263,40 @@ coil, and the thermostat reads the room.
 
 A morning heat setback on the master thermostat, about 68 °F from 08:30 to late afternoon, would
 have prevented the 09:34 call, which added about 115 °F air to the room just before the sun did.
+
+**The coil delivers its catalog performance in both modes, measured 21 October 2026.** The
+comparison is effectiveness, the air ΔT divided by the gap between water in and return air, which
+barely depends on water flow, so it holds without a flow meter. The heating figures are 15 calls
+from minute 4 on, with the probes' heating offsets applied; the cooling figures are 11:00 to 13:40.
+
+| | Heating, low fan | Cooling, high fan |
+|---|---|---|
+| Water in | 116 °F | 52.3 °F |
+| Return air | 72.4 °F | 73.2 °F |
+| Supply air | 112.5 °F | 57.5 °F |
+| Air ΔT | 40.5 °F | 15.7 °F |
+| Water ΔT | 5.2 °F | 3.8 °F |
+| Effectiveness | 0.92 | 0.75 |
+| Catalog | 0.88 to 0.91 | 0.755 at 700 CFM |
+
+The catalog is Unico bulletin 20-20.3 for the M2430CL1-C, pure water. Its heating table states
+80 °F entering air, which at 120 °F water would need an effectiveness above 1, so it is read at
+about 70 °F. The cooling coil ran dry: the room's 40 % RH puts the dew point near 47 °F, below the
+52 to 57 °F coil surface, so the whole water ΔT is sensible heat, and the comparison uses the
+catalog's sensible capacity (total × SHR) scaled by the gap between water and room air.
+
+Capacity needs the water flow, which is calculated, not measured. The kids room did not call, so
+the master had loop A to itself at the 6.4 GPM of [5.6](#56-what-the-calculation-says-about-each-coil).
+With 25 % propylene glycol (about 470 BTU/h per GPM per °F), heating ran at about 15.6 kBTU/h
+against about 15.5 from the catalog at these conditions, and cooling at about 11.5 kBTU/h against
+about 11.9. The energy balance puts the airflow at about 360 CFM on the low fan and 670 CFM on the
+high fan. The ratio of 1.85 holds whatever the water flow is; at 4.5 GPM the airflows become 255
+and 470 CFM, and both capacities fall by 30 %. Unico's glycol multiplier (0.81 at 25 %) does not
+appear, which fits its own description of those factors as worst case: at these airflows the air
+side limits the coil. The 11.5 kBTU/h is 43 % of the 26.9 MBH rating, which assumes 45 °F water
+and 80 °F humid air on a wet coil; the shortfall is those conditions. Latent capacity on a humid day
+is unmeasured. The Unico Smart Controller's commanded CFM per stage, and a flow meter on the
+node's free D3 pin, would turn both capacity figures into measurements.
 
 ### 5.11 Water temperature is the larger term, and distribution is the smaller one
 
