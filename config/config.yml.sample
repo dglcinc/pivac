@@ -219,6 +219,23 @@ pivac.LoopDelta:
             relay: HPCALL
             zones: [DSTRS_FAM_ROOM]
             heat_zones: [KITCHEN, GREAT_ROOM]
+        # The master bedroom air-handler node (pivac.UnicoAH_MBR) publishes its probes
+        # under <sk_path>.ah.mbr.*, so the names are dotted. Both pairs read return minus
+        # supply like the loops: positive in cooling (the water warms through the coil and
+        # the air cools), negative in heating. The air pair holds the room-to-duct
+        # difference with the fan off, which is the same fiction as a dead leg, so it is
+        # gated like the water. The Unico's fan runs on any master bedroom call; the
+        # node's own Y2 is only the high-fan stage and is not the gate.
+        ah.mbr.water:
+            supply: ah.mbr.water.supply
+            return: ah.mbr.water.return
+            relay: HPCALL
+            zones: [MASTER_BR]
+        ah.mbr.air:
+            supply: ah.mbr.air.supply
+            return: ah.mbr.air.return
+            relay: HPCALL
+            zones: [MASTER_BR]
 
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
