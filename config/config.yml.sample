@@ -339,6 +339,7 @@ pivac.UnicoAH_MBR:
     enabled: true
     ipaddr: 10.0.0.180
     rounding: 2
+    daemon_sleep: 5
     inputs:
         # Each key is a field in the node's response. A field the node leaves out (a probe that
         # failed to read) logs one warning and that path goes stale; it is never a sentinel.
