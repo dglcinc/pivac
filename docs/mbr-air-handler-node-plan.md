@@ -104,14 +104,14 @@ green and brown pairs open at both ends. Keep the whole bus under 10 m; at that 
 pull-up has room to spare.
 
 Use the PA5 pair, PA5A `28-000000cb6e28` and PA5B `28-0000001a8cda`, the one calibrated pair not in
-service. They were bench-matched in the same bath as the loop probes (ice-point offsets +0.320 and
-+0.089 K in `docs/ds18b20-PA1-5-calibration.md`), and a matched pair is what a coil ΔT wants. PA5
+service. They were bench-matched in the same baths as the loop probes (three points each; offsets in
+`docs/ds18b20-PA1-5-calibration.md` and §6), and a matched pair is what a coil ΔT wants. PA5
 was noted as the candidate for a future outdoor probe; that run needs one probe, and the spare CRW
 (`28-0316a00f04ff`) can take it.
 
 The sketch addresses each probe by its ROM, set in the zone's `.ino`, so supply and return can
-never swap if the bus enumerates them in a different order. Record which probe went on which pipe
-in this document at the build.
+never swap if the bus enumerates them in a different order. **PA5A is on the supply pipe
+(`ROM_WSUP`, `wsup`) and PA5B on the return (`ROM_WRET`, `wret`)**, assigned 2026-10-20.
 
 Strap each probe to bare, cleaned copper on the coil's supply and return, as close to the coil
 connections as the pipe allows and at least five diameters from a fitting. Use thermal compound

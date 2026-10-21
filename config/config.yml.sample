@@ -342,21 +342,20 @@ pivac.UnicoAH_MBR:
         # failed to read) logs one warning and that path goes stale; it is never a sentinel.
         # `offset` is a per-input calibration in KELVIN, added before rounding (plan section 6).
         # The water probes are the PA5 pair, three bath points on 2026-10-20
-        # (docs/ds18b20-PA1-5-calibration.md): PA5A 28-000000cb6e28 +0.280 K at 55 F (cooling
-        # water) and +0.143 K at 115 F (heating); PA5B 28-0000001a8cda +0.186 K at 55 F and
-        # +0.295 K at 115 F. Put each probe's value on the field it is piped to, cooling column
-        # deployed, and swap to the heating column with the loop probes. Pair correction
-        # (supply - return): +0.17 F at 55 F, -0.27 F at 115 F.
+        # (docs/ds18b20-PA1-5-calibration.md): wsup is PA5A 28-000000cb6e28 on the supply pipe,
+        # wret is PA5B 28-0000001a8cda on the return. Offsets at 55 F (cooling water) deployed;
+        # at 115 F (heating) they are wsup +0.143, wret +0.295, swapped in with the loop probes.
+        # Pair correction (supply - return): +0.17 F at 55 F, -0.27 F at 115 F.
         wsup:
             sk_path: environment.inside.hvac.ah.mbr.water
             outname: supply
             type: temperature
-            offset: 0.0
+            offset: 0.280
         wret:
             sk_path: environment.inside.hvac.ah.mbr.water
             outname: return
             type: temperature
-            offset: 0.0
+            offset: 0.186
         # NTC residuals after the sketch's beta 3995 (same baths): supply sensor on A0 reads
         # +0.45 F, return sensor on A1 -0.05 F, each within 0.4 F of constant from 32 to 130 F.
         aret:
