@@ -108,6 +108,7 @@ The Arduino pressure sensors (10.0.0.114 and 10.0.0.219) are programmed from a s
 | pivac-chiltrix          | pivac.ChiltrixModbus    | **Chiltrix CX75** heat pump, 184 Modbus addresses | RS-485 → UNO R4 on USB |
 | pivac-loop-delta        | pivac.LoopDelta         | Gated per-run loop ΔT (derived; reads Signal K)   | none — derived |
 | pivac-grafana-alerts    | pivac.GrafanaAlerts     | Grafana alert state → Signal K notifications (derived; reads Grafana's API) | 127.0.0.1:4000 |
+| pivac-ah-mbr            | pivac.ArduinoSensor (section `pivac.UnicoAH_MBR`) | **Master bedroom air-handler node**: coil water supply/return (DS18B20), supply/return air (10K NTC), Y2 call, on UNO R4 WiFi `e8:f6:0a:aa:a3:88`, powered from the Unico's 24 VAC | 10.0.0.180 |
 
 > **⚠️ The two Arduino module/delta names are inverted vs their physical roles — legacy, do NOT rename** (InfluxDB already holds history under these measurement names; renaming would orphan it). Verified 2026-06-01 against the WilhelmSK gauge wiring and the boards' WiFi MACs:
 >
@@ -277,8 +278,8 @@ Token is cached at `/etc/pivac/emporia-tokens.json` after first successful login
 
 After a `git pull`:
 ```bash
-sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -n 50 --no-pager
+sudo systemctl restart pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts pivac-ah-mbr
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -u pivac-ah-mbr -n 50 --no-pager
 ```
 
 If systemd service or timer files were changed:
@@ -289,7 +290,7 @@ sudo systemctl daemon-reload
 
 **Before SD card maintenance, extended downtime, or rsync** — stop all services that write to disk:
 ```bash
-sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts signalk influxdb nginx
+sudo systemctl stop pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry pivac-watermeter pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta pivac-grafana-alerts pivac-ah-mbr signalk influxdb nginx
 ```
 Stop order matters: pivac services first (they push to Signal K), then signalk (writes its own store and feeds influxdb), then influxdb (the database), then nginx (terminates external connections including the `mlb.dglc.com` bowling proxy). The bowling app DB is on the Mac Mini — stop `com.dglc.bowling-app` there separately if doing Mac maintenance. Services with `Restart=always` will restart automatically on boot; nginx does not, so start it explicitly after the swap: `sudo systemctl start nginx`.
 
@@ -346,7 +347,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now arduino-watchdog.tim
 
 ```bash
 # All pivac services
-journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -n 50 --no-pager
+journalctl -u pivac-1wire -u pivac-redlink -u pivac-gpio -u pivac-arduino-psi -u pivac-arduino-therm-psi -u pivac-emporia -u pivac-sentry -u pivac-watermeter -u pivac-sprinkler -u pivac-domestic-water -u pivac-chiltrix -u pivac-loop-delta -u pivac-grafana-alerts -u pivac-ah-mbr -n 50 --no-pager
 
 # Single service
 journalctl -u pivac-redlink -n 50 --no-pager
@@ -417,7 +418,7 @@ Rules only. The measurements, incident history and reasoning behind each rule ar
 | LOOPB_SUP | `0000001ac0a9` | PA2A | −0.062 | loop B (family, kitchen, great room) |
 | LOOPB_RET | `000000c99b56` | PA1B | +0.474 | loop B |
 
-- All eight publish under `environment.inside.hvac.*` in Kelvin at `rounding: 2`. Loop offsets are stated at 45 °F; the 140 °F heating-season values sit in a `config.yml` comment and pair ΔT needs them too. UBT/LBT are finished at the ice point (the tank runs chilled only); IN/OUT stay single-point by decision. Calibrated spares: `0316a00f04ff` +0.153, `0516a36816ff` +0.496, `0516a365d8ff` +0.056; `0516a36332ff` has broken leads. `LOOPA_SUP`/`LOOPB_SUP` history before 2026-08-29 is interchanged, and `IN − OUT` steps by +0.585 °F at 2026-08-23 and changes precision at 2026-08-18.
+- All eight publish under `environment.inside.hvac.*` in Kelvin at `rounding: 2`. Loop offsets are stated at 45 °F; the 140 °F heating-season values sit in a `config.yml` comment and pair ΔT needs them too. UBT/LBT are finished at the ice point (the tank runs chilled only); IN/OUT stay single-point by decision. Calibrated spares: `0316a00f04ff` +0.153, `0516a36816ff` +0.496, `0516a365d8ff` +0.056; `0516a36332ff` has broken leads. **The PA5 pair (`000000cb6e28`, `0000001a8cda`) is the master bedroom air-handler node's coil water pair, three-point since 2026-10-20**: +0.280 and +0.186 K at 55 °F, +0.143 and +0.295 K at 115 °F, and its pair correction changes sign between the seasons (+0.17 °F at 55, −0.27 °F at 115), so it carries a cooling and a heating column like the loop probes. `LOOPA_SUP`/`LOOPB_SUP` history before 2026-08-29 is interchanged, and `IN − OUT` steps by +0.585 °F at 2026-08-23 and changes precision at 2026-08-18.
 - **The DHW recirc probe** (`0316a015e7ff`, tag `28FFE715A0160328`) hangs off the .114 Arduino and reaches Signal K through `pivac.ArduinoSensor`, which has no `offset` support. Its +0.274 K correction (stated at 120 °F, deliberately not 45 °F) is parked on its config entry, unapplied. `environment.outside.temperature` does not exist; outdoor air is RedLink only.
 - **Retiring or renaming a sensor needs a signalk restart**: config edit → `restart pivac-1wire` → `restart signalk`; Signal K otherwise keeps the old path frozen at its last value. The same recipe applies to relays and Emporia circuits. `environment.outside` 404s for ~80 s after a signalk restart until RedLink re-logs in.
 - **DS2482 bring-up (EXT board, new Pi):** a chip that answers `i2cdetect` at `0x18` but logs `DS2482 reset failed` has VCC or ground open and is running on pull-up leakage; it passes at a 10 kHz I²C clock and fails at 50 kHz, so do not chase signal integrity — measure 3.3 V between chip pins 1 and 3 first (the bench fault was the GND rail not bridged to link position 5). Delete the `w1-gpio` line from config.txt rather than commenting it (`raspi-config` and a cloud-init `runcmd` both re-enable it) and confirm no `onewire` node in the device tree before reading any result. `ds2482-init.service` instantiates the master; the procedure is §8 of `docs/ds18b20-bus-topology.md`.
@@ -495,6 +496,7 @@ Rules only. The measurements, incident history and reasoning behind each rule ar
 | `LoopDelta` | **Derived** — reads Signal K rather than hardware, so it never contends for the 1-wire bus or the GPIO pins and opens no second Honeywell session. Publishes `environment.inside.hvac.{primary,LOOPA,LOOPB}.deltaT` every cycle, taking **three values with three meanings: a number is a live measurement, `0` means the loop is not measuring** (idle, or within `settle_s` of a start while the probes still hold their stagnant values), **and a GAP means a source is stale or the module is down**. Publishing 0 for idle rather than nothing is what keeps that third case readable, since idle-as-gap conflates a stopped pump with a dead service. In **Kelvin**: a difference, so °F is `*9/5` with **no** offset. `.flowing` (0/1) is emitted every cycle. Gated on the `HPCALL` relay (the primary also on `DHWX`; `relay` takes a list), narrowed to each secondary's `zones` (any call) and `heat_zones` (heat call only: zones that cool on a Bosch). See the dead-leg note in Known Operational Behaviours. |
 | `GrafanaAlerts` | **Derived** — polls Grafana (`127.0.0.1:4000/grafana`, service-account token in config) and publishes every alert rule as a Signal K notification under `notifications.pivac.<uid>`: `normal` while quiet, `warn`/`alert`/`alarm` by severity while firing, silences honoured via the Alertmanager API. Publishes nothing at all when Grafana is unreadable, so a dead link shows as stale rather than quiet. See the Alerting section. |
 | `Sprinkler` | OpenSprinkler irrigation flow via the local HTTP API (`10.0.0.17:5000`) — polls `/jc`, computes `(flcrt/flwrt)*fpr*60*flow_scale`, emits `environment.water.irrigation.flowRate` (gal/min) + `.active`. Auth = **md5(device password)** in config `password_md5` (Pi-only secret). Overlaid on the domestic flow panels (Grafana). |
+| `UnicoAH_MBR` (config section; loads `ArduinoSensor`) | Master bedroom Unico air-handler node, UNO R4 WiFi at `10.0.0.180` (`AirHandler_MBR` sketch in `~/github/Arduino`). Publishes `environment.inside.hvac.ah.mbr.{water,air}.{supply,return}.temperature` (Kelvin), `.y2` (0/1), `.y2Seconds` and `.uptimeMs`. A probe that fails to read is **left out of the node's line**, so its path goes stale rather than carrying a sentinel. `ArduinoSensor` applies a per-input `offset:` in Kelvin before rounding, for the pair calibration of plan §6. **Calibrated 2026-10-20 in three baths**: the NTCs run the sketch's fitted `NTC_BETA` 3995 (the data-sheet 3950 read the supply sensor 1.5 °F high at 130 °F) with `asup` −0.25 K and `aret` +0.03 K in config; the water pair is PA5 (see the 1-wire section). The converter measured 4.65 V at the shield; a `uptimeMs` reset with no WiFi message is a supply dropout. Not on the Arduinos Shelly, so the watchdog cannot cycle it. Design: `docs/mbr-air-handler-node-plan.md`. |
 
 ## pivac.Sentry Module
 

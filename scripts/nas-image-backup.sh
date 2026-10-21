@@ -22,11 +22,11 @@ IMG_BACKUP=/home/pi/github/RonR-RPi-image-utils/image-backup
 STOP_SVCS=(pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi
            pivac-arduino-therm-psi pivac-emporia pivac-sentry
            pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
-           pivac-grafana-alerts signalk influxdb)
+           pivac-grafana-alerts pivac-ah-mbr signalk influxdb)
 START_SVCS=(signalk influxdb pivac-1wire pivac-redlink pivac-gpio
             pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
             pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
-            pivac-grafana-alerts)
+            pivac-grafana-alerts pivac-ah-mbr)
 
 log() { echo "[$(date -Is)] $*"; }
 

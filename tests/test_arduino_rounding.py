@@ -27,7 +27,7 @@ def _load():
     try:
         mod = importlib.util.module_from_spec(_spec)
         _spec.loader.exec_module(mod)
-        return mod._round_temp, mod.DEFAULT_ROUNDING
+        return mod._round_temp, mod._apply_offset, mod.DEFAULT_ROUNDING
     except ImportError:
         # requests/pytemperature missing -- re-exec just the helper.
         src = open(_spec.origin).read()
@@ -35,10 +35,10 @@ def _load():
         start = src.index("DEFAULT_ROUNDING")
         end = src.index("def status(")
         exec(src[start:end].replace("import pytemperature", ""), ns)
-        return ns["_round_temp"], ns["DEFAULT_ROUNDING"]
+        return ns["_round_temp"], ns["_apply_offset"], ns["DEFAULT_ROUNDING"]
 
 
-_round_temp, DEFAULT_ROUNDING = _load()
+_round_temp, _apply_offset, DEFAULT_ROUNDING = _load()
 
 failures = []
 
@@ -75,9 +75,17 @@ check("2dp preserves a small delta", _round_temp(a, 2) != _round_temp(b, 2), Tru
 delta_k = _round_temp(283.15 + 5.0, 2) - _round_temp(283.15, 2)
 check("9degF delta accurate to 0.1degF", abs(delta_k * 9 / 5 - 9.0) < 0.1, True)
 
+# Per-input offset: Kelvin, added before rounding; absent or null leaves the reading alone.
+check("offset adds", _apply_offset(300.0, 0.274), 300.274)
+check("offset negative", _apply_offset(300.0, -0.5), 299.5)
+check("offset none", _apply_offset(300.0, None), 300.0)
+check("offset empty", _apply_offset(300.0, ""), 300.0)
+check("offset string", _apply_offset(300.0, "0.1"), 300.1)
+check("offset before rounding", _round_temp(_apply_offset(300.004, 0.003), 2), 300.01)
+
 if failures:
     print("FAIL")
     for f in failures:
         print("  " + f)
     sys.exit(1)
-print("ok - %d checks passed" % 12)
+print("ok - %d checks passed" % 18)

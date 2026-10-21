@@ -239,8 +239,8 @@ def ntc(y_sig, y_gnd, y_sh, title, sub):
     text(1300, y_gnd + 28, "Belden 8451; drain to SH, grounded at the board only", 10, "middle", fill="#555")
 
 
-ntc(Y_A0, Y_G2, Y_S2, "RA  return air", "return plenum, before coil")
-ntc(Y_A1, Y_G3, Y_S3, "SA  supply air", "supply plenum, after blower")
+ntc(Y_A0, Y_G2, Y_S2, "SA  supply air", "supply plenum, after blower")
+ntc(Y_A1, Y_G3, Y_S3, "RA  return air", "return plenum, before coil")
 
 # --- XT1-XT9 Phoenix QUATTRO feed-through blocks on the DIN rail ----------------------------
 XT_X = 1128
