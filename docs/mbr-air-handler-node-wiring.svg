@@ -200,8 +200,8 @@
 <circle cx="1560" cy="548" r="4.5" fill="#000000"/>
 <text x="1560" y="250" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">GND</text>
 <rect x="1430" y="570" width="180" height="100" rx="6" fill="#eef4fb" stroke="#333" stroke-width="1.5"/>
-<text x="1520" y="592" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">RA  return air</text>
-<text x="1520" y="610" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">return plenum, before coil</text>
+<text x="1520" y="592" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">SA  supply air</text>
+<text x="1520" y="610" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">supply plenum, after blower</text>
 <text x="1520" y="658" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">10K NTC duct sensor</text>
 <polyline points="1107,600 1430,600" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
 <polyline points="1107,640 1430,640" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
@@ -209,8 +209,8 @@
 <polyline points="1190,646 1180,646 1180,680 1107,680" fill="none" stroke="#888" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="4 3"/>
 <text x="1300" y="668" font-size="10" text-anchor="middle" font-weight="normal" fill="#555">Belden 8451; drain to SH, grounded at the board only</text>
 <rect x="1430" y="700" width="180" height="100" rx="6" fill="#eef4fb" stroke="#333" stroke-width="1.5"/>
-<text x="1520" y="722" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">SA  supply air</text>
-<text x="1520" y="740" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">supply plenum, after blower</text>
+<text x="1520" y="722" font-size="13" text-anchor="middle" font-weight="bold" fill="#000">RA  return air</text>
+<text x="1520" y="740" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">return plenum, before coil</text>
 <text x="1520" y="788" font-size="11" text-anchor="middle" font-weight="normal" fill="#555">10K NTC duct sensor</text>
 <polyline points="1107,730 1430,730" fill="none" stroke="#1f77b4" stroke-width="2.5" stroke-linejoin="round"/>
 <polyline points="1107,770 1430,770" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>

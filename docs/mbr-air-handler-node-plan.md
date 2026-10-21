@@ -23,8 +23,8 @@ strainer measured sound (§5.10 of the assessment). The return-air sensor shows 
 |---|---|---|---|
 | Water to coil | DS18B20 | D2 | `wsup` |
 | Water from coil | DS18B20 | D2 | `wret` |
-| Return air | 10K NTC | A0 | `aret` |
-| Supply air | 10K NTC | A1 | `asup` |
+| Return air | 10K NTC | A1 | `aret` |
+| Supply air | 10K NTC | A0 | `asup` |
 | Y2 call | 792 relay, 24 VAC coil | D8 | `y2`, `y2_s` |
 
 All temperatures go out in °F at two decimals, and pivac converts them to Kelvin. `y2` is the call
@@ -122,8 +122,8 @@ Strain-relieve each cable to the pipe an inch or two behind the probe.
 ### 3.2 Air temperatures, 10K NTC on A0 and A1
 
 An ADC measures voltage, and an NTC is a resistance, so each sensor needs a known resistor in
-series to turn its resistance into a voltage. R8 runs from 5 V to A0 and the return-air NTC from A0
-to GND; R9 and the supply-air NTC do the same on A1. The pin then reads
+series to turn its resistance into a voltage. R8 runs from 5 V to A0 and the supply-air NTC from A0
+to GND; R9 and the return-air NTC do the same on A1. The pin then reads
 5 V × R_ntc ÷ (R_ntc + 10.0 kΩ), and the sketch solves for R_ntc. Because the divider and the ADC
 reference are the same 5 V rail, supply variation cancels. The fixed resistor's tolerance and drift
 become temperature error directly: 0.1 % at 25 ppm/°C costs about 0.04 °F, where a 1 % part would
@@ -137,8 +137,8 @@ removes hum and blower-motor noise the sensor cable picks up along the duct. Fit
 close to their pins.
 
 Run each NTC on its own Belden 8451 shielded pair: one conductor to the A0 or A1 block, the other
-to the GND block beside it and the drain to the SH block after that (XT4–XT6 for return air,
-XT7–XT9 for supply air). The SH terminal joins GND on the shield. Cut the drain back and tape it at
+to the GND block beside it and the drain to the SH block after that (XT4–XT6 for supply air,
+XT7–XT9 for return air). The SH terminal joins GND on the shield. Cut the drain back and tape it at
 the sensor end, so the shield is grounded at one end only.
 
 Measure each sensor's resistance at room temperature before wiring. About 10 kΩ at 77 °F confirms
