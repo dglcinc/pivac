@@ -1230,6 +1230,35 @@ node's air sensors and a flow figure. The thermostat reports the setpoint until 
 off it, so the reading steps 75 → 77 → 75 within one poll at each end of the window and never
 shows 76; three weeks of two-minute samples hold 76 three times in about 15,000.
 
+**The morning bump is solar gain on the top storey, and it continues into the heating season.**
+The house is 50 years old, with limited insulation and no low-e glass, so the master bedroom needs
+cooling on sunny days until outdoor temperatures stay low, and the thermostats stay on Auto until
+then. From 8 to 21 October 2026 the master's reading left its 72 °F heat setpoint between 09:20 and
+10:15 on 12 of 14 days and peaked at 75 to 79 °F. The zone then called cool for 96 to 300 minutes a
+day. The two days without a bump, 11 and 17 October, had the lowest highs, 57 and 51 °F.
+
+The air-handler node's first full day, 21 October, shows the sequence. Overnight the zone made 5- to
+10-minute heat calls about every 40 minutes, with 113 to 122 °F water into the coil, 109 to 118 °F
+supply air, no Y2, and return air of 71.2 to 73.0 °F against the 72 °F setpoint. The return air
+picked up the sun first: it read 73 to 75 °F on the 09:09 and 09:39 heat calls, while the
+thermostat still read 72 °F or less and called heat at 09:34. With the fan off after 09:42, the
+thermostat climbed to 74 °F at 10:04 and 75 °F at 10:18, and the cool call began at 10:24. That call
+changed the HZ-432 over to cooling, so for its first 18 minutes the coil carried the tank's 105 to
+110 °F water on the high fan. Supply air reached 109 °F, the return air rose from 75.6 to 77.5 °F,
+and the thermostat stepped to 77 °F at 10:44 as cold water arrived (plan §7.1 of
+`docs/chiltrix-shoulder-season-heating-plan.md`). From 11:00 the coil delivered 55 to 61 °F supply
+air from 49 to 56 °F water, Y2 held for 92 % of the call, and the call ended at 13:45 with the
+return air at 72.2 °F.
+
+Through the cooling part of that call the thermostat read 75 to 77 °F and the return air 72.2 to
+73.9 °F. Overnight the two agreed, with a colder attic around the return duct, so duct loss does not
+explain the gap. The fan-on check of `docs/mbr-air-handler-node-plan.md` §6 step 3, run once at
+night and once at about 10:30 on a sunny morning, shows whether the thermostat sees warmer air than
+the return grille draws, which would make the call run longer than the room needs.
+
+A morning heat setback on the master thermostat, about 68 °F from 08:30 to late afternoon, would
+have prevented the 09:34 call, which added about 115 °F air to the room just before the sun did.
+
 ### 5.11 Water temperature is the larger term, and distribution is the smaller one
 
 Section 5.6 puts the master bedroom's coil at 74 % of design water flow, and 5.8 puts the mixing loss
