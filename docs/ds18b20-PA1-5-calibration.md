@@ -70,6 +70,47 @@ provisional one. **IN and OUT are the pair that would benefit from hot points**,
 loop carries boiler water in heating — which is why the ΔT panel is built to show the sign
 inversion. Their pair correction is unaffected either way.
 
+## PA5 pair, three points (2026-10-20)
+
+PA5A and PA5B, the master bedroom air-handler node's coil water pair, were logged on the node's
+own UNO R4 (the `AirHandlerBench` sketch, 12-bit, one line a second) in three baths with the two
+duct NTCs bundled against them and the Thermapen among the tips: a sous vide at **90.0** and
+**129.65 °F** and an ice bath that the Thermapen read at **32.2 °F**. Each window is the last three
+to five minutes of a ten-minute soak, with every channel within 0.1 °F over the window. Logs are in
+`docs/data/ah-mbr-node/`.
+
+| Label | @32.2 | @90.0 | @129.65 | slope | **offset K @55 (cooling, deployed)** | offset K @115 (heating) |
+|---|---|---|---|---|---|---|
+| PA5A | 31.561 | 89.689 | 129.423 | 1.0041 | **+0.280** | +0.143 |
+| PA5B | 31.855 | 89.514 | 129.092 | 0.9967 | **+0.186** | +0.295 |
+
+The offsets come from a line through all four points each probe has (the 2026-08-22 ice run and
+the three above); the line's residuals are under 0.1 °F at every point. The two slopes differ by
+0.7 %, more than any other pair in the batch, so **the pair correction changes sign across the
+node's two seasons**: PA5A − PA5B reads −0.415 °F at the 08-22 ice point, −0.294 at 32.2, +0.175
+at 90 and +0.331 at 129.65, which makes the correction to add **+0.17 °F at 55 °F** and **−0.27 °F
+at 115 °F**. The cooling column is deployed and the heating column sits beside it in the config
+comment, as for the loop probes. Today's ice point sits 0.06 °F (PA5A) and 0.18 °F (PA5B) below
+the 08-22 values, inside the ±0.13 °F the batch reproduces to, with the bath 0.15 °F warmer by the
+Thermapen.
+
+### The node's NTC duct sensors
+
+The two 10K NTCs on the same shield were fitted from the same three baths (resistance from the
+14-bit ADC through the 10.0 kΩ dividers):
+
+| Sensor | @32.2 | @90.0 | @129.65 | fitted beta | fitted R25 |
+|---|---|---|---|---|---|
+| A0, supply air | 33 588 Ω | 7 241 Ω | 2 970 Ω | 4006 K | 9 898 Ω |
+| A1, return air | 33 707 Ω | 7 334 Ω | 3 024 Ω | 3982 K | 10 006 Ω |
+
+With the data-sheet beta of 3950 the error grew with temperature (A0 +0.40 °F at 90 and +1.49 at
+129.65), so the sketch's shared `NTC_BETA` is **3995** with R25 left at 10 000 Ω. The residuals
+are then A0 +0.30, +0.25, +0.82 °F and A1 +0.18, −0.29, −0.05 °F at the three points, within 0.4 °F
+of constant, and their means go into pivac's `offset:` keys: **`asup` −0.25 K, `aret` +0.03 K**.
+Everything here shares the Thermapen's ±0.5 °F, which cancels from the NTC pair and from the
+supply-air minus return-air difference the node exists to measure.
+
 ## Method
 
 - Bus on D2, external 4.7 kΩ pull-up to **5 V**, normal (non-parasitic) power, 12-bit resolution.
@@ -154,9 +195,9 @@ window on that pair before relying on its ΔT correction.
 
 ## Caveats and next steps
 
-- **Single point (ice) only.** Slope is unverified. For chilled-loop duty (~45 °F) a second bath
-  point tightens absolute accuracy across the operating range. DS18B20s are quite linear, so the
-  ice offset is a good first correction.
+- **PA3 and PA4 are single point (ice) only**, by decision (`docs/onewire-notes.md`): slope is
+  unverified for IN, OUT, UBT and LBT. PA1, PA2, PA5 and the four recovered probes have three
+  points.
 - **Config units.** pivac stores temperatures in Kelvin (`OneWireTherm` reads `Unit.KELVIN`), so
   apply the K column if the `offsets:` map is in Kelvin; the °F column is the bench measurement.
 - **The DHW recirc offset cannot be applied where that probe sits.** It reaches Signal K through
@@ -179,5 +220,9 @@ Raw logs and the scan sketch are in `docs/data/ds18b20/`:
 | `ds18b20-soak-100F-20260829.csv` | 100 → 144.2 °F | 8 | 668 | 11:53. **The tail is the ramp** — see the setpoint-change warning above |
 | `ds18b20-soak-1445F-20260829.csv` | 144.5 °F, flat | 8 | 799 | 12:26, three seconds after the ramp ended. First data row is a short write |
 | `ds18b20-PA-scan.ino` | — | — | — | The bench scan sketch that produced these logs |
+
+The 2026-10-20 PA5 and NTC bath logs are in `docs/data/ah-mbr-node/` (`ah-mbr-bath-{ice,90F,90F-bundled,130F}-20261020.log`,
+one line a second from `AirHandlerBench`, with `bath-stats.py` that reduced them; the 90F log is
+the unbundled first soak and `90F-bundled` the repeat that proved the spread is the sensors).
 
 The `soak4` and `soak7` suffixes are **run numbers, not probe counts**.

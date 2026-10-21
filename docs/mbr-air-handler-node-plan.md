@@ -423,12 +423,17 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 
 ## 6. Calibration and commissioning
 
-1. On the bench, bundle the two DS18B20s in a stirred insulated jug and log 15 minutes at room
-   temperature and 15 in ice water. The mean difference at each point is the pair offset; split it
-   between the two `offset:` keys (Appendix G.1).
-2. Put both NTCs in the same jug beside a DS18B20 at the same two points. The ice bath checks
-   `NTC_BETA`: if both NTCs read the same error at 32 °F and at room temperature, it is an offset;
-   if the error changes between the two points, adjust beta until it doesn't, then set offsets.
+1. Bench calibration, done 2026-10-20 in three baths (ice at 32.2 °F by the Thermapen, 90.0 and
+   129.65 °F), all four tips bundled with the Thermapen among them, ten minutes each, logged by
+   `AirHandlerBench`. The PA5 pair's offsets are +0.280 K (PA5A) and +0.186 K (PA5B) at 55 °F for
+   cooling water and +0.143 and +0.295 K at 115 °F for heating; the pair correction crosses zero
+   between the seasons (+0.17 °F at 55 °F, −0.27 °F at 115 °F). Record and logs:
+   `docs/ds18b20-PA1-5-calibration.md`, `docs/data/ah-mbr-node/`.
+2. The NTCs' error grew with temperature under the data-sheet beta, so `NTC_BETA` is 3995 (fitted
+   4006 and 3982 K per sensor) and the residuals are `offset:` keys in config, −0.25 K on `asup`
+   and +0.03 K on `aret`, each within 0.4 °F of constant from 32 to 130 °F. Bundling matters: the
+   first 90 °F soak with loose tips read the same as the bundled repeat, but only the repeat proves
+   it.
 3. With the node installed, set the thermostat's fan to On with no call for 20 minutes. `asup` and
    `aret` should then agree within 0.3 °F, and the return air should track the RedLink room
    temperature within the thermostat's whole-degree reporting.
