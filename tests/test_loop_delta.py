@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pivac.LoopDelta import _advance, _any_relay, _gate_open, _new_state  # noqa: E402
+from pivac.LoopDelta import _advance, _any_relay, _gate_open, _new_state, _probe, _value  # noqa: E402
 
 SETTLE = 180.0
 
@@ -82,6 +82,23 @@ def test_gate():
     return failures, len(cases) + len(heat_cases) + len(relay_cases)
 
 
+def test_probe_paths():
+    """A loop probe sits directly under sk_path; the air-handler node's probes are
+    nested four deep, and a dotted name reaches them."""
+    tree = {
+        "IN": {"temperature": {"value": 280.0}},
+        "ah": {"mbr": {"water": {"supply": {"temperature": {"value": 285.5}}}}},
+    }
+    failures = 0
+    cases = [("IN", 280.0), ("ah.mbr.water.supply", 285.5), ("ah.mbr.air.supply", None)]
+    for name, expected in cases:
+        got = _value(tree, *_probe(name), "temperature")
+        ok = got == expected
+        failures += not ok
+        print("%s  %-22s -> %s" % ("ok  " if ok else "FAIL", name, got))
+    return failures, len(cases)
+
+
 def test_values():
     # 20 s steps, so settle_s=60 makes the first 3 samples of a run the charge-up.
     cases = [
@@ -120,8 +137,10 @@ def main():
     f1, n1 = test_gate()
     print()
     f2, n2 = test_values()
-    print("\n%d case(s), %d failure(s)" % (n1 + n2, f1 + f2))
-    return 1 if (f1 + f2) else 0
+    print()
+    f3, n3 = test_probe_paths()
+    print("\n%d case(s), %d failure(s)" % (n1 + n2 + n3, f1 + f2 + f3))
+    return 1 if (f1 + f2 + f3) else 0
 
 
 if __name__ == "__main__":

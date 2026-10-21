@@ -1,4 +1,5 @@
-"""pivac.LoopDelta — gated supply/return delta-T for the chilled-water loops.
+"""pivac.LoopDelta — gated supply/return delta-T for the chilled-water loops and
+the air-handler node's coil pairs.
 
 A loop's delta-T only means something while that loop is pumping.  With the
 pump off the probes sit in stagnant water in a short dead leg off the header,
@@ -96,6 +97,13 @@ def _value(tree, *path, **kw):
     return node["value"]
 
 
+def _probe(name):
+    """A probe name is its path under sk_path, dotted where it is nested: `IN` is a
+    loop probe at `<sk_path>.IN.temperature`, `ah.mbr.water.supply` the air-handler
+    node's at `<sk_path>.ah.mbr.water.supply.temperature`."""
+    return tuple(name.split("."))
+
+
 def _any_relay(states):
     """Combine the states of a loop's relays.  None if none of them is readable
     (no evidence of flow), else True if any readable one is closed.  The
@@ -189,8 +197,8 @@ def status(config={}, output="default"):
     for name, loop in loops.items():
         state = _runs.setdefault(name, _new_state())
 
-        sup = _value(hvac, loop["supply"], "temperature", max_age_s=max_age_s, now=now)
-        ret = _value(hvac, loop["return"], "temperature", max_age_s=max_age_s, now=now)
+        sup = _value(hvac, *_probe(loop["supply"]), "temperature", max_age_s=max_age_s, now=now)
+        ret = _value(hvac, *_probe(loop["return"]), "temperature", max_age_s=max_age_s, now=now)
         delta = None if sup is None or ret is None else ret - sup
 
         names = loop["relay"] if isinstance(loop["relay"], list) else [loop["relay"]]
