@@ -1,7 +1,9 @@
 # Air-handler node shield: PCB plan
 
-**Status:** Scope settled on the serial tap (§2, §4.3). `hardware/ah-board/` still carries the Y2 and W2 optocoupler
-inputs and is regenerated once the line measurements of `docs/unico-scb-live-test.md` fix the interface. Not ordered. · **Owner:** David
+**Status:** Two routes, decided by one bench test. If the Adafruit Feather RP2040 USB Host board reads the Unico USB
+board's frames, the node becomes the Pico W carrier of §0 in a DIN-rail module and this UNO shield is not built;
+if it does not, this shield with the serial tap of §4.3 is the design, after the data-cable measurements.
+`hardware/ah-board/` still carries the Y2 and W2 optocoupler inputs. Nothing ordered. · **Owner:** David
 
 The first node, at the master bedroom, is an Arduino UNO R4 WiFi with a hand-wired Olimex PROTO-SHIELD, a DIN-rail 24 VAC to
 USB-C buck converter, a Magnecraft 792 relay on a socket and nine feed-through blocks
@@ -14,6 +16,35 @@ headers. `docs/air-handler-shield-pcb-layout.svg` is the floor plan, generated b
 `docs/air-handler-shield-pcb-layout.gen.py`.
 
 ![Air-handler node shield floor plan](air-handler-shield-pcb-layout.svg)
+
+## 0. The USB route: a Pico W carrier in a DIN-rail module
+
+The SCB's protocol is proven over the Unico USB board (A01470-G01, a Cypress CDC device) from a Mac and from the
+Pi (`docs/unico-scb-live-test.md`), so the node can take the same path: plug into the control box's USB-B jack as a
+USB host and leave the data cable alone. The UNO R4 cannot be a USB host, so the node's controller becomes a
+Raspberry Pi Pico W (RP2040 with WiFi), whose host port is two GPIOs through Pico-PIO-USB and whose CDC host is
+Adafruit TinyUSB's `serial_host_bridge` example. The one gate is a bench test: the Adafruit Feather RP2040 with USB
+Type A Host (Adafruit 5723), which has the host jack and the 5 V boost already wired, runs the example with
+`SerialHost.begin(4800)` plugged into the utility zone's control box; frames on its console pass the route.
+
+The carrier, decided 2026-10-24:
+
+| Item | Decision |
+|---|---|
+| Controller | Raspberry Pi Pico WH on two 20-pin sockets; antenna end over a copper-free edge; micro-USB under the cover |
+| Enclosure | CamdenBoss CNMB/6/KIT, 106 mm (6 modules) × 90 mm, polycarbonate, kit with cover and guards |
+| Board | 86.5 × 103 mm on the base position, No. 6 self-tapping screws; the 103 mm edges along the terminal faces |
+| Top face | 24 VAC R and C, and the USB-A jack behind the USB terminal guard (CNMB/3/TGUSB) |
+| Bottom face | 1-wire V · D · G, supply-air and return-air NTC pairs, the spare for a coil water meter |
+| Terminals | push-in PCB blocks at 5.08 mm pitch behind the pre-drilled guards (CNMB/3/TG508, 9 poles per guard, two per face) |
+| Power | 24 VAC entry, rectifier and the isolated converter of §4.1 on the board; 5 V also feeds the USB-A VBUS |
+| Sensors | DS2482 on the Pico's I2C at 3.3 V; NTC dividers rescaled to 3.3 V and recalibrated |
+| LEDs | at the front edge under the recessed cover |
+
+The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core plus the SCB parser of
+`pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with
+`node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB. The terminal
+blocks, the guards' pole counts and the enclosure's PCB drawing fix the outline when the design is drawn.
 
 ## 1. Scope
 
