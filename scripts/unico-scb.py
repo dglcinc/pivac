@@ -16,6 +16,12 @@ docs/unico-scb-live-test.md.
     mirror   build the answer that requests exactly what the SCB reports as stored,
              and with --transmit send it (the protocol's "no change" frame)
     set      mirror with one airflow or RPM limit changed; needs --transmit to send
+    override ECMConfig's Thermostat Override: hold one of G, Y1, Y2, W1, W2 or E as if
+             the thermostat called it, for a capped number of seconds, then release.
+             In this house the SCB's relays are the zone's W and Y inputs at the
+             HZ-432, so this is a real zone call: the panel starts the plant and opens
+             the zone valve. Needs --transmit and --this-calls-the-plant, refuses
+             while a thermostat call is active, and releases on Ctrl-C
 
 On a Mac the USB board appears as /dev/cu.usbmodem* (the Cypress CDC board fitted
 here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
@@ -25,8 +31,8 @@ here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
     uv run --no-project --with pyserial python scripts/unico-scb.py listen   # without pyserial installed
 
 Writes go to the SCB's memory immediately. `set` refuses values outside the
-program's limits, and nothing here sends the thermostat override, the test flow or
-the test pressure bytes.
+program's limits. Only `override` sends the thermostat override bits, and nothing
+here sends the test flow or test pressure bytes.
 """
 import argparse
 import csv
@@ -41,6 +47,8 @@ PC_TAG = 0x1C            # byte 3 of every PC frame
 CFM_MAX = {"1218": 500, "2430": 750, "3036": 1200, "3642": 1200, "4860": 1500}
 RPM_MIN = {"3036": 600}  # 400 for every other model
 RPM_MAX = 1800
+OVERRIDE_BIT = {"G": 0x80, "Y1": 0x40, "Y2": 0x20, "W1": 0x10, "W2": 0x08, "E": 0x04}
+OVERRIDE_MAX_S = 300
 
 
 # --- framing -------------------------------------------------------------------
@@ -212,6 +220,16 @@ def mirror_frame(f, cfm=None, rpm=None):
     return with_check(body)
 
 
+def override_frame(f, mode):
+    """The mirror answer with one Thermostat Override bit set in byte 4 (protocol §5.3):
+    the SCB then runs as if the thermostat called `mode`. Live only; the SCB keeps it
+    for as long as the answers keep coming, so the caller must send plain mirror
+    frames to release it."""
+    body = bytearray(mirror_frame(f)[:-2])
+    body[4] |= OVERRIDE_BIT[mode]
+    return with_check(body)
+
+
 def idle_frame(f):
     """The 43-byte answer that requests nothing: what ECMConfig sends on its first tick
     after connecting, before it has copied stored to requested (protocol §5.4). Byte 2
@@ -325,22 +343,29 @@ def parse_changes(items):
     return cfm, rpm
 
 
-def answer_once(a, cfm, rpm):
-    port = open_port(a.port)
+def long_frame(port, seconds=15):
+    """Wait for a 51-byte status frame, sending one idle frame if the SCB is only
+    sending its short one. The SCB sends its 36-byte frame until something answers,
+    and goes back to it within seconds of the answers stopping. The idle frame
+    requests nothing (proven 2026-10-24: every stored value unchanged) and brings the
+    51-byte frame on the next tick, so it is sent in a dry run too."""
     elicited = False
-    for kind, f in frames_from(port, 15):
+    for kind, f in frames_from(port, seconds):
         if kind != "status":
             continue
-        if len(f) != 51:
-            # The SCB sends its 36-byte frame until something answers, and goes back to
-            # it within seconds of the answers stopping. The idle frame requests nothing
-            # (proven 2026-10-24: every stored value unchanged) and brings the 51-byte
-            # frame on the next tick, so it is sent in the dry run too.
-            if f[3] == 23 and not elicited:
-                port.write(idle_frame(f))
-                elicited = True
-                print("sent the idle frame to bring the 51-byte status frame")
-            continue
+        if len(f) == 51:
+            return f
+        if f[3] == 23 and not elicited:
+            port.write(idle_frame(f))
+            elicited = True
+            print("sent the idle frame to bring the 51-byte status frame")
+    sys.exit("no 51-byte status frame in %d s; run `listen` first" % seconds)
+
+
+def answer_once(a, cfm, rpm):
+    port = open_port(a.port)
+    if True:
+        f = long_frame(port)
         d = decode_status(f)
         cap = CFM_MAX[d["model"]]
         floor = RPM_MIN.get(d["model"], 400)
@@ -365,7 +390,75 @@ def answer_once(a, cfm, rpm):
             if kind == "status":
                 print(time.strftime("%H:%M:%S"), describe(decode_status(g)))
         return
-    sys.exit("no 51-byte status frame in 15 s; run `listen` first")
+
+
+def brief(d):
+    return "calls=%s actual=%d CFM %d RPM flags=0x%02X" % (
+        ",".join(d["calls"]) or "-", d.get("actual_cfm", 0), d.get("actual_rpm", 0), d["flags"])
+
+
+def cmd_override(a):
+    mode = a.mode.upper()
+    if mode not in OVERRIDE_BIT:
+        sys.exit("mode must be one of " + ", ".join(OVERRIDE_BIT))
+    if not 0 < a.seconds <= OVERRIDE_MAX_S:
+        sys.exit("--seconds must be 1..%d" % OVERRIDE_MAX_S)
+    port = open_port(a.port)
+    f = long_frame(port)
+    d = decode_status(f)
+    print("SCB now:", describe(d))
+    if d["calls"]:
+        sys.exit("refusing: the thermostat is calling %s; an override on top of a live call "
+                 "cannot be told apart from it" % ",".join(d["calls"]))
+    out = override_frame(f, mode)
+    print("override %s for %d s, answer (%d bytes): %s" % (mode, a.seconds, len(out), out.hex()))
+    print("this runs the blower at the stored %s airflow (%d CFM) and, through the SCB's relays, "
+          "raises this zone's %s call at the HZ-432: the panel starts the plant and opens the "
+          "zone valve for the duration" % (mode, d["cfm"][mode], "W" if mode in ("W1", "W2", "E") else "Y"))
+    if not a.transmit:
+        print("dry run: add --transmit and --this-calls-the-plant to send it")
+        return
+    if not a.this_calls_the_plant:
+        sys.exit("refusing: --transmit needs --this-calls-the-plant as well")
+    last, start = None, time.time()
+    try:
+        print(time.strftime("%H:%M:%S"), "holding %s" % mode)
+        for kind, g in frames_from(port, a.seconds):
+            if kind != "status":
+                continue
+            port.write(override_frame(g, mode) if len(g) == 51 else out)
+            text = brief(decode_status(g))
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+    finally:
+        held = time.time() - start
+        print(time.strftime("%H:%M:%S"), "releasing after %.0f s" % held)
+        n = 0
+        for kind, g in frames_from(port, 15):
+            if kind != "status":
+                continue
+            port.write(mirror_frame(g) if len(g) == 51 else idle_frame(g))
+            n += 1
+            text = brief(decode_status(g))
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+            if n >= 10:
+                break
+        print(time.strftime("%H:%M:%S"), "sent %d release frames; watching the motor spin down" % n)
+        final = None
+        for kind, g in frames_from(port, a.watch):
+            if kind != "status":
+                continue
+            final = decode_status(g)
+            text = brief(final)
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+        if final is not None:
+            print("after release: %s" % ("motor stopped" if final.get("actual_rpm", 0) == 0
+                                        else "motor still at %d RPM; check the SCB and HPCALL" % final["actual_rpm"]))
 
 
 def main():
@@ -391,6 +484,13 @@ def main():
         p.add_argument("--watch", type=float, default=20, help="seconds to watch after sending")
         if name == "set":
             p.add_argument("changes", nargs="+", metavar="cfm.Y2=800 | rpm.G=1200")
+    p = sub.add_parser("override")
+    p.add_argument("mode", metavar="G|Y1|Y2|W1|W2|E")
+    p.add_argument("--seconds", type=float, default=60, help="how long to hold it, at most %d" % OVERRIDE_MAX_S)
+    p.add_argument("--transmit", action="store_true", help="send it; without it, print only")
+    p.add_argument("--this-calls-the-plant", action="store_true",
+                   help="required with --transmit: you accept that this raises a real zone call at the HZ-432")
+    p.add_argument("--watch", type=float, default=60, help="seconds to watch after the release")
     a = ap.parse_args()
     if a.cmd == "listen":
         cmd_listen(a)
@@ -398,6 +498,8 @@ def main():
         cmd_decode(a)
     elif a.cmd == "idle":
         cmd_idle(a)
+    elif a.cmd == "override":
+        cmd_override(a)
     else:
         answer_once(a, *parse_changes(getattr(a, "changes", None)))
 

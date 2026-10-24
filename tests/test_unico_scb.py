@@ -73,6 +73,11 @@ def main():
         check("mirror keeps Auto, EAC and bedrooms", m[38] == 0xC3 and m[4] == 0x03),
         check("mirror sends no override or test bytes", m[4] & 0xFC == 0 and m[39] == 0 and m[40] == 0),
     ]
+    o = scb.override_frame(f, "W1")
+    results += [
+        check("override sets only byte 4's W1 bit and validates", o[4] == m[4] | 0x10 and o[:4] == m[:4] and o[5:41] == m[5:41] and scb.fletcher_ok(o)),
+        check("override leaves the test bytes clear", o[39] == 0 and o[40] == 0),
+    ]
     s = scb.mirror_frame(f, cfm={"Y2": 850})
     results.append(check("set changes only Y2", scb.u16(s, 9) == 850 and s[5:9] == m[5:9] and s[11:41] == m[11:41]))
     if not all(results):
