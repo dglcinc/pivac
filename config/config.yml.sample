@@ -347,6 +347,21 @@ pivac.ArduinoThermPSI:
             sk_path: propulsion.mainEngine.fuel
             outname: pressure
 
+pivac.UnicoSCB_Utility:
+    # The utility zone's Unico air handler, read from its S.M.A.R.T. Control Board over the
+    # control box's USB board on the Pi (pivac.UnicoSCB). One section per air handler; when the
+    # unit gets its own node (the rev B shield) replace `port:` with `node: http://<ip>/` and the
+    # paths stay the same. The reader transmits nothing unless `answer: true`, which brings the
+    # 51-byte frame's extra fields (fan.state, scb.dcBus, scb.switches, scb.firmware).
+    description: Utility zone Unico M2430, calls, airflow and fan speed from the SCB
+    module: pivac.UnicoSCB
+    enabled: true
+    port: /dev/serial/by-id/*unicousb*
+    sk_path: environment.inside.hvac.ah.utility
+    daemon_sleep: 1
+    stale_s: 10
+    answer: false
+
 pivac.UnicoAH_MBR:
     # Master bedroom Unico air handler node: UNO R4 WiFi at 10.0.0.180 (MAC e8:f6:0a:aa:a3:88),
     # two DS18B20 on the coil's water pipes, two 10K NTC duct sensors, and the thermostat's Y2

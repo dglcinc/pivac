@@ -1,0 +1,389 @@
+# scripts/unico-scb.py transcripts, 2026-10-24, utility zone M2430 fw 3.21, from the M2 on /dev/cu.usbmodemunicousb1
+
+## idle --transmit --watch 30
+
+opened /dev/cu.usbmodemunicousb1 at 4800 8N1
+17:15:57 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:15:57 sent idle (43 bytes): 0183ff1c010000000000000000000000000000000000000000000000000000000000000000000000005707
+17:15:57 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:15:58 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:15:59 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:15:59 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:00 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:01 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:02 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:03 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:04 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:04 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:05 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:16:06 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:07 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:08 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:10 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:11 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:11 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:12 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:13 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:14 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:15 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:16 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:16 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:17 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:18 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:19 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:20 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:20 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:21 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:22 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:24 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:25 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:26 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:16:27 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+sent 1 idle frame(s)
+
+## mirror --transmit --watch 20
+
+opened /dev/cu.usbmodemunicousb1 at 4800 8N1
+sent the idle frame to bring the 51-byte status frame
+SCB now: 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+answer (43 bytes): 0183001c0000c8012c01f4012c01f401f40708070807080708070807080a01720005dc030a080200006227
+echo: none
+watching for the stored values to update...
+17:18:08 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:09 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:10 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:11 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:12 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:13 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:13 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:14 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:15 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:17 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:18 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:19 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:20 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:20 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:21 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:22 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:23 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:24 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:25 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:25 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:26 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:27 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:28 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+
+## set cfm.G=225 --transmit --watch 20
+
+opened /dev/cu.usbmodemunicousb1 at 4800 8N1
+sent the idle frame to bring the 51-byte status frame
+SCB now: 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+answer (43 bytes): 0183001c0000e1012c01f4012c01f401f40708070807080708070807080a01720005dc030a08020000da95
+echo: none
+watching for the stored values to update...
+17:18:46 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:47 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:48 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:49 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:50 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:50 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:51 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:52 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:53 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:54 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:18:54 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:55 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:56 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:57 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:18:59 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:00 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:01 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:02 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:02 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:03 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:04 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:05 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:06 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+
+## set cfm.G=200 --transmit --watch 20
+
+opened /dev/cu.usbmodemunicousb1 at 4800 8N1
+sent the idle frame to bring the 51-byte status frame
+SCB now: 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=225 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+answer (43 bytes): 0183001c0000c8012c01f4012c01f401f40708070807080708070807080a01720005dc030a080200006227
+echo: none
+watching for the stored values to update...
+17:19:08 2430 len=51 flags=0x80 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:09 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:09 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:10 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:12 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:13 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:14 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:15 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:16 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:17 2430 len=51 flags=0xA1 calls=- actual=0 CFM 0 RPM motor=Stopped bus=4V fw=3.21
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+    switches 0x0107 chiller-leader hum-hi revvalve-O mod-live
+17:19:17 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:18 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:19 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:20 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:21 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:21 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:22 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:23 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:24 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:25 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800
+17:19:27 2430 len=36 flags=0xA1 calls=- actual=0 CFM 0 RPM
+    stored CFM G=200 Y1=300 Y2=500 W1=300 W2=500 E=500
+    RPM limit  G=1800 Y1=1800 Y2=1800 W1=1800 W2=1800 E=1800

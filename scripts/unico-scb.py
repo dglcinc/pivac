@@ -1,0 +1,440 @@
+#!/usr/bin/env python3
+"""Talk to a Unico S.M.A.R.T. Control Board (SCB) through its A01470 USB board.
+
+The SCB is the bus master. It sends a status frame to the PC on its own and the PC
+answers each one; there are no query commands. Every answer is a write request:
+the SCB stores any requested value that differs from what it holds. The protocol
+is in docs/unico-scb-protocol.md and the test procedure in
+docs/unico-scb-live-test.md.
+
+    listen   decode what the SCB sends; transmits nothing unless --answer, which
+             answers every frame with the no-change frame so the 51-byte frame and,
+             with --menus, the Motor Status and Fresh Air Monitor data keep coming
+    decode   decode a hex dump written by `listen --raw`
+    idle     answer with the frame that requests nothing (ECMConfig's first reply
+             after connecting); with --transmit send it, with --every keep answering.
+             The SCB sends its 36-byte frame until something answers; this is how a
+             read-only client gets the 51-byte frame without writing anything
+    mirror   build the answer that requests exactly what the SCB reports as stored,
+             and with --transmit send it (the protocol's "no change" frame)
+    set      mirror with settings changed; needs --transmit to send. Keys:
+               cfm.G=300 rpm.Y2=1500            airflow per mode, RPM limit per mode
+               air.percent=10 air.blower=370    fresh-air %, ventilation blower CFM
+               air.sqft=1500 air.occupants=3 air.bedrooms=2
+               air.runmin=10 air.interval=8     Fixed-mode run time and interval
+               air.eac=on|off air.mode=auto|fixed
+               auto.style=energysaver|maxcomfort damper=poweropen|powerclose
+               test.flow=N test.pressure=N      bytes nothing documents: --confirm UNKNOWN-EFFECT
+    backup   write every stored value the 51-byte frame reports to a JSON file
+    restore  request every value in a backup file; --transmit --confirm RESTORE-ALL
+    override ECMConfig's Thermostat Override: hold one of G, Y1, Y2, W1, W2 or E as if
+             the thermostat called it, for a capped number of seconds, then release.
+             In this house the SCB's relays are the zone's W and Y inputs at the
+             HZ-432, so this is a real zone call: the panel starts the plant and opens
+             the zone valve. Needs --transmit --confirm CALL-THE-PLANT, refuses while
+             a thermostat call is active, and releases on Ctrl-C
+
+The guard: a command that is dangerous (override), of unknown effect (the test
+bytes) or bulk (restore) prints its confirmation word in the dry run and refuses
+--transmit without --confirm <that word>.
+
+On a Mac the USB board appears as /dev/cu.usbmodem* (the Cypress CDC board fitted
+here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
+/dev/ttyACM0 or /dev/ttyUSB0. Needs only pyserial:
+
+    python3 scripts/unico-scb.py listen
+    uv run --no-project --with pyserial python scripts/unico-scb.py listen   # without pyserial installed
+
+Writes go to the SCB's memory immediately. `set` refuses values outside the
+program's limits (protocol §7).
+"""
+import argparse
+import csv
+import glob
+import json
+import time
+
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from pivac.unico_scb_protocol import *          # noqa: E402,F401,F403  framing, decoding, answer frames
+from pivac.unico_scb_protocol import (          # noqa: E402  the names the commands use by name
+    BAUD, MODES, CFM_MAX, RPM_MIN, RPM_MAX, OVERRIDE_BIT, OVERRIDE_MAX_S, MENU_BIT, AIR_LIMITS,
+    fletcher_ok, with_check, split_frames, u16, decode_status, describe, motor_text,
+    stored_settings, answer_frame, merge, mirror_frame, override_frame, idle_frame)
+
+
+# --- serial --------------------------------------------------------------------
+
+def open_port(name):
+    import serial
+    if not name:
+        found = sorted(glob.glob("/dev/cu.usbmodem*") + glob.glob("/dev/cu.usbserial-*")
+                       + glob.glob("/dev/ttyACM*") + glob.glob("/dev/ttyUSB*"))
+        if not found:
+            sys.exit("no USB serial port found; plug the USB cable into the control box")
+        name = found[0]
+    port = serial.Serial(name, BAUD, bytesize=8, parity="N", stopbits=1, timeout=0.1,
+                         xonxoff=False, rtscts=False, dsrdtr=False)
+    port.dtr = True                                   # ECMConfig holds both asserted
+    port.rts = True
+    print("opened %s at %d 8N1" % (name, BAUD), file=sys.stderr)
+    return port
+
+
+def frames_from(port, seconds):
+    buf, end = b"", time.time() + seconds
+    while time.time() < end:
+        buf += port.read(512)
+        found, buf = split_frames(buf)
+        for item in found:
+            yield item
+
+
+def cmd_listen(a):
+    port = open_port(a.port)
+    raw = open(a.raw, "a") if a.raw else None
+    log = csv.writer(open(a.csv, "a", newline="")) if a.csv else None
+    menus = 0
+    for name in (a.menus.split(",") if a.menus else ()):
+        if name not in MENU_BIT:
+            sys.exit("--menus takes a comma list of " + ", ".join(MENU_BIT))
+        menus |= MENU_BIT[name]
+    if menus and not a.answer:
+        sys.exit("--menus needs --answer")
+    last = None
+    for kind, f in frames_from(port, a.seconds):
+        stamp = time.strftime("%H:%M:%S")
+        if raw:
+            raw.write("%s %s %s\n" % (time.time(), kind, f.hex()))
+            raw.flush()
+        if kind == "status" and a.answer:
+            port.write(answer_frame(f, stored_settings(f), menus=menus) if len(f) == 51 else idle_frame(f))
+        if kind == "status":
+            d = decode_status(f)
+            text = describe(d)
+            if text != last or a.verbose:
+                print(stamp, text)
+                last = text
+            if log and "actual_cfm" in d:
+                log.writerow([time.time(), d["model"], d["actual_cfm"], d["actual_rpm"],
+                              ",".join(d["calls"]), d.get("dc_bus_v"), d.get("motor_status"), d["flags"]])
+        elif kind == "log":
+            print(stamp, "four-hour log: now=%d slots=%s" % (u16(f, 2), [u16(f, 4 + 2 * k) for k in range(48)]))
+        elif kind == "pc":
+            print(stamp, "PC frame seen (ECMConfig running, or our echo):", f.hex())
+        elif a.verbose:
+            print(stamp, "bus", f.hex())
+
+
+def cmd_idle(a):
+    """Answer the SCB with the no-request frame and watch what it sends back. Our own
+    echo, if the USB board loops it, shows up as a "pc" frame in the stream."""
+    port = open_port(a.port)
+    raw = open(a.raw, "a") if a.raw else None
+    sent = 0
+    for kind, f in frames_from(port, a.watch):
+        stamp = time.strftime("%H:%M:%S")
+        if raw:
+            raw.write("%s %s %s\n" % (time.time(), kind, f.hex()))
+            raw.flush()
+        if kind == "status":
+            print(stamp, describe(decode_status(f)))
+            if not a.transmit:
+                print("would send (%d bytes): %s" % (len(idle_frame(f)), idle_frame(f).hex()))
+                print("dry run: add --transmit to send it")
+                return
+            if sent == 0 or a.every:
+                out = idle_frame(f)
+                port.write(out)
+                sent += 1
+                if sent == 1 or a.verbose:
+                    print(stamp, "sent idle (%d bytes): %s" % (len(out), out.hex()))
+        elif kind == "pc":
+            print(stamp, "PC frame seen (our echo, or ECMConfig):", f.hex())
+        elif kind == "log":
+            print(stamp, "four-hour log frame, %d bytes" % len(f))
+        elif a.verbose:
+            print(stamp, "bus", f.hex())
+    print("sent %d idle frame(s)" % sent)
+
+
+def cmd_decode(a):
+    for line in open(a.file):
+        parts = line.split()
+        if len(parts) == 3 and parts[1] == "status":
+            print(describe(decode_status(bytes.fromhex(parts[2]))))
+
+
+def parse_changes(items):
+    """`set` arguments into {"cfm": {}, "rpm": {}, "air": {}, "auto": {}, "damper": str,
+    "test": {}}; unknown keys and malformed values exit."""
+    out = {"cfm": {}, "rpm": {}, "air": {}, "auto": {}, "test": {}}
+    for item in items or ():
+        try:
+            key, value = item.split("=", 1)
+        except ValueError:
+            sys.exit("expected key=value, got %r" % item)
+        if key == "damper":
+            if value not in ("poweropen", "powerclose"):
+                sys.exit("damper must be poweropen or powerclose")
+            out["damper"] = value
+            continue
+        try:
+            kind, name = key.split(".")
+        except ValueError:
+            sys.exit("unknown key %r" % key)
+        if kind in ("cfm", "rpm"):
+            name = name.upper()
+            if name not in MODES:
+                sys.exit("%s.%s: mode must be one of %s" % (kind, name, ", ".join(MODES)))
+            out[kind][name] = int(value)
+        elif kind == "air" and name in AIR_LIMITS:
+            out["air"][name] = int(value)
+        elif kind == "air" and name == "eac":
+            out["air"]["eac"] = {"on": True, "off": False}[value]
+        elif kind == "air" and name == "mode":
+            if value not in ("auto", "fixed"):
+                sys.exit("air.mode must be auto or fixed")
+            out["air"]["mode"] = value
+        elif kind == "auto" and name == "style":
+            if value not in ("energysaver", "maxcomfort"):
+                sys.exit("auto.style must be energysaver or maxcomfort")
+            out["auto"]["style"] = value
+        elif kind == "test" and name in ("flow", "pressure"):
+            out["test"][name] = int(value)
+        else:
+            sys.exit("unknown key %r" % key)
+    return out
+
+
+def check_limits(want, model, test):
+    cap = CFM_MAX[model]
+    floor = RPM_MIN.get(model, 400)
+    for m, v in want["cfm"].items():
+        if not 0 < v <= cap:
+            sys.exit("%s airflow %d outside 1..%d CFM for a %s" % (m, v, cap, model))
+    for m, v in want["rpm"].items():
+        if not floor <= v <= RPM_MAX:
+            sys.exit("%s RPM limit %d outside %d..%d" % (m, v, floor, RPM_MAX))
+    for k, lim in AIR_LIMITS.items():
+        v = want["air"][k]
+        if not 0 <= v <= (lim if lim is not None else cap):
+            sys.exit("air.%s %d outside 0..%d" % (k, v, lim if lim is not None else cap))
+    for k, v in (test or {}).items():
+        if not 0 <= v <= 255:
+            sys.exit("test.%s %d outside 0..255" % (k, v))
+
+
+def confirmed(a, word, what):
+    """The guard: refuse --transmit unless --confirm carries `word`."""
+    if not a.transmit:
+        print("dry run: add --transmit --confirm %s to send it (%s)" % (word, what))
+        return False
+    if a.confirm != word:
+        sys.exit("refusing: %s; --transmit needs --confirm %s" % (what, word))
+    return True
+
+
+def long_frame(port, seconds=15):
+    """Wait for a 51-byte status frame, sending one idle frame if the SCB is only
+    sending its short one. The SCB sends its 36-byte frame until something answers,
+    and goes back to it within seconds of the answers stopping. The idle frame
+    requests nothing (proven 2026-10-24: every stored value unchanged) and brings the
+    51-byte frame on the next tick, so it is sent in a dry run too."""
+    elicited = False
+    for kind, f in frames_from(port, seconds):
+        if kind != "status":
+            continue
+        if len(f) == 51:
+            return f
+        if f[3] == 23 and not elicited:
+            port.write(idle_frame(f))
+            elicited = True
+            print("sent the idle frame to bring the 51-byte status frame")
+    sys.exit("no 51-byte status frame in %d s; run `listen` first" % seconds)
+
+
+def answer_once(a, changes):
+    port = open_port(a.port)
+    f = long_frame(port)
+    d = decode_status(f)
+    stored = stored_settings(f)
+    want = merge(stored, changes)
+    test = changes.get("test") or None
+    check_limits(want, d["model"], test)
+    print("SCB now:", describe(d))
+    out = answer_frame(f, want, test=(test["flow"] if test and "flow" in test else 0,
+                                      test["pressure"] if test and "pressure" in test else 0) if test else None)
+    diff = {k: (stored[k], want[k]) for k in ("cfm", "rpm", "air", "auto", "damper") if stored[k] != want[k]}
+    print("requests:", json.dumps(diff) if diff else "no change", "" if not test else "test bytes %s" % test)
+    print("answer (%d bytes): %s" % (len(out), out.hex()))
+    if test:
+        if not confirmed(a, "UNKNOWN-EFFECT", "the test flow and pressure bytes have no documented effect"):
+            return
+    elif not a.transmit:
+        print("dry run: add --transmit to send it")
+        return
+    send_and_watch(port, out, a.watch)
+
+
+def send_and_watch(port, out, watch):
+    port.reset_input_buffer()
+    port.write(out)
+    echo = port.read(len(out))
+    print("echo:", "matched, dropped" if echo == out else (echo.hex() or "none"))
+    print("watching for the stored values to update...")
+    for kind, g in frames_from(port, watch):
+        if kind == "status":
+            print(time.strftime("%H:%M:%S"), describe(decode_status(g)))
+
+
+def cmd_backup(a):
+    port = open_port(a.port)
+    f = long_frame(port)
+    stored = stored_settings(f)
+    stored["captured"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    with open(a.file, "w") as fh:
+        json.dump(stored, fh, indent=2)
+    print("wrote %s:" % a.file)
+    print(json.dumps(stored, indent=2))
+
+
+def cmd_restore(a):
+    want = json.load(open(a.file))
+    port = open_port(a.port)
+    f = long_frame(port)
+    d = decode_status(f)
+    stored = stored_settings(f)
+    if want.get("model") != stored["model"]:
+        sys.exit("refusing: backup is for a %s, this board is a %s" % (want.get("model"), stored["model"]))
+    check_limits(want, d["model"], None)
+    print("SCB now:", describe(d))
+    diff = {k: (stored[k], want[k]) for k in ("cfm", "rpm", "air", "auto", "damper") if stored[k] != want[k]}
+    print("requests:", json.dumps(diff) if diff else "no change")
+    out = answer_frame(f, want)
+    print("answer (%d bytes): %s" % (len(out), out.hex()))
+    if confirmed(a, "RESTORE-ALL", "every stored setting is written from the file"):
+        send_and_watch(port, out, a.watch)
+
+
+def brief(d):
+    return "calls=%s actual=%d CFM %d RPM flags=0x%02X" % (
+        ",".join(d["calls"]) or "-", d.get("actual_cfm", 0), d.get("actual_rpm", 0), d["flags"])
+
+
+def cmd_override(a):
+    mode = a.mode.upper()
+    if mode not in OVERRIDE_BIT:
+        sys.exit("mode must be one of " + ", ".join(OVERRIDE_BIT))
+    if not 0 < a.seconds <= OVERRIDE_MAX_S:
+        sys.exit("--seconds must be 1..%d" % OVERRIDE_MAX_S)
+    port = open_port(a.port)
+    f = long_frame(port)
+    d = decode_status(f)
+    print("SCB now:", describe(d))
+    if d["calls"]:
+        sys.exit("refusing: the thermostat is calling %s; an override on top of a live call "
+                 "cannot be told apart from it" % ",".join(d["calls"]))
+    out = override_frame(f, mode)
+    print("override %s for %d s, answer (%d bytes): %s" % (mode, a.seconds, len(out), out.hex()))
+    print("this runs the blower at the stored %s airflow (%d CFM) and, through the SCB's relays, "
+          "raises this zone's %s call at the HZ-432: the panel starts the plant and opens the "
+          "zone valve for the duration" % (mode, d["cfm"][mode], "W" if mode in ("W1", "W2", "E") else "Y"))
+    if not confirmed(a, "CALL-THE-PLANT", "this raises a real zone call at the HZ-432"):
+        return
+    last, start = None, time.time()
+    try:
+        print(time.strftime("%H:%M:%S"), "holding %s" % mode)
+        for kind, g in frames_from(port, a.seconds):
+            if kind != "status":
+                continue
+            port.write(override_frame(g, mode) if len(g) == 51 else out)
+            text = brief(decode_status(g))
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+    finally:
+        held = time.time() - start
+        print(time.strftime("%H:%M:%S"), "releasing after %.0f s" % held)
+        n = 0
+        for kind, g in frames_from(port, 15):
+            if kind != "status":
+                continue
+            port.write(mirror_frame(g) if len(g) == 51 else idle_frame(g))
+            n += 1
+            text = brief(decode_status(g))
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+            if n >= 10:
+                break
+        print(time.strftime("%H:%M:%S"), "sent %d release frames; watching the motor spin down" % n)
+        final = None
+        for kind, g in frames_from(port, a.watch):
+            if kind != "status":
+                continue
+            final = decode_status(g)
+            text = brief(final)
+            if text != last:
+                print(time.strftime("%H:%M:%S"), text)
+                last = text
+        if final is not None:
+            print("after release: %s" % ("motor stopped" if final.get("actual_rpm", 0) == 0
+                                        else "motor still at %d RPM; check the SCB and HPCALL" % final["actual_rpm"]))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--port", help="serial device; default: the first USB serial port")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("listen")
+    p.add_argument("--seconds", type=float, default=float("inf"))
+    p.add_argument("--raw", help="append every frame as hex to this file")
+    p.add_argument("--csv", help="append actual CFM/RPM rows to this file")
+    p.add_argument("-v", "--verbose", action="store_true", help="print every frame and the motor-bus bytes")
+    p.add_argument("--answer", action="store_true",
+                   help="answer every frame with the no-change frame, so the 51-byte frame keeps coming")
+    p.add_argument("--menus", help="with --answer: request motor, freshair or motor,freshair (PC byte 32)")
+    p = sub.add_parser("decode")
+    p.add_argument("file")
+    p = sub.add_parser("idle")
+    p.add_argument("--transmit", action="store_true", help="send the frame; without it, print only")
+    p.add_argument("--every", action="store_true", help="answer every status frame, not just the first")
+    p.add_argument("--watch", type=float, default=30, help="seconds to run")
+    p.add_argument("--raw", help="append every frame as hex to this file")
+    p.add_argument("-v", "--verbose", action="store_true", help="print every send and the motor-bus bytes")
+    for name in ("mirror", "set", "restore", "override"):
+        p = sub.add_parser(name)
+        p.add_argument("--transmit", action="store_true", help="send the frame; without it, print only")
+        p.add_argument("--confirm", metavar="WORD", help="the confirmation word the dry run prints, for a guarded command")
+        p.add_argument("--watch", type=float, default=60 if name == "override" else 20,
+                       help="seconds to watch after sending (after the release, for override)")
+        if name == "set":
+            p.add_argument("changes", nargs="+", metavar="cfm.Y2=800 | rpm.G=1200 | air.percent=10 | ...")
+        elif name == "restore":
+            p.add_argument("file", help="a JSON file written by backup")
+        elif name == "override":
+            p.add_argument("mode", metavar="G|Y1|Y2|W1|W2|E")
+            p.add_argument("--seconds", type=float, default=60, help="how long to hold it, at most %d" % OVERRIDE_MAX_S)
+    p = sub.add_parser("backup")
+    p.add_argument("file", help="JSON file to write")
+    a = ap.parse_args()
+    if a.cmd == "listen":
+        cmd_listen(a)
+    elif a.cmd == "decode":
+        cmd_decode(a)
+    elif a.cmd == "idle":
+        cmd_idle(a)
+    elif a.cmd == "override":
+        cmd_override(a)
+    elif a.cmd == "backup":
+        cmd_backup(a)
+    elif a.cmd == "restore":
+        cmd_restore(a)
+    else:
+        answer_once(a, parse_changes(getattr(a, "changes", None)))
+
+
+if __name__ == "__main__":
+    main()
