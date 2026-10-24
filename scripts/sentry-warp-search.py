@@ -49,13 +49,13 @@ import numpy as np
 import yaml
 
 from pivac.Sentry import (_read_display, _display_segments, _decode_display,  # noqa: E402
-                          _segment_margin, _roi_is_lit, _SANE_RANGE,
+                          _segment_margin, _roi_is_lit, _lens_radii, _SANE_RANGE,
                           registration_shift, _effective_config)
 
-# Region of the 2560x1440 frame holding digits, mode indicators and status LEDs.
-# Wide enough to hold the display at both the 2026-08-23 position (digits at
-# x 1143-1326, y 641-724) and the 2026-09-07 one (x 1089-1264, y 559-633).
-REGION = (980, 450, 1450, 800)
+# Region of the 1920x1080 frame holding digits, mode indicators and status LEDs,
+# with each lens's background box. Since the 2026-10-24 mount the digits sit at
+# x 576-1100, y 473-695, the LED lenses at x 1180-1187 and the indicators at y 744-758.
+REGION = (480, 360, 1340, 860)
 VALUE_MODES = ("water_temp", "air", "gas_input")
 
 
@@ -131,7 +131,7 @@ def capture(cfg, count, timeout=240):
 
 def mode_of(frame, scfg):
     ratio = scfg.get("indicator_ratio", 1.15)
-    lit = [m for m in scfg["indicators"] if _roi_is_lit(frame, scfg["indicators"][m], ratio=ratio)]
+    lit = [m for m in scfg["indicators"] if _roi_is_lit(frame, scfg["indicators"][m], *_lens_radii(scfg), ratio=ratio)]
     return lit[0] if len(lit) == 1 else None
 
 
