@@ -219,6 +219,23 @@ defrost; one or two on a cold night are no concern.
 4. Judge the change by the P1 count in the panel log and by `chiltrix-fault-latched`; go back up a
    degree if a room falls 1 °F below setpoint overnight.
 
+**Panel log since the change** (cleared 2026-10-20, read 2026-10-24 at 17:12 panel time; the panel
+clock runs 2–3 minutes behind EDT):
+
+| Panel time | Code | Condition |
+|---|---|---|
+| 10-21 01:12 | P1 | End of run, 50 °F: 37 Hz, return 120 °F, leaving 127 °F |
+| 10-21 23:41 | P1 | End of run, 49 °F: 37 Hz, return 120 °F, leaving 127 °F |
+| 10-24 07:27 | P4 | End of a 25 min run, 38 °F: 43–53 Hz at 15–18.7 A on the minute samples; compressor off two minutes, restarted 07:32, 75 Hz at 26 A at 07:37 (the highest frequency on record), stopped at target 07:39 with the return at 125 °F |
+
+Two P1s in about 120 compressor starts (1.7 %, against 4 % at 50 °C), both at the end of a run
+with the return at 120 °F and the leaving water at 127 °F, so the lower target moved the trip
+water temperature down with it: the P1 belongs to the end of a run, whatever the water
+temperature. The P4 stood alone, cleared itself in two minutes, and never showed in `284` at the
+70 s cadence, so `chiltrix-fault-latched` had nothing to see and the panel log is the only record
+of a P4. Both P4s on record came on a defrost-range morning (36 °F on 10-18, 38 °F on 10-24, the
+coldest hour since the change).
+
 The 2026-10-20 lockout fired only `chiltrix-pump-only-flow-low`, because the module took the
 40 % pump of the lockout as a start plateau (50 % since P53 changed). The module now takes an idle-side plateau only at a
 pump command of 90 % or more, and `chiltrix-fault-latched` fires when `284` holds non-zero for six
