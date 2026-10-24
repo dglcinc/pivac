@@ -364,32 +364,31 @@ def long_frame(port, seconds=15):
 
 def answer_once(a, cfm, rpm):
     port = open_port(a.port)
-    if True:
-        f = long_frame(port)
-        d = decode_status(f)
-        cap = CFM_MAX[d["model"]]
-        floor = RPM_MIN.get(d["model"], 400)
-        for m, v in cfm.items():
-            if m not in MODES or not 0 < v <= cap:
-                sys.exit("%s airflow %d outside 1..%d CFM for a %s" % (m, v, cap, d["model"]))
-        for m, v in rpm.items():
-            if m not in MODES or not floor <= v <= RPM_MAX:
-                sys.exit("%s RPM limit %d outside %d..%d" % (m, v, floor, RPM_MAX))
-        print("SCB now:", describe(d))
-        out = mirror_frame(f, cfm, rpm)
-        print("answer (%d bytes): %s" % (len(out), out.hex()))
-        if not a.transmit:
-            print("dry run: add --transmit to send it")
-            return
-        port.reset_input_buffer()
-        port.write(out)
-        echo = port.read(len(out))
-        print("echo:", "matched, dropped" if echo == out else (echo.hex() or "none"))
-        print("watching for the stored values to update...")
-        for kind, g in frames_from(port, a.watch):
-            if kind == "status":
-                print(time.strftime("%H:%M:%S"), describe(decode_status(g)))
+    f = long_frame(port)
+    d = decode_status(f)
+    cap = CFM_MAX[d["model"]]
+    floor = RPM_MIN.get(d["model"], 400)
+    for m, v in cfm.items():
+        if m not in MODES or not 0 < v <= cap:
+            sys.exit("%s airflow %d outside 1..%d CFM for a %s" % (m, v, cap, d["model"]))
+    for m, v in rpm.items():
+        if m not in MODES or not floor <= v <= RPM_MAX:
+            sys.exit("%s RPM limit %d outside %d..%d" % (m, v, floor, RPM_MAX))
+    print("SCB now:", describe(d))
+    out = mirror_frame(f, cfm, rpm)
+    print("answer (%d bytes): %s" % (len(out), out.hex()))
+    if not a.transmit:
+        print("dry run: add --transmit to send it")
         return
+    port.reset_input_buffer()
+    port.write(out)
+    echo = port.read(len(out))
+    print("echo:", "matched, dropped" if echo == out else (echo.hex() or "none"))
+    print("watching for the stored values to update...")
+    for kind, g in frames_from(port, a.watch):
+        if kind == "status":
+            print(time.strftime("%H:%M:%S"), describe(decode_status(g)))
+    return
 
 
 def brief(d):
