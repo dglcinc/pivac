@@ -105,7 +105,7 @@ def _poll_serial(config):
     if _ser is None and _open(config.get("port", "/dev/serial/by-id/*unicousb*"), int(config.get("baud", proto.BAUD))) is None:
         return
     try:
-        _buf += _ser.read(4096)
+        _buf += _ser.read(max(4096, _ser.in_waiting))
     except Exception as e:
         _warn("serial read failed on %s (%s); reopening" % (_ser_name, e))
         try:

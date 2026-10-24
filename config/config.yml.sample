@@ -353,12 +353,13 @@ pivac.UnicoSCB_Utility:
     # unit gets its own node (the rev B shield) replace `port:` with `node: http://<ip>/` and the
     # paths stay the same. The reader transmits nothing unless `answer: true`, which brings the
     # 51-byte frame's extra fields (fan.state, scb.dcBus, scb.switches, scb.firmware).
+    # daemon_sleep 5 publishes the newest frame every 5 s; calls and airflow change over minutes.
     description: Utility zone Unico M2430, calls, airflow and fan speed from the SCB
     module: pivac.UnicoSCB
     enabled: true
     port: /dev/serial/by-id/*unicousb*
     sk_path: environment.inside.hvac.ah.utility
-    daemon_sleep: 1
+    daemon_sleep: 5
     stale_s: 10
     answer: false
 
