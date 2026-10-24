@@ -80,6 +80,19 @@ def main():
     ]
     s = scb.mirror_frame(f, cfm={"Y2": 850})
     results.append(check("set changes only Y2", scb.u16(s, 9) == 850 and s[5:9] == m[5:9] and s[11:41] == m[11:41]))
+    st = scb.stored_settings(f)
+    results += [
+        check("stored_settings reads the Air Cycle block", st["air"] == {"percent": 20, "blower": 300, "sqft": 5000, "occupants": 4, "runmin": 10, "interval": 8, "bedrooms": 3, "eac": True, "mode": "auto"}),
+        check("answer_frame of the stored settings is the mirror", scb.answer_frame(f, st) == m),
+    ]
+    ch = scb.parse_changes(["cfm.y2=850", "air.percent=25", "air.mode=fixed", "air.eac=off", "auto.style=energysaver", "damper=poweropen"])
+    w = scb.answer_frame(f, scb.merge(st, ch))
+    results += [
+        check("set parses every key group", ch["cfm"] == {"Y2": 850} and ch["air"] == {"percent": 25, "mode": "fixed", "eac": False} and ch["auto"] == {"style": "energysaver"} and ch["damper"] == "poweropen"),
+        check("air changes land in bytes 29, 38 and 4", w[29] == 25 and w[38] == 3 and w[4] == 0 and scb.u16(w, 9) == 850 and scb.fletcher_ok(w)),
+        check("style and damper land in byte 2", w[2] & 0x06 == 0x06 and m[2] & 0x06 == 0),
+        check("menus and test bytes land in 32, 39, 40", scb.answer_frame(f, st, menus=3, test=(7, 9))[32:33] == b"\x03" and scb.answer_frame(f, st, test=(7, 9))[39:41] == b"\x07\x09"),
+    ]
     if not all(results):
         sys.exit(1)
     print("all %d checks passed" % len(results))

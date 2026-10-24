@@ -12,7 +12,7 @@ The SCB is the bus master. It sends status frames on its own, and every frame th
 
 ## Setup
 
-1. On the M2: `git fetch && git checkout feat/unico-scb-serial`, then `python3 tests/test_unico_scb.py`, which must print `all 18 checks passed`.
+1. On the M2: `git fetch && git checkout feat/unico-scb-serial`, then `python3 tests/test_unico_scb.py`, which must print `all 24 checks passed`.
 2. Connect a USB A-to-B cable from the Mac to the port on the side of the control box. The board fitted here is a Cypress CDC device that macOS drives without an installer, `/dev/cu.usbmodemunicousb1`; an FTDI board would appear as `/dev/cu.usbserial-*`. Check with `ls /dev/cu.usbmodem* /dev/cu.usbserial-*`. The tool opens the first port of either kind; pass `--port` when there is more than one.
 3. Run the tool from the repo with `python3 scripts/unico-scb.py …` when pyserial is installed (`python3 -c 'import serial'`), otherwise with `uv run --no-project --with pyserial python scripts/unico-scb.py …`. The `--no-project` keeps uv from building the Pi-only `RPi.GPIO` dependency.
 
@@ -69,16 +69,28 @@ Pass when the stored `G` airflow reads the new value within about 20 s and the o
 
 The tool never sends the thermostat override (PC byte 4 bits 2–7), which runs the blower and can close the SCB's hot-water, chilled-water and condenser relays, or the test flow and test pressure bytes, whose effect is unknown.
 
-## Override (ECMConfig's Thermostat Override)
+## Admin commands and the guard
 
-`override` holds one of G, Y1, Y2, W1, W2 or E as if the thermostat called it, then releases. In this house the SCB's heat and cool relays are dry contacts that pass 24 VAC to the zone's W and Y inputs at the HZ-432 through the Quattro pass-through terminal blocks, so an override is a real zone call: the panel calls the equipment and its damper output energises the zone valve. It is the way to raise a controlled call for a node or `LoopDelta` check without touching a thermostat.
+The tool exposes every setting the protocol writes. Airflow per mode, RPM limit per mode and the Air Cycle settings are ECMConfig's ordinary edits and need only `--transmit`:
 
 ```bash
-python3 scripts/unico-scb.py override Y1 --seconds 60                                   # dry run
-python3 scripts/unico-scb.py override Y1 --seconds 60 --transmit --this-calls-the-plant
+python3 scripts/unico-scb.py set cfm.Y2=500 rpm.Y2=1500 --transmit
+python3 scripts/unico-scb.py set air.percent=10 air.blower=370 air.sqft=1500 air.occupants=3 \
+    air.bedrooms=2 air.runmin=10 air.interval=8 air.eac=off air.mode=fixed \
+    auto.style=maxcomfort damper=powerclose --transmit
+python3 scripts/unico-scb.py backup utility-2430.json          # every stored value, as JSON
+python3 scripts/unico-scb.py listen --answer --menus motor,freshair   # keeps the 51-byte frame and the diagnostics coming
 ```
 
-Its controls: it refuses without both `--transmit` and `--this-calls-the-plant`; it refuses while the frame shows a thermostat call, since the override could not be told apart from it; the hold is capped at 300 s; and on the timer, on Ctrl-C or on any error it sends ten plain mirror frames to release, then watches the motor for `--watch` seconds and reports whether it stopped. Watch `HPCALL` or `BLR` in Signal K alongside, because the frame's call bits report the thermostat inputs and may not reflect the override.
+Three commands are guarded. Each prints its confirmation word in the dry run and refuses `--transmit` without `--confirm <word>`:
+
+| Command | Word | Why |
+|---|---|---|
+| `override MODE --seconds N` | `CALL-THE-PLANT` | ECMConfig's Thermostat Override holds G, Y1, Y2, W1, W2 or E as if the thermostat called it. In this house the SCB's heat and cool relays are dry contacts that pass 24 VAC to the zone's W and Y inputs at the HZ-432 through the Quattro pass-through blocks, so this is a real zone call: the panel calls the equipment and its damper output energises the zone valve |
+| `set test.flow=N test.pressure=N` | `UNKNOWN-EFFECT` | PC bytes 39 and 40; ECMConfig never sets them and nothing documents them |
+| `restore FILE` | `RESTORE-ALL` | Writes every stored setting from a backup file in one frame; refuses a file from another model |
+
+`override` also refuses while the frame shows a thermostat call, since the override could not be told apart from it; caps the hold at 300 s; and on the timer, on Ctrl-C or on any error sends ten plain mirror frames to release, then watches the motor for `--watch` seconds and reports whether it stopped. Watch `HPCALL` or `BLR` in Signal K alongside, because the frame's call bits report the thermostat inputs and may not reflect the override.
 
 ## Afterwards
 

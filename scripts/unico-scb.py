@@ -7,7 +7,9 @@ the SCB stores any requested value that differs from what it holds. The protocol
 is in docs/unico-scb-protocol.md and the test procedure in
 docs/unico-scb-live-test.md.
 
-    listen   decode what the SCB sends; never transmits (the default and the safe one)
+    listen   decode what the SCB sends; transmits nothing unless --answer, which
+             answers every frame with the no-change frame so the 51-byte frame and,
+             with --menus, the Motor Status and Fresh Air Monitor data keep coming
     decode   decode a hex dump written by `listen --raw`
     idle     answer with the frame that requests nothing (ECMConfig's first reply
              after connecting); with --transmit send it, with --every keep answering.
@@ -15,13 +17,26 @@ docs/unico-scb-live-test.md.
              read-only client gets the 51-byte frame without writing anything
     mirror   build the answer that requests exactly what the SCB reports as stored,
              and with --transmit send it (the protocol's "no change" frame)
-    set      mirror with one airflow or RPM limit changed; needs --transmit to send
+    set      mirror with settings changed; needs --transmit to send. Keys:
+               cfm.G=300 rpm.Y2=1500            airflow per mode, RPM limit per mode
+               air.percent=10 air.blower=370    fresh-air %, ventilation blower CFM
+               air.sqft=1500 air.occupants=3 air.bedrooms=2
+               air.runmin=10 air.interval=8     Fixed-mode run time and interval
+               air.eac=on|off air.mode=auto|fixed
+               auto.style=energysaver|maxcomfort damper=poweropen|powerclose
+               test.flow=N test.pressure=N      bytes nothing documents: --confirm UNKNOWN-EFFECT
+    backup   write every stored value the 51-byte frame reports to a JSON file
+    restore  request every value in a backup file; --transmit --confirm RESTORE-ALL
     override ECMConfig's Thermostat Override: hold one of G, Y1, Y2, W1, W2 or E as if
              the thermostat called it, for a capped number of seconds, then release.
              In this house the SCB's relays are the zone's W and Y inputs at the
              HZ-432, so this is a real zone call: the panel starts the plant and opens
-             the zone valve. Needs --transmit and --this-calls-the-plant, refuses
-             while a thermostat call is active, and releases on Ctrl-C
+             the zone valve. Needs --transmit --confirm CALL-THE-PLANT, refuses while
+             a thermostat call is active, and releases on Ctrl-C
+
+The guard: a command that is dangerous (override), of unknown effect (the test
+bytes) or bulk (restore) prints its confirmation word in the dry run and refuses
+--transmit without --confirm <that word>.
 
 On a Mac the USB board appears as /dev/cu.usbmodem* (the Cypress CDC board fitted
 here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
@@ -31,12 +46,12 @@ here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
     uv run --no-project --with pyserial python scripts/unico-scb.py listen   # without pyserial installed
 
 Writes go to the SCB's memory immediately. `set` refuses values outside the
-program's limits. Only `override` sends the thermostat override bits, and nothing
-here sends the test flow or test pressure bytes.
+program's limits (protocol §7).
 """
 import argparse
 import csv
 import glob
+import json
 import sys
 import time
 
@@ -49,6 +64,9 @@ RPM_MIN = {"3036": 600}  # 400 for every other model
 RPM_MAX = 1800
 OVERRIDE_BIT = {"G": 0x80, "Y1": 0x40, "Y2": 0x20, "W1": 0x10, "W2": 0x08, "E": 0x04}
 OVERRIDE_MAX_S = 300
+MENU_BIT = {"freshair": 0x01, "motor": 0x02}    # PC byte 32, protocol §5.3
+AIR_LIMITS = {"percent": 255, "blower": None, "sqft": 30000, "occupants": 51,
+              "runmin": 60, "interval": 24, "bedrooms": 50}
 
 
 # --- framing -------------------------------------------------------------------
@@ -193,31 +211,69 @@ def describe(d):
 
 # --- the answer frame ----------------------------------------------------------
 
-def mirror_frame(f, cfm=None, rpm=None):
-    """The 43-byte answer that requests what the 51-byte status frame `f` reports as
-    stored, optionally with replacement airflow or RPM limits. This is the frame
-    ECMConfig sends on every tick after its first, when requested = stored."""
+def stored_settings(f):
+    """Every writable setting the 51-byte status frame `f` reports as stored, in the
+    vocabulary `set` uses (protocol §4.1, §5.1)."""
     if len(f) != 51 or f[3] != 23:
-        raise ValueError("mirror needs a 51-byte status frame with byte 3 = 23")
-    d = decode_status(f)
-    cfm = dict(d["cfm"], **(cfm or {}))
-    rpm = dict(d["rpm_limit"], **(rpm or {}))
-    sw = d["switches"]
-    b2 = (f[2] & 1) | (2 if sw & 0x2000 else 0) | (4 if sw & 0x4000 else 0)
-    if f[2] & 0x80:                                   # byte 45's EAC/Auto bits are valid
-        auto, eac = bool(f[45] & 0x80), bool(f[45] & 0x40)
-        b38 = (f[45] & 0x3F) | (0x40 if eac else 0) | (0x80 if auto else 0)
-        b4 = (2 if auto else 0) | (1 if eac else 0)
-    else:
+        raise ValueError("needs a 51-byte status frame with byte 3 = 23")
+    if not f[2] & 0x80:
         raise ValueError("SCB byte 2 bit 7 is clear: Air Cycle mode unknown, refusing to guess byte 38")
+    d = decode_status(f)
+    sw = d["switches"]
+    return {
+        "model": d["model"], "firmware": "3.%d" % d["firmware"], "switches": "0x%04X" % sw,
+        "cfm": dict(d["cfm"]), "rpm": dict(d["rpm_limit"]),
+        "air": {"percent": f[34], "blower": u16(f, 35), "sqft": u16(f, 40),
+                "occupants": f[42] & 0x7F, "runmin": f[43], "interval": f[44],
+                "bedrooms": f[45] & 0x3F, "eac": bool(f[45] & 0x40),
+                "mode": "auto" if f[45] & 0x80 else "fixed"},
+        "auto": {"style": "energysaver" if sw & 0x2000 else "maxcomfort"},
+        "damper": "poweropen" if sw & 0x4000 else "powerclose",
+    }
+
+
+def answer_frame(f, want, menus=0, test=None):
+    """The 43-byte answer that requests the settings in `want` (the shape of
+    stored_settings) from the SCB whose status frame is `f`. With want equal to the
+    stored settings this is ECMConfig's no-change frame; `menus` is byte 32 and `test`
+    the two test bytes."""
+    if len(f) != 51 or f[3] != 23:
+        raise ValueError("needs a 51-byte status frame with byte 3 = 23")
+    air, cfm, rpm = want["air"], want["cfm"], want["rpm"]
+    auto, eac = air["mode"] == "auto", bool(air["eac"])
+    b2 = (f[2] & 1) | (2 if want["auto"]["style"] == "energysaver" else 0) \
+        | (4 if want["damper"] == "poweropen" else 0)
+    b4 = (2 if auto else 0) | (1 if eac else 0)
+    b38 = (air["bedrooms"] & 0x3F) | (0x40 if eac else 0) | (0x80 if auto else 0)
     body = [0x01, STATUS, b2, PC_TAG, b4]
     for m in MODES:
         body += [cfm[m] >> 8, cfm[m] & 0xFF]
     for m in MODES:
         body += [rpm[m] >> 8, rpm[m] & 0xFF]
-    body += [f[34], f[35], f[36], 0x00, f[40], f[41], f[42] & 0x7F, f[43], f[44], b38, 0x00, 0x00]
+    flow, pressure = test or (0, 0)
+    body += [air["percent"], air["blower"] >> 8, air["blower"] & 0xFF, menus & 0xFF,
+             air["sqft"] >> 8, air["sqft"] & 0xFF, air["occupants"], air["runmin"],
+             air["interval"], b38, flow, pressure]
     assert len(body) == 41
     return with_check(body)
+
+
+def merge(stored, changes):
+    """`stored` with the `set` changes applied: {"cfm": {...}, "rpm": {...}, "air": {...},
+    "auto": {...}, "damper": str}."""
+    want = json.loads(json.dumps(stored))
+    for group, vals in changes.items():
+        if group in ("cfm", "rpm", "air", "auto"):
+            want[group].update(vals)
+        elif group == "damper":
+            want["damper"] = vals
+    return want
+
+
+def mirror_frame(f, cfm=None, rpm=None):
+    """ECMConfig's no-change frame: requests exactly what `f` reports as stored,
+    optionally with replacement airflows or RPM limits."""
+    return answer_frame(f, merge(stored_settings(f), {"cfm": cfm or {}, "rpm": rpm or {}}))
 
 
 def override_frame(f, mode):
@@ -272,12 +328,21 @@ def cmd_listen(a):
     port = open_port(a.port)
     raw = open(a.raw, "a") if a.raw else None
     log = csv.writer(open(a.csv, "a", newline="")) if a.csv else None
+    menus = 0
+    for name in (a.menus.split(",") if a.menus else ()):
+        if name not in MENU_BIT:
+            sys.exit("--menus takes a comma list of " + ", ".join(MENU_BIT))
+        menus |= MENU_BIT[name]
+    if menus and not a.answer:
+        sys.exit("--menus needs --answer")
     last = None
     for kind, f in frames_from(port, a.seconds):
         stamp = time.strftime("%H:%M:%S")
         if raw:
             raw.write("%s %s %s\n" % (time.time(), kind, f.hex()))
             raw.flush()
+        if kind == "status" and a.answer:
+            port.write(answer_frame(f, stored_settings(f), menus=menus) if len(f) == 51 else idle_frame(f))
         if kind == "status":
             d = decode_status(f)
             text = describe(d)
@@ -335,12 +400,73 @@ def cmd_decode(a):
 
 
 def parse_changes(items):
-    cfm, rpm = {}, {}
+    """`set` arguments into {"cfm": {}, "rpm": {}, "air": {}, "auto": {}, "damper": str,
+    "test": {}}; unknown keys and malformed values exit."""
+    out = {"cfm": {}, "rpm": {}, "air": {}, "auto": {}, "test": {}}
     for item in items or ():
-        key, value = item.split("=")
-        kind, mode = key.split(".")
-        (cfm if kind == "cfm" else rpm)[mode.upper()] = int(value)
-    return cfm, rpm
+        try:
+            key, value = item.split("=", 1)
+        except ValueError:
+            sys.exit("expected key=value, got %r" % item)
+        if key == "damper":
+            if value not in ("poweropen", "powerclose"):
+                sys.exit("damper must be poweropen or powerclose")
+            out["damper"] = value
+            continue
+        try:
+            kind, name = key.split(".")
+        except ValueError:
+            sys.exit("unknown key %r" % key)
+        if kind in ("cfm", "rpm"):
+            name = name.upper()
+            if name not in MODES:
+                sys.exit("%s.%s: mode must be one of %s" % (kind, name, ", ".join(MODES)))
+            out[kind][name] = int(value)
+        elif kind == "air" and name in AIR_LIMITS:
+            out["air"][name] = int(value)
+        elif kind == "air" and name == "eac":
+            out["air"]["eac"] = {"on": True, "off": False}[value]
+        elif kind == "air" and name == "mode":
+            if value not in ("auto", "fixed"):
+                sys.exit("air.mode must be auto or fixed")
+            out["air"]["mode"] = value
+        elif kind == "auto" and name == "style":
+            if value not in ("energysaver", "maxcomfort"):
+                sys.exit("auto.style must be energysaver or maxcomfort")
+            out["auto"]["style"] = value
+        elif kind == "test" and name in ("flow", "pressure"):
+            out["test"][name] = int(value)
+        else:
+            sys.exit("unknown key %r" % key)
+    return out
+
+
+def check_limits(want, model, test):
+    cap = CFM_MAX[model]
+    floor = RPM_MIN.get(model, 400)
+    for m, v in want["cfm"].items():
+        if not 0 < v <= cap:
+            sys.exit("%s airflow %d outside 1..%d CFM for a %s" % (m, v, cap, model))
+    for m, v in want["rpm"].items():
+        if not floor <= v <= RPM_MAX:
+            sys.exit("%s RPM limit %d outside %d..%d" % (m, v, floor, RPM_MAX))
+    for k, lim in AIR_LIMITS.items():
+        v = want["air"][k]
+        if not 0 <= v <= (lim if lim is not None else cap):
+            sys.exit("air.%s %d outside 0..%d" % (k, v, lim if lim is not None else cap))
+    for k, v in (test or {}).items():
+        if not 0 <= v <= 255:
+            sys.exit("test.%s %d outside 0..255" % (k, v))
+
+
+def confirmed(a, word, what):
+    """The guard: refuse --transmit unless --confirm carries `word`."""
+    if not a.transmit:
+        print("dry run: add --transmit --confirm %s to send it (%s)" % (word, what))
+        return False
+    if a.confirm != word:
+        sys.exit("refusing: %s; --transmit needs --confirm %s" % (what, word))
+    return True
 
 
 def long_frame(port, seconds=15):
@@ -362,33 +488,67 @@ def long_frame(port, seconds=15):
     sys.exit("no 51-byte status frame in %d s; run `listen` first" % seconds)
 
 
-def answer_once(a, cfm, rpm):
+def answer_once(a, changes):
     port = open_port(a.port)
     f = long_frame(port)
     d = decode_status(f)
-    cap = CFM_MAX[d["model"]]
-    floor = RPM_MIN.get(d["model"], 400)
-    for m, v in cfm.items():
-        if m not in MODES or not 0 < v <= cap:
-            sys.exit("%s airflow %d outside 1..%d CFM for a %s" % (m, v, cap, d["model"]))
-    for m, v in rpm.items():
-        if m not in MODES or not floor <= v <= RPM_MAX:
-            sys.exit("%s RPM limit %d outside %d..%d" % (m, v, floor, RPM_MAX))
+    stored = stored_settings(f)
+    want = merge(stored, changes)
+    test = changes.get("test") or None
+    check_limits(want, d["model"], test)
     print("SCB now:", describe(d))
-    out = mirror_frame(f, cfm, rpm)
+    out = answer_frame(f, want, test=(test["flow"] if test and "flow" in test else 0,
+                                      test["pressure"] if test and "pressure" in test else 0) if test else None)
+    diff = {k: (stored[k], want[k]) for k in ("cfm", "rpm", "air", "auto", "damper") if stored[k] != want[k]}
+    print("requests:", json.dumps(diff) if diff else "no change", "" if not test else "test bytes %s" % test)
     print("answer (%d bytes): %s" % (len(out), out.hex()))
-    if not a.transmit:
+    if test:
+        if not confirmed(a, "UNKNOWN-EFFECT", "the test flow and pressure bytes have no documented effect"):
+            return
+    elif not a.transmit:
         print("dry run: add --transmit to send it")
         return
+    send_and_watch(port, out, a.watch)
+
+
+def send_and_watch(port, out, watch):
     port.reset_input_buffer()
     port.write(out)
     echo = port.read(len(out))
     print("echo:", "matched, dropped" if echo == out else (echo.hex() or "none"))
     print("watching for the stored values to update...")
-    for kind, g in frames_from(port, a.watch):
+    for kind, g in frames_from(port, watch):
         if kind == "status":
             print(time.strftime("%H:%M:%S"), describe(decode_status(g)))
-    return
+
+
+def cmd_backup(a):
+    port = open_port(a.port)
+    f = long_frame(port)
+    stored = stored_settings(f)
+    stored["captured"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    with open(a.file, "w") as fh:
+        json.dump(stored, fh, indent=2)
+    print("wrote %s:" % a.file)
+    print(json.dumps(stored, indent=2))
+
+
+def cmd_restore(a):
+    want = json.load(open(a.file))
+    port = open_port(a.port)
+    f = long_frame(port)
+    d = decode_status(f)
+    stored = stored_settings(f)
+    if want.get("model") != stored["model"]:
+        sys.exit("refusing: backup is for a %s, this board is a %s" % (want.get("model"), stored["model"]))
+    check_limits(want, d["model"], None)
+    print("SCB now:", describe(d))
+    diff = {k: (stored[k], want[k]) for k in ("cfm", "rpm", "air", "auto", "damper") if stored[k] != want[k]}
+    print("requests:", json.dumps(diff) if diff else "no change")
+    out = answer_frame(f, want)
+    print("answer (%d bytes): %s" % (len(out), out.hex()))
+    if confirmed(a, "RESTORE-ALL", "every stored setting is written from the file"):
+        send_and_watch(port, out, a.watch)
 
 
 def brief(d):
@@ -414,11 +574,8 @@ def cmd_override(a):
     print("this runs the blower at the stored %s airflow (%d CFM) and, through the SCB's relays, "
           "raises this zone's %s call at the HZ-432: the panel starts the plant and opens the "
           "zone valve for the duration" % (mode, d["cfm"][mode], "W" if mode in ("W1", "W2", "E") else "Y"))
-    if not a.transmit:
-        print("dry run: add --transmit and --this-calls-the-plant to send it")
+    if not confirmed(a, "CALL-THE-PLANT", "this raises a real zone call at the HZ-432"):
         return
-    if not a.this_calls_the_plant:
-        sys.exit("refusing: --transmit needs --this-calls-the-plant as well")
     last, start = None, time.time()
     try:
         print(time.strftime("%H:%M:%S"), "holding %s" % mode)
@@ -469,6 +626,9 @@ def main():
     p.add_argument("--raw", help="append every frame as hex to this file")
     p.add_argument("--csv", help="append actual CFM/RPM rows to this file")
     p.add_argument("-v", "--verbose", action="store_true", help="print every frame and the motor-bus bytes")
+    p.add_argument("--answer", action="store_true",
+                   help="answer every frame with the no-change frame, so the 51-byte frame keeps coming")
+    p.add_argument("--menus", help="with --answer: request motor, freshair or motor,freshair (PC byte 32)")
     p = sub.add_parser("decode")
     p.add_argument("file")
     p = sub.add_parser("idle")
@@ -477,19 +637,21 @@ def main():
     p.add_argument("--watch", type=float, default=30, help="seconds to run")
     p.add_argument("--raw", help="append every frame as hex to this file")
     p.add_argument("-v", "--verbose", action="store_true", help="print every send and the motor-bus bytes")
-    for name in ("mirror", "set"):
+    for name in ("mirror", "set", "restore", "override"):
         p = sub.add_parser(name)
         p.add_argument("--transmit", action="store_true", help="send the frame; without it, print only")
-        p.add_argument("--watch", type=float, default=20, help="seconds to watch after sending")
+        p.add_argument("--confirm", metavar="WORD", help="the confirmation word the dry run prints, for a guarded command")
+        p.add_argument("--watch", type=float, default=60 if name == "override" else 20,
+                       help="seconds to watch after sending (after the release, for override)")
         if name == "set":
-            p.add_argument("changes", nargs="+", metavar="cfm.Y2=800 | rpm.G=1200")
-    p = sub.add_parser("override")
-    p.add_argument("mode", metavar="G|Y1|Y2|W1|W2|E")
-    p.add_argument("--seconds", type=float, default=60, help="how long to hold it, at most %d" % OVERRIDE_MAX_S)
-    p.add_argument("--transmit", action="store_true", help="send it; without it, print only")
-    p.add_argument("--this-calls-the-plant", action="store_true",
-                   help="required with --transmit: you accept that this raises a real zone call at the HZ-432")
-    p.add_argument("--watch", type=float, default=60, help="seconds to watch after the release")
+            p.add_argument("changes", nargs="+", metavar="cfm.Y2=800 | rpm.G=1200 | air.percent=10 | ...")
+        elif name == "restore":
+            p.add_argument("file", help="a JSON file written by backup")
+        elif name == "override":
+            p.add_argument("mode", metavar="G|Y1|Y2|W1|W2|E")
+            p.add_argument("--seconds", type=float, default=60, help="how long to hold it, at most %d" % OVERRIDE_MAX_S)
+    p = sub.add_parser("backup")
+    p.add_argument("file", help="JSON file to write")
     a = ap.parse_args()
     if a.cmd == "listen":
         cmd_listen(a)
@@ -499,8 +661,12 @@ def main():
         cmd_idle(a)
     elif a.cmd == "override":
         cmd_override(a)
+    elif a.cmd == "backup":
+        cmd_backup(a)
+    elif a.cmd == "restore":
+        cmd_restore(a)
     else:
-        answer_once(a, *parse_changes(getattr(a, "changes", None)))
+        answer_once(a, parse_changes(getattr(a, "changes", None)))
 
 
 if __name__ == "__main__":
