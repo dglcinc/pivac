@@ -1,4 +1,4 @@
-"""Checks for scripts/unico-scb.py: framing, decoding and the mirror answer.
+"""Checks for scripts/unico-scb.py: framing, decoding, the idle and the mirror answer.
 
 The two PC frames are the ones verified in docs/unico-scb-protocol.md §3.1. The
 status frame is synthetic, laid out per §4.1. Run: python tests/test_unico_scb.py
@@ -61,6 +61,10 @@ def main():
         check("calls Y2", d["calls"] == ["Y2"]),
         check("stored and actual airflow", d["cfm"]["Y2"] == 875 and d["actual_cfm"] == 900 and d["actual_rpm"] == 1100),
         check("DC bus and motor running", d["dc_bus_v"] == 340 and scb.motor_text(d["motor_status"]) == "Running"),
+    ]
+    results += [
+        check("idle frame is the §3.1 example when SCB bit 0 is clear", scb.idle_frame(bytes([1, 0x83, 0x80, 23])) == IDLE),
+        check("idle frame carries the SCB's bit 0", scb.idle_frame(f)[2] == 0xFE | (f[2] & 1) and scb.fletcher_ok(scb.idle_frame(f))),
     ]
     m = scb.mirror_frame(f)
     results += [

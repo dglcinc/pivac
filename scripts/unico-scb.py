@@ -9,14 +9,20 @@ docs/unico-scb-live-test.md.
 
     listen   decode what the SCB sends; never transmits (the default and the safe one)
     decode   decode a hex dump written by `listen --raw`
+    idle     answer with the frame that requests nothing (ECMConfig's first reply
+             after connecting); with --transmit send it, with --every keep answering.
+             The SCB sends its 36-byte frame until something answers; this is how a
+             read-only client gets the 51-byte frame without writing anything
     mirror   build the answer that requests exactly what the SCB reports as stored,
              and with --transmit send it (the protocol's "no change" frame)
     set      mirror with one airflow or RPM limit changed; needs --transmit to send
 
-On a Mac the FTDI board appears as /dev/cu.usbserial-*; on Linux as /dev/ttyUSB0.
-Run from the repo without installing anything:
+On a Mac the USB board appears as /dev/cu.usbmodem* (the Cypress CDC board fitted
+here is /dev/cu.usbmodemunicousb1) or /dev/cu.usbserial-* (FTDI); on Linux as
+/dev/ttyACM0 or /dev/ttyUSB0. Needs only pyserial:
 
-    uv run --no-project --with pyserial python scripts/unico-scb.py listen
+    python3 scripts/unico-scb.py listen
+    uv run --no-project --with pyserial python scripts/unico-scb.py listen   # without pyserial installed
 
 Writes go to the SCB's memory immediately. `set` refuses values outside the
 program's limits, and nothing here sends the thermostat override, the test flow or
@@ -206,14 +212,26 @@ def mirror_frame(f, cfm=None, rpm=None):
     return with_check(body)
 
 
+def idle_frame(f):
+    """The 43-byte answer that requests nothing: what ECMConfig sends on its first tick
+    after connecting, before it has copied stored to requested (protocol §5.4). Byte 2
+    carries the SCB's own bit 0, the two "no request" sentinels and 0xF8 (no Air Cycle
+    mode selected); byte 4 is 0x01 (the EAC box indeterminate); bytes 5-40 are zero.
+    Verified example in protocol §3.1: 01 83 fe 1c 01 00x36 7f df."""
+    body = [0x01, STATUS, (f[2] & 1) | 0xFE, PC_TAG, 0x01] + [0] * 36
+    assert len(body) == 41
+    return with_check(body)
+
+
 # --- serial --------------------------------------------------------------------
 
 def open_port(name):
     import serial
     if not name:
-        found = sorted(glob.glob("/dev/cu.usbserial-*") + glob.glob("/dev/ttyUSB*"))
+        found = sorted(glob.glob("/dev/cu.usbmodem*") + glob.glob("/dev/cu.usbserial-*")
+                       + glob.glob("/dev/ttyACM*") + glob.glob("/dev/ttyUSB*"))
         if not found:
-            sys.exit("no FTDI port found; plug the USB cable into the control box")
+            sys.exit("no USB serial port found; plug the USB cable into the control box")
         name = found[0]
     port = serial.Serial(name, BAUD, bytesize=8, parity="N", stopbits=1, timeout=0.1,
                          xonxoff=False, rtscts=False, dsrdtr=False)
@@ -259,6 +277,38 @@ def cmd_listen(a):
             print(stamp, "bus", f.hex())
 
 
+def cmd_idle(a):
+    """Answer the SCB with the no-request frame and watch what it sends back. Our own
+    echo, if the USB board loops it, shows up as a "pc" frame in the stream."""
+    port = open_port(a.port)
+    raw = open(a.raw, "a") if a.raw else None
+    sent = 0
+    for kind, f in frames_from(port, a.watch):
+        stamp = time.strftime("%H:%M:%S")
+        if raw:
+            raw.write("%s %s %s\n" % (time.time(), kind, f.hex()))
+            raw.flush()
+        if kind == "status":
+            print(stamp, describe(decode_status(f)))
+            if not a.transmit:
+                print("would send (%d bytes): %s" % (len(idle_frame(f)), idle_frame(f).hex()))
+                print("dry run: add --transmit to send it")
+                return
+            if sent == 0 or a.every:
+                out = idle_frame(f)
+                port.write(out)
+                sent += 1
+                if sent == 1 or a.verbose:
+                    print(stamp, "sent idle (%d bytes): %s" % (len(out), out.hex()))
+        elif kind == "pc":
+            print(stamp, "PC frame seen (our echo, or ECMConfig):", f.hex())
+        elif kind == "log":
+            print(stamp, "four-hour log frame, %d bytes" % len(f))
+        elif a.verbose:
+            print(stamp, "bus", f.hex())
+    print("sent %d idle frame(s)" % sent)
+
+
 def cmd_decode(a):
     for line in open(a.file):
         parts = line.split()
@@ -277,8 +327,19 @@ def parse_changes(items):
 
 def answer_once(a, cfm, rpm):
     port = open_port(a.port)
+    elicited = False
     for kind, f in frames_from(port, 15):
-        if kind != "status" or len(f) != 51:
+        if kind != "status":
+            continue
+        if len(f) != 51:
+            # The SCB sends its 36-byte frame until something answers, and goes back to
+            # it within seconds of the answers stopping. The idle frame requests nothing
+            # (proven 2026-10-24: every stored value unchanged) and brings the 51-byte
+            # frame on the next tick, so it is sent in the dry run too.
+            if f[3] == 23 and not elicited:
+                port.write(idle_frame(f))
+                elicited = True
+                print("sent the idle frame to bring the 51-byte status frame")
             continue
         d = decode_status(f)
         cap = CFM_MAX[d["model"]]
@@ -309,7 +370,7 @@ def answer_once(a, cfm, rpm):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--port", help="serial device; default: the first FTDI port")
+    ap.add_argument("--port", help="serial device; default: the first USB serial port")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("listen")
     p.add_argument("--seconds", type=float, default=float("inf"))
@@ -318,6 +379,12 @@ def main():
     p.add_argument("-v", "--verbose", action="store_true", help="print every frame and the motor-bus bytes")
     p = sub.add_parser("decode")
     p.add_argument("file")
+    p = sub.add_parser("idle")
+    p.add_argument("--transmit", action="store_true", help="send the frame; without it, print only")
+    p.add_argument("--every", action="store_true", help="answer every status frame, not just the first")
+    p.add_argument("--watch", type=float, default=30, help="seconds to run")
+    p.add_argument("--raw", help="append every frame as hex to this file")
+    p.add_argument("-v", "--verbose", action="store_true", help="print every send and the motor-bus bytes")
     for name in ("mirror", "set"):
         p = sub.add_parser(name)
         p.add_argument("--transmit", action="store_true", help="send the frame; without it, print only")
@@ -329,6 +396,8 @@ def main():
         cmd_listen(a)
     elif a.cmd == "decode":
         cmd_decode(a)
+    elif a.cmd == "idle":
+        cmd_idle(a)
     else:
         answer_once(a, *parse_changes(getattr(a, "changes", None)))
 

@@ -1,6 +1,6 @@
 # Unico S.M.A.R.T. Control Board serial protocol
 
-This is the protocol between Unico's ECMConfig program and the S.M.A.R.T. Control Board (SCB), carried by the A01470 USB board. `scripts/unico-scb.py` implements it and `docs/unico-scb-live-test.md` is the procedure for proving it against the master bedroom air handler.
+This is the protocol between Unico's ECMConfig program and the S.M.A.R.T. Control Board (SCB), carried by the A01470 USB board. `scripts/unico-scb.py` implements it and `docs/unico-scb-live-test.md` is the procedure for proving it against an air handler, with the record of the 2026-10-24 run on the utility zone's M2430 (firmware 3.21), which passed every stage. Statements marked "measured" come from that run; the rest is read from the program.
 
 Every claim cites `File.cs:line` in ILSpy's decompilation of ECMConfig 4.6. Where the decompiled logic is contradictory or only implies a meaning, the text says "inferred" and the point is repeated in section 9. The checksum examples are checked by `tests/test_unico_scb.py`.
 
@@ -56,7 +56,7 @@ The SCB is the bus master and the PC only answers. The program never sends a req
 
 ### 2.1 Port discovery
 
-At load, `VerifyTimer` (enabled, 5000 ms, `ECM_Configuration.cs:6859-6860`) scans COM 0 through 127 and opens the first port whose `getPortName()` contains `"USB"`, then disables itself (`10131-10179`). `InputTimer` repeats the same scan whenever `foundComm` is false (`9428-9499`). A pyserial port of this is "open the FTDI device", e.g. `/dev/ttyUSB0` (the installer ships FTDI VCP drivers in `Drivers/ftdiport.inf`).
+At load, `VerifyTimer` (enabled, 5000 ms, `ECM_Configuration.cs:6859-6860`) scans COM 0 through 127 and opens the first port whose `getPortName()` contains `"USB"`, then disables itself (`10131-10179`). `InputTimer` repeats the same scan whenever `foundComm` is false (`9428-9499`). A pyserial port of this is "open the USB serial device". The installer ships FTDI VCP drivers (`Drivers/ftdiport.inf`), but the board fitted here enumerates as a Cypress Semiconductor CDC device ("USB ___ Serial Cable", USB serial number `unicousb`), which macOS drives without an installer as `/dev/cu.usbmodemunicousb1`; on Linux expect `/dev/ttyACM0`. The tool looks for `cu.usbmodem*`, `cu.usbserial-*`, `ttyACM*` and `ttyUSB*`.
 
 ### 2.2 Timers
 
@@ -85,7 +85,7 @@ At load, `VerifyTimer` (enabled, 5000 ms, `ECM_Configuration.cs:6859-6860`) scan
 
 ### 2.4 Echo of the PC's own transmission
 
-The program contains no explicit echo suppression. `makeOutput` empties the receive buffer immediately before writing (`ECM_Configuration.cs:11845-11850`) and writes the frame (`11855`); nothing discards bytes after the write. If the PC's own frame comes back on the shared line, the parser treats it as follows: it starts `01 83` like an SCB frame, but byte 3 is 28 (`Watch.cs:80`), which is not 20 or 23, so the parser checks it as a 9-byte frame (`Dashboard.cs:1836-1839`, `1864-1866`). The Fletcher sums at byte 8 are non-zero, the code returns 0, and `BadChecksum` re-parses from the next byte when more than 50 bytes remain (`ECM_Configuration.cs:14728-14757`). A reimplementation should discard its own transmitted bytes explicitly: after `write()`, read and drop `len(frame)` bytes if they match, or reject any `01 83` frame whose byte 3 is `0x1C`.
+The program contains no explicit echo suppression. `makeOutput` empties the receive buffer immediately before writing (`ECM_Configuration.cs:11845-11850`) and writes the frame (`11855`); nothing discards bytes after the write. If the PC's own frame comes back on the shared line, the parser treats it as follows: it starts `01 83` like an SCB frame, but byte 3 is 28 (`Watch.cs:80`), which is not 20 or 23, so the parser checks it as a 9-byte frame (`Dashboard.cs:1836-1839`, `1864-1866`). The Fletcher sums at byte 8 are non-zero, the code returns 0, and `BadChecksum` re-parses from the next byte when more than 50 bytes remain (`ECM_Configuration.cs:14728-14757`). A reimplementation should discard its own transmitted bytes explicitly: after `write()`, read and drop `len(frame)` bytes if they match, or reject any `01 83` frame whose byte 3 is `0x1C`. Measured: the Cypress board does not loop the PC's bytes back; no `01 83 … 1c` frame appeared after any of the five transmissions of 2026-10-24.
 
 ## 3. Frame format
 
@@ -152,7 +152,7 @@ The robust equivalent for Python: find `01 83` or `01 84`; for `01 83` with byte
 | Value | Meaning | Source |
 |---|---|---|
 | 20 (`0x14`) | SCB long-status frame from older firmware; PC answers with the 31-byte reply | `Dashboard.cs:1836`, `3224-3227`, `Watch.cs:1867-1879` |
-| 23 (`0x17`) | SCB long-status frame from firmware that accepts the 43-byte reply (any value > 20 triggers `decreaseLengthNext(51)`) | `Dashboard.cs:3224-3227`, `3275-3278` |
+| 23 (`0x17`) | SCB long-status frame from firmware that accepts the 43-byte reply (any value > 20 triggers `decreaseLengthNext(51)`); firmware 3.21 sends it (measured) | `Dashboard.cs:3224-3227`, `3275-3278` |
 | other | 9-byte SCB frame, where byte 3 is the firmware version | `Dashboard.cs:2173-2210` |
 | 28 (`0x1C`) | Always sent by the PC | `Watch.cs:80` |
 
@@ -195,7 +195,7 @@ The units come from the UI: values are shown as CFM and converted to L/s with `�
 
 ### 4.2 Status frames, 36 and 37 bytes (`01 83`, byte 3 = 20 or 23)
 
-These carry bytes 0-33 of the 51-byte layout and nothing more. The 37-byte variant is identical except that `powerLevel` occupies bytes 5-6 (u16 BE) and every later field moves up one byte (`b = 1`, `Dashboard.cs:2279-2299`). Checksum is at bytes 34-35 or 35-36. After decoding, the code sets the speed limits from `model % 4` (section 6.1), clears bit 7 of `ECMotorError`, sets stored EAC and Auto mode to "unknown", forces the thermostat-override word to "inactive" (`manual |= 0xFF00`), and if byte 3 is greater than 20 sets `lengthNext = 50` (`Dashboard.cs:3178-3279`).
+These carry bytes 0-33 of the 51-byte layout and nothing more. Measured: the 36-byte frame with byte 3 = 23 is what the SCB sends while nothing answers it, one every 0.85 s. The frame after a 43-byte reply is 51 bytes, and the SCB keeps sending 51-byte frames for about ten frames (9 s) after the last reply, then returns to 36 bytes. A client that wants the long frame answers every frame; the idle frame of §8 does it without writing anything. The 37-byte variant is identical except that `powerLevel` occupies bytes 5-6 (u16 BE) and every later field moves up one byte (`b = 1`, `Dashboard.cs:2279-2299`). Checksum is at bytes 34-35 or 35-36. After decoding, the code sets the speed limits from `model % 4` (section 6.1), clears bit 7 of `ECMotorError`, sets stored EAC and Auto mode to "unknown", forces the thermostat-override word to "inactive" (`manual |= 0xFF00`), and if byte 3 is greater than 20 sets `lengthNext = 50` (`Dashboard.cs:3178-3279`).
 
 Section 9 notes a parser quirk that, in a buffer of exactly 37 bytes, decodes a 37-byte frame with the 36-byte offsets.
 
@@ -231,10 +231,12 @@ The Fresh Air Monitor sums the 48 entries and compares them with `storedNeededAi
 | 2 | `0x04` | SCB received a frame from the PC that was not `0x83` ("didn't get 131"; USB/cable fault message) | `Dashboard.cs:3367-3370`, `ECM_Configuration.cs:11950-11958` |
 | 3 | `0x08` | SCB↔motor: timed out before told to run → "No communication with motor" | `3367-3370`, `11895-11907` |
 | 4 | `0x10` | SCB↔motor: timed out telling it to run → also "No communication with motor" | `3363-3366`, `11895-11907` |
-| 5 | `0x20` | SCB timed out waiting for the PC ("timed out waiting for vb", "No message") | `3353-3360`, `11936-11948` |
+| 5 | `0x20` | SCB timed out waiting for the PC ("timed out waiting for vb", "No message"). Measured: clear in the frame after a reply and set again in the next, so it reports the previous interval only | `3353-3360`, `11936-11948` |
 | 6 | `0x40` | Enables the Auto-mode airflow check: with G active, Air Cycle switch on and Auto mode stored, the PC flags orange when actual airflow ≤ required blower airflow | `3316-3343`, `11965-11977` |
 | 7 | `0x80` | SCB frame carries valid EAC and Auto-mode bits in byte 45 | `3067-3075`, `3211` |
 | all | `0xFF` | SCB cannot communicate with the motor; the PC does not reply | `1822-1825`, `ECM_Configuration.cs:9625-9633` |
+
+Measured on the utility zone's board: byte 2 reads `0xA1` unanswered and `0x80` in the frame after a reply, so bits 0 and 7 are set at rest and bit 0 does not depend on the PC.
 
 `getError(1)` ORs a 1 in unconditionally after its tests (verified in IL at `0x1b0b3c`), so it yields 3 when bit 3 or 4 is set and 1 otherwise. The "unrecognized response" and "2" branches of `setCommunication` cannot be reached (`ECM_Configuration.cs:11885-11921`).
 
@@ -323,7 +325,7 @@ Byte 32 (`menusOpen`): bit 0 is set while the Fresh Air Monitor window is open, 
 
 ### 5.4 Requested values and when they change
 
-Each requested field starts at 0, or at the sentinel for performance, configuration, EAC (2 → "unknown") and Auto mode (2 → "unknown") (`Dashboard.cs:3432-3473`). The first time a valid SCB frame arrives after connecting, the program copies stored → requested for every field (`ECM_Configuration.cs:9738-9753`; `Dashboard.cs:206-237`, `600-603`, `776-779`, `932-939`, `1205-1208`, `1247-1250`, `1376-1379`, `1416-1419`, `470-485`, `529-544`). In that first tick the reply is built before the copy (`makeOutput` at `9696`/`9709`, copy at `9741-9753`), so the first reply after every connect carries zeros and sentinels. The SCB must therefore treat 0 as "no request"; otherwise ECMConfig would erase the board on every connect (inferred).
+Each requested field starts at 0, or at the sentinel for performance, configuration, EAC (2 → "unknown") and Auto mode (2 → "unknown") (`Dashboard.cs:3432-3473`). The first time a valid SCB frame arrives after connecting, the program copies stored → requested for every field (`ECM_Configuration.cs:9738-9753`; `Dashboard.cs:206-237`, `600-603`, `776-779`, `932-939`, `1205-1208`, `1247-1250`, `1376-1379`, `1416-1419`, `470-485`, `529-544`). In that first tick the reply is built before the copy (`makeOutput` at `9696`/`9709`, copy at `9741-9753`), so the first reply after every connect carries zeros and sentinels. The SCB therefore treats 0 as "no request"; otherwise ECMConfig would erase the board on every connect. Measured: five idle frames (zeros in bytes 5-40, byte 38 included) left every stored airflow, RPM limit, Air Cycle value and the bedroom count unchanged, and a reply with one airflow changed was reported as stored in the next frame, under a second later.
 
 User edits go through `Watch.getRequested…/setRequested…`, which clamp to the limits in §7 and return 4 when requested ≠ stored or 2 when cleared (e.g. `Dashboard.cs:292-326`, `623-640`). Any 2 or 4 shows the wait cursor until the SCB's later status frames report the new value as stored (`ECM_Configuration.cs:13752-13783`). The help describes this as "waiting for acknowledgment that changes have been saved in memory. Data corruption can occur at this time, and you should wait to power off the SCB until the hourglass has disappeared" (`Communication.resx`).
 
@@ -408,7 +410,7 @@ Minimum fresh air (ASHRAE 62.2) is `sqft / 100 + 7.5 × (bedrooms + 1)`, or `sqf
 
 ## 8. Which fields write, and what is unsafe
 
-Every reply frame is a write request. The SCB persists any field whose requested value differs from what it reports as stored, and acknowledges by reporting the new value in later status frames (§5.4). Nothing in the protocol is a pure query; a read-only client must still answer the SCB, or the SCB flags "timed out waiting for the PC" (bit 5). A read-only implementation should send the idle frame: zeros in bytes 5-40, byte 2 = `(rx[2] & 1) | 0x0E` plus `0xF8`, byte 4 = `0x00` (no override, no mode, no EAC), check bytes.
+Every reply frame is a write request. The SCB persists any field whose requested value differs from what it reports as stored, and acknowledges by reporting the new value in later status frames (§5.4). Nothing in the protocol is a pure query; a read-only client must still answer the SCB, or the SCB flags "timed out waiting for the PC" (bit 5). A read-only implementation sends the idle frame, which is ECMConfig's own first reply after a connect (§5.4): `01 83`, byte 2 = `(rx[2] & 1) | 0xFE` (the two sentinels and `0xF8` for no mode), byte 3 = `0x1C`, byte 4 = `0x01` (the EAC box indeterminate), zeros in bytes 5-40, check bytes. Measured: it writes nothing (§5.4) and brings the 51-byte status frame (§4.2). `scripts/unico-scb.py idle` sends it.
 
 | PC bytes | Effect | Persistent? |
 |---|---|---|
@@ -421,23 +423,22 @@ Every reply frame is a write request. The SCB persists any field whose requested
 | 32 | Which diagnostic windows are open | No (inferred) |
 | 39-40 | Test flow, test pressure; always 0 in this program | Unknown, **do not set** |
 
-**Unsafe items.** The thermostat override runs the blower and, by the switch descriptions, can close the hot-water relay (W1/W2 or E), the chilled-water relay (any call with Chiller = Leader), the condenser and the reversing valve (`Switches.cs` table, rows Boiler, Chiller, Rev Valve). A stuck override bit holds the plant on. Byte 38 is ambiguous: 0 means "Fixed mode, EAC off, 0 bedrooms" and is also what the program sends while EAC is unknown, so sending 0 may change the Air Cycle mode (§9). Test flow and test pressure are untested by the program and their effect is unknown.
+**Unsafe items.** The thermostat override runs the blower and, by the switch descriptions, can close the hot-water relay (W1/W2 or E), the chilled-water relay (any call with Chiller = Leader), the condenser and the reversing valve (`Switches.cs` table, rows Boiler, Chiller, Rev Valve). A stuck override bit holds the plant on. Byte 38 is ambiguous: 0 means "Fixed mode, EAC off, 0 bedrooms" and is also what the program sends while EAC is unknown. Measured on a board in Fixed mode with EAC off and 2 bedrooms stored, a zero byte 38 left the bedroom count at 2; whether it would clear a stored Auto mode or EAC is untested. Test flow and test pressure are untested by the program and their effect is unknown.
 
 **There is no factory-reset command.** Factory defaults are restored only by changing the Model, Aux or Capacity switch and cycling SCB power (`ECM_Configuration.cs:11992`; `Factory_Defaults.cs`, "Restoring the Factory Default Settings"). Save/Load writes and reads a local `settings.txt` of space-separated values: COM port, model, aux, six CFMs, six RPM limits, needed airflow, percentage, run time, interval. Loading only fills the UI fields, and the next replies write them (`ECM_Configuration.cs:15544-15737`).
 
 ## 9. Open questions and ambiguities
 
-1. **Zero as "no request".** The code implies it (§5.4), but nothing confirms it. Byte 38 cannot mean "no request" at 0 for the Auto/Fixed bit. The SCB may instead key on byte 2 bits 3-7 or byte 4 bit 1. Test against a board before writing anything other than the idle frame.
+1. **Byte 38 as "no request" with Auto mode or EAC stored.** Zero is "no request" for the airflow, RPM and Air Cycle fields (§5.4, measured), and a zero byte 38 kept a stored bedroom count, but the board tested was in Fixed mode with EAC off, so whether 0 would clear a stored Auto mode or EAC bit is open. Mirror byte 38 from the status frame when either is set.
 2. **Occupants overflow.** In `Watch.getTxCRC` the occupants string is seeded with the square-feet value, and `getRequestedOccupants` overwrites it only when occupants is neither 0 nor 255. With occupants 0 and square feet above 255, the checked byte conversion (`conv.ovf.u1.un`, IL `0x1b1888`) throws, `makeOutput` has no handler, and no reply is sent that tick (`Watch.cs:143-150`). The UI normally fills occupants, so this may be latent.
 3. **37-byte frames in a 37-byte buffer.** `getRxCRC` maps a frame valid at index 36 back to 36 (`Dashboard.cs:1993-2006`) when the buffer is 46 bytes or shorter, so `rx1` decodes it with the 36-byte offsets (`b = 0`). With more bytes following, `CheckRestZeroes` keeps the 37-byte length. Whether any firmware sends 37-byte frames is unknown.
 4. **Header bytes inside data.** The first loop of `getRxCRC` looks for `01 83` at every index up to 35, not only at 0 (`Dashboard.cs:1812-1840`). A stored value of 387 (`0x0183`) in bytes 6-29 would shorten the check window. A reimplementation should look for the header only at the frame start.
 5. **Meaning of `ECMotorError` bit 0** and the exact role of PC byte 2 bit 0 are inferred.
-6. **Byte 3 values 20 and 23** are named only by their effect on reply length; their real meaning (protocol version, or a length) is not stated.
+6. **Byte 3 values 20 and 23** are named only by their effect on reply length; their real meaning (protocol version, or a length) is not stated. Firmware 3.21 sends 23.
 7. **`powerLevel`** values 6 and 12 select ½-size and full-size motors; their units are not stated. Only 6 and 12 change the limits.
 8. **Four-hour log units.** "Cubic feet per 5-minute slot" is inferred from the `× 60 × 4` denominator and the ft³ → m³ factor; `CFMnow` is converted by the same factor and may be a slot total.
 9. **When the SCB sends `01 84`**, and whether it depends on byte 32 bit 0, is not visible in the PC code.
 10. **Model limits disagree with the help.** The code allows 0 CFM minimum on every model, 1200 CFM on the 3036 (help: 1000) and enforces a 400 RPM floor (help: 150).
-11. **Echo.** Whether the USB board loops the PC's transmission back is a hardware question; §2.4 gives the code's implicit handling.
-12. **Motor-bus frames.** The debug view classifies frames starting `0x0A` by bytes 1, 3, 4/5 and 6 (`ECM_Configuration.cs:14612-14713`: byte 1 = 3 with byte 3 = 3 and byte 5 ∈ {109, 110, 111, 134}, byte 3 = 4 and byte 5 ∈ {108, 114-118}; byte 1 = 29 with byte 3 = 4 and byte 4 ∈ {14, 2}). This is the SCB↔motor protocol, which ECMConfig never decodes.
-13. **`decreaseLengthNow` special cases** (35, 36, 37, 51, ≤9) are all no-ops in the decompiled code; they may have been debugger breakpoints.
-14. **MSComm HRESULTs** `0x800A1F55` and `0x800A1F45` on port errors close the port and rescan (`ECM_Configuration.cs:10054-10073`); of the `CommEvent` codes only 1008 (receive overrun) acts, by flushing the input buffer (`11602-11637`).
+11. **Motor-bus frames.** The debug view classifies frames starting `0x0A` by bytes 1, 3, 4/5 and 6 (`ECM_Configuration.cs:14612-14713`: byte 1 = 3 with byte 3 = 3 and byte 5 ∈ {109, 110, 111, 134}, byte 3 = 4 and byte 5 ∈ {108, 114-118}; byte 1 = 29 with byte 3 = 4 and byte 4 ∈ {14, 2}). This is the SCB↔motor protocol, which ECMConfig never decodes. Measured with the motor stopped: three frames in every 0.85 s tick, `0a 03 00 03 00 86 00 f7`, `0a 1d 00 04 02 00 00 01 98` and `0a 03 00 04 00 6c 00 00 c3`, one from each of the program's three classes, each followed by a single byte (`71`, `39`, `be`) that is presumably the motor's answer. Their layout and check bytes are unknown; the capture is `docs/data/unico-scb/2026-10-24-utility-listen-idle.txt`.
+12. **`decreaseLengthNow` special cases** (35, 36, 37, 51, ≤9) are all no-ops in the decompiled code; they may have been debugger breakpoints.
+13. **MSComm HRESULTs** `0x800A1F55` and `0x800A1F45` on port errors close the port and rescan (`ECM_Configuration.cs:10054-10073`); of the `CommEvent` codes only 1008 (receive overrun) acts, by flushing the input buffer (`11602-11637`).
