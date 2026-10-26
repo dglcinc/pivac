@@ -219,21 +219,27 @@ defrost; one or two on a cold night are no concern.
 4. Judge the change by the P1 count in the panel log and by `chiltrix-fault-latched`; go back up a
    degree if a room falls 1 °F below setpoint overnight.
 
-**Panel log since the change** (cleared 2026-10-20, read 2026-10-24 at 17:12 panel time; the panel
-clock runs 2–3 minutes behind EDT):
+**Panel log since the change** (cleared 2026-10-20, last read 2026-10-26; the panel clock runs 2–3
+minutes behind EDT):
 
 | Panel time | Code | Condition |
 |---|---|---|
 | 10-21 01:12 | P1 | End of run, 50 °F: 37 Hz, return 120 °F, leaving 127 °F |
 | 10-21 23:41 | P1 | End of run, 49 °F: 37 Hz, return 120 °F, leaving 127 °F |
 | 10-24 07:27 | P4 | End of a 25 min run, 38 °F: 43–53 Hz at 15–18.7 A on the minute samples; compressor off two minutes, restarted 07:32, 75 Hz at 26 A at 07:37 (the highest frequency on record), stopped at target 07:39 with the return at 125 °F |
+| 10-24 22:37 | P1 | End of run, 44 °F: 40 Hz, return 122 °F, leaving 129 °F; `284` read 2 |
+| 10-26 04:50 | P1 | End of run, 43 °F: 40 Hz, return 120 °F, leaving 127 °F; `284` read 2 |
+| 10-26 06:38 | P1 | End of run, 43 °F: 40 Hz, return 122 °F, leaving 129 °F; `284` missed it; restarted 06:46 |
 
-Two P1s in about 120 compressor starts (1.7 %, against 4 % at 50 °C), both at the end of a run
-with the return at 120 °F and the leaving water at 127 °F, so the lower target moved the trip
-water temperature down with it: the P1 belongs to the end of a run, whatever the water
-temperature. The P4 stood alone, cleared itself in two minutes, and never showed in `284` at the
-70 s cadence, so `chiltrix-fault-latched` had nothing to see and the panel log is the only record
-of a P4. Both P4s on record came on a defrost-range morning (36 °F on 10-18, 38 °F on 10-24, the
+Five P1s in 144 heating starts from 10-20 12:23 to 10-26 08:10 EDT (3.5 %), against 12 in 329
+heating stops at 50 °C (3.6 %), so the 48 °C target moved the trip water down with it and left the
+rate unchanged. Every one came at the end of a run at 37–40 Hz, with the return at 120–122 °F and the
+leaving water at 127–129 °F: the P1 belongs to the end of a run, whatever the target. The 10-26
+04:50 and 06:38 pair, 108 minutes apart, cleared on its own like the pairs 88 and 103 minutes apart
+at 50 °C; only the 30-minute pair of 10-20 latched. `284` caught three of the five at its 70 s
+cadence, so the panel log is the count. The P4 stood alone, cleared itself in two minutes, and
+never showed in `284`, so `chiltrix-fault-latched` had nothing to see and the panel log is the only
+record of a P4. Both P4s on record came on a defrost-range morning (36 °F on 10-18, 38 °F on 10-24, the
 coldest hour since the change).
 
 The 2026-10-20 lockout fired only `chiltrix-pump-only-flow-low`, because the module took the
