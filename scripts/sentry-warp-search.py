@@ -130,8 +130,12 @@ def capture(cfg, count, timeout=240):
 
 
 def mode_of(frame, scfg):
+    # dhw_temp is the DHW priority light, lit for a whole DHW call alongside the
+    # display mode, so counting it left a capture taken during a call with no
+    # mode frames. pivac.Sentry._read_mode excludes it the same way.
     ratio = scfg.get("indicator_ratio", 1.15)
-    lit = [m for m in scfg["indicators"] if _roi_is_lit(frame, scfg["indicators"][m], *_lens_radii(scfg), ratio=ratio)]
+    lit = [m for m in VALUE_MODES
+           if m in scfg["indicators"] and _roi_is_lit(frame, scfg["indicators"][m], *_lens_radii(scfg), ratio=ratio)]
     return lit[0] if len(lit) == 1 else None
 
 
