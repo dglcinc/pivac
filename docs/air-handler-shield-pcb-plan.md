@@ -203,7 +203,7 @@ pull-up itself. TB3.V comes from 5 V through F2, a second 0.2 A PTC, so a shorte
 drops the R4's rail. C4 decouples U2.
 
 JP1 is the rollback, open as built. Closed, it joins the bus to D2, and R15 (4.7 kΩ, not fitted) becomes the
-bit-banged pull-up the present sketch uses. Leave U2 off the board while running that way.
+pull-up for the firmware's D2 fallback. Leave U2 off the board while running that way.
 
 ### 4.6 Coil water meter (optional)
 
@@ -372,9 +372,10 @@ own pads; none needs a breakout adapter.
 
 The board changes the sketch in two places, and a third once a water meter is fitted. Everything else in `AirHandler_impl.h` stays.
 
-1. **Water temperatures** read through the DS2482 over `Wire` at 0x18, using a DS2482 driver that presents the
-   OneWire interface `DallasTemperature` expects, or Adafruit's DS248x library with its own DS18B20 read. Bring-up
-   mode prints the ROMs as before. With JP1 closed and U2 removed, the present D2 code runs unchanged.
+1. **Water temperatures** read through the DS2482 over `Wire` at 0x18. `AirHandler/OneWireBus.h` in
+   `~/github/Arduino` carries the driver and the DS18B20 reads, finds the DS2482 at boot and falls back to D2, so with
+   JP1 closed and U2 removed the same build reads the bus on D2. Bring-up mode prints the master and the ROMs. A zone
+   on this board defines `SHIELD_PCB` for its air-sensor order, return on A0 and supply on A1.
 2. **The SCB tap** replaces the Y2 relay read. The sketch parses the SCB's frames on `Serial1` with the framing
    and Fletcher check of `scripts/unico-scb.py` ported to C, and adds to its line `g`, `y1`, `y2`, `w1`, `w2`, `e`
    (0/1, from the frame's model byte), `cfm` and `rpm` (actual), `cfm_g` to `cfm_e` (stored), `flags`, and
@@ -404,8 +405,8 @@ node's `/set`, guarded the way `scripts/unico-scb.py` guards it. The same fields
    header while seating or pulling a plug, and land TB1's screws with the plug off the board.
 4. **The barrel-jack position comes from Arduino's R4 WiFi drawing.** Only the title block stands over it; the
    1:1 print in §9 confirms it with the header pads.
-5. **The firmware has to change for U2.** Until the DS2482 code is proven, the board can run with JP1 closed and U2
-   off on the present sketch.
+5. **The DS2482 code is compiled and not yet run on a board.** If the first board's U2 will not read, it can run with
+   JP1 closed, R15 fitted and U2 off on the same firmware.
 6. **The 1-wire bus runs at 5 V.** Both the DS2482 and the probes take 5 V; the bus never meets 3.3 V.
 7. **Part availability is unconfirmed** (§6).
 8. **The tap must be invisible to ECMConfig.** With the node parked and a Mac on the Unico USB board,

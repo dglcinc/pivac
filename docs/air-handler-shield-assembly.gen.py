@@ -25,9 +25,9 @@ FONT = "IBM Plex Mono, ui-monospace, monospace"
 
 # assembly step: (label, fill colour, refs)
 STEPS = [
-    ("1  U2, only with DS2482 firmware", "#e0c3f0", ["U2"]),
+    ("1  U2, DS2482", "#e0c3f0", ["U2"]),
     ("2  0805 / 1206 R and C", "#cfe3f7", ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11",
-                                          "R12", "R13", "R14", "R15", "R16", "C2", "C3", "C4", "C5", "C6",
+                                          "R12", "R13", "R14", "R16", "C2", "C3", "C4", "C5", "C6",
                                           "C7", "C8"]),
     ("3  LEDs and diodes", "#fbd5c4", ["LED1", "LED2", "LED3", "D1", "D2", "D3", "D4"]),
     ("4  optocouplers, fuses", "#d6efc9", ["U3", "U4", "F1", "F2"]),
@@ -37,8 +37,8 @@ STEPS = [
     ("8  Arduino headers", "#dddddd", ["J10", "J11", "J12", "J13"]),
 ]
 STEP_OF = {r: i for i, (_, _, refs) in enumerate(STEPS) for r in refs}
-NOT_FITTED = {"TB4", "R17", "R18", "C9"}
-BRIDGE = {"JP1"}
+NOT_FITTED = {"TB4", "R17", "R18", "C9", "R15", "JP1"}
+BRIDGE = set()
 BARE = {"J1", "TP1", "TP2", "TP3"}
 POLAR = {"U1", "U2", "U3", "U4", "D1", "D3", "D4", "LED1", "LED2", "LED3", "C1"}
 
@@ -173,9 +173,6 @@ def main():
         a(f'<rect x="{lx}" y="{yy - 13}" width="22" height="16" rx="2" fill="{col}" stroke="#1a1a1a"/>')
         a(f'<text x="{lx + 30}" y="{yy}" font-size="13" fill="#1a1a1a">{lab}</text>')
     yy = ly + 24 + len(STEPS) * 26 + 6
-    a(f'<rect x="{lx}" y="{yy - 13}" width="22" height="16" rx="2" fill="#ffe08a" stroke="#b8860b"/>')
-    a(f'<text x="{lx + 30}" y="{yy}" font-size="13" fill="#1a1a1a">JP1: solder bridge</text>')
-    yy += 26
     a(f'<rect x="{lx}" y="{yy - 13}" width="22" height="16" rx="2" fill="none" stroke="#999" '
       f'stroke-dasharray="4 3"/>')
     a(f'<text x="{lx + 30}" y="{yy}" font-size="13" fill="#1a1a1a">not fitted</text>')
@@ -183,10 +180,10 @@ def main():
     a(f'<circle cx="{lx + 11}" cy="{yy - 5}" r="4" fill="#c0392b" stroke="#fff"/>')
     a(f'<text x="{lx + 30}" y="{yy}" font-size="13" fill="#1a1a1a">pad 1</text>')
     yy += 34
-    for line in (                 "For the present AirHandler sketch:",
-                 "U2 empty, R15 fitted, JP1 bridged.",
-                 "With DS2482 firmware: U2 fitted,",
-                 "R15 empty, JP1 open.",
+    for line in (                 "U2 fitted, R15 empty, JP1 open.",
+                 "Rollback to the bus on D2:",
+                 "U2 off, R15 fitted, JP1 bridged.",
+                 "Never U2 with JP1 bridged.",
                  "",
                  "TB1, top to bottom: R, C, Y2, W2.",
                  "TB2: SUP, G, RET, G.",

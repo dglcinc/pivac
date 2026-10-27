@@ -4,9 +4,11 @@ This sheet covers the shield in `hardware/ah-board/` as fabricated: the UNO R4 W
 the Y2 and W2 optocoupler inputs, the two air-temperature dividers and the DS2482 1-wire master. The serial tap in
 `docs/air-handler-shield-pcb-plan.md` §4.3 belongs to a later revision and is not on this board.
 
-Build the first board for the present `AirHandler` sketch, which runs on it unchanged. That sketch reads the
-1-wire bus on D2, Y2 on D8 (low on a call), return air on A0 and supply air on A1, which are this board's pins. Leave U2
-empty, fit R15 and bridge JP1. For the DS2482 firmware, fit U2, leave R15 empty and leave JP1 open.
+Fit U2, leave R15 empty and leave JP1 open. The `AirHandler` sketches in `~/github/Arduino` find the DS2482 at
+0x18 at boot and read the probes through it, and fall back to D2 when nothing answers. JP1 and R15 are the rollback for
+a U2 that will not work: remove U2, bridge JP1 and fit R15, and the same firmware reads the bus on D2. Never bridge JP1
+with U2 fitted, because D2 and the DS2482 would then drive the same wire. A zone sketch for this board defines
+`SHIELD_PCB`, which reads return air on A0 and supply air on A1 as the board is wired.
 
 ![Where each part goes](air-handler-shield-assembly.svg)
 
@@ -49,7 +51,7 @@ same pads: D1 is Diodes S1M-13-F, C2 is Murata GCJ31CR71A106KA13L and D2 is Bour
 
 1. Every part except U1, TB1 and the Arduino headers is surface-mount on the board's own pads, so none needs a breakout
    adapter. The passives are 0805 and 1206 on hand-solder pads.
-2. R15 is fitted only for the present sketch, and U2 only for the DS2482 firmware; the list carries both.
+2. R15 is fitted only for the JP1 rollback; the list carries one.
 3. TB4, R17, R18 and C9 (the coil water meter option) stay empty. J1 and TP1–TP3 are bare test pads; J1 takes a
    1 × 12 pin header for a logic analyser if wanted.
 4. The PTSM headers and plugs are the EXT rev C parts, so spare plugs may already be in the bench drawer.
@@ -64,10 +66,10 @@ Work flattest to tallest on the component side, so the board lies flat on the be
 For each two-pad part, tin one pad, slide the part in against the molten tin, then solder the other end and reflow the
 first. Check the dot on the drawing before soldering anything with a pad 1.
 
-1. **U2, DS2482 (DS2482 firmware only).** Tin pad 1, place the chip with its dot to the pad-1 mark, tack pin 1 and
+1. **U2, DS2482.** Tin pad 1, place the chip with its dot to the pad-1 mark, tack pin 1 and
    the opposite corner, square it, then solder the rest and wick any bridges. It is the finest pitch on the board,
    so it goes on while nothing stands beside it.
-2. **Resistors and ceramic capacitors.** R1–R14 and R16 (R15 for the present sketch), C2–C8. R1 and R2 are the
+2. **Resistors and ceramic capacitors.** R1–R14 and R16, C2–C8. R1 and R2 are the
    0.1 % parts; keep them apart from the 1 kΩ reel. R5–R8 are the 1206 2.2 kΩ parts beside TB1.
 3. **LEDs and diodes.** LED1 green at the left edge, LED2 blue on the Y2 row, LED3 red on the W2 row; the cathode
    mark on the part goes to the dot. D3 and D4 band to the dot. D1 band to the dot. D2 is
@@ -105,9 +107,13 @@ Powered from a bench 24 VAC transformer on TB1 R and C, R4 still off:
 | J1.4 (W2) and J1.1 | as Y2, with R jumpered to W2 and LED3 lit |
 | J1.6, J1.7 and J1.1 | 2.5 V at 77 °F with an NTC on TB2; 5 V means open |
 | J1.8 (1-wire V) and J1.1 | 5 V |
+| J1.9 (1-wire D) and J1.1 | 5 V, held by U2 |
+| J1.10 (SDA), J1.11 (SCL) and J1.1 | 5 V, from R13 and R14 |
 
 Then power off, seat the R4 and power again from TB1 alone; the R4 runs from U1 through its 5V pin, so no USB cable
-is needed, and a laptop on the USB-C at the same time is safe. Flash the `AirHandler` sketch from `~/github/Arduino`
-and watch its serial console: A0 and A1 follow the two NTCs, `Y2` reads LOW while R is jumpered to Y2, and the
-bring-up mode lists the ROM of each DS18B20 on TB3. A call that lights LED2 while J1.3 stays at 5 V points at U3 or
+is needed, and a laptop on the USB-C at the same time is safe. Flash `AirHandlerBench` from `~/github/Arduino`
+and watch its serial console at 115200. It prints `1-Wire master: DS2482 at 0x18` and the ROM of each DS18B20 on TB3
+with `CRC ok`, then a line a second: the probe temperatures, A0 (return) and A1 (supply) following the two NTCs, and
+D8 LOW while R is jumpered to Y2. `FAILED its reset` means U2 answers on I²C without power, so measure 5 V between its
+pins 1 and 3; `no DS2482 at 0x18` means U2 is off the bus, so check its SDA and SCL joints. A call that lights LED2 while J1.3 stays at 5 V points at U3 or
 C7; a call at TB1 with LED2 dark points at R5, R6 or the LED's orientation.
