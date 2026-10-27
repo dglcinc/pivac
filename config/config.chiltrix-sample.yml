@@ -17,7 +17,15 @@
 pivac.ChiltrixModbus:
   port: /dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_E8F60AA93AA8-if01
   baud: 115200
-  daemon_sleep: 60
+  daemon_sleep: 5
+
+  # Most cycles read only registers 227 (compressor Hz) and 284 (fault word);
+  # the full set is read once scan_s has passed. A self-clearing P1 lasts well
+  # under a minute, and a full scan every ~70 s missed a third of them.
+  # faultCode holds a non-zero 284 for fault_hold_s so a one-read fault still
+  # covers a minute bucket. With daemon_sleep 60 every cycle is a full scan.
+  scan_s: 60
+  fault_hold_s: 60
 
   # Ignore idle-side flow samples this long after a compressor stop. The pump
   # spins down over the next sample or two, and a sample caught mid-ramp
