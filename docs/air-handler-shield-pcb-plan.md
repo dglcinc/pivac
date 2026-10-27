@@ -3,7 +3,7 @@
 **Status:** Two routes, decided by one bench test. If the Adafruit Feather RP2040 USB Host board reads the Unico USB
 board's frames, the node becomes the Pico W carrier of §0 in a DIN-rail module and this UNO shield is not built;
 if it does not, this shield with the serial tap of §4.3 is the design, after the data-cable measurements.
-`hardware/ah-board/` still carries the Y2 and W2 optocoupler inputs. Nothing ordered. · **Owner:** David
+`hardware/ah-board/` still carries the Y2 and W2 optocoupler inputs; that board is fabricated as rev A and in hand since 2026-10-27, with its parts from Mouser, and `docs/air-handler-shield-assembly.md` is its build sheet. · **Owner:** David
 
 The first node, at the master bedroom, is an Arduino UNO R4 WiFi with a hand-wired Olimex PROTO-SHIELD, a DIN-rail 24 VAC to
 USB-C buck converter, a Magnecraft 792 relay on a socket and nine feed-through blocks
