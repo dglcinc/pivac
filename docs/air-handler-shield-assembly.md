@@ -66,7 +66,9 @@ Work flattest to tallest on the component side, so the board lies flat on the be
 For each two-pad part, tin one pad, slide the part in against the molten tin, then solder the other end and reflow the
 first. Check the dot on the drawing before soldering anything with a pad 1.
 
-1. **U2, DS2482.** Tin pad 1, place the chip with its dot to the pad-1 mark, tack pin 1 and
+1. **U2, DS2482.** Read the chip's marking before it goes on: it must say DS2482 and -100. Any other SOIC-8 in this
+   footprint can be reverse-powered, because pad 1 is +5 V and pad 8 is GND; an ICM7555 does exactly that and
+   collapses the rail. Tin pad 1, place the chip with its dot to the pad-1 mark, tack pin 1 and
    the opposite corner, square it, then solder the rest and wick any bridges. It is the finest pitch on the board,
    so it goes on while nothing stands beside it.
 2. **Resistors and ceramic capacitors.** R1–R14 and R16, C2–C8. R1 and R2 are the
