@@ -412,6 +412,9 @@ node's `/set`, guarded the way `scripts/unico-scb.py` guards it. The same fields
 8. **The tap must be invisible to ECMConfig.** With the node parked and a Mac on the Unico USB board,
    `scripts/unico-scb.py mirror --transmit` must still report the echo none and every stored value unchanged, as on
    2026-10-24.
+9. **No surface-mount LEDs.** The next layout takes through-hole LEDs with the flat (cathode) marked in silkscreen.
+   The 0805 LEDs of rev A carry polarity marks that are hard to read, so each one had to be checked on a meter's
+   diode test before it went on (David, 2026-10-27). LED1–LED3 in §6 change with the layout.
 
 ## 9. From here
 
