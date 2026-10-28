@@ -72,7 +72,9 @@ first. Check the dot on the drawing before soldering anything with a pad 1.
 2. **Resistors and ceramic capacitors.** R1–R14 and R16, C2–C8. R1 and R2 are the
    0.1 % parts; keep them apart from the 1 kΩ reel. R5–R8 are the 1206 2.2 kΩ parts beside TB1.
 3. **LEDs and diodes.** LED1 green at the left edge, LED2 blue on the Y2 row, LED3 red on the W2 row; the cathode
-   mark on the part goes to the dot. D3 and D4 band to the dot. D1 band to the dot. D2 is
+   mark on the part goes to the dot. LED2 and LED3 carry the optocouplers' current, so a board without them needs
+   a solder bridge or a lead offcut across each one's pads, or the input reads only one half of the AC cycle. LED1 is
+   only the power lamp and can stay off with R16. D3 and D4 band to the dot. D1 band to the dot. D2 is
    bidirectional and goes either way.
 4. **U3, U4 and the fuses.** The optocouplers' pin-1 dot goes to the left, toward C7 and C8. F1 at the top-right
    corner, F2 beside TB3; neither has a polarity.
