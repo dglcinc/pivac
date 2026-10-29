@@ -276,10 +276,11 @@ water. Neither identity is confirmed against a panel readout. Read that way:
    off it, which keeps a median jump under the trip; `P53` at 75 % would hold about 3 L/min more
    at the end of a run and take about 30 kPa, so it stays at 50 %.
 
-An email to Devon Powell drafted on 10-29 sends this data with five questions: the identities of 210 and 215 and the P1
+Devon Powell had this data on 10-29 with five questions: the identities of 210 and 215 and the P1
 cutout pressure, the cause of the jump and any EEV setting to change (`P76`, `P77`, `P96` and `P102`
 differ from the CX65 defaults), a better fix than the target, whether reading two registers every
-6 s could affect the controller, and a setting that recovers from a P1 lockout without a power cycle.
+6 s could affect the controller, and a setting that recovers from a P1 lockout without a power cycle. He agreed to 46 °C as a stopgap and is
+checking the Modbus analysis with Chiltrix.
 Judge 46 °C by the P1 rate a week on, against the 14 % above; if it stays over 5 %, turn the fast
 poll off for three days as the next test.
 
