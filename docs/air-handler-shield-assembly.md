@@ -78,8 +78,9 @@ first. Check the dot on the drawing before soldering anything with a pad 1.
    a solder bridge or a lead offcut across each one's pads, or the input reads only one half of the AC cycle. LED1 is
    only the power lamp and can stay off with R16. D3 and D4 band to the dot. D1 band to the dot. D2 is
    bidirectional and goes either way.
-4. **U3, U4 and the fuses.** The optocouplers' pin-1 dot goes to the left, toward C7 and C8. F1 at the top-right
-   corner, F2 beside TB3; neither has a polarity.
+4. **U3, U4 and the fuses.** Diode-test each optocoupler loose across pins 1 and 2 before fitting: 1.07 V in both
+   directions. The pin-1 dot goes to the left, toward C7 and C8. Solder each foot in 2–3 s; both LTV-814s on the first
+   board came off the iron with dead inputs. F1 at the top-right corner, F2 beside TB3; neither has a polarity.
 5. **C1.** The 100 µF can's + pad is the dot, on the left toward U1; the black stripe on the can marks the minus side.
 6. **TB2 and TB3.** Push each PTSM header's locating pegs into their holes with the entry face flush to the board edge,
    solder one end anchor, check it sits square, then the contacts and the other anchor.
@@ -124,4 +125,12 @@ before a monitor can open the port, so type `r` to see it again, and `s` for the
 short=0 line=high` with a probe plugged in and 5 V on both TB3.V and TB3.D is an open between U2 pin 2 and the probe's
 DQ, and the first board's was a PTSM tail at TB3 that looked soldered: reflow all three tails before anything else.
 Expect `presence=1` and the ROM within seconds of the reflow. A call that lights LED2 while J1.3 stays at 5 V points at U3 or
-C7; a call at TB1 with LED2 dark points at R5, R6 or the LED's orientation.
+C7; a call at TB1 with LED2 dark points at R5, R6 or the LED's orientation. During a call a working U3 holds about 1.1 V AC
+across its pins 1 and 2, measured at the legs. About 4.8 V AC there, with J1.3 at 5 V called or not, is a dead input,
+and the first board's U3 and U4 both read so until replaced. A U3 turned 180° would instead hold J1.3 near 1 V with no call.
+The W2 row reads the same way at U4 and J1.4.
+
+Last, the run in service form: flash the zone sketch with `SHIELD_PCB` defined, unplug the USB and power from TB1 alone.
+The node joins WiFi about 15 s after power-up and serves its line on port 80. Expect every sensor in the line, `y2` 1 while
+R is jumpered to Y2 and 0 after it, and J1.4 under 0.5 V while R is jumpered to W2, since the sketch does not read D9. With
+all-zero ROMs in the zone file the sketch scans the bus only at boot, so plug the probes in before power-up.
