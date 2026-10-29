@@ -119,5 +119,9 @@ is needed, and a laptop on the USB-C at the same time is safe. Flash `AirHandler
 and watch its serial console at 115200. It prints `1-Wire master: DS2482 at 0x18` and the ROM of each DS18B20 on TB3
 with `CRC ok`, then a line a second: the probe temperatures, A0 (return) and A1 (supply) following the two NTCs, and
 D8 LOW while R is jumpered to Y2. `FAILED its reset` means U2 answers on I²C without power, so measure 5 V between its
-pins 1 and 3; `no DS2482 at 0x18` means U2 is off the bus, so check its SDA and SCL joints. A call that lights LED2 while J1.3 stays at 5 V points at U3 or
+pins 1 and 3; `no DS2482 at 0x18` means U2 is off the bus, so check its SDA and SCL joints. The R4 prints that banner
+before a monitor can open the port, so type `r` to see it again, and `s` for the DS2482's own view of the line. `presence=0
+short=0 line=high` with a probe plugged in and 5 V on both TB3.V and TB3.D is an open between U2 pin 2 and the probe's
+DQ, and the first board's was a PTSM tail at TB3 that looked soldered: reflow all three tails before anything else.
+Expect `presence=1` and the ROM within seconds of the reflow. A call that lights LED2 while J1.3 stays at 5 V points at U3 or
 C7; a call at TB1 with LED2 dark points at R5, R6 or the LED's orientation.
