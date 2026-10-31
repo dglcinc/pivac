@@ -101,7 +101,7 @@ Measure along the wall from the box's outer end.
 
 The board's centre is the box's centre. These figures come from Hammond's 1593K model, `hardware/vendor/1593K.stp`: the four mount posts on a 28 mm square at the centre, 4.5 mm tall above a 2.5 mm floor, and the two cover posts 50 mm apart, 7.33 mm toward the top panel. The side walls stand 56.62 mm apart at the board, and the board is 56.4 mm wide.
 
-1. Three #4 screws hold the board. The fourth post, top left, stands under the rear of the jack with no hole and supports the board there at full height. J4 stands 1.5 mm past the board edge, so its pins and legs clear the post: the post's edge is 0.14 mm from pin 1's pad. Trim the leads short.
+1. Three #4 screws hold the board. The fourth post, top left, stands under the rear of the jack with no hole and supports the board there at full height. J4 stands 1.5 mm past the board edge, so its pins and legs clear the post: the post's edge is 0.23 mm from pin 1's pad. Trim the leads short.
 2. The cover posts pass through notches 7 mm deep and 6.8 mm long in the side edges.
 3. The nearest pads clear the screw heads by 0.43 mm (F1) and 0.54 mm (U4). U4's pads beside the two lower screws are shortened by 0.6 mm for that.
 4. U1 stands between the right-hand screw heads, 11.2 mm tall under a 15.9 mm clearance to the lid.
