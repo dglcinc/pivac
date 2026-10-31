@@ -3,8 +3,9 @@
 
 Run with FreeCAD's command-line Python: freecadcmd ahp-box-models.py -- OUTDIR. Frame: origin at the
 board's centre, x right, y toward the top panel, z 0 on the board's top face, millimetres; the
-footprint scales by 1/2.54 into VRML units. Box dimensions are Hammond's 1593K drawing; the height of
-the board-mount posts is not on that drawing and is taken as 5 mm above the floor.
+footprint scales by 1/2.54 into VRML units. The box is Hammond's own 1593K model, hardware/vendor/1593K.stp
+(AHP_STEP overrides the path), turned so its cover posts stand 7.33 mm toward the top panel. Its board
+plane is z -7 to -5.4, which sets z 0 here.
 """
 import os, sys
 import FreeCAD as App
@@ -14,8 +15,8 @@ OUT = os.environ.get("AHP_OUT") or sys.argv[-1]
 os.makedirs(OUT, exist_ok=True)
 
 BX, BY, BH = 66.22, 67.22, 28.0   # outside
-FLOOR = 3.0
-POST = 5.0                        # assumed
+FLOOR = 2.5
+POST = 4.5                        # Hammond's model
 ZB = -1.6 - POST - FLOOR          # outside bottom
 ZS = ZB + BH / 2                  # the seam
 IX, IY = 59.39, 58.66             # inside
@@ -71,8 +72,8 @@ def ptsm(n, xc):
     hw = a / 2 + 2.1
     b = box(xc - hw, xc + hw, -28, -20.5, 0, 5.0)
     return b.cut(box(xc - hw + 0.6, xc + hw - 0.6, -29, -23.5, 0.8, 4.2))
-J2X, J3X = 9.6 - 28.5, 48.5 - 28.5
-JX = 8.5 - 28.5
+J2X, J3X = 9.6 - 28.5, 48.2 - 28.5
+JX = 8.8 - 28.5
 MX = 47.5 - 28.5
 jack = box(JX - 7.25, JX + 7.25, 14, 28, 0, 6.9).cut(box(JX - 6.25, JX + 6.25, 15.5, 29, 0.9, 6.0))
 jack = jack.fuse(box(JX - 6.0, JX + 6.0, 17, 27.5, 3.0, 4.6))
@@ -80,36 +81,30 @@ parts = [(ptsm(3, J2X), "black"), (ptsm(4, J3X), "black"), (jack, "metal"),
          (box(40.5 - 28.5, 49.7 - 28.5, 28 - 39.14, 28 - 17.05, 0, 11.2), "black")]
 for x, y in ((14, 14), (-14, -14), (14, -14)):
     parts.append((cyl(x, y, 2.8, 0, 1.9), "head"))
-# status LEDs, side-firing on the board's back at the left edge
+# status LEDs, side-firing on the board's back at the left edge, 0.6 tall, lens toward the wall
 LED = ((26.5, "ledG"), (30.5, "ledY"), (34.5, "ledB"), (38.5, "ledB"), (42.5, "ledR"), (46.5, "ledR"))
 for y, col in LED:
-    parts.append((box(-28.3, -27.3, 28 - y - 1.05, 28 - y + 1.05, -2.4, -1.6), col))
+    parts.append((box(-27.95, -26.95, 28 - y - 1.05, 28 - y + 1.05, -2.2, -1.6), col))
 wrl("parts.wrl", parts)
 
-# --- base: floor, walls, posts, end panels with their notches
-base = half(ZB, ZS, True)
-for x, y in ((14, 14), (-14, 14), (-14, -14), (14, -14)):
-    base = base.fuse(cyl(x, y, 2.5, ZB + FLOOR, -1.6))
-for x in (-25, 25):
-    base = base.fuse(cyl(x, 7.3, 2.86, ZB + FLOOR, ZS))
-PZ0 = ZB + FLOOR - 0.35
-def panel(y_inner, sgn, notches):
-    p = box(-PANEL_W / 2, PANEL_W / 2, min(y_inner, y_inner + sgn * PANEL_T), max(y_inner, y_inner + sgn * PANEL_T), PZ0, PZ0 + PANEL_H)
+# --- the box from Hammond's model: solids 0 base, 1 lid, 2 and 3 the flat end panels
+src = Part.Shape(); src.read(os.environ.get("AHP_STEP") or "/tmp/scbbench/1593K.stp")
+def placed(k):
+    t = src.Solids[k].copy(); t.rotate(V(0, 0, 0), V(0, 0, 1), 180); t.translate(V(0, 0, 5.4)); return t
+base = placed(0)
+for y, _ in LED:     # holes drilled in the left wall at the LEDs' height
+    base = base.cut(Part.makeCylinder(1.5, 8, V(-36, 28 - y, -1.9), V(1, 0, 0)))
+PZ0 = -5.95          # the panels' lower edge
+def panel(k, notches):
+    p = placed(k)
     for xc, hw, ztop in notches:
-        p = p.cut(box(xc - hw, xc + hw, y_inner - 3, y_inner + 3, PZ0 - 1, ztop))
+        p = p.cut(box(xc - hw, xc + hw, -40, 40, PZ0 - 1, ztop))
     return p
-top = panel(PY0, 1, ((JX, 8.0, 7.6), (0, 6.2, 5.0), (MX, 6.0, 10.5)))
-bot = panel(-PY0, -1, ((J2X, 7.4, 6.0), (J3X, 8.6, 6.0)))
-for y, _ in LED:
-    base = base.cut(Part.makeCylinder(1.5, 6, V(-35, 28 - y, -2.0), V(1, 0, 0)))
+kt = 2 if placed(2).BoundBox.YMin > 0 else 3
+top = panel(kt, ((JX, 8.0, 7.6), (0, 6.2, 5.0), (MX, 6.0, 10.5)))
+bot = panel(5 - kt, ((J2X, 7.4, 6.0), (J3X, 8.6, 6.0)))
 wrl("base.wrl", [(base, "base"), (top, "panel"), (bot, "panel")])
-
-# --- lid: shell, posts, the recessed inlay on top
-lid = half(ZS, ZB + BH, False)
-for x in (-25, 25):
-    lid = lid.fuse(cyl(x, 7.3, 2.86, ZS, ZB + BH - FLOOR))
-lid = lid.cut(box(-27.5, 27.5, -27.5, 27.5, ZB + BH - 1.0, ZB + BH + 1))
-wrl("lid.wrl", [(lid, "lid")])
+wrl("lid.wrl", [(placed(1), "lid")])
 
 # --- plugs and leads, closed view
 def wire(x, y0, y1, z, col, r=0.75):

@@ -17,13 +17,14 @@ headers. `docs/air-handler-shield-pcb-layout.svg` is the floor plan, generated b
 
 ## 0. The Pico W carrier in a Hammond 1593K
 
-The node plugs into the control box's USB-B jack as a USB host and leaves the data cable alone. Its controller is a Raspberry Pi Pico W soldered flat to a 57 x 56 mm carrier, using the RP2040's built-in USB host, in a 66 x 67 x 28 mm box. `hardware/gen-ah-pico.py` generates the board in `hardware/ahp-board/`, `hardware/ahp-box-models.py` models the box and `hardware/ahp-render.sh` renders both.
+The node plugs into the control box's USB-B jack as a USB host and leaves the data cable alone. Its controller is a Raspberry Pi Pico W soldered flat to a 56.4 x 56 mm carrier, using the RP2040's built-in USB host, in a 66 x 67 x 28 mm box. `hardware/gen-ah-pico.py` generates the board in `hardware/ahp-board/`, `hardware/ahp-box-models.py` models the box and `hardware/ahp-render.sh` renders both.
 
 ![Carrier from above](air-handler-pico-board-top.png)
 ![Carrier](air-handler-pico-board-iso.png)
 ![In the base, lid off](air-handler-pico-box-open.png)
 ![Closed, power end](air-handler-pico-box-closed-power.png)
 ![Closed, sensor end](air-handler-pico-box-closed-sensors.png)
+![Test loops](air-handler-pico-test-points.png)
 ![Back of the carrier](air-handler-pico-board-back.png)
 ![Closed, left wall with the LED holes, LEDs drawn lit](air-handler-pico-box-closed-leds.png)
 
@@ -71,39 +72,39 @@ A 2 s gap in the status frames about every 14 s appears on the Feather, on both 
 
 1. U4: the footprint is KiCad's hand-solder Pico W pattern. Two plated 0.7 mm holes sit under TP2 (D-) and TP3 (D+), 0.2 mm toward the centre of each pad to clear the USB connector's leg holes. Solder the castellations first, then fill those holes from the back.
 2. U4: firmware loads through the micro-USB port, reached through its notch in the top panel. Never connect a computer with 24 VAC on, because that port and U1 share pin 40.
-3. J4: the Wurth part is drawn from its datasheet. The surface-mount Amphenol 87583-2010RLF is the alternative once its drawing is in hand; its footprint is unchecked.
+3. J4: the Wurth part is drawn from its datasheet. With the opening toward the viewer pin 1 is on the left, so seen from above with the opening at the top edge pin 1 is on the right. Solder both shield legs fully through; they take the load of plugging in. The surface-mount Amphenol 87583-2010RLF is the alternative once its drawing is in hand; its footprint is unchecked.
 4. J1: drawn on Phoenix's MC 1,5/2-G-3,81 dimensions. The Bonsicoky 3.81 mm 2-pin set from Amazon is a dimensional copy and takes 18 AWG.
 5. J2, J3: the footprint is rev C's. The bottom edge has no room for the coil water meter's spare; a third header there needs the 1593L.
 6. C1: half-wave as in §4.1. The node draws about 19 mA at VS (0.45 W at 5 V, 80 % efficient), which gives 7 V of ripple on 47 uF and leaves the valley above U1's 18 V minimum.
-7. U3: AIN0 and AIN1 read the supply and return NTC dividers and AIN2 reads the 3.3 V rail, so the conversion is ratiometric in firmware. AIN3 is tied to 3.3 V with AIN2 and VDD, which the data sheet allows for an unused input and which lets U3's 0.5 mm pins share one escape. The NTCs need the three-bath calibration on this ADC.
+7. U3: AIN0 and AIN1 read the supply and return NTC dividers and AIN2 reads the 3.3 V rail, so the conversion is ratiometric in firmware. AIN3 is tied to 3.3 V with AIN2 and VDD, so U3's 0.5 mm pins share one escape. The NTCs need the three-bath calibration on this ADC.
 
-8. LED1-LED6: side-firing 0805-size parts on the back along the left edge, shining through six holes in the base's side wall, clear of the antenna and of the plugs. Pin 1 is the cathode, on the square pad. Every second LED is turned round, so each pair's cathodes share one short track.
+8. LED1-LED6: side-firing parts on the back along the left edge, each with its lens facing the edge, shining through six holes in the base's side wall. The pads are Lite-On's suggested land, shortened to 3.6 mm overall for the 4 mm pitch. A side-firing part has one lens face, so polarity is fixed by the part: with the lens at the edge, the cathode (pad 1, square) is toward the top panel. That comes from Lite-On's tape drawing; confirm it on the first reel with the meter's diode test before soldering. Each cathode reaches a ground bus on the front through its own via.
 9. LED1 runs from 3V3. LED3-LED6 follow Y1, Y2, W1 and W2 in the status frame on GP8, GP9, GP10 and GP11. LED2 runs on GP12, lit while fan RPM is above zero and blinking slowly while no frames arrive, so a dead USB link does not read as an idle system. With 220 ohm the red, green and yellow draw about 5 mA, and the blue about 1.4 mA by estimate, since its forward voltage is close to the rail; set the GPIO drive to 8 mA.
 10. TP1 and TP2 give a probe hook on the rectified 24 V rail. TP3 is the low-side ground, and reading TP2 against TP3 with the board unpowered checks the isolation across U1.
 
 ### LED holes in the base
 
-Drill six 3 mm holes in the base half of the left wall, 4 mm apart and 7.6 mm from the base's outer face. The left wall is the USB-A side. Each LED sits about 4.8 mm inside the outer face, so a hole shows it within about 17 degrees of straight on. The LEDs serve at check-out, so that is enough.
+Drill six 3 mm holes in the base half of the left wall, 4 mm apart and 6.7 mm from the base's outer face. The left wall is the USB-A side. Each lens sits about 4.9 mm inside the outer face, so a hole shows it within about 17 degrees of straight on. The LEDs serve at check-out, so that is enough.
 
 | LED | From sensor end, mm |
 |---|---|
-| W2 | 15.1 |
-| W1 | 19.1 |
-| Y2 | 23.1 |
-| Y1 | 27.1 |
-| FAN | 31.1 |
-| PWR | 35.1 |
+| W2 | 14.8 |
+| W1 | 18.8 |
+| Y2 | 22.8 |
+| Y1 | 26.8 |
+| FAN | 30.8 |
+| PWR | 34.8 |
 
-Measure along the wall from the box's outer end. A taller post than the assumed 5 mm raises the holes' height by the difference.
+Measure along the wall from the box's outer end.
 
 ### Fit in the box
 
-The board's centre is the box's centre. Hammond's drawing puts the four mount posts on a 28 mm square at the centre and the two cover posts 50 mm apart, 7.3 mm toward the top panel.
+The board's centre is the box's centre. These figures come from Hammond's 1593K model, `hardware/vendor/1593K.stp`: the four mount posts on a 28 mm square at the centre, 4.5 mm tall above a 2.5 mm floor, and the two cover posts 50 mm apart, 7.33 mm toward the top panel. The side walls stand 56.62 mm apart at the board, and the board is 56.4 mm wide.
 
-1. Three #4 screws hold the board. The fourth post, top left, stands under the jack with no hole. Cut it down about 1.5 mm, because it sits under J4's pin 4 and its shield leg.
+1. Three #4 screws hold the board. The fourth post, top left, stands under the jack with no hole and supports its rear edge. File a small relief in its top where J4's pin 1 and right shield leg land, and trim those leads short, leaving the rest of the post at full height.
 2. The cover posts pass through notches 7 mm deep and 6.8 mm long in the side edges.
 3. The nearest pads clear the screw heads by 0.43 mm (F1) and 0.54 mm (U4). U4's pads beside the two lower screws are shortened by 0.6 mm for that.
-4. U1 stands between the right-hand screw heads, 11.2 mm tall under a 15.4 mm clearance to the lid.
+4. U1 stands between the right-hand screw heads, 11.2 mm tall under a 15.9 mm clearance to the lid.
 5. The two end panels, 60 x 22.7 x 1.7 mm, take notches cut up from their lower edge, so a panel lifts out with the lid off and the plugs in place. Top panel: J4, micro-USB, J1. Bottom panel: J2, J3.
 6. The lid goes to the mounting surface with VHB tape, so the two cover screws face out in the base. Undoing them brings the base away with the board. J1's screws face the wall, so wire its plug unplugged.
 
@@ -111,22 +112,19 @@ David cuts the notches by hand. Each is measured along the panel from the end on
 
 | Panel | Notch | From end, mm | Height, mm |
 |---|---|---|---|
-| Top | J4 USB-A | 2.0 to 18.0 | 14.55 |
-| Top | Micro-USB | 23.8 to 36.2 | 11.95 |
-| Top | J1 24 VAC | 43 to 55 | 17.45 |
-| Bottom | J2 1-wire | 3.7 to 18.5 | 12.95 |
-| Bottom | J3 air NTC | 41.4 to 58.6 | 12.95 |
-
-The sizes rest on the assumed 5 mm post, so take them from the post measured on a real box: a taller post raises every notch's height by the difference.
+| Top | J4 USB-A | 2.3 to 18.3 | 13.55 |
+| Top | Micro-USB | 23.8 to 36.2 | 10.95 |
+| Top | J1 24 VAC | 43 to 55 | 16.45 |
+| Bottom | J2 1-wire | 3.7 to 18.5 | 11.95 |
+| Bottom | J3 air NTC | 41.1 to 58.3 | 11.95 |
 
 The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO W, Rev B.
 
 ### To check before ordering
 
-1. The mount post's height is not on Hammond's drawing. The render takes 5 mm; measure a box. Everything above the board has 15.4 mm at that height.
+1. Measure the J1 plug seated in a header before cutting its notch. The model takes it 10 mm wide and 9.5 mm above the board, which are estimates; the notch can rise about 1.5 mm.
 2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
 3. Check the LEDs on the first carrier through the drilled wall, for brightness.
-4. Measure the J1 plug seated in a header. The model takes 10 mm wide and 9.5 mm above the board, which are estimates; the notch can rise about 1.5 mm.
 
 The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core with the ADS1115 in place of the analog pins, plus the SCB parser of `pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with `node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB.
 

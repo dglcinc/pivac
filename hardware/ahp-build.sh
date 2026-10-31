@@ -1,13 +1,14 @@
 #!/bin/sh
 # Generate, route, pour and check the Pico W carrier, then export its gerbers. Freerouting is not
 # deterministic, so the board is regenerated and routed again until DRC reports no error and nothing
-# unconnected, up to eight attempts. Needs KiCad 10 in ~/Applications and Freerouting 1.9.0.
+# unconnected, up to sixteen attempts. Needs KiCad 10 in ~/Applications and Freerouting 1.9.0.
 set -e
 cd "$(dirname "$0")"
+rm -rf ahp-board/gerbers ahp-board/ahp-board-gerbers.zip
 PY=~/Applications/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3
 CLI=~/Applications/KiCad.app/Contents/MacOS/kicad-cli
 P=ahp-board/ahp-board.kicad_pcb
-for attempt in 1 2 3 4 5 6 7 8; do
+for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
   $PY gen-ah-pico.py >/dev/null 2>&1
   $PY route.py $P ${1:-100} 2>&1 | grep -E "routed|failed" || true
   $PY ahp-pour.py $P 2>/dev/null
@@ -17,7 +18,7 @@ for attempt in 1 2 3 4 5 6 7 8; do
     rm -rf ahp-board/gerbers; mkdir -p ahp-board/gerbers
     $CLI pcb export gerbers --output ahp-board/gerbers/ --layers F.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts --no-x2 --subtract-soldermask $P >/dev/null 2>&1
     $CLI pcb export drill --output ahp-board/gerbers/ --format excellon --excellon-units mm --generate-map --map-format gerberx2 $P >/dev/null 2>&1
-    (cd ahp-board && rm -f ahp-board-gerbers.zip && zip -q -j ahp-board-gerbers.zip gerbers/*)
+    (cd ahp-board && zip -q -j ahp-board-gerbers.zip gerbers/* && rm -rf gerbers ahp-board.ses)
     exit 0
   fi
   echo "attempt $attempt not clean"

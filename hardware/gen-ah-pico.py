@@ -2,7 +2,7 @@
 """The air-handler node's Pico W carrier for the Hammond 1593K (docs/air-handler-shield-pcb-plan.md §0).
 
 Run with KiCad's Python. Writes hardware/ahp-board/ahp-board.kicad_pcb with the parts placed and the
-nets assigned, and the hand-laid copper in place; ahp-build.sh routes it. Coordinates: x 0-57 across the end panels, y 0-56 from the top panel (USB-A,
+nets assigned, and the hand-laid copper in place; ahp-build.sh routes it. Coordinates: x 0.3-56.7 between the side walls, y 0-56 from the top panel (USB-A,
 micro-USB, 24 VAC) to the bottom panel (sensors). The board's centre is the box's centre, so the
 box's posts, from Hammond's 1593K drawing, stand at x 28.5 +/- 14, y 28 +/- 14 and the cover posts at
 x 28.5 +/- 25, y 20.7.
@@ -19,7 +19,8 @@ spec = importlib.util.spec_from_file_location("gen_boards", os.path.join(HERE, "
 gb = importlib.util.module_from_spec(spec); spec.loader.exec_module(gb)
 mm = gb.mm
 
-W, L = 57.0, 56.0
+W, L = 57.0, 56.0      # coordinate frame; the box centre is x 28.5, y 28
+X0, X1 = 0.3, 56.7     # board edges: 56.4 wide, against 56.62 between the walls in Hammond's model
 CX, CY = W / 2, L / 2
 BOSS = [(CX - 14, CY - 14), (CX + 14, CY - 14), (CX - 14, CY + 14), (CX + 14, CY + 14)]
 COVER = [(CX - 25, 20.7), (CX + 25, 20.7)]
@@ -38,6 +39,7 @@ if os.path.exists(os.path.join(args.out, "ahp-board.kicad_pro")):
     os.remove(os.path.join(args.out, "ahp-board.kicad_pro"))
 B = gb.Board(os.path.join(args.out, "ahp-board.kicad_pcb"), W, L, power_clearance=0.5, power_nets=("VS", "COM", "AC*"))
 ds = B.board.GetDesignSettings(); ds.m_MinClearance = FromMM(0.15)
+ds.m_TentViasFront = True; ds.m_TentViasBack = True    # the Pico sits flat on the front; vias must not touch its test pads
 supply = pcbnew.NETCLASS("Supply"); supply.SetClearance(FromMM(0.2)); supply.SetTrackWidth(FromMM(0.4))
 supply.SetViaDiameter(FromMM(0.8)); supply.SetViaDrill(FromMM(0.4)); ds.m_NetSettings.SetNetclass("Supply", supply)
 for pat in ("GND", "+5V", "3V3"):
@@ -48,7 +50,7 @@ for d in [d for d in B.board.GetDrawings() if d.GetLayer() == pcbnew.Edge_Cuts]:
     B.board.Remove(d)
 ny0, ny1 = COVER[0][1] - NOTCH, COVER[0][1] + NOTCH
 nx = 7.0
-pts = [(0, 0), (W, 0), (W, ny0), (W - nx, ny0), (W - nx, ny1), (W, ny1), (W, L), (0, L), (0, ny1), (nx, ny1), (nx, ny0), (0, ny0)]
+pts = [(X0, 0), (X1, 0), (X1, ny0), (W - nx, ny0), (W - nx, ny1), (X1, ny1), (X1, L), (X0, L), (X0, ny1), (nx, ny1), (nx, ny0), (X0, ny0)]
 for a, b in zip(pts, pts[1:] + pts[:1]):
     B.line(a[0], a[1], b[0], b[1], layer="Edge.Cuts", width=0.1)
 
@@ -91,9 +93,11 @@ for i, (x, y) in enumerate(BOSS[1:], start=1):
     B.place(f"H{i}", h, x, y, 0, value="#4 x 1/4"); h.Reference().SetVisible(False)
 
 # --- top edge: USB-A jack, Wurth 61400416021, face on the edge (datasheet hole pattern)
-JX = 8.5
+JX = 8.8
 j = pcbnew.FOOTPRINT(B.board); j.SetFPID(pcbnew.LIB_ID("pivac", "USB_A_61400416021"))
-for n, x in ((1, -3.5), (2, -1.0), (3, 1.0), (4, 3.5)):
+# Wurth: with the opening toward the viewer pin 1 is on the left, so seen from above with the opening
+# toward the top edge pin 1 is on the right
+for n, x in ((1, 3.5), (2, 1.0), (3, -1.0), (4, -3.5)):
     gb._pad(j, n, x, 12.99, 1.5, 0.92)
 for x in (-6.57, 6.57):
     gb._pad(j, "S", x, 10.28, 2.9, 2.3)
@@ -110,10 +114,14 @@ B.text("24 VAC", 42.0, 5.0, size=0.8, bold=True, rot=90)
 
 # --- bottom edge: sensors on PTSM surface-mount headers, entry toward the edge
 hdr = {}
-for ref, n, x, lab in (("J2", 3, 9.6, "1-WIRE"), ("J3", 4, 48.5, "AIR NTC")):
+for ref, n, x, lab in (("J2", 3, 9.6, "1-WIRE"), ("J3", 4, 48.2, "AIR NTC")):
     fp = gb.ptsm_hh_smd(B, n)
     B.place(ref, fp, x, L, 180, value=f"PTSM 0,5/{n}-HH-2,5-SMD")
     fp.Reference().SetVisible(False)
+    if ref == "J3":     # its anchor pad clears the Pico's edge pads by 0.6 mm; the two courtyards overlap by 0.2
+        for g in fp.GraphicalItems():
+            if g.GetLayer() == pcbnew.F_CrtYd:
+                g.SetLayer(pcbnew.F_Fab)
     B.text(lab, x, L - 11.9, size=0.8, bold=True)
 
 # --- power
@@ -128,8 +136,8 @@ for g in u1.GraphicalItems():
     if g.GetLayer() == pcbnew.F_CrtYd:      # D1 and C1 stand against the body, which ends at x 49.7
         g.SetLayer(pcbnew.F_Fab)
 u1.Reference().SetPosition(mm(47.6, 40.15)); u1.Reference().SetTextAngleDegrees(0)
-B.lib("C1", "Capacitor_SMD", "CP_Elec_6.3x7.7", 53.5, 29.6, 90, value="47u 50V")
-B.lib("D1", "Diode_SMD", "D_SMA", 53.35, 37.5, 0, value="S1M")
+B.lib("C1", "Capacitor_SMD", "CP_Elec_6.3x7.7", 53.2, 29.6, 90, value="47u 50V")
+B.lib("D1", "Diode_SMD", "D_SMA", 53.0, 37.5, 0, value="S1M")
 B.lib("C2", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 53.5, 41.9, 0, value="10u")
 
 # --- I2C: DS2482 and ADS1115 beside the Pico, under the jack
@@ -137,12 +145,12 @@ B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 12.0, 20.7, 0, value="DS24
 B.lib("C3", *C_0805, 12.0, 26.3, 0, value="100n")
 B.lib("U3", "Package_SO", "MSOP-10_3x3mm_P0.5mm", 12.0, 31.5, 0, value="ADS1115IDGS")
 B.lib("C4", *C_0805, 12.0, 35.9, 0, value="100n")
-B.lib("R1", *R_0805, 3.2, 26.3, 90, value="4k7")
-B.lib("R2", *R_0805, 6.4, 26.3, 90, value="4k7")
-B.lib("R3", *R_0805, 3.2, 30.3, 90, value="10k0 0.1%")
-B.lib("R4", *R_0805, 6.4, 30.3, 90, value="10k0 0.1%")
-B.lib("C5", *C_0805, 3.2, 34.3, 90, value="100n")
-B.lib("C6", *C_0805, 6.4, 34.3, 90, value="100n")
+B.lib("R1", *R_0805, 3.7, 26.3, 90, value="4k7")
+B.lib("R2", *R_0805, 6.9, 26.3, 90, value="4k7")
+B.lib("R3", *R_0805, 3.7, 30.3, 90, value="10k0 0.1%")
+B.lib("R4", *R_0805, 6.9, 30.3, 90, value="10k0 0.1%")
+B.lib("C5", *C_0805, 3.7, 34.3, 90, value="100n")
+B.lib("C6", *C_0805, 6.9, 34.3, 90, value="100n")
 
 # --- status LEDs: side-firing, on the back along the left edge, shining through six holes drilled in the
 # base's side wall. The base goes to the wall. Seen from outside that wall with the lid up, y runs left to
@@ -151,17 +159,19 @@ LED = (("LED1", 26.5, "PWR", "R5", "3V3", None, "LTST-S220KGKT"), ("LED2", 30.5,
        ("LED3", 34.5, "Y1", "R7", "L_Y1", 11, "LTST-S220TBKT"), ("LED4", 38.5, "Y2", "R8", "L_Y2", 12, "LTST-S220TBKT"),
        ("LED5", 42.5, "W1", "R9", "L_W1", 14, "LTST-S220KRKT"), ("LED6", 46.5, "W2", "R10", "L_W2", 15, "LTST-S220KRKT"))
 def side_led():
-    fp = pcbnew.FOOTPRINT(B.board); fp.SetFPID(pcbnew.LIB_ID("pivac", "LED_Side_0805"))
-    for n, x, shape in ((1, -0.9, pcbnew.PAD_SHAPE_RECT), (2, 0.9, pcbnew.PAD_SHAPE_ROUNDRECT)):
+    """Lite-On's suggested land: pads 1.0 wide, 1.0 apart, 4.0 overall, shortened here to 3.6 overall so the
+    LEDs fit a 4 mm pitch. Pad 1 is the cathode. The lens looks along local -y; the part has one lens face, so
+    every LED sits the same way round."""
+    fp = pcbnew.FOOTPRINT(B.board); fp.SetFPID(pcbnew.LIB_ID("pivac", "LED_Side_LTST-S220"))
+    for n, x, shape in ((1, -1.15, pcbnew.PAD_SHAPE_RECT), (2, 1.15, pcbnew.PAD_SHAPE_ROUNDRECT)):
         q = pcbnew.PAD(fp); q.SetNumber(str(n)); q.SetShape(shape); q.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
-        q.SetSize(VECTOR2I(FromMM(1.1), FromMM(1.2))); q.SetPosition(mm(x, 0))
+        q.SetSize(VECTOR2I(FromMM(1.3), FromMM(1.0))); q.SetPosition(mm(x, 0))
         q.SetLayerSet(pcbnew.PAD.SMDMask()); fp.Add(q)
-    gb._fp_rect(fp, -1.6, -0.8, 1.6, 0.8, pcbnew.F_CrtYd, 0.05)
+    gb._fp_rect(fp, -1.9, -0.75, 1.9, 0.6, pcbnew.F_CrtYd, 0.05)
     return fp
 for ref, y, lab, rref, net, pin, part in LED:
     fp = side_led()
-    # every second LED turned round, so each pair's cathodes face each other and share one short track
-    B.place(ref, fp, 1.1, y, 90 if ref in ("LED1", "LED3", "LED5") else 270, back=True, value=part); fp.Reference().SetVisible(False)
+    B.place(ref, fp, 1.3, y, 270, back=True, value=part); fp.Reference().SetVisible(False)
     r = B.lib(rref, *R_0805, 4.3, y, 0, back=True, value="220R")
     r.Reference().SetPosition(mm(4.3, y - 1.5)); r.Reference().SetTextAngleDegrees(0)
     B.text(lab, 8.3, y, layer="B.SilkS", size=0.7, bold=True)
@@ -196,7 +206,7 @@ nets("U3", (1, "GND"), (3, "GND"), (4, "SUP"), (5, "RET"), (6, "3V3"), (7, "3V3"
 nets("C4", (1, "3V3"), (2, "GND"))
 # LEDs: 3V3 for power; Y1 GP8 pin 11, Y2 GP9 pin 12, W1 GP10 pin 14, W2 GP11 pin 15, fan GP12 pin 16
 for ref, y, lab, rref, net, pin, part in LED:
-    nets(rref, (1, net), (2, "A_" + ref)); nets(ref, (2, "A_" + ref), (1, "GND"))
+    nets(rref, (1, "A_" + ref), (2, net)); nets(ref, (2, "A_" + ref), (1, "GND"))
     if pin:
         B.connect("U4", pin, net)
 nets("R1", (1, "3V3"), (2, "SDA")); nets("R2", (1, "3V3"), (2, "SCL"))
@@ -217,8 +227,8 @@ u3 = lambda n: B.pad_xy("U3", n)
 xl, xr = u3(1)[0], u3(6)[0]
 path("GND", "F.Cu", u3(1), (8.7, u3(1)[1]), (8.7, u3(3)[1]), u3(3), width=0.2)
 path("GND", "F.Cu", (8.7, u3(2)[1]), (8.1, u3(2)[1]), width=0.2)
-path("SUP", "F.Cu", u3(4), (8.1, u3(4)[1]), width=0.2)
-via("SUP", 8.1, u3(4)[1], 0.8, 0.4)
+path("SUP", "F.Cu", u3(4), (8.9, u3(4)[1]), (8.3, u3(4)[1] + 0.6), width=0.2)
+via("SUP", 8.3, u3(4)[1] + 0.6, 0.8, 0.4)
 path("RET", "F.Cu", u3(5), (9.3, u3(5)[1]), (9.3, u3(5)[1] + 0.8), width=0.2)
 via("RET", 9.3, u3(5)[1] + 0.8, 0.8, 0.4)
 path("3V3", "F.Cu", u3(8), (15.5, u3(8)[1]), (15.5, u3(6)[1] + 0.9), width=0.2)
@@ -231,8 +241,14 @@ d2a, d2c = B.pad_xy("D2", 1), B.pad_xy("D2", 2)
 d1v, d1a = B.pad_xy("D1", 1), B.pad_xy("D1", 2)
 c1v, c1c = B.pad_xy("C1", 1), B.pad_xy("C1", 2)
 u1c, u1v = B.pad_xy("U1", 1), B.pad_xy("U1", 2)
-for a_, b_ in (("LED1", "LED2"), ("LED3", "LED4"), ("LED5", "LED6")):
-    path("GND", "B.Cu", B.pad_xy(a_, 1), B.pad_xy(b_, 1), width=0.4)
+# LEDs: anode to its resistor on the back; cathode through a via to one ground bus on the front
+for ref, y, lab, rref, net, pin, part in LED:
+    k, a_ = B.pad_xy(ref, 1), B.pad_xy(ref, 2)
+    assert k[1] < a_[1], "LTST-S220 with its lens at the edge has the cathode toward the top panel"
+    path("A_" + ref, "B.Cu", a_, (2.5, a_[1]), B.pad_xy(rref, 1), width=0.25)
+    path("GND", "B.Cu", k, (2.4, y - 1.5), width=0.4); via("GND", 2.4, y - 1.5, 0.8, 0.4)
+path("GND", "F.Cu", (2.4, LED[0][1] - 1.5), (2.4, LED[-1][1] - 1.5), width=0.4)
+path("GND", "F.Cu", (2.4, LED[2][1] - 1.5), B.pad_xy("C5", 2), width=0.4)
 path("ACR", "F.Cu", pj1, (47.8, 11.2), f1a)
 path("ACF", "F.Cu", f1b, (52.6, d2a[1]), d2a)
 path("ACF", "F.Cu", f1b, (49.4, 16.4)); via("ACF", 49.4, 16.4)
@@ -245,10 +261,10 @@ path("COM", "F.Cu", (52.9, d2c[1]), d2c)
 path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
 # no copper near the notches: Freerouting takes the edge clearance from the outline's rectangle only
-for x0, x1, name in ((0.0, 7.5, "left notch"), (49.6, 57.0, "right notch")):
-    B.rect_keepout(x0, 16.9 if x0 == 0 else 17.0, x1, 24.5, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=True, vias=True, pour=False)
+for x0, x1, name in ((X0, 7.5, "left notch"), (49.6, X1, "right notch")):
+    B.rect_keepout(x0, 16.9 if x0 == X0 else 17.0, x1, 24.5, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=True, vias=True, pour=False)
 # no vias through the monogram and legends, front or back
-for x0, y0, x1, y1, name in ((0.3, 36.4, 8.1, 44.1, "monogram"), (7.5, 37.0, 16.0, 38.9, "AIR HANDLER"), (8.0, 38.9, 11.8, 41.6, "PICO W Rev B"),
+for x0, y0, x1, y1, name in ((2.9, 36.4, 8.1, 44.1, "monogram"), (7.5, 37.0, 16.0, 38.9, "AIR HANDLER"), (8.0, 38.9, 11.8, 41.6, "PICO W Rev B"),
                              *((7.2, y - 0.7, 9.4, y + 0.7, "LED legend") for y in (26.5, 30.5, 34.5, 38.5, 42.5, 46.5))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
 
