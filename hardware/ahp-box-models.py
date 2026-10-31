@@ -73,10 +73,11 @@ def ptsm(n, xc):
     b = box(xc - hw, xc + hw, -28, -20.5, 0, 5.0)
     return b.cut(box(xc - hw + 0.6, xc + hw - 0.6, -29, -23.5, 0.8, 4.2))
 J2X, J3X = 9.6 - 28.5, 48.2 - 28.5
-JX = 8.8 - 28.5
+JX = 8.7 - 28.5
+JY = 1.5                          # past the board edge
 MX = 47.5 - 28.5
-jack = box(JX - 7.25, JX + 7.25, 14, 28, 0, 6.9).cut(box(JX - 6.25, JX + 6.25, 15.5, 29, 0.9, 6.0))
-jack = jack.fuse(box(JX - 6.0, JX + 6.0, 17, 27.5, 3.0, 4.6))
+jack = box(JX - 7.25, JX + 7.25, 14 + JY, 28 + JY, 0, 6.9).cut(box(JX - 6.25, JX + 6.25, 15.5 + JY, 29 + JY, 0.9, 6.0))
+jack = jack.fuse(box(JX - 6.0, JX + 6.0, 17 + JY, 27.5 + JY, 3.0, 4.6))
 parts = [(ptsm(3, J2X), "black"), (ptsm(4, J3X), "black"), (jack, "metal"),
          (box(40.5 - 28.5, 49.7 - 28.5, 28 - 39.14, 28 - 17.05, 0, 11.2), "black")]
 for x, y in ((14, 14), (-14, -14), (14, -14)):
@@ -123,8 +124,8 @@ for dx, c in ((1.905, "wireR"), (-1.905, "wireK")):
     pl.append((cyl(xc + dx, 36.5, 1.3, 9.5, 10.0), "metal"))
     pl.append(wire(xc + dx, 40.5, 64, 4.0, c, 0.95))
 # USB-A plug and cable
-pl.append((box(JX - 6.0, JX + 6.0, 17, 30.5, 1.0, 5.5), "metal"))
-pl.append((box(JX - 8.0, JX + 8.0, 30.5, 54, -0.75, 7.25), "cable"))
+pl.append((box(JX - 6.0, JX + 6.0, 17 + JY, 30.5 + JY, 1.0, 5.5), "metal"))
+pl.append((box(JX - 8.0, JX + 8.0, 30.5 + JY, 54, -0.75, 7.25), "cable"))
 pl.append(wire(JX, 54, 76, 3.25, "cable", 2.3))
 wrl("plugs.wrl", pl)
 print("wrote", OUT)

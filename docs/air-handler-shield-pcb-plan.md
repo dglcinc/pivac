@@ -78,7 +78,7 @@ A 2 s gap in the status frames about every 14 s appears on the Feather, on both 
 6. C1: half-wave as in §4.1. The node draws about 19 mA at VS (0.45 W at 5 V, 80 % efficient), which gives 7 V of ripple on 47 uF and leaves the valley above U1's 18 V minimum.
 7. U3: AIN0 and AIN1 read the supply and return NTC dividers and AIN2 reads the 3.3 V rail, so the conversion is ratiometric in firmware. AIN3 is tied to 3.3 V with AIN2 and VDD, so U3's 0.5 mm pins share one escape. The NTCs need the three-bath calibration on this ADC.
 
-8. LED1-LED6: side-firing parts on the back along the left edge, each with its lens facing the edge, shining through six holes in the base's side wall. The pads are Lite-On's suggested land, shortened to 3.6 mm overall for the 4 mm pitch. A side-firing part has one lens face, so polarity is fixed by the part: with the lens at the edge, the cathode (pad 1, square) is toward the top panel. That comes from Lite-On's tape drawing; confirm it on the first reel with the meter's diode test before soldering. Each cathode reaches a ground bus on the front through its own via.
+8. LED1-LED6: side-firing parts on the back along the left edge, each with its lens facing the edge, shining through six holes in the base's side wall. The pads are Lite-On's suggested land, shortened to 3.6 mm overall for the 4 mm pitch. A side-firing part has one lens face, so polarity is fixed by the part: with the lens at the edge, the cathode (pad 1, square) is toward the top panel. The datasheets of all four colours agree on this in the side view, the polarity symbol and the tape drawing. The cathode mark on the rear face stands nearer the cathode end, so each LED can be checked by eye as it is placed. Each cathode reaches a ground bus on the front through its own via.
 9. LED1 runs from 3V3. LED3-LED6 follow Y1, Y2, W1 and W2 in the status frame on GP8, GP9, GP10 and GP11. LED2 runs on GP12, lit while fan RPM is above zero and blinking slowly while no frames arrive, so a dead USB link does not read as an idle system. With 220 ohm the red, green and yellow draw about 5 mA, and the blue about 1.4 mA by estimate, since its forward voltage is close to the rail; set the GPIO drive to 8 mA.
 10. TP1 and TP2 give a probe hook on the rectified 24 V rail. TP3 is the low-side ground, and reading TP2 against TP3 with the board unpowered checks the isolation across U1.
 
@@ -101,7 +101,7 @@ Measure along the wall from the box's outer end.
 
 The board's centre is the box's centre. These figures come from Hammond's 1593K model, `hardware/vendor/1593K.stp`: the four mount posts on a 28 mm square at the centre, 4.5 mm tall above a 2.5 mm floor, and the two cover posts 50 mm apart, 7.33 mm toward the top panel. The side walls stand 56.62 mm apart at the board, and the board is 56.4 mm wide.
 
-1. Three #4 screws hold the board. The fourth post, top left, stands under the jack with no hole and supports its rear edge. File a small relief in its top where J4's pin 1 and right shield leg land, and trim those leads short, leaving the rest of the post at full height.
+1. Three #4 screws hold the board. The fourth post, top left, stands under the rear of the jack with no hole and supports the board there at full height. J4 stands 1.5 mm past the board edge, so its pins and legs clear the post: the post's edge is 0.14 mm from pin 1's pad. Trim the leads short.
 2. The cover posts pass through notches 7 mm deep and 6.8 mm long in the side edges.
 3. The nearest pads clear the screw heads by 0.43 mm (F1) and 0.54 mm (U4). U4's pads beside the two lower screws are shortened by 0.6 mm for that.
 4. U1 stands between the right-hand screw heads, 11.2 mm tall under a 15.9 mm clearance to the lid.
@@ -112,7 +112,7 @@ David cuts the notches by hand. Each is measured along the panel from the end on
 
 | Panel | Notch | From end, mm | Height, mm |
 |---|---|---|---|
-| Top | J4 USB-A | 2.3 to 18.3 | 13.55 |
+| Top | J4 USB-A | 2.2 to 18.2 | 13.55 |
 | Top | Micro-USB | 23.8 to 36.2 | 10.95 |
 | Top | J1 24 VAC | 43 to 55 | 16.45 |
 | Bottom | J2 1-wire | 3.7 to 18.5 | 11.95 |

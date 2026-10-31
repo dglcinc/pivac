@@ -93,7 +93,8 @@ for i, (x, y) in enumerate(BOSS[1:], start=1):
     B.place(f"H{i}", h, x, y, 0, value="#4 x 1/4"); h.Reference().SetVisible(False)
 
 # --- top edge: USB-A jack, Wurth 61400416021, face on the edge (datasheet hole pattern)
-JX = 8.8
+JX = 8.7
+JY = -1.5              # the jack stands 1.5 past the board edge, so its pins and legs clear the post beneath it
 j = pcbnew.FOOTPRINT(B.board); j.SetFPID(pcbnew.LIB_ID("pivac", "USB_A_61400416021"))
 # Wurth: with the opening toward the viewer pin 1 is on the left, so seen from above with the opening
 # toward the top edge pin 1 is on the right
@@ -101,9 +102,9 @@ for n, x in ((1, 3.5), (2, 1.0), (3, -1.0), (4, -3.5)):
     gb._pad(j, n, x, 12.99, 1.5, 0.92)
 for x in (-6.57, 6.57):
     gb._pad(j, "S", x, 10.28, 2.9, 2.3)
-gb._fp_rect(j, -7.25, 0, 7.25, 14.0, pcbnew.F_SilkS, 0.12)
-gb._fp_rect(j, -7.6, 0, 7.6, 14.3, pcbnew.F_CrtYd, 0.05)
-B.place("J4", j, JX, 0, 0, value="61400416021"); j.Reference().SetVisible(False)
+gb._fp_rect(j, -7.25, 1.5, 7.25, 14.0, pcbnew.F_SilkS, 0.12)
+gb._fp_rect(j, -7.6, 1.5, 7.6, 14.3, pcbnew.F_CrtYd, 0.05)
+B.place("J4", j, JX, JY, 0, value="61400416021"); j.Reference().SetVisible(False)
 B.text("USB-A", JX, 15.3, size=0.9, bold=True)
 
 # --- top edge: 24 VAC, Phoenix MC 1,5/2-G-3,81 footprint, entry toward the edge
