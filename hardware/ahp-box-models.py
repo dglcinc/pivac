@@ -58,7 +58,7 @@ def wrl(name, parts):
             c = COL[col]
             verts, tris = shape.tessellate(0.05)
             f.write("Shape {\n appearance Appearance { material Material { diffuseColor %.3f %.3f %.3f "
-                    "ambientIntensity 0.3 specularColor 0.2 0.2 0.2 shininess 0.2 } }\n" % c)
+                    "ambientIntensity 0.3 %sspecularColor 0.2 0.2 0.2 shininess 0.2 } }\n" % (c + (("emissiveColor %.3f %.3f %.3f " % c) if col.startswith("led") else "",)))
             f.write(" geometry IndexedFaceSet { creaseAngle 0.5 coord Coordinate { point [\n")
             f.write(",".join("%.3f %.3f %.3f" % (v.x, v.y, v.z) for v in verts))
             f.write("] }\n coordIndex [\n")
@@ -72,7 +72,7 @@ def ptsm(n, xc):
     b = box(xc - hw, xc + hw, -28, -20.5, 0, 5.0)
     return b.cut(box(xc - hw + 0.6, xc + hw - 0.6, -29, -23.5, 0.8, 4.2))
 J2X, J3X = 9.6 - 28.5, 48.5 - 28.5
-JX = 8.0 - 28.5
+JX = 8.5 - 28.5
 MX = 47.5 - 28.5
 jack = box(JX - 7.25, JX + 7.25, 14, 28, 0, 6.9).cut(box(JX - 6.25, JX + 6.25, 15.5, 29, 0.9, 6.0))
 jack = jack.fuse(box(JX - 6.0, JX + 6.0, 17, 27.5, 3.0, 4.6))
@@ -80,10 +80,10 @@ parts = [(ptsm(3, J2X), "black"), (ptsm(4, J3X), "black"), (jack, "metal"),
          (box(40.5 - 28.5, 49.7 - 28.5, 28 - 39.14, 28 - 17.05, 0, 11.2), "black")]
 for x, y in ((14, 14), (-14, -14), (14, -14)):
     parts.append((cyl(x, y, 2.8, 0, 1.9), "head"))
-# status LEDs, 1206 on the board's back, under 3 mm holes in the base's floor
-LED = ((33.5, 22.5, "ledG"), (33.5, 27.5, "ledY"), (28.5, 22.5, "ledB"), (28.5, 27.5, "ledB"), (23.5, 22.5, "ledR"), (23.5, 27.5, "ledR"))
-for x, y, col in LED:
-    parts.append((box(x - 28.5 - 0.8, x - 28.5 + 0.8, 28 - y - 1.6, 28 - y + 1.6, -2.7, -1.6), col))
+# status LEDs, side-firing on the board's back at the left edge
+LED = ((26.5, "ledG"), (30.5, "ledY"), (34.5, "ledB"), (38.5, "ledB"), (42.5, "ledR"), (46.5, "ledR"))
+for y, col in LED:
+    parts.append((box(-28.3, -27.3, 28 - y - 1.05, 28 - y + 1.05, -2.4, -1.6), col))
 wrl("parts.wrl", parts)
 
 # --- base: floor, walls, posts, end panels with their notches
@@ -100,8 +100,8 @@ def panel(y_inner, sgn, notches):
     return p
 top = panel(PY0, 1, ((JX, 8.0, 7.6), (0, 6.2, 5.0), (MX, 6.0, 10.5)))
 bot = panel(-PY0, -1, ((J2X, 7.4, 6.0), (J3X, 8.6, 6.0)))
-for x, y, _ in LED:
-    base = base.cut(cyl(x - 28.5, 28 - y, 1.5, ZB - 1, ZB + FLOOR + 1))
+for y, _ in LED:
+    base = base.cut(Part.makeCylinder(1.5, 6, V(-35, 28 - y, -2.0), V(1, 0, 0)))
 wrl("base.wrl", [(base, "base"), (top, "panel"), (bot, "panel")])
 
 # --- lid: shell, posts, the recessed inlay on top

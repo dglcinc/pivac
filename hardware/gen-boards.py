@@ -41,10 +41,11 @@ def mm(x, y):
 
 # --------------------------------------------------------------------------- board helpers
 class Board:
-    def __init__(self, path, width, length, power_clearance=0.25):
+    def __init__(self, path, width, length, power_clearance=0.25, power_nets=("VS", "COM", "AC*", "+5V", "GND", "VCC")):
         self.path = path
         self.width, self.length = width, length
         self.power_clearance = power_clearance
+        self.power_nets = power_nets
         self.board = pcbnew.NewBoard(path)
         self.nets = {}
         self.refs = {}
@@ -72,7 +73,7 @@ class Board:
         power.SetViaDiameter(FromMM(1.0))
         power.SetViaDrill(FromMM(0.5))
         ns.SetNetclass("Power", power)
-        for pat in ("VS", "COM", "AC*", "+5V", "GND", "VCC"):
+        for pat in self.power_nets:
             ns.SetNetclassPatternAssignment(pat, "Power")
         # outline
         rect = pcbnew.PCB_SHAPE(b)
