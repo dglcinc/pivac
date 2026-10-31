@@ -89,7 +89,7 @@ B.text("USB-A", JX, 15.3, size=0.9, bold=True)
 MX = 47.5
 mc = B.lib("J1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_2-G-3.81_1x02_P3.81mm_Horizontal", MX + 1.905, 8.5, 180, value="3.81 mm 2-pin 24VAC")
 mc.Reference().SetVisible(False)
-B.text("24 VAC", 41.3, 5.0, size=0.8, bold=True, rot=90)
+B.text("24 VAC", 42.0, 5.0, size=0.8, bold=True, rot=90)
 
 # --- bottom edge: sensors on PTSM surface-mount headers, entry toward the edge
 hdr = {}
@@ -97,11 +97,11 @@ for ref, n, x, lab in (("J2", 3, 9.6, "1-WIRE"), ("J3", 4, 48.5, "AIR NTC")):
     fp = gb.ptsm_hh_smd(B, n)
     B.place(ref, fp, x, L, 180, value=f"PTSM 0,5/{n}-HH-2,5-SMD")
     fp.Reference().SetVisible(False)
-    B.text(lab, x + (1.5 if ref == "J3" else 0), L - 12.2, size=0.8, bold=True)
+    B.text(lab, x, L - 11.9, size=0.8, bold=True)
 
 # --- power
 B.lib("F1", "Fuse", "Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder", 48.6, 14.2, 0, value="PTC 0.2A")
-B.lib("D2", "Diode_SMD", "D_SMA", 54.8, 14.2, 90, value="SMAJ43CA")
+B.lib("D2", "Diode_SMD", "D_SMA", 54.8, 13.0, 90, value="SMAJ43CA")
 u1 = gb.sip8_converter(B, pin5=True)
 B.place("U1", u1, 0, 0, 90, value="TMR 3-4811WI")
 bb = u1.GetCourtyard(pcbnew.F_CrtYd).BBox()
@@ -109,20 +109,20 @@ dx, dy = 40.25 - pcbnew.ToMM(bb.GetLeft()), 16.8 - pcbnew.ToMM(bb.GetTop())
 u1.SetPosition(mm(dx, dy))
 u1.Reference().SetPosition(mm(47.6, 41.2)); u1.Reference().SetTextAngleDegrees(0)
 B.lib("C1", "Capacitor_SMD", "CP_Elec_6.3x7.7", 53.5, 29.6, 90, value="47u 50V")
-B.lib("D1", "Diode_SMD", "D_SMA", 53.5, 37.2, 0, value="S1M")
+B.lib("D1", "Diode_SMD", "D_SMA", 53.35, 37.5, 0, value="S1M")
 B.lib("C2", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 53.5, 41.9, 0, value="10u")
 
 # --- I2C: DS2482 and ADS1115 beside the Pico, under the jack
 B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 12.0, 20.7, 0, value="DS2482S-100+")
 B.lib("C3", *C_0805, 12.0, 26.3, 0, value="100n")
 B.lib("U3", "Package_SO", "MSOP-10_3x3mm_P0.5mm", 12.0, 31.5, 0, value="ADS1115IDGS")
-B.lib("C4", *C_0805, 12.0, 35.6, 0, value="100n")
-B.lib("R1", *R_0805, 3.2, 26.8, 90, value="4k7")
-B.lib("R2", *R_0805, 6.4, 26.8, 90, value="4k7")
-B.lib("R3", *R_0805, 3.2, 31.6, 90, value="10k0 0.1%")
-B.lib("R4", *R_0805, 6.4, 31.6, 90, value="10k0 0.1%")
-B.lib("C5", *C_0805, 3.2, 36.4, 90, value="100n")
-B.lib("C6", *C_0805, 6.4, 36.4, 90, value="100n")
+B.lib("C4", *C_0805, 12.0, 35.9, 0, value="100n")
+B.lib("R1", *R_0805, 3.2, 26.3, 90, value="4k7")
+B.lib("R2", *R_0805, 6.4, 26.3, 90, value="4k7")
+B.lib("R3", *R_0805, 3.2, 30.3, 90, value="10k0 0.1%")
+B.lib("R4", *R_0805, 6.4, 30.3, 90, value="10k0 0.1%")
+B.lib("C5", *C_0805, 3.2, 34.3, 90, value="100n")
+B.lib("C6", *C_0805, 6.4, 34.3, 90, value="100n")
 
 # --- nets
 def nets(ref, *pairs):
@@ -153,14 +153,25 @@ nets("J2", (1, "3V3"), (2, "OW"), (3, "GND"))
 nets("J3", (1, "SUP"), (2, "GND"), (3, "RET"), (4, "GND"))
 
 # --- legends
-gb.monogram(B, 3.6, 41.2, 0.6)
-B.text("AIR HANDLER", 6.2, 38.7, size=0.8, bold=True, left=True)
-B.text("PICO W", 6.8, 40.2, size=0.7, left=True)
-B.text("Rev B", 6.8, 41.5, size=0.7, left=True)
-B.refs["F1"].Reference().SetPosition(mm(47.5, 11.7))
-B.refs["F1"].Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
+gb.monogram(B, 4.2, 40.2, 0.8)
+B.text("AIR HANDLER", 7.7, 38.0, size=0.8, bold=True, left=True)
+B.text("PICO W", 8.2, 39.5, size=0.7, left=True)
+B.text("Rev B", 8.2, 40.8, size=0.7, left=True)
+# reference designators the part bodies or their neighbours would cover
+for ref, x, y, angle in (("F1", 52.3, 14.2, 90), ("D2", 54.8, 8.6, 0), ("C1", 51.2, 25.0, 0)):
+    t = B.refs[ref].Reference(); t.SetPosition(mm(x, y)); t.SetTextAngleDegrees(angle)
+# R and C mark J1's pins, so the footprint's pin 1 triangle moves off the silkscreen
+for g in mc.GraphicalItems():
+    if g.GetLayer() == pcbnew.F_SilkS and g.GetClass() != "PCB_TEXT" and pcbnew.ToMM(g.GetBoundingBox().GetTop()) > 10.2:
+        g.SetLayer(pcbnew.F_Fab)
+# U1's outline stops inside the body on the right, where D1 and C1 stand against it
+for g in u1.GraphicalItems():
+    if g.GetLayer() == pcbnew.F_SilkS and g.GetClass() != "PCB_TEXT" and g.GetShape() == pcbnew.SHAPE_T_RECT:
+        g.SetLayer(pcbnew.F_Fab)
+for a, b in (((49.6, 16.99), (40.44, 16.99)), ((40.44, 16.99), (40.44, 39.2)), ((40.44, 39.2), (49.6, 39.2))):
+    B.line(a[0], a[1], b[0], b[1], "F.SilkS", 0.12)
 for lab, ref, pad in (("R", "J1", 1), ("C", "J1", 2)):
-    x, y = B.pad_xy(ref, pad); B.text(lab, x, y + 1.7, size=0.7, bold=True)
+    x, y = B.pad_xy(ref, pad); B.text(lab, x, y + 2.6, size=0.7, bold=True)
 for ref, labs in (("J2", "VDG"), ("J3", "S-R-")):
     for i, lab in enumerate(labs, start=1):
         x, y = B.pad_xy(ref, i); B.text(lab, x, y - 2.4, size=0.7, bold=True)
