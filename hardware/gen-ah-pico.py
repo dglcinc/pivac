@@ -110,7 +110,7 @@ u1.SetPosition(mm(dx, dy))
 u1.Reference().SetPosition(mm(47.6, 41.2)); u1.Reference().SetTextAngleDegrees(0)
 B.lib("C1", "Capacitor_SMD", "CP_Elec_6.3x7.7", 53.5, 29.6, 90, value="47u 50V")
 B.lib("D1", "Diode_SMD", "D_SMA", 53.5, 37.2, 0, value="S1M")
-B.lib("C2", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 53.5, 41.2, 0, value="10u")
+B.lib("C2", "Capacitor_SMD", "C_1206_3216Metric_Pad1.33x1.80mm_HandSolder", 53.5, 41.9, 0, value="10u")
 
 # --- I2C: DS2482 and ADS1115 beside the Pico, under the jack
 B.lib("U2", "Package_SO", "SOIC-8_3.9x4.9mm_P1.27mm", 12.0, 20.7, 0, value="DS2482S-100+")
