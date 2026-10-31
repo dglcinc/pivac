@@ -80,6 +80,20 @@ The board's centre is the box's centre. Hammond's drawing puts the four mount po
 5. The two end panels, 60 x 22.7 x 1.7 mm, take notches cut up from their lower edge, so a panel lifts out with the lid off and the plugs in place. Top panel: J4, micro-USB, J1. Bottom panel: J2, J3.
 6. The lid goes to the mounting surface with VHB tape, because the two cover screws enter from the base. Undoing them brings the base away with the board.
 
+David cuts the notches by hand. Each is measured along the panel from the end on the USB-A and 1-wire side, and upward from the panel's lower edge, and comes from `hardware/ahp-box-models.py`.
+
+| Panel | Notch | From end, mm | Height, mm |
+|---|---|---|---|
+| Top | J4 USB-A | 1.5 to 17.5 | 14.55 |
+| Top | Micro-USB | 23.8 to 36.2 | 11.95 |
+| Top | J1 24 VAC | 43 to 55 | 17.45 |
+| Bottom | J2 1-wire | 3.7 to 18.5 | 12.95 |
+| Bottom | J3 air NTC | 41.4 to 58.6 | 12.95 |
+
+The sizes rest on the assumed 5 mm post, so take them from the post measured on a real box: a taller post raises every notch's height by the difference.
+
+The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO W, Rev B.
+
 ### To check before ordering
 
 1. The mount post's height is not on Hammond's drawing. The render takes 5 mm; measure a box. Everything above the board has 15.4 mm at that height.

@@ -152,8 +152,10 @@ nets("J2", (1, "3V3"), (2, "OW"), (3, "GND"))
 nets("J3", (1, "SUP"), (2, "GND"), (3, "RET"), (4, "GND"))
 
 # --- legends
-B.text("AIR HANDLER", 1.0, 39.9, size=0.8, bold=True, left=True)
-B.text("PICO W rev A", 1.0, 41.3, size=0.7, left=True)
+gb.monogram(B, 3.6, 41.2, 0.6)
+B.text("AIR HANDLER", 6.2, 38.7, size=0.8, bold=True, left=True)
+B.text("PICO W", 6.8, 40.2, size=0.7, left=True)
+B.text("Rev B", 6.8, 41.5, size=0.7, left=True)
 B.refs["F1"].Reference().SetPosition(mm(47.5, 11.7))
 B.refs["F1"].Reference().SetTextSize(VECTOR2I(FromMM(0.7), FromMM(0.7)))
 for lab, ref, pad in (("R", "J1", 1), ("C", "J1", 2)):

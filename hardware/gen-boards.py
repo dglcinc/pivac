@@ -470,12 +470,11 @@ def slot_pair(board, gap=3.8, w=1.2, l=2.4):
     return fp
 
 
-def title_block(B, cx, cy, scale, board_name, stacked=False, rev="B"):
-    """DL monogram in a ring, name and version on F.SilkS. Geometry from hardware/dl-monogram.svg
-    (units mm, ring at the origin): the letters are 0.8 mm strokes drawn here as silkscreen
-    segments with round ends, so the mark is a footprint-free set of board graphics."""
+def monogram(B, cx, cy, s):
+    """DL monogram in a ring on F.SilkS. Geometry from hardware/dl-monogram.svg (units mm, ring at
+    the origin): the letters are 0.8 mm strokes drawn here as silkscreen segments with round ends,
+    so the mark is a footprint-free set of board graphics."""
     import math
-    s = scale
     ring = pcbnew.PCB_SHAPE(B.board)
     ring.SetShape(pcbnew.SHAPE_T_CIRCLE)
     ring.SetCenter(mm(cx, cy))
@@ -498,6 +497,12 @@ def title_block(B, cx, cy, scale, board_name, stacked=False, rev="B"):
     # L: stem and foot
     seg(1.2, -1.07, 1.2, 2.13)
     seg(1.2, 2.13, 2.63, 2.13)
+
+
+def title_block(B, cx, cy, scale, board_name, stacked=False, rev="B"):
+    """The monogram with the name and version on F.SilkS."""
+    s = scale
+    monogram(B, cx, cy, s)
     if stacked:
         # ring above two centred lines, for the EXT board's narrow field
         B.text("PIVAC MONITORING", cx, cy + 4.425 * s + 1.6, size=0.85, bold=True)
