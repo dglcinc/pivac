@@ -1,8 +1,6 @@
 # Air-handler node shield: PCB plan
 
-**Status:** Two routes, decided by one bench test. If the Adafruit Feather RP2040 USB Host board reads the Unico USB
-board's frames, the node becomes the Pico W carrier of §0 in a DIN-rail module and this UNO shield is not built;
-if it does not, this shield with the serial tap of §4.3 is the design, after the data-cable measurements.
+**Status:** The node is the Pico W carrier of §0, in a Hammond 1593K: parts placed and nets assigned, not yet routed. The rest of this plan is the UNO R4 shield with the serial tap of §4.3, the fallback route, not built past rev A.
 `hardware/ah-board/` still carries the Y2 and W2 optocoupler inputs; that board is fabricated as rev A and in hand since 2026-10-27, with its parts from Mouser, and `docs/air-handler-shield-assembly.md` is its build sheet. · **Owner:** David
 
 The first node, at the master bedroom, is an Arduino UNO R4 WiFi with a hand-wired Olimex PROTO-SHIELD, a DIN-rail 24 VAC to
@@ -17,34 +15,78 @@ headers. `docs/air-handler-shield-pcb-layout.svg` is the floor plan, generated b
 
 ![Air-handler node shield floor plan](air-handler-shield-pcb-layout.svg)
 
-## 0. The USB route: a Pico W carrier in a DIN-rail module
+## 0. The Pico W carrier in a Hammond 1593K
 
-The SCB's protocol is proven over the Unico USB board (A01470-G01, a Cypress CDC device) from a Mac and from the
-Pi (`docs/unico-scb-live-test.md`), so the node can take the same path: plug into the control box's USB-B jack as a
-USB host and leave the data cable alone. The UNO R4 cannot be a USB host, so the node's controller becomes a
-Raspberry Pi Pico W (RP2040 with WiFi), whose host port is two GPIOs through Pico-PIO-USB and whose CDC host is
-Adafruit TinyUSB's `serial_host_bridge` example. The one gate is a bench test: the Adafruit Feather RP2040 with USB
-Type A Host (Adafruit 5723), which has the host jack and the 5 V boost already wired, runs the example with
-`SerialHost.begin(4800)` plugged into the utility zone's control box; frames on its console pass the route.
+The node plugs into the control box's USB-B jack as a USB host and leaves the data cable alone. Its controller is a Raspberry Pi Pico W soldered flat to a 57 x 56 mm carrier, using the RP2040's built-in USB host, in a 66 x 67 x 28 mm box. `hardware/gen-ah-pico.py` generates the board in `hardware/ahp-board/`, `hardware/ahp-box-models.py` models the box and `hardware/ahp-render.sh` renders both.
 
-The carrier, decided 2026-10-24:
+![Carrier from above](air-handler-pico-board-top.png)
+![Carrier](air-handler-pico-board-iso.png)
+![In the base, lid off](air-handler-pico-box-open.png)
+![Closed, power end](air-handler-pico-box-closed-power.png)
+![Closed, sensor end](air-handler-pico-box-closed-sensors.png)
 
-| Item | Decision |
-|---|---|
-| Controller | Raspberry Pi Pico WH on two 20-pin sockets; antenna end over a copper-free edge; micro-USB under the cover |
-| Enclosure | CamdenBoss CNMB/6/KIT, 106 mm (6 modules) × 90 mm, polycarbonate, kit with cover and guards |
-| Board | 86.5 × 103 mm on the base position, No. 6 self-tapping screws; the 103 mm edges along the terminal faces |
-| Top face | 24 VAC R and C, and the USB-A jack behind the USB terminal guard (CNMB/3/TGUSB) |
-| Bottom face | 1-wire V · D · G, supply-air and return-air NTC pairs, the spare for a coil water meter |
-| Terminals | push-in PCB blocks at 5.08 mm pitch behind the pre-drilled guards (CNMB/3/TG508, 9 poles per guard, two per face) |
-| Power | 24 VAC entry, rectifier and the isolated converter of §4.1 on the board; 5 V also feeds the USB-A VBUS |
-| Sensors | DS2482 on the Pico's I2C at 3.3 V; NTC dividers rescaled to 3.3 V and recalibrated |
-| LEDs | at the front edge under the recessed cover |
+### Bench results that set the route
 
-The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core plus the SCB parser of
-`pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with
-`node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB. The terminal
-blocks, the guards' pole counts and the enclosure's PCB drawing fix the outline when the design is drawn.
+Measured 2026-10-31 on the utility zone's M2430, sketches `UnicoSCBBenchW` and `UnicoSCBBenchP` in `~/github/Arduino`, Pico WH on 5 V with WiFi running, 90 mA including the Unico USB board.
+
+| Test | Built-in host | PIO-USB |
+|---|---|---|
+| Boot attached | frames in 1 s | frames in 1 s |
+| Stream | 21 min, no stall | stalls at 33 s, 132 s |
+| Replug | remounts in 8 s | not tried |
+| Call | `G,Y1`, 300 CFM | not tried |
+
+A 2 s gap in the status frames about every 14 s appears on the Feather, on both Pico routes and in no fault count, so the USB host is not its source. The firmware reboots after 20 s without a status frame, which is untested on the built-in host until the ported sketch runs.
+
+### Parts
+
+| Ref | Part | Where |
+|---|---|---|
+| U4 | Pico W SC0918 | centre, USB at top |
+| J4 | USB-A 61400416021 | top left |
+| J1 | 3.81 mm 2-pin header | top right |
+| J2 | PTSM 0,5/3-HH-2,5-SMD | bottom left |
+| J3 | PTSM 0,5/4-HH-2,5-SMD | bottom right |
+| U1 | TMR 3-4811WI | right of Pico |
+| F1 | PTC 0.2 A, 1812 | top right |
+| D2 | SMAJ43CA | top right |
+| D1 | S1M | right |
+| C1 | 47 uF 50 V, 6.3 mm | right |
+| C2 | 10 uF 1206 | right |
+| U2 | DS2482S-100+ | left |
+| U3 | ADS1115IDGS | left |
+| R1, R2 | 4k7 0805 | left |
+| R3, R4 | 10k0 0.1 % 0805 | left |
+| C3-C6 | 100 nF 0805 | left |
+| Box | Hammond 1593KGY | |
+| Screws | 1593ATS50, #4 x 1/4 | 3 per board |
+
+1. U4: the footprint is KiCad's hand-solder Pico W pattern. Two plated 0.8 mm holes sit under TP2 (D-) and TP3 (D+), 0.15 mm toward the centre of each pad to clear the USB connector's leg holes. Solder the castellations first, then fill those holes from the back.
+2. U4: firmware loads through the micro-USB port, reached through its notch in the top panel. Never connect a computer with 24 VAC on, because that port and U1 share pin 40.
+3. J4: the Wurth part is drawn from its datasheet. The surface-mount Amphenol 87583-2010RLF is the alternative once its drawing is in hand; its footprint is unchecked.
+4. J1: drawn on Phoenix's MC 1,5/2-G-3,81 dimensions. The Bonsicoky 3.81 mm 2-pin set from Amazon is a dimensional copy and takes 18 AWG.
+5. J2, J3: the footprint is rev C's. The bottom edge has no room for the coil water meter's spare; a third header there needs the 1593L.
+6. C1: half-wave as in §4.1. The node draws about 19 mA at VS (0.45 W at 5 V, 80 % efficient), which gives 7 V of ripple on 47 uF and leaves the valley above U1's 18 V minimum.
+7. U3: AIN0 and AIN1 read the supply and return NTC dividers and AIN2 reads the 3.3 V rail, so the conversion is ratiometric in firmware. AIN3 is grounded. The NTCs need the three-bath calibration on this ADC.
+
+### Fit in the box
+
+The board's centre is the box's centre. Hammond's drawing puts the four mount posts on a 28 mm square at the centre and the two cover posts 50 mm apart, 7.3 mm toward the top panel.
+
+1. Three #4 screws hold the board. The fourth post, top left, stands under the jack with no hole; J4's pins and legs clear it.
+2. The cover posts pass through notches 7 mm deep and 6.8 mm long in the side edges.
+3. The nearest pads clear the screw heads by 0.43 mm (F1) and 0.54 mm (U4). U4's pads beside the two lower screws are shortened by 0.6 mm for that.
+4. U1 stands between the right-hand screw heads, 11.2 mm tall under a 15.4 mm clearance to the lid.
+5. The two end panels, 60 x 22.7 x 1.7 mm, take notches cut up from their lower edge, so a panel lifts out with the lid off and the plugs in place. Top panel: J4, micro-USB, J1. Bottom panel: J2, J3.
+6. The lid goes to the mounting surface with VHB tape, because the two cover screws enter from the base. Undoing them brings the base away with the board.
+
+### To check before ordering
+
+1. The mount post's height is not on Hammond's drawing. The render takes 5 mm; measure a box. Everything above the board has 15.4 mm at that height.
+2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
+3. The carrier is unrouted. `hardware/route.py` runs next, with DRC and the review doc after it.
+
+The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core with the ADS1115 in place of the analog pins, plus the SCB parser of `pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with `node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB.
 
 ## 1. Scope
 
