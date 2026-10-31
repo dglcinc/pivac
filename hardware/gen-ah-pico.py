@@ -124,6 +124,19 @@ B.lib("R4", *R_0805, 6.4, 30.3, 90, value="10k0 0.1%")
 B.lib("C5", *C_0805, 3.2, 34.3, 90, value="100n")
 B.lib("C6", *C_0805, 6.4, 34.3, 90, value="100n")
 
+# --- status LEDs on the back, behind the Pico and clear of its antenna, under six holes in the base.
+# Seen from outside the base with the top panel up, x runs right to left, so x 33.5 reads first.
+LED = (("LED1", 33.5, 22.5, "PWR", "R5", "3V3", None, "LTST-C150KGKT"), ("LED2", 33.5, 27.5, "FAN", "R6", "L_FAN", 16, "LTST-C150KSKT"),
+       ("LED3", 28.5, 22.5, "Y1", "R7", "L_Y1", 11, "LTST-C150TBKT"), ("LED4", 28.5, 27.5, "Y2", "R8", "L_Y2", 12, "LTST-C150TBKT"),
+       ("LED5", 23.5, 22.5, "W1", "R9", "L_W1", 14, "LTST-C150KRKT"), ("LED6", 23.5, 27.5, "W2", "R10", "L_W2", 15, "LTST-C150KRKT"))
+for ref, x, y, lab, rref, net, pin, part in LED:
+    fp = B.lib(ref, "LED_SMD", "LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder", x, y, 90, back=True, value=part)
+    fp.Reference().SetVisible(False); fp.Models().clear()
+    r = B.lib(rref, *R_0805, x + 2.8, y, 90, back=True, value="220R")
+    ly = 19.5 if y < 25 else 30.6
+    B.text(lab, x, ly, layer="B.SilkS", size=0.7, bold=True)
+    r.Reference().SetPosition(mm(x + 2.8, ly)); r.Reference().SetTextAngleDegrees(0)
+
 # --- nets
 def nets(ref, *pairs):
     for pad, n in pairs:
@@ -146,6 +159,11 @@ nets("C3", (1, "3V3"), (2, "GND"))
 # ADS1115 MSOP-10: 1 ADDR, 2 ALERT, 3 GND, 4 AIN0, 5 AIN1, 6 AIN2, 7 AIN3, 8 VDD, 9 SDA, 10 SCL
 nets("U3", (1, "GND"), (3, "GND"), (4, "SUP"), (5, "RET"), (6, "3V3"), (7, "GND"), (8, "3V3"), (9, "SDA"), (10, "SCL"))
 nets("C4", (1, "3V3"), (2, "GND"))
+# LEDs: 3V3 for power; Y1 GP8 pin 11, Y2 GP9 pin 12, W1 GP10 pin 14, W2 GP11 pin 15, fan GP12 pin 16
+for ref, x, y, lab, rref, net, pin, part in LED:
+    nets(rref, (1, net), (2, "A_" + ref)); nets(ref, (2, "A_" + ref), (1, "GND"))
+    if pin:
+        B.connect("U4", pin, net)
 nets("R1", (1, "3V3"), (2, "SDA")); nets("R2", (1, "3V3"), (2, "SCL"))
 nets("R3", (1, "3V3"), (2, "SUP")); nets("R4", (1, "3V3"), (2, "RET"))
 nets("C5", (1, "SUP"), (2, "GND")); nets("C6", (1, "RET"), (2, "GND"))

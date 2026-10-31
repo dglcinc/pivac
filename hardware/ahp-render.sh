@@ -15,7 +15,10 @@ r() { $CLI pcb render --quality high --background opaque --floor --width 1500 --
 $CLI pcb render --quality high --background opaque --width 1400 --height 1400 --side top --zoom 1.0 \
   --output "$O/air-handler-pico-board-top.png" "$T/board/ahp-board.kicad_pcb" >/dev/null 2>&1
 r board 1.0 "-40,0,-25" air-handler-pico-board-iso
+$CLI pcb render --quality high --background opaque --width 1400 --height 1400 --side bottom --zoom 1.0 \
+  --output "$O/air-handler-pico-board-back.png" "$T/board/ahp-board.kicad_pcb" >/dev/null 2>&1
 r open 0.75 "-40,0,-25" air-handler-pico-box-open
 r closed 0.45 "-40,0,-25" air-handler-pico-box-closed-sensors
 r closed 0.45 "-40,0,155" air-handler-pico-box-closed-power
+r closed 0.6 "180,0,180" air-handler-pico-box-closed-base
 rm -rf "$T"

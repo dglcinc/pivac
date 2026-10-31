@@ -48,7 +48,8 @@ def half(z0, z1, floor_low):
 COL = {"base": (.72, .73, .74), "lid": (.70, .71, .72), "panel": (.60, .61, .62), "black": (.07, .07, .08),
        "metal": (.50, .50, .52), "head": (.42, .42, .44), "plugW": (.80, .80, .78), "plugG": (.05, .42, .20),
        "plugB": (.10, .10, .11), "wireR": (.75, .10, .10), "wireK": (.05, .05, .05), "wireW": (.9, .9, .9),
-       "wireB": (.10, .25, .75), "wireY": (.85, .75, .15), "cable": (.13, .13, .14)}
+       "wireB": (.10, .25, .75), "wireY": (.85, .75, .15), "cable": (.13, .13, .14),
+       "ledG": (.15, .85, .25), "ledY": (.95, .80, .10), "ledB": (.15, .35, .95), "ledR": (.90, .12, .10)}
 
 def wrl(name, parts):
     with open(os.path.join(OUT, name), "w") as f:
@@ -79,6 +80,10 @@ parts = [(ptsm(3, J2X), "black"), (ptsm(4, J3X), "black"), (jack, "metal"),
          (box(40.5 - 28.5, 49.7 - 28.5, 28 - 39.14, 28 - 17.05, 0, 11.2), "black")]
 for x, y in ((14, 14), (-14, -14), (14, -14)):
     parts.append((cyl(x, y, 2.8, 0, 1.9), "head"))
+# status LEDs, 1206 on the board's back, under 3 mm holes in the base's floor
+LED = ((33.5, 22.5, "ledG"), (33.5, 27.5, "ledY"), (28.5, 22.5, "ledB"), (28.5, 27.5, "ledB"), (23.5, 22.5, "ledR"), (23.5, 27.5, "ledR"))
+for x, y, col in LED:
+    parts.append((box(x - 28.5 - 0.8, x - 28.5 + 0.8, 28 - y - 1.6, 28 - y + 1.6, -2.7, -1.6), col))
 wrl("parts.wrl", parts)
 
 # --- base: floor, walls, posts, end panels with their notches
@@ -95,6 +100,8 @@ def panel(y_inner, sgn, notches):
     return p
 top = panel(PY0, 1, ((JX, 8.0, 7.6), (0, 6.2, 5.0), (MX, 6.0, 10.5)))
 bot = panel(-PY0, -1, ((J2X, 7.4, 6.0), (J3X, 8.6, 6.0)))
+for x, y, _ in LED:
+    base = base.cut(cyl(x - 28.5, 28 - y, 1.5, ZB - 1, ZB + FLOOR + 1))
 wrl("base.wrl", [(base, "base"), (top, "panel"), (bot, "panel")])
 
 # --- lid: shell, posts, the recessed inlay on top

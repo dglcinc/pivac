@@ -24,6 +24,8 @@ The node plugs into the control box's USB-B jack as a USB host and leaves the da
 ![In the base, lid off](air-handler-pico-box-open.png)
 ![Closed, power end](air-handler-pico-box-closed-power.png)
 ![Closed, sensor end](air-handler-pico-box-closed-sensors.png)
+![Back of the carrier](air-handler-pico-board-back.png)
+![Closed, base face, LEDs unlit](air-handler-pico-box-closed-base.png)
 
 ### Bench results that set the route
 
@@ -58,6 +60,11 @@ A 2 s gap in the status frames about every 14 s appears on the Feather, on both 
 | R1, R2 | 4k7 0805 | left |
 | R3, R4 | 10k0 0.1 % 0805 | left |
 | C3-C6 | 100 nF 0805 | left |
+| LED1 | LTST-C150KGKT green, PWR | back |
+| LED2 | LTST-C150KSKT yellow, FAN | back |
+| LED3, LED4 | LTST-C150TBKT blue, Y1, Y2 | back |
+| LED5, LED6 | LTST-C150KRKT red, W1, W2 | back |
+| R5-R10 | 220 ohm 0805 | back |
 | Box | Hammond 1593KGY | |
 | Screws | 1593ATS50, #4 x 1/4 | 3 per board |
 
@@ -68,6 +75,21 @@ A 2 s gap in the status frames about every 14 s appears on the Feather, on both 
 5. J2, J3: the footprint is rev C's. The bottom edge has no room for the coil water meter's spare; a third header there needs the 1593L.
 6. C1: half-wave as in §4.1. The node draws about 19 mA at VS (0.45 W at 5 V, 80 % efficient), which gives 7 V of ripple on 47 uF and leaves the valley above U1's 18 V minimum.
 7. U3: AIN0 and AIN1 read the supply and return NTC dividers and AIN2 reads the 3.3 V rail, so the conversion is ratiometric in firmware. AIN3 is grounded. The NTCs need the three-bath calibration on this ADC.
+
+8. LED1-LED6: 1206 parts on the back of the board, behind the Pico and clear of its antenna, under six holes in the base. Solder them after the Pico; their pads are on the side the Pico does not cover. Pin 1 of the footprint is the cathode.
+9. LED1 runs from 3V3. LED3-LED6 follow Y1, Y2, W1 and W2 in the status frame on GP8, GP9, GP10 and GP11. LED2 runs on GP12, lit while fan RPM is above zero and blinking slowly while no frames arrive, so a dead USB link does not read as an idle system. With 220 ohm the red, green and yellow draw about 5 mA, and the blue about 1.4 mA by estimate, since its forward voltage is close to the rail; set the GPIO drive to 8 mA.
+
+### LED holes in the base
+
+Drill six 3 mm holes in the base's floor on a 5 mm grid. Seen from outside with the top panel up, the columns read PWR and FAN, then Y1 and Y2, then W1 and W2, with PWR, Y1 and W1 in the upper row.
+
+| Column | Across from centre, mm |
+|---|---|
+| PWR, FAN | 5 left |
+| Y1, Y2 | 0 |
+| W1, W2 | 5 right |
+
+The upper row is 5.5 mm above the box's centre and the lower row 0.5 mm above it. Each LED sits about 7 mm below the outer face, so a 3 mm hole shows it within about 12 degrees of straight on. A 3 mm hole also keeps a neighbour's light out of the view, which a 4 mm hole does not.
 
 ### Fit in the box
 
@@ -98,7 +120,8 @@ The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO
 
 1. The mount post's height is not on Hammond's drawing. The render takes 5 mm; measure a box. Everything above the board has 15.4 mm at that height.
 2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
-3. The carrier is unrouted. `hardware/route.py` runs next, with DRC and the review doc after it.
+3. Check the LEDs on the first carrier through the drilled base, for brightness and for viewing angle. A short 3 mm clear rod in each hole widens the view if 12 degrees proves too narrow.
+4. The carrier is unrouted. `hardware/route.py` runs next, with DRC and the review doc after it.
 
 The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core with the ADS1115 in place of the analog pins, plus the SCB parser of `pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with `node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB.
 
@@ -468,10 +491,6 @@ node's `/set`, guarded the way `scripts/unico-scb.py` guards it. The same fields
 8. **The tap must be invisible to ECMConfig.** With the node parked and a Mac on the Unico USB board,
    `scripts/unico-scb.py mirror --transmit` must still report the echo none and every stored value unchanged, as on
    2026-10-24.
-9. **No surface-mount LEDs.** The next layout takes through-hole LEDs with the flat (cathode) marked in silkscreen.
-   The 0805 LEDs of rev A are too small to hand-solder reliably: building the first board used up every green and
-   many of the reds and blues, and their polarity marks needed a diode test to read (David, 2026-10-27). LED1–LED3 in
-   §6 change with the layout.
 
 ## 9. From here
 
