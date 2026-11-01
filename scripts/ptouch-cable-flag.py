@@ -134,19 +134,23 @@ def main():
             im = render(l1, l2, h, a.gap, block_mm=a.block)
             labels.append(rasterize(im, first))
             print('%s | %s: %.0f mm' % (l1, l2, im.size[0] / PX_PER_MM))
-        data = job(labels, st['width'], st['type'])
-        for i in range(0, len(data), 4096):
-            ep_out.write(data[i:i + 4096], timeout=10000)
-        # wait for the printer to finish
-        t0 = time.time()
-        while time.time() - t0 < 60 + 10 * len(labels):
-            try:
-                r = bytes(ep_in.read(32, timeout=2000))
-            except Exception:
-                continue
-            if len(r) == 32 and r[18] == 0x01: print('printed')
-            if len(r) == 32 and r[18] == 0x02: sys.exit('printer error: %02x %02x' % (r[8], r[9]))
-            if len(r) == 32 and r[18] == 0x06 and r[19] == 0x00: break   # phase change back to receiving
+        # One job per label. A nine-page job on 2026-11-01 cut three of its labels mid-block while the
+        # same data reprinted cleanly in a three-page job; single-page jobs avoid the multi-page path.
+        for n, lines in enumerate(labels):
+            data = job([lines], st['width'], st['type'])
+            for i in range(0, len(data), 4096):
+                ep_out.write(data[i:i + 4096], timeout=10000)
+            done = False; t0 = time.time()
+            while time.time() - t0 < 90:
+                try:
+                    r = bytes(ep_in.read(32, timeout=2000))
+                except Exception:
+                    continue
+                if len(r) != 32: continue
+                if r[18] == 0x02: sys.exit('printer error on label %d: %02x %02x' % (n + 1, r[8], r[9]))
+                if r[18] == 0x01: done = True                       # printing completed
+                if done and r[18] == 0x06 and r[19] == 0x00: break  # back to receiving: next label
+            print('label %d of %d printed' % (n + 1, len(labels)))
     finally:
         usb.util.release_interface(dev, 0)
 
