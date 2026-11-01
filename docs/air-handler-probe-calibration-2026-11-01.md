@@ -82,6 +82,9 @@ the last column is what the sketch's 10 kΩ / 3995 assumption read at the same t
 | 2 | ret (A0) | 9710 | 3982 | +0.05, −0.16, +0.12 | +1.18, +1.03, +1.35 |
 | 2 | sup (A1) | 9841 | 3983 | +0.06, −0.22, +0.16 | +0.72, +0.42, +0.77 |
 
+The beads are labelled by pair and channel, `SUP 1`, `RET 1`, `SUP 2` and `RET 2`; pair 1 is the plug that
+was in TB2 for the first window of each bath and pair 2 the plug swapped in for the second.
+
 1. Three points fit two parameters, so the residuals are the beads' departure from a single beta, 0.2 to
    0.3 °F on three of the four and under 0.1 on pair 1's supply bead. A Steinhart-Hart fit would need a
    fourth bath to be worth more than this.
