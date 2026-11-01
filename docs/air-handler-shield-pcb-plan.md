@@ -126,7 +126,7 @@ The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO
 2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
 3. Check the LEDs on the first carrier through the drilled wall, for brightness.
 
-The firmware is `AirHandlerPico` in `~/github/Arduino`: the built-in USB host listening to the SCB, the DS2482 and ADS1115 on I2C, the LEDs, and one JSON line that `pivac.UnicoSCB` with `node:` and `pivac.ArduinoSensor` both read, so the paths are the ones the utility zone publishes today from the Pi's USB. It cannot yet write SCB settings.
+The firmware is `AirHandlerPico` in `~/github/Arduino`: the built-in USB host listening to the SCB, the DS2482 and ADS1115 on I2C, the LEDs, and one JSON line that `pivac.UnicoSCB` with `node:` and `pivac.ArduinoSensor` both read, so the paths are the ones the utility zone publishes today from the Pi's USB. It also reads and changes the SCB's settings over HTTP, with the Mac tool's sequence, limits and key names: `GET /settings`, `/settings/read?token=T` and `/set?token=T&cfm.Y2=500`. It answers the SCB only while such a job runs, and it cannot send the thermostat override or the test bytes.
 
 ## 1. Scope
 
