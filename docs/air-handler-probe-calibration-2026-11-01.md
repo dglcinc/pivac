@@ -66,7 +66,9 @@ the cooling-coil column and 115 °F the heating-coil column.
    were applied at the end of the session by lifting one probe at a time out of the 130 °F bath and
    naming the column that cooled, with the label fixed per column so that each PA pair has matched
    offsets: A and B of a pair are within 0.03 K at 55 °F. PA9 to PA13 follow the PA1 to PA8 roster of
-   `docs/ds18b20-PA1-5-calibration.md`.
+   `docs/ds18b20-PA1-5-calibration.md`. Each probe carries a cable-flag label with its name and w1 name on
+   one line and the two offsets on the other, printed on 12 mm laminated tape by
+   `scripts/ptouch-cable-flag.py` on the Brother PT-E550W over USB.
 
 ## NTCs
 
