@@ -43,28 +43,30 @@ Reading at each bath is the mean of both windows. Error is reading minus Thermap
 kelvin to add to the reading at that water temperature, from a line through the three points; 55 °F is
 the cooling-coil column and 115 °F the heating-coil column.
 
-| Col | w1 name | @ice | @90 | @130 | Slope | K @55 | K @115 |
-|---|---|---|---|---|---|---|---|
-| ds0 | `28-000000D47F08` | 26.16 | 83.74 | 123.24 | 0.9948 | +3.382 | +3.556 |
-| ds1 | `28-000000D6D34A` | 25.75 | 83.29 | 122.79 | 0.9943 | +3.616 | +3.806 |
-| ds2 | `28-000000D33C3A` | 25.86 | 83.43 | 123.01 | 0.9954 | +3.547 | +3.699 |
-| ds3 | `28-000000D648F6` | 26.04 | 83.62 | 123.16 | 0.9952 | +3.446 | +3.607 |
-| ds4 | `28-000000D601E1` | 26.07 | 83.63 | 123.20 | 0.9953 | +3.434 | +3.592 |
-| ds5 | `28-000000D3A98D` | 26.04 | 83.57 | 123.03 | 0.9938 | +3.457 | +3.663 |
-| ds6 | `28-000000D5415D` | 25.70 | 83.29 | 122.79 | 0.9949 | +3.635 | +3.807 |
-| ds7 | `28-000000D48567` | 26.18 | 83.67 | 123.17 | 0.9938 | +3.387 | +3.595 |
-| ds8 | `28-000000D5FF9F` | 26.14 | 83.65 | 123.18 | 0.9943 | +3.404 | +3.595 |
-| ds9 | `28-000000D58E3F` | 25.81 | 83.37 | 122.92 | 0.9950 | +3.578 | +3.743 |
+| Label | Col | w1 name | @ice | @90 | @130 | Slope | K @55 | K @115 |
+|---|---|---|---|---|---|---|---|---|
+| PA9A | ds0 | `28-000000D47F08` | 26.16 | 83.74 | 123.24 | 0.9948 | +3.382 | +3.556 |
+| PA13A | ds1 | `28-000000D6D34A` | 25.75 | 83.29 | 122.79 | 0.9943 | +3.616 | +3.806 |
+| PA12A | ds2 | `28-000000D33C3A` | 25.86 | 83.43 | 123.01 | 0.9954 | +3.547 | +3.699 |
+| PA11A | ds3 | `28-000000D648F6` | 26.04 | 83.62 | 123.16 | 0.9952 | +3.446 | +3.607 |
+| PA10B | ds4 | `28-000000D601E1` | 26.07 | 83.63 | 123.20 | 0.9953 | +3.434 | +3.592 |
+| PA11B | ds5 | `28-000000D3A98D` | 26.04 | 83.57 | 123.03 | 0.9938 | +3.457 | +3.663 |
+| PA13B | ds6 | `28-000000D5415D` | 25.70 | 83.29 | 122.79 | 0.9949 | +3.635 | +3.807 |
+| PA9B | ds7 | `28-000000D48567` | 26.18 | 83.67 | 123.17 | 0.9938 | +3.387 | +3.595 |
+| PA10A | ds8 | `28-000000D5FF9F` | 26.14 | 83.65 | 123.18 | 0.9943 | +3.404 | +3.595 |
+| PA12B | ds9 | `28-000000D58E3F` | 25.81 | 83.37 | 122.92 | 0.9950 | +3.578 | +3.743 |
 
 1. The error grows from 6.2 °F at the ice point to 6.7 °F at 130 °F. Stem conduction toward the
    70 °F room would act in the same direction at every bath, and the bundle's immersion was not
    measured, so the slope is an upper bound on the chips' own; the two offset columns bracket it either
    way.
-2. Pairs for a coil should be chosen from probes with close offsets, so the residual after correction is
-   common-mode: ds3, ds4 and ds5 sit within 0.03 K of each other at 55 °F, as do ds0, ds7 and ds8,
-   and ds1 with ds6.
-3. The w1 names reverse the six serial bytes of the printed ROM, as the sketch prints them; the physical
-   tags were not read back to the list in this session.
+2. A coil takes one labelled pair, so the residual after correction is common-mode; the pairs were
+   formed from the sorted offsets, A and B within 0.03 K at 55 °F.
+3. The w1 names reverse the six serial bytes of the printed ROM, as the sketch prints them. The labels
+   were applied at the end of the session by lifting one probe at a time out of the 130 °F bath and
+   naming the column that cooled, with the label fixed per column so that each PA pair has matched
+   offsets: A and B of a pair are within 0.03 K at 55 °F. PA9 to PA13 follow the PA1 to PA8 roster of
+   `docs/ds18b20-PA1-5-calibration.md`.
 
 ## NTCs
 
