@@ -126,7 +126,7 @@ The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO
 2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
 3. Check the LEDs on the first carrier through the drilled wall, for brightness.
 
-The firmware is the present sketch's WiFi, 1-wire and NTC parts on the RP2040 core with the ADS1115 in place of the analog pins, plus the SCB parser of `pivac/unico_scb_protocol.py` ported to C, publishing the fields of §7 on the node's line; `pivac.UnicoSCB` with `node:` reads them, so the paths are the ones the utility zone publishes today from the Pi's USB.
+The firmware is `AirHandlerPico` in `~/github/Arduino`: the built-in USB host listening to the SCB, the DS2482 and ADS1115 on I2C, the LEDs, and one JSON line that `pivac.UnicoSCB` with `node:` and `pivac.ArduinoSensor` both read, so the paths are the ones the utility zone publishes today from the Pi's USB. It cannot yet write SCB settings.
 
 ## 1. Scope
 
