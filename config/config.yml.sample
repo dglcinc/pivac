@@ -236,6 +236,21 @@ pivac.LoopDelta:
             return: ah.mbr.air.return
             relay: HPCALL
             zones: [MASTER_BR]
+        # The utility zone's node (pivac.UnicoAH_Utility) sits beside the unit's SCB tap
+        # (pivac.UnicoSCB_Utility), which publishes the control board's own call bits every
+        # 5 s. `gate:` lists paths under sk_path whose value of 1 opens the gate, in place of
+        # `relay:` and the zone narrowing: no RedLink lag, and a dead SCB reader shuts the
+        # gate (no evidence of flow). Water moves through the coil on a Y1 or W1 call, when
+        # the zone pump runs; the fan alone moves air over still water, so the air pair
+        # gates on G. Design: docs/utility-air-handler-node-plan.md.
+        ah.utility.water:
+            supply: ah.utility.water.supply
+            return: ah.utility.water.return
+            gate: [ah.utility.call.y1, ah.utility.call.w1]
+        ah.utility.air:
+            supply: ah.utility.air.supply
+            return: ah.utility.air.return
+            gate: [ah.utility.call.g]
 
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
@@ -412,6 +427,52 @@ pivac.UnicoAH_MBR:
             outname: y2Seconds
         uptime_ms:
             sk_path: environment.inside.hvac.ah.mbr
+            outname: uptimeMs
+
+pivac.UnicoAH_Utility:
+    # Utility zone Unico air handler node: the rev A shield on an UNO R4 WiFi at 10.0.0.181
+    # (MAC e8:f6:0a:a9:fd:e8), two DS18B20 on the coil's water pipes and two 10K NTC duct
+    # sensors. The unit's calls, airflow and RPM come from its SCB over the Pi's USB
+    # (pivac.UnicoSCB_Utility), so the node's Y2/W2 inputs are unwired and not mapped here.
+    # Design: docs/utility-air-handler-node-plan.md. Shares pivac.ArduinoSensor.
+    description: Utility zone Unico M2430, coil water and air temperatures
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.181
+    rounding: 2
+    daemon_sleep: 5
+    inputs:
+        # `offset` is a per-input calibration in KELVIN, added before rounding. The water
+        # probes are PA9A (supply, 28-000000D47F08) and PA9B (return, 28-000000D48567) from
+        # the 2026-11 batch, which reads 6.2 F low on every probe
+        # (docs/air-handler-probe-calibration-2026-11-01.md). Offsets at 55 F (cooling water)
+        # deployed; at 115 F (heating) they are wsup +3.556, wret +3.595, swapped in with the
+        # loop probes' seasonal offsets. Pair correction (supply - return): -0.005 K at 55 F.
+        wsup:
+            sk_path: environment.inside.hvac.ah.utility.water
+            outname: supply
+            type: temperature
+            offset: 3.382
+        wret:
+            sk_path: environment.inside.hvac.ah.utility.water
+            outname: return
+            type: temperature
+            offset: 3.387
+        # NTC residuals after the sketch's pair-1 constants (R25 9877, beta 4001, same baths):
+        # RET 1 on A0 reads +0.0 to +0.5 F, SUP 1 on A1 -0.1 to -0.3 F, each within 0.07 K of
+        # constant from 55 to 110 F.
+        aret:
+            sk_path: environment.inside.hvac.ah.utility.air
+            outname: return
+            type: temperature
+            offset: -0.15
+        asup:
+            sk_path: environment.inside.hvac.ah.utility.air
+            outname: supply
+            type: temperature
+            offset: 0.10
+        uptime_ms:
+            sk_path: environment.inside.hvac.ah.utility
             outname: uptimeMs
 
 # ---------------------------------------------------------------------------
