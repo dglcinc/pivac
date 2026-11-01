@@ -57,9 +57,9 @@ the cooling-coil column and 115 °F the heating-coil column.
 | PA12B | ds9 | `28-000000D58E3F` | 25.81 | 83.37 | 122.92 | 0.9950 | +3.578 | +3.743 |
 
 1. The error grows from 6.2 °F at the ice point to 6.7 °F at 130 °F. Stem conduction toward the
-   70 °F room would act in the same direction at every bath, and the bundle's immersion was not
-   measured, so the slope is an upper bound on the chips' own; the two offset columns bracket it either
-   way.
+   70 °F room raises a reading in ice and lowers it at 130 °F, which widens the error in the same way,
+   and the bundle's immersion was not measured, so the slope is an upper bound on the chips' own; the
+   two offset columns bracket it either way.
 2. A coil takes one labelled pair, so the residual after correction is common-mode; the pairs were
    formed from the sorted offsets, A and B within 0.03 K at 55 °F.
 3. The w1 names reverse the six serial bytes of the printed ROM, as the sketch prints them. The labels
