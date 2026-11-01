@@ -95,16 +95,16 @@ was in TB2 for the first window of each bath and pair 2 the plug swapped in for 
 
 ## What went wrong on the bench
 
-1. **The TB3 plug's contact opened on its own**, eleven minutes into the 130 °F soak with nothing touched.
-   From 16:29:40 two to six of the ten probes failed each read, a different set every line, while the
-   DS2482 reported presence, no short and line high; `ds5` alone never missed. Reseating the plug cured it
-   at 16:33:42, though 48 of the next 373 lines still had a miss. A random set of probes failing each line
-   is a marginal bus, never a dead probe, and the header or plug is the first suspect, as it was on
-   2026-10-28 when TB3's unsoldered tail read as an open bus. The leaking-probe theory was raised and
-   withdrawn: the Quattro block gives each probe its own position, so a bisect by lifting one DQ lead at a
-   time is available if it recurs with the plug seated.
-2. **Both NTC plugs were half in at times**, RET open with SUP reading, on both pairs' plugs, so the
-   TB2 RET contact is suspect on the board as well as in the plugs. Pressing the plug home cured each case.
+1. **The bus went marginal on its own** eleven minutes into the 130 °F soak with nothing touched. From
+   16:29:40 two to six of the ten probes failed each read, a different set every line, while the DS2482
+   reported presence, no short and line high; `ds5` alone never missed. Reseating the lead at TB3 cured
+   it at 16:33:42. The cause was a bench lead breaking inside its connector, found afterwards; the
+   shield's header and plug are sound. A random set of probes failing each line is a marginal bus,
+   never a dead probe, and a lead or contact is the first suspect. The leaking-probe theory was raised
+   and withdrawn. The Quattro block gives each probe its own position, so a bisect by lifting one DQ lead
+   at a time is available if it recurs.
+2. **Both NTC plugs read half in at times**, RET open with SUP reading, on both pairs' leads; pressing
+   the plug home cured each case. The same bench leads were breaking inside the connectors.
 3. **A flickering plug advanced the pair on every touch.** `CalTracker` counted the next plug as in on the
    first closed sample, so each contact flicker after a counted out advanced the pair again, and the
    pair number toggled 1, 2, 1, 2 until the plug seated. The pair was set by key for three of the five
@@ -122,4 +122,6 @@ was in TB2 for the first window of each bath and pair 2 the plug swapped in for 
 - Read the Thermapen among the tips at the moment of each `logging` prompt, and again if the bath moves.
   In a sous vide, put the bundle in the circulator's outflow.
 - Stem immersion of three inches or more; record it, since it decides how much of the slope is the chip.
-- A probe set that fails at random across the bus is a contact; a probe that fails alone is a probe.
+- A probe set that fails at random across the bus is a lead or a contact; a probe that fails alone is a
+  probe. Make up bench leads that will survive the session; a lead that breaks inside its connector reads
+  as a board fault.
