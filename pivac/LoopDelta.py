@@ -121,6 +121,16 @@ def _calling(z):
     return z is not None and (z >= 1 or z <= -1)
 
 
+def _gate_paths(values):
+    """A gate read straight from equipment call bits (the utility unit's SCB
+    publishes `call.g`, `call.y1`, ... as 0/1 every 5 s).  Open when any
+    readable value is 1.  Shut when every readable value is 0, and shut when
+    none is readable: a dead reader is no evidence of flow, and the freshness
+    rule on the SCB path is what reports it."""
+    known = [v for v in values if v is not None]
+    return any(v >= 1 for v in known)
+
+
 def _gate_open(relay_state, zone_states, heat_zone_states=None):
     """True when this loop is pumping.
 
@@ -201,19 +211,26 @@ def status(config={}, output="default"):
         ret = _value(hvac, *_probe(loop["return"]), "temperature", max_age_s=max_age_s, now=now)
         delta = None if sup is None or ret is None else ret - sup
 
-        names = loop["relay"] if isinstance(loop["relay"], list) else [loop["relay"]]
-        relay = _any_relay([_value(relays, n, "state", max_age_s=max_age_s, now=now)
-                            for n in names])
-        zone_states = heat_zone_states = None
-        if loop.get("zones"):
-            zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
-                           for z in loop["zones"]]
-        if loop.get("heat_zones"):
-            heat_zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
-                                for z in loop["heat_zones"]]
+        if loop.get("gate"):
+            # `gate:` is a list of paths under sk_path carrying 0/1 call bits;
+            # it replaces `relay:` and the zone narrowing for this loop.
+            paths = loop["gate"] if isinstance(loop["gate"], list) else [loop["gate"]]
+            gated = _gate_paths([_value(hvac, *_probe(g), max_age_s=max_age_s, now=now)
+                                 for g in paths])
+        else:
+            names = loop["relay"] if isinstance(loop["relay"], list) else [loop["relay"]]
+            relay = _any_relay([_value(relays, n, "state", max_age_s=max_age_s, now=now)
+                                for n in names])
+            zone_states = heat_zone_states = None
+            if loop.get("zones"):
+                zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
+                               for z in loop["zones"]]
+            if loop.get("heat_zones"):
+                heat_zone_states = [_value(zones, z, "statenum", max_age_s=max_age_s, now=now)
+                                    for z in loop["heat_zones"]]
+            gated = _gate_open(relay, zone_states, heat_zone_states)
 
-        value, flowing = _advance(state, _gate_open(relay, zone_states, heat_zone_states),
-                                  delta, now, settle_s)
+        value, flowing = _advance(state, gated, delta, now, settle_s)
         result["%s.flowing" % name] = 1 if flowing else 0
         if value is not None:
             result["%s.deltaT" % name] = round(value, rounding)
