@@ -1,6 +1,6 @@
 # Air-handler node shield: PCB plan
 
-**Status:** The node is the Pico W carrier of §0, in a Hammond 1593K: routed and DRC clean, with gerbers in `hardware/ahp-board/ahp-board-gerbers.zip`, not yet ordered. The rest of this plan is the UNO R4 shield with the serial tap of §4.3, the fallback route, not built past rev A.
+**Status:** The node is the Pico W carrier of §0, in a Hammond 1593K: routed and DRC clean, with gerbers in `hardware/ahp-board/ahp-board-gerbers.zip`. Rev B's board and stencil are ordered from JLC, and every required part not in stock from Digi-Key. The rest of this plan is the UNO R4 shield with the serial tap of §4.3, the fallback route, not built past rev A.
 `hardware/ah-board/` still carries the Y2 and W2 optocoupler inputs; that board is fabricated as rev A and in hand since 2026-10-27, with its parts from Mouser, and `docs/air-handler-shield-assembly.md` is its build sheet. · **Owner:** David
 
 The first node, at the master bedroom, is an Arduino UNO R4 WiFi with a hand-wired Olimex PROTO-SHIELD, a DIN-rail 24 VAC to

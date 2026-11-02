@@ -58,18 +58,13 @@ offset by −0.10 and changes no slope, no pair correction and no ΔT.
 
 **Take each probe's offset from the column matching its operating temperature.** That is the whole
 point of measuring a slope, and the columns above differ by more than the correction itself. In
-service today: UBT/LBT keep ice-point values because the buffer tank is chilled-only; LOOPA/LOOPB
-use the 45 °F column; **the DHW recirc probe uses 120 °F, where its offset is +0.274 K** — not the
-+0.348 in the 45 °F column, since that loop runs 75 degrees warmer than the chilled one. That value
-is already set on the `0316a015e7ff` entry in the Pi's `config.yml`, inert until the probe joins the
-1-wire bus. A spare has no operating point until it is sited, so pick its column then.
+service, every sensor carries `offsets:` and interpolates on its reading: the loop probes, PA5, PA9 and
+the DHW recirc probe (PA6B, `{45: 0.348, 140: 0.254}`, on the Arduino's `temp` input) have their columns.
+A spare has no operating point until it is sited, so pick its column then.
 
-**IN, OUT, UBT and LBT are still single-point ice values** from 2026-08-22, worth under 0.04 K at
-45 °F. **UBT and LBT need nothing further: the buffer tank runs chilled only**, so an ice-point
-calibration sits 13 degrees from its one operating point and is the right calibration rather than a
-provisional one. **IN and OUT are the pair that would benefit from hot points**, since the primary
-loop carries boiler water in heating — which is why the ΔT panel is built to show the sign
-inversion. Their pair correction is unaffected either way.
+**IN, OUT, UBT and LBT hold only their ice values** from 2026-08-22, as `{32: x}`, which is a constant.
+The buffer tank and the primary run near 120 °F through the heating season, and the batch's slopes run
+0.994 to 1.002, so these four can be 0.3 K off in heating until a hot bath gives each a second point.
 
 ## PA5 pair, three points (2026-10-20)
 
@@ -196,14 +191,13 @@ window on that pair before relying on its ΔT correction.
 
 ## Caveats and next steps
 
-- **PA3 and PA4 are single point (ice) only**, by decision (`docs/onewire-notes.md`): slope is
-  unverified for IN, OUT, UBT and LBT. PA1, PA2, PA5 and the four recovered probes have three
+- **PA3 and PA4 are single point (ice) only**: slope is unverified for IN, OUT, UBT and LBT, and a
+  hot bath is what interpolation needs from them. PA1, PA2, PA5 and the four recovered probes have three
   points.
 - **Config units.** pivac stores temperatures in Kelvin (`OneWireTherm` reads `Unit.KELVIN`), so
   apply the K column if the `offsets:` map is in Kelvin; the °F column is the bench measurement.
-- **The DHW recirc offset cannot be applied where that probe sits.** It reaches Signal K through
-  `pivac.ArduinoSensor`, which has no `offset` support — the key exists only in `OneWireTherm`.
-  Applying it means moving the probe onto the 1-wire bus or adding offset support to that module.
+- **The DHW recirc offset sits on the Arduino's input.** It reaches Signal K through
+  `pivac.ArduinoSensor`, so its `offsets:` sit on the `temp` input of `pivac.ArduinoPSI`.
 - **Verify w1 names on the Pi.** Confirm each `28-…` appears under `/sys/bus/w1/devices/` before
   trusting `config.yml`.
 - **The printed tag is not a reliable physical identifier in this set** — one probe was found

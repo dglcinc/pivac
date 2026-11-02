@@ -439,8 +439,8 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
    between the seasons (+0.17 °F at 55 °F, −0.27 °F at 115 °F). Record and logs:
    `docs/ds18b20-PA1-5-calibration.md`, `docs/data/ah-mbr-node/`.
 2. The NTCs' error grew with temperature under the data-sheet beta, so `NTC_BETA` is 3995 (fitted
-   4006 and 3982 K per sensor) and the residuals are `offset:` keys in config, −0.25 K on `asup`
-   and +0.03 K on `aret`, each within 0.4 °F of constant from 32 to 130 °F. Bundling matters: the
+   4006 and 3982 K per sensor) and the residuals are `offsets:` keys in config, one per bath at 32, 90 and 130 °F:
+   `asup` −0.167, −0.134, −0.456 K and `aret` −0.103, +0.165, +0.027 K. Bundling matters: the
    first 90 °F soak with loose tips read the same as the bundled repeat, but only the repeat proves
    it.
 3. With the node installed, set the thermostat's fan to On with no call for 20 minutes. `asup` and
