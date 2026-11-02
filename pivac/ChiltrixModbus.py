@@ -96,6 +96,19 @@ RAW_RANGES = [(0, 139),
 DEFAULT_PORT = "/dev/ttyACM0"
 SK_ROOT = "hvac.chiller.chiltrix"
 
+# ---- fast fault poll --------------------------------------------------------
+# Register 284 shows a fault only while it is active.  A P1 that clears itself
+# lasts well under a minute, and the full scan every ~70 s missed 6 of the 18
+# P1s in the panel logs to 2026-10-26.  So the daemon runs at a short
+# daemon_sleep, reads only these two registers on most cycles, and does the
+# full scan once `scan_s` has passed.  227 (compressor Hz) rides along so the
+# stop that a P1 causes is timed to the same cycle.
+FAST_REGS = (227, 284)
+DEFAULT_SCAN_S = 60
+# faultCode holds the last non-zero 284 for this long, so a fault that lasted
+# one fast cycle still covers a whole minute bucket in InfluxDB and Grafana.
+DEFAULT_FAULT_HOLD_S = 60
+
 # ---- persistent state (this module owns one serial port, so one daemon) -----
 _ser = None
 _state = {
@@ -105,11 +118,18 @@ _state = {
     "startup_flow_last": None,
     "prev_hz": None,
     "stopped_at": None,      # wall clock of the last compressor stop edge
+    "last_scan": None,       # wall clock of the last full scan
+    "fault_code": None,      # last non-zero register 284
+    "fault_at": None,        # wall clock it was last read non-zero
 }
 
 # Idle-side flow samples this soon after a stop edge are the pump spinning
 # down and are excluded from the plateau.  See _derive.
 STOP_SETTLE_S = 180
+
+# Pump command (register 248, %) below which an idle-side flow sample is not a
+# pre-start plateau.  See _derive.
+FULL_PUMP_PCT = 90
 
 
 def _open(port, baud):
@@ -197,7 +217,8 @@ def _convert(kind, raw):
     return int(raw)
 
 
-def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
+def _derive(regs, result, stop_settle_s=STOP_SETTLE_S,
+            full_pump_pct=FULL_PUMP_PCT):
     """Compressor run duration, and the flow plateau around a start.
 
     Flow is NOT a fixed reference at an arbitrary moment: the pump nearly stops
@@ -224,9 +245,18 @@ def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
     Note this does not establish that the plateau is a FIXED commanded speed —
     an adaptive re-trim by the controller would move it too.  See the header of
     grafana/provisioning/alerting/chiltrix.yaml.
+
+    The idle side also requires the pump at full command (register 248 at
+    `full_pump_pct` or more) whenever 248 is known.  During a latched fault the
+    controller holds the pump at its P53 minimum of 40 % with the compressor
+    off: 23-24 L/min through a clean screen for 72 minutes on 2026-10-20, read
+    as a 24.1 L/min plateau, which fired chiltrix-pump-only-flow-low on a P1
+    high-pressure lockout.  The pump-only window before a genuine start runs at
+    100 %, so the gate leaves it intact.
     """
     hz = regs.get(227)
     flow = regs.get(213)
+    pump = regs.get(248)
     if hz is None:
         return
     now = time.time()
@@ -255,7 +285,8 @@ def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
         lpm = flow / 10.0
         settling = (_state["stopped_at"] is not None
                     and now - _state["stopped_at"] < stop_settle_s)
-        in_window = ((hz == 0 and not settling)
+        pump_full = pump is None or pump >= full_pump_pct
+        in_window = ((hz == 0 and not settling and pump_full)
                      or (_state["run_started"] is not None
                          and now - _state["run_started"] <= 150))
         if in_window and lpm > 15.0:     # excludes the deep-idle sensing trickle
@@ -274,10 +305,29 @@ def _derive(regs, result, stop_settle_s=STOP_SETTLE_S):
         result["startupFlow"] = round(plateau, 1)
 
 
+def _fault(regs, result, hold_s=DEFAULT_FAULT_HOLD_S):
+    """Publish faultCode: register 284, held at its last non-zero value for
+    `hold_s` after the last read that saw it."""
+    code = regs.get(284)
+    if code is None:
+        return
+    now = time.time()
+    if code:
+        _state["fault_code"] = code
+        _state["fault_at"] = now
+    held = (_state["fault_at"] is not None and now - _state["fault_at"] < hold_s)
+    result["faultCode"] = int(code or (_state["fault_code"] if held else 0))
+
+
 def status(config={}, output="default"):
     port = config.get("port", DEFAULT_PORT)
     baud = int(config.get("baud", 115200))
-    ranges = config.get("ranges") or RAW_RANGES
+    full = (_state["last_scan"] is None
+            or time.time() - _state["last_scan"] >= float(config.get("scan_s", DEFAULT_SCAN_S)))
+    if full:
+        ranges = config.get("ranges") or RAW_RANGES
+    else:
+        ranges = [(a, a) for a in FAST_REGS]
 
     global _ser
     regs = {}
@@ -287,6 +337,8 @@ def status(config={}, output="default"):
             _open(port, baud)
         for lo, hi in ranges:
             regs.update(_read_range(_ser, lo, hi))
+        if full:
+            _state["last_scan"] = time.time()
     except Exception as e:
         logger.warning("ChiltrixModbus read failed (%s); reopening next cycle", e)
         try:
@@ -312,10 +364,12 @@ def status(config={}, output="default"):
         result["evaporatorDelta"] = round((regs[281] - regs[205]) / 10.0, 2)
 
     _derive(regs, result, float(config.get("stop_settle_s", STOP_SETTLE_S)))
+    _fault(regs, result, float(config.get("fault_hold_s", DEFAULT_FAULT_HOLD_S)))
     # How many of the addresses WE ASKED FOR answered.  Not a property of the
     # chiller — it answers everything — but a useful link-health signal, since a
-    # degrading bus drops responses.
-    result["registerCount"] = len(regs)
+    # degrading bus drops responses.  Full scans only, so it stays comparable.
+    if full:
+        result["registerCount"] = len(regs)
 
     if output != "signalk":
         return result

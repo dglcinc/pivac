@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from pivac.LoopDelta import _advance, _any_relay, _gate_open, _new_state  # noqa: E402
+from pivac.LoopDelta import _advance, _any_relay, _gate_open, _gate_paths, _new_state, _probe, _value  # noqa: E402
 
 SETTLE = 180.0
 
@@ -79,7 +79,38 @@ def test_gate():
         ok = got == expected
         failures += not ok
         print("%-4s gate: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
-    return failures, len(cases) + len(heat_cases) + len(relay_cases)
+    path_cases = [
+        # `gate:` on SCB call bits (the utility node)
+        ("call bit 1                     -> open", [1], True),
+        ("call bits 0, 0                 -> shut", [0, 0], False),
+        ("one of two bits 1              -> open", [0, 1], True),
+        ("one unreadable, other 1        -> open", [None, 1], True),
+        ("all unreadable (reader dead)   -> shut", [None, None], False),
+        ("float 1.0                      -> open", [1.0], True),
+    ]
+    for label, values, expected in path_cases:
+        got = _gate_paths(values)
+        ok = got == expected
+        failures += not ok
+        print("%-4s path: %-32s -> %s" % ("ok" if ok else "FAIL", label, got))
+    return failures, len(cases) + len(heat_cases) + len(relay_cases) + len(path_cases)
+
+
+def test_probe_paths():
+    """A loop probe sits directly under sk_path; the air-handler node's probes are
+    nested four deep, and a dotted name reaches them."""
+    tree = {
+        "IN": {"temperature": {"value": 280.0}},
+        "ah": {"mbr": {"water": {"supply": {"temperature": {"value": 285.5}}}}},
+    }
+    failures = 0
+    cases = [("IN", 280.0), ("ah.mbr.water.supply", 285.5), ("ah.mbr.air.supply", None)]
+    for name, expected in cases:
+        got = _value(tree, *_probe(name), "temperature")
+        ok = got == expected
+        failures += not ok
+        print("%s  %-22s -> %s" % ("ok  " if ok else "FAIL", name, got))
+    return failures, len(cases)
 
 
 def test_values():
@@ -120,8 +151,10 @@ def main():
     f1, n1 = test_gate()
     print()
     f2, n2 = test_values()
-    print("\n%d case(s), %d failure(s)" % (n1 + n2, f1 + f2))
-    return 1 if (f1 + f2) else 0
+    print()
+    f3, n3 = test_probe_paths()
+    print("\n%d case(s), %d failure(s)" % (n1 + n2 + n3, f1 + f2 + f3))
+    return 1 if (f1 + f2 + f3) else 0
 
 
 if __name__ == "__main__":

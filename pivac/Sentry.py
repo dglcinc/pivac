@@ -33,6 +33,10 @@ Optional config keys:
                         (burner/circ/circ_aux/thermostat_demand). Default 1.05 (IR-calibrated).
     indicator_ratio     Spot/bg ratio for the bright display-mode + dhw_temp indicators.
                         Default 1.15.
+    lens_spot_radius    Half-width in px of the box sampled on each LED and indicator lens
+                        (default: 8). Scale it and lens_bg_radius with the size of the
+                        lenses in the frame; the ratios above are judged against both.
+    lens_bg_radius      Half-width in px of the background box around each lens (default: 25)
     digit_threshold_factor  Threshold = mean + factor*(max-mean) per digit (default: 0.50)
     daemon_sleep        Seconds between poll cycles (framework key; recommend >= 30)
     registration        Camera-creep tracking (see "Registration" below). Keys:
@@ -330,6 +334,11 @@ def _roi_ratio(frame, coord: dict,
     return spot_brightness / bg_brightness
 
 
+def _lens_radii(config: dict) -> tuple:
+    """(spot, background) half-widths for the lens ratio, from config."""
+    return config.get("lens_spot_radius", 8), config.get("lens_bg_radius", 25)
+
+
 def _roi_is_lit(frame, coord: dict,
                 spot_radius: int = 8, bg_radius: int = 25,
                 ratio: float = 1.15) -> bool:
@@ -401,7 +410,7 @@ def _read_leds(frame, config: dict, ratios: dict = None) -> dict:
     for key, name in (("burner", "burnerOn"), ("circ", "circOn"),
                       ("circ_aux", "circAuxOn"),
                       ("thermostat_demand", "thermostatDemand")):
-        r = _roi_ratio(frame, leds[key])
+        r = _roi_ratio(frame, leds[key], *_lens_radii(config))
         out[name] = r >= ratio
         if ratios is not None:
             ratios.setdefault(key, []).append(r)
@@ -428,7 +437,7 @@ def _read_indicators(frame, config: dict, ratios: dict = None):
             continue
         if active is not None and ratios is None:
             break
-        r = _roi_ratio(frame, coord)
+        r = _roi_ratio(frame, coord, *_lens_radii(config))
         if ratios is not None:
             ratios.setdefault(mode, []).append(r)
         if r >= ratio and active is None:
@@ -442,7 +451,7 @@ def _read_dhw_priority(frame, config: dict, ratios: dict = None) -> bool:
     coord = config.get("indicators", {}).get("dhw_temp")
     if coord is None:
         return False
-    r = _roi_ratio(frame, coord)
+    r = _roi_ratio(frame, coord, *_lens_radii(config))
     if ratios is not None:
         ratios.setdefault("dhw_temp", []).append(r)
     return r >= ratio

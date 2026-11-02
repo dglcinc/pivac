@@ -23,8 +23,8 @@ strainer measured sound (§5.10 of the assessment). The return-air sensor shows 
 |---|---|---|---|
 | Water to coil | DS18B20 | D2 | `wsup` |
 | Water from coil | DS18B20 | D2 | `wret` |
-| Return air | 10K NTC | A0 | `aret` |
-| Supply air | 10K NTC | A1 | `asup` |
+| Return air | 10K NTC | A1 | `aret` |
+| Supply air | 10K NTC | A0 | `asup` |
 | Y2 call | 792 relay, 24 VAC coil | D8 | `y2`, `y2_s` |
 
 All temperatures go out in °F at two decimals, and pivac converts them to Kelvin. `y2` is the call
@@ -66,6 +66,14 @@ Arduino's ground to C or to earth. The relay keeps Y2 off the Arduino, so two ch
 Unplug the converter's USB-C from the R4 before plugging a laptop in to flash it, so the laptop
 never shares a ground with the 24 VAC side.
 
+The converter on hand is isolated (ohmmeter check 1, 2026-10-18), so check 2 is not needed. On the
+bench it delivered 4.65 V at the shield's 5 V terminal with the node running and WiFi up, against
+4.86 V at the same terminal from a laptop's USB, so its output sits about 0.2 V low under load.
+Every part on the node accepts that, and the node ran on it without a reset, so it goes into
+service as is. The node's `uptime_ms` is the evidence to watch: a reset to near zero with no WiFi
+message in the log is a supply dropout, and the remedy is a converter specified at 5.1 to 5.2 V or
+with a trim pot.
+
 ## 3. Wiring
 
 The drawing carries every connection; this section gives the reasons and the checks.
@@ -96,14 +104,14 @@ green and brown pairs open at both ends. Keep the whole bus under 10 m; at that 
 pull-up has room to spare.
 
 Use the PA5 pair, PA5A `28-000000cb6e28` and PA5B `28-0000001a8cda`, the one calibrated pair not in
-service. They were bench-matched in the same bath as the loop probes (ice-point offsets +0.320 and
-+0.089 K in `docs/ds18b20-PA1-5-calibration.md`), and a matched pair is what a coil ΔT wants. PA5
+service. They were bench-matched in the same baths as the loop probes (three points each; offsets in
+`docs/ds18b20-PA1-5-calibration.md` and §6), and a matched pair is what a coil ΔT wants. PA5
 was noted as the candidate for a future outdoor probe; that run needs one probe, and the spare CRW
 (`28-0316a00f04ff`) can take it.
 
 The sketch addresses each probe by its ROM, set in the zone's `.ino`, so supply and return can
-never swap if the bus enumerates them in a different order. Record which probe went on which pipe
-in this document at the build.
+never swap if the bus enumerates them in a different order. **PA5A is on the supply pipe
+(`ROM_WSUP`, `wsup`) and PA5B on the return (`ROM_WRET`, `wret`)**, assigned 2026-10-20.
 
 Strap each probe to bare, cleaned copper on the coil's supply and return, as close to the coil
 connections as the pipe allows and at least five diameters from a fitting. Use thermal compound
@@ -114,8 +122,8 @@ Strain-relieve each cable to the pipe an inch or two behind the probe.
 ### 3.2 Air temperatures, 10K NTC on A0 and A1
 
 An ADC measures voltage, and an NTC is a resistance, so each sensor needs a known resistor in
-series to turn its resistance into a voltage. R8 runs from 5 V to A0 and the return-air NTC from A0
-to GND; R9 and the supply-air NTC do the same on A1. The pin then reads
+series to turn its resistance into a voltage. R8 runs from 5 V to A0 and the supply-air NTC from A0
+to GND; R9 and the return-air NTC do the same on A1. The pin then reads
 5 V × R_ntc ÷ (R_ntc + 10.0 kΩ), and the sketch solves for R_ntc. Because the divider and the ADC
 reference are the same 5 V rail, supply variation cancels. The fixed resistor's tolerance and drift
 become temperature error directly: 0.1 % at 25 ppm/°C costs about 0.04 °F, where a 1 % part would
@@ -128,10 +136,19 @@ ADC that charge at once. With the divider it also forms a low-pass filter at abo
 removes hum and blower-motor noise the sensor cable picks up along the duct. Fit both on the shield
 close to their pins.
 
-Run each NTC on its own Belden 8451 shielded pair: one conductor to the A0 or A1 block, the other
-to the GND block beside it and the drain to the SH block after that (XT4–XT6 for return air,
-XT7–XT9 for supply air). The SH terminal joins GND on the shield. Cut the drain back and tape it at
-the sensor end, so the shield is grounded at one end only.
+Run each NTC on its own two-conductor cable: one conductor to the A0 or A1 block and the other
+to the GND block beside it (XT4 and XT5 for supply air, XT7 and XT8 for return air). Plain 20 AWG
+two-conductor thermostat wire is enough, which is what Honeywell's own duct sensors ship on, and
+20 AWG goes straight into the push-in connectors used for the sensor splices. The
+measurement is DC through a 10 kΩ divider at 55 mV per kelvin and the node averages every sample
+of the second before it reports, so a few millivolts of hum is a few hundredths of a kelvin before
+averaging and nothing after it. Keep the pair in its own cable, out of any run that carries the
+24 VAC to the relay, line voltage or the blower leads: a shared thermostat cable couples about
+15 mV at 60 Hz onto the divider through its conductor capacitance, which averages away but is
+worth avoiding. A shielded pair (Belden 8451) is an option where sharing a run cannot be
+helped: drain to the SH block (XT6 or XT9, joined to GND on the shield), cut back and taped at
+the sensor end so the shield is grounded at one end only. The installed node runs on 8451
+because it was on hand.
 
 Measure each sensor's resistance at room temperature before wiring. About 10 kΩ at 77 °F confirms
 a 10K part. Honeywell also sells 20K duct sensors, and a 20K part wants 20.0 kΩ for R8 and R9.
@@ -236,7 +253,10 @@ The new header reuses the pressure boards' proven skeleton unchanged: the RA4M1 
 first in `setup()` and refreshed each `loop()` at 5 s, the bounded `connectWiFi()` that resets the
 board with `NVIC_SystemReset()` after 20 s, the 2 s cap on serving one HTTP client, and the
 single-line single-quoted response that `pivac.ArduinoSensor` parses with `ast.literal_eval`.
-`loop()` must never block, so every sensor read below is non-blocking.
+`loop()` must never block, so every sensor read below is non-blocking. The sketch does not call
+`WiFi.setHostname()`: on the R4 WiFi it blocks for longer than the 5 s watchdog and the board
+reboots in a loop before reaching `begin()` (bench, 2026-10-18). The node is named on the UCG
+instead, `AirHandler-MBR`, reserved to 10.0.0.180 by its WiFi MAC `e8:f6:0a:aa:a3:88`.
 
 ### 4.3 Loop timing
 
@@ -256,8 +276,9 @@ single-line single-quoted response that `pivac.ArduinoSensor` parses with `ast.l
 `DallasTemperature` with `setResolution(12)` and `setWaitForConversion(false)`, exactly as the DHW
 board runs it. Every 2 s the sketch reads both probes by ROM with `getTempF(rom)`, then calls
 `requestTemperatures()` to start the next conversion, which takes 750 ms and so is always finished
-by the following read. A read that returns `DEVICE_DISCONNECTED_F` (−196.6 °F) or the power-on
-value of exactly 185.0 °F is a fault, and the field is left out of the response (§4.7).
+by the following read. A read below −100 °F (the library's `DEVICE_DISCONNECTED_F`, −196.6 °F, is a double
+expression and never compares equal to the float it returns) or at the 185.0 °F power-on value is
+a fault, and the field is left out of the response (§4.7).
 
 ### 4.5 Air temperatures
 
@@ -341,7 +362,7 @@ pivac.UnicoAH_MBR:
     description: Master bedroom Unico M2430, coil water and air temperatures and the Y2 call
     module: pivac.ArduinoSensor
     enabled: true
-    ipaddr: 10.0.0.xxx
+    ipaddr: 10.0.0.180
     rounding: 2
     inputs:
         wsup:
@@ -406,16 +427,22 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 6. `CLAUDE.md`: the Active Services table, the restart, stop and log commands, the Current
    Modules entry, and the board's MAC and IP. The Arduino repo's `CLAUDE.md` gains the board in its
    hardware table.
-7. A DHCP reservation on the UCG for the board's MAC.
+7. A DHCP reservation on the UCG for the board's MAC: `AirHandler-MBR`, `e8:f6:0a:aa:a3:88`,
+   10.0.0.180 (set 2026-10-18).
 
 ## 6. Calibration and commissioning
 
-1. On the bench, bundle the two DS18B20s in a stirred insulated jug and log 15 minutes at room
-   temperature and 15 in ice water. The mean difference at each point is the pair offset; split it
-   between the two `offset:` keys (Appendix G.1).
-2. Put both NTCs in the same jug beside a DS18B20 at the same two points. The ice bath checks
-   `NTC_BETA`: if both NTCs read the same error at 32 °F and at room temperature, it is an offset;
-   if the error changes between the two points, adjust beta until it doesn't, then set offsets.
+1. Bench calibration, done 2026-10-20 in three baths (ice at 32.2 °F by the Thermapen, 90.0 and
+   129.65 °F), all four tips bundled with the Thermapen among them, ten minutes each, logged by
+   `AirHandlerBench`. The PA5 pair's offsets are +0.280 K (PA5A) and +0.186 K (PA5B) at 55 °F for
+   cooling water and +0.143 and +0.295 K at 115 °F for heating; the pair correction crosses zero
+   between the seasons (+0.17 °F at 55 °F, −0.27 °F at 115 °F). Record and logs:
+   `docs/ds18b20-PA1-5-calibration.md`, `docs/data/ah-mbr-node/`.
+2. The NTCs' error grew with temperature under the data-sheet beta, so `NTC_BETA` is 3995 (fitted
+   4006 and 3982 K per sensor) and the residuals are `offset:` keys in config, −0.25 K on `asup`
+   and +0.03 K on `aret`, each within 0.4 °F of constant from 32 to 130 °F. Bundling matters: the
+   first 90 °F soak with loose tips read the same as the bundled repeat, but only the repeat proves
+   it.
 3. With the node installed, set the thermostat's fan to On with no call for 20 minutes. `asup` and
    `aret` should then agree within 0.3 °F, and the return air should track the RedLink room
    temperature within the thermostat's whole-degree reporting.
@@ -439,7 +466,7 @@ stage-2 fraction is the derivative of `y2Seconds` over the time `MASTER_BR.state
 | R8, R9 | Yageo MFP-25BRD52-10K, 10.0 kΩ 0.1 % 25 ppm | 2 | [MFP-25BRD52-10K](https://www.digikey.com/en/products/detail/yageo/MFP-25BRD52-10K/2059114) | [search](https://www.amazon.com/s?k=10k+ohm+0.1%25+25ppm+1%2F4W+metal+film+resistor) |
 | C6, C7 | Kemet C315C104M5U5TA, 0.1 µF 50 V | 2 | [C315C104M5U5TA](https://www.digikey.com/en/products/detail/kemet/C315C104M5U5TA/817927) | [search](https://www.amazon.com/s?k=0.1uF+50V+ceramic+capacitor+radial+through+hole) |
 | R10 | Yageo MFR-25FBF52-1K, 1 kΩ | 1 | [MFR-25FBF52-1K](https://www.digikey.com/en/products/detail/yageo/MFR-25FBF52-1K/13011) | [search](https://www.amazon.com/s?k=1k+ohm+1%2F4W+1%25+metal+film+resistor) |
-| W1, W2 | Belden 8451, 2 × 22 AWG shielded, 100 ft | 1 | [8451 010100](https://www.digikey.com/product-detail/en/belden-inc/8451-010100/BEL1311-100-ND/7007722) | [search](https://www.amazon.com/s?k=Belden+8451+22+AWG+2+conductor+shielded+cable) |
+| W1, W2 | NTC cable: 20 AWG two-conductor thermostat wire, or Belden 8451 2 × 22 AWG shielded where the run is shared, 100 ft | 1 | [8451 010100](https://www.digikey.com/product-detail/en/belden-inc/8451-010100/BEL1311-100-ND/7007722) | [search](https://www.amazon.com/s?k=Belden+8451+22+AWG+2+conductor+shielded+cable) |
 | K1 | Magnecraft 792, 24 VAC coil, on 70-782EL14-1 socket | 1 | on hand | — |
 | PS1 | 24 VAC to 5 V DC buck converter, USB-C out | 1 | on hand | — |
 

@@ -238,12 +238,12 @@ TERM = [
     ("TB1", "GND", "1-Wire GND", C_GND),
     ("TB2", "GND", "K1 NO 5", C_GND),
     ("TB2", "D8", "K1 COM 9", C_D8),
-    ("TB3", "A0", "return NTC", C_AN),
-    ("TB3", "GND", "return NTC", C_GND),
-    ("TB3", "SH", "return drain", C_GND),
-    ("TB4", "SH", "supply drain", C_GND),
-    ("TB4", "GND", "supply NTC", C_GND),
-    ("TB4", "A1", "supply NTC", C_AN),
+    ("TB3", "A0", "supply NTC", C_AN),
+    ("TB3", "GND", "supply NTC", C_GND),
+    ("TB3", "SH", "supply drain", C_GND),
+    ("TB4", "SH", "return drain", C_GND),
+    ("TB4", "GND", "return NTC", C_GND),
+    ("TB4", "A1", "return NTC", C_AN),
 ]
 TY = [43.18 - 2.54 * i for i in range(11)]
 groups = {}

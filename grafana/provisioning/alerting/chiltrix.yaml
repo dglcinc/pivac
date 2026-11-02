@@ -394,9 +394,9 @@ groups:
             1. Walk the loop isolation valves, most recently touched first, then purge air
                (IOM p39). After a fill, do both — an open valve does not rule out an air lock.
             2. hvac.chiller.chiltrix.raw.r284 is the controller's fault/lockout register. It
-               read 32 throughout that lockout and 0 for every other sample of the surrounding
-               eight days. Nonzero corroborates a controller-side trip; the full encoding is
-               not mapped, so treat a value other than 32 as new information and record it.
+               read 32 throughout that lockout; 2 is P1 high pressure protection (matched
+               to the panel log 2026-10-20). Nonzero corroborates a controller-side trip;
+               treat any other value as new information and record it.
             3. Read the controller's error log for the code and timestamp BEFORE pressing
                anything. No Modbus register latches a fault code (checked: nothing in the 181
                published addresses holds one after the event clears), and the panel log is a
@@ -414,6 +414,181 @@ groups:
                Y-strainer (see chiltrix-pump-only-flow-low) and check for an air lock.
             5. Do NOT open the autofill to recover pressure. This is a glycol loop — top up
                manually with premixed glycol to 21-23 psi, then vent.
+        labels:
+          severity: warning
+          source: chiltrix
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- A latched fault: register 284 non-zero and holding ----
+      # Register 284 reads 2 during P1 high pressure protection, matched against the panel's
+      # error log on 2026-10-20 (four of thirteen logged P1s landed on a poll). A P1 at the end
+      # of a heating run normally clears inside one ~70 s poll, so a single non-zero sample is
+      # routine and must not fire. On 2026-10-20 a second P1 thirty minutes after the first
+      # latched: 284 held 2 from 08:30 to 09:42 EDT, the compressor never restarted while the
+      # tank coasted from 126 to 98 F, and only a breaker power cycle cleared it. The only
+      # alarm that fired was chiltrix-pump-only-flow-low, misreading the 40 % pump of the
+      # lockout as a fouled start.
+      #
+      # min over 6 minutes means every sample in the window was non-zero, which no
+      # self-clearing P1 on record has managed. switchOn max keeps a deliberate HMI off quiet.
+      - uid: chiltrix-fault-latched
+        title: Chiltrix fault latched (register 284 non-zero)
+        condition: F
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.raw.r284
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: min
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: hvac.chiller.chiltrix.switchOn
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: C
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: D
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: C
+              reducer: max
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: D
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: E
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: ($B > 0) && ($D > 0)
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: E
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: F
+            relativeTimeRange:
+              from: 360
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: E
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: F
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - E
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: OK
+        execErrState: OK
+        for: 2m
+        annotations:
+          summary: "Chiltrix is locked out on a fault — read the panel error log, then cycle the chiller's breaker"
+          runbook: |
+            hvac.chiller.chiltrix.raw.r284 has held a non-zero fault code for over six
+            minutes. 2 is P1 high pressure protection; 32 was the 2026-09-03 closed-valve
+            lockout (P5 by mechanism). The compressor will not restart while it holds, and
+            in heating the tank coasts down (126 to 98 F in 72 minutes on 2026-10-20).
+
+            1. Touch ERROR on the controller home screen and record the newest rows
+               (time, date, code) before pressing anything. Never press Clear.
+            2. Panel Error reset did not clear E14 and was not tried on the P1 lockout;
+               a breaker power cycle cleared both. Off about a minute, then on.
+            3. If startupFlow also dropped, ignore it until the unit restarts: during a
+               lockout the pump runs at its P53 minimum (raw.r248 = 50 since 2026-10-20,
+               about 30 L/min; 40 and 24 L/min before) through a clean screen. Judge the
+               strainer on the first start afterwards.
+            4. Repeated P1 in heating: the end-of-run head pressure is at the cutout. See
+               docs/chiltrix-modbus.md (P1 in heating) for the settings Chiltrix advised.
         labels:
           severity: warning
           source: chiltrix

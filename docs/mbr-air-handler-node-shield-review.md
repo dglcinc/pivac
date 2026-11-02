@@ -76,7 +76,7 @@ The terminal pins sit in the outer CON column at x 1.28, at holes 1A, 3A … 15A
 | 11 | TB4 | A1 | XT7 |
 
 1. The order puts the six ground terminals in two adjacent runs, 3–4 and 7–10. Each run is bridged on the solder side and joined to ground by one wire.
-2. The supply-air set is mirrored (SH, GND, A1) so that its drain sits beside the return-air drain.
+2. The return-air set is mirrored (SH, GND, A1) so that its drain sits beside the supply-air drain.
 3. The digital terminals are at the top, near the DIGITAL header, and the analog ones lower down, near the ANALOG header.
 4. If the blocks on hand are two 6-way blocks, position 12 at y 15.24 is a spare.
 
