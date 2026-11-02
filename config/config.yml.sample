@@ -116,10 +116,11 @@ pivac.OneWireTherm:
     # operating point. IN/OUT/UBT/LBT are single-point ice values; the difference that
     # makes at 45 F is under 0.04 K.
     #
-    # In heating season the loops run near 140 F, where the correct offsets are
-    # LOOPA_SUP +0.346, LOOPA_RET +0.220, LOOPB_SUP +0.029, LOOPB_RET +0.152 --
-    # up to 0.32 K from the values set here. Pair delta-T needs those heating values
-    # too, because each loop spans two bench pairs (see the supply note below).
+    # The loops run near 45 F in cooling and near 140 F in heating, and the offsets
+    # differ by up to 0.32 K between them, so each loop probe carries both points as
+    # `offsets: {45: cooling, 140: heating}` and the module interpolates on the reading
+    # (pivac.offset_at). `offset:` is the single-point form. Pair delta-T needs the
+    # heating values too, because each loop spans two bench pairs (see the supply note below).
     #
     # There is no physical outdoor DS18B20 — outdoor air comes solely from pivac.RedLink
     # (environment.outside.thermostat.temperature).
@@ -145,18 +146,18 @@ pivac.OneWireTherm:
         # so each loop spans two bench pairs. Offsets stay with their ROM.
         000000cc0c90:
             outname: LOOPA_SUP
-            offset: 0.653
+            offsets: {45: 0.653, 140: 0.346}
         0000001a9154:
             outname: LOOPA_RET
-            offset: 0.171
+            offsets: {45: 0.171, 140: 0.220}
         # Secondary loop B — lower family room, kitchen, great room.
         # Supply PA2A, return PA1B.
         0000001ac0a9:
             outname: LOOPB_SUP
-            offset: -0.062
+            offsets: {45: -0.062, 140: 0.029}
         000000c99b56:
             outname: LOOPB_RET
-            offset: 0.474
+            offsets: {45: 0.474, 140: 0.152}
         0316a015e7ff:
             outname: Unassigned
 
@@ -394,19 +395,19 @@ pivac.UnicoAH_MBR:
         # `offset` is a per-input calibration in KELVIN, added before rounding (plan section 6).
         # The water probes are the PA5 pair, three bath points on 2026-10-20
         # (docs/ds18b20-PA1-5-calibration.md): wsup is PA5A 28-000000cb6e28 on the supply pipe,
-        # wret is PA5B 28-0000001a8cda on the return. Offsets at 55 F (cooling water) deployed;
-        # at 115 F (heating) they are wsup +0.143, wret +0.295, swapped in with the loop probes.
+        # wret is PA5B 28-0000001a8cda on the return. Both bath columns are in config, 55 F
+        # (cooling water) and 115 F (heating), interpolated on the reading.
         # Pair correction (supply - return): +0.17 F at 55 F, -0.27 F at 115 F.
         wsup:
             sk_path: environment.inside.hvac.ah.mbr.water
             outname: supply
             type: temperature
-            offset: 0.280
+            offsets: {55: 0.280, 115: 0.143}
         wret:
             sk_path: environment.inside.hvac.ah.mbr.water
             outname: return
             type: temperature
-            offset: 0.186
+            offsets: {55: 0.186, 115: 0.295}
         # NTC residuals after the sketch's beta 3995 (same baths): supply sensor on A0 reads
         # +0.45 F, return sensor on A1 -0.05 F, each within 0.4 F of constant from 32 to 130 F.
         aret:
@@ -445,19 +446,19 @@ pivac.UnicoAH_Utility:
         # `offset` is a per-input calibration in KELVIN, added before rounding. The water
         # probes are PA9A (supply, 28-000000D47F08) and PA9B (return, 28-000000D48567) from
         # the 2026-11 batch, which reads 6.2 F low on every probe
-        # (docs/air-handler-probe-calibration-2026-11-01.md). Offsets at 55 F (cooling water)
-        # deployed; at 115 F (heating) they are wsup +3.556, wret +3.595, swapped in with the
-        # loop probes' seasonal offsets. Pair correction (supply - return): -0.005 K at 55 F.
+        # (docs/air-handler-probe-calibration-2026-11-01.md). Both bath columns are in config,
+        # 55 F (cooling water) and 115 F (heating), interpolated on the reading.
+        # Pair correction (supply - return): -0.005 K at 55 F, -0.039 K at 115 F.
         wsup:
             sk_path: environment.inside.hvac.ah.utility.water
             outname: supply
             type: temperature
-            offset: 3.382
+            offsets: {55: 3.382, 115: 3.556}
         wret:
             sk_path: environment.inside.hvac.ah.utility.water
             outname: return
             type: temperature
-            offset: 3.387
+            offsets: {55: 3.387, 115: 3.595}
         # NTC residuals after the sketch's pair-1 constants (R25 9877, beta 4001, same baths):
         # RET 1 on A0 reads +0.0 to +0.5 F, SUP 1 on A1 -0.1 to -0.3 F, each within 0.07 K of
         # constant from 55 to 110 F.

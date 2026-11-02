@@ -103,3 +103,31 @@ def propagate_defaults(sourcedict, targetdict, keylist):
         logger.debug("target(propagated)=%s" % targetdict)
 
     return
+
+
+def offset_at(offsets, kelvin):
+    """A probe's calibration offset in Kelvin at the temperature it is reading.
+
+    `offsets` is either a number (one offset for every temperature) or a mapping of
+    temperature in degrees F to offset in Kelvin, as the bench records state them:
+    `{45: 0.653, 140: 0.346}` for a loop probe, `{55: 3.382, 115: 3.556}` for a coil
+    probe. A DS18B20's error is a line in temperature, which is why every multi-point
+    calibration gives one offset per operating point, so between two points the
+    offset is interpolated on the reading and beyond the last point the end segment
+    is extended. One point is a constant. None, "" and 0 mean no correction."""
+    if offsets in (None, "", 0, 0.0):
+        return 0.0
+    if not isinstance(offsets, dict):
+        return float(offsets)
+    pts = sorted((float(t), float(k)) for t, k in offsets.items())
+    if len(pts) == 1:
+        return pts[0][1]
+    f = (kelvin - 273.15) * 9.0 / 5.0 + 32.0
+    if f <= pts[0][0]:
+        (t0, k0), (t1, k1) = pts[0], pts[1]
+    elif f >= pts[-1][0]:
+        (t0, k0), (t1, k1) = pts[-2], pts[-1]
+    else:
+        i = next(i for i in range(1, len(pts)) if f < pts[i][0])
+        (t0, k0), (t1, k1) = pts[i - 1], pts[i]
+    return k0 + (k1 - k0) * (f - t0) / (t1 - t0)
