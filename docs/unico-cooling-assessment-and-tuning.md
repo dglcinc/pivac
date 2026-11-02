@@ -1223,12 +1223,80 @@ sensor tells the two apart. On master-only calls from 17 September to 3 October,
 from 4.9 °F with the room at setpoint to 5.6 °F with it 2 °F over, on the same 49.3 to 49.5 °F
 supply, and the supply sat within 0.2 °F of the tank, so no warm water is mixing in at the tees.
 The coil picks up more heat as the room warms, in step with the wider approach. At 4.5 to 6 GPM
-that is 12,000 to 16,000 BTU/h. Scaling the catalog's 26.9 MBH (45 °F water, 6 GPM, 600 CFM) by
-approach, and assuming its rating is at 80 °F entering air, gives about 21,000 at these conditions,
-so the coil delivers about 60 to 75 % of its rating. Whether air or water falls short needs the
-node's air sensors and a flow figure. The thermostat reports the setpoint until the room is about 1.5 °F
+that is 12,000 to 16,000 BTU/h. The air-handler node measures the coil against its catalog (below),
+and it delivers its rated sensible capacity. The thermostat reports the setpoint until the room is about 1.5 °F
 off it, so the reading steps 75 → 77 → 75 within one poll at each end of the window and never
 shows 76; three weeks of two-minute samples hold 76 three times in about 15,000.
+
+**The morning bump is solar gain on the top storey, and it continues into the heating season.**
+The house is 50 years old, with limited insulation and no low-e glass, so the master bedroom needs
+cooling on sunny days until outdoor temperatures stay low, and the thermostats stay on Auto until
+then. From 8 to 21 October 2026 the master's reading left its 72 °F heat setpoint between 09:20 and
+10:15 on 12 of 14 days and peaked at 75 to 79 °F. The zone then called cool for 96 to 300 minutes a
+day. The two days without a bump, 11 and 17 October, had the lowest highs, 57 and 51 °F.
+
+The air-handler node's first full day, 21 October, shows the sequence. Overnight the zone made 5- to
+10-minute heat calls about every 40 minutes, with 113 to 122 °F water into the coil, 109 to 118 °F
+supply air, no Y2, and return air of 71.2 to 73.0 °F against the 72 °F setpoint. The return air
+picked up the sun first: it read 73 to 75 °F on the 09:09 and 09:39 heat calls, while the
+thermostat still read 72 °F or less and called heat at 09:34. With the fan off after 09:42, the
+thermostat climbed to 74 °F at 10:04 and 75 °F at 10:18, and the cool call began at 10:24. That call
+changed the HZ-432 over to cooling, so for its first 18 minutes the coil carried the tank's 105 to
+110 °F water on the high fan. Supply air reached 109 °F, the return air rose from 75.6 to 77.5 °F,
+and the thermostat stepped to 77 °F at 10:44 as cold water arrived (plan §7.1 of
+`docs/chiltrix-shoulder-season-heating-plan.md`). From 11:00 the coil delivered 55 to 61 °F supply
+air from 49 to 56 °F water, Y2 held for 92 % of the call, and the call ended at 13:45 with the
+return air at 72.2 °F.
+
+The thermostat and the return air agree whenever the fan is not moving conditioned air: on the
+overnight heat calls, and at 10:44, when the thermostat read 77 °F and the return air 76.7 °F. They
+part once cold air flows. By 11:10 the return air had fallen to 72.7 °F with the thermostat still
+at 77 °F. From 11:15 to 13:45 the thermostat showed its 75 °F setpoint and kept calling, so its true
+reading lay between 75 and 76.4 °F, while the return air read 72.2 to 73.9 °F. The gap is 1 to 4 °F,
+probably about 2. Three causes fit: the thermostat runs warm, from sun on it or its wall and from
+its slower response; the Unico's high-velocity outlets short-circuit some 55 °F supply air to the
+return grille; or the grille draws from a cooler part of the room. The fan-on check of
+`docs/mbr-air-handler-node-plan.md` §6 step 3, run at about 10:30 on a sunny morning, separates
+them. A thermostat still 2 °F above the return air with no conditioned air moving is reading warm,
+and the call runs longer than the room needs. If the two agree, the gap belongs to the running
+coil, and the thermostat reads the room.
+
+A morning heat setback on the master thermostat, about 68 °F from 08:30 to late afternoon, would
+have prevented the 09:34 call, which added about 115 °F air to the room just before the sun did.
+
+**The coil delivers its catalog performance in both modes, measured 21 October 2026.** The
+comparison is effectiveness, the air ΔT divided by the gap between water in and return air, which
+barely depends on water flow, so it holds without a flow meter. The heating figures are 15 calls
+from minute 4 on, with the probes' heating offsets applied; the cooling figures are 11:00 to 13:40.
+
+| | Heating, low fan | Cooling, high fan |
+|---|---|---|
+| Water in | 116 °F | 52.3 °F |
+| Return air | 72.4 °F | 73.2 °F |
+| Supply air | 112.5 °F | 57.5 °F |
+| Air ΔT | 40.5 °F | 15.7 °F |
+| Water ΔT | 5.2 °F | 3.8 °F |
+| Effectiveness | 0.92 | 0.75 |
+| Catalog | 0.88 to 0.91 | 0.755 at 700 CFM |
+
+The catalog is Unico bulletin 20-20.3 for the M2430CL1-C, pure water. Its heating table states
+80 °F entering air, which at 120 °F water would need an effectiveness above 1, so it is read at
+about 70 °F. The cooling coil ran dry: the room's 40 % RH puts the dew point near 47 °F, below the
+52 to 57 °F coil surface, so the whole water ΔT is sensible heat, and the comparison uses the
+catalog's sensible capacity (total × SHR) scaled by the gap between water and room air.
+
+Capacity needs the water flow, which is calculated, not measured. The kids room did not call, so
+the master had loop A to itself at the 6.4 GPM of [5.6](#56-what-the-calculation-says-about-each-coil).
+With 25 % propylene glycol (about 470 BTU/h per GPM per °F), heating ran at about 15.6 kBTU/h
+against about 15.5 from the catalog at these conditions, and cooling at about 11.5 kBTU/h against
+about 11.9. The energy balance puts the airflow at about 360 CFM on the low fan and 670 CFM on the
+high fan. The ratio of 1.85 holds whatever the water flow is; at 4.5 GPM the airflows become 255
+and 470 CFM, and both capacities fall by 30 %. Unico's glycol multiplier (0.81 at 25 %) does not
+appear, which fits its own description of those factors as worst case: at these airflows the air
+side limits the coil. The 11.5 kBTU/h is 43 % of the 26.9 MBH rating, which assumes 45 °F water
+and 80 °F humid air on a wet coil; the shortfall is those conditions. Latent capacity on a humid day
+is unmeasured. The Unico Smart Controller's commanded CFM per stage, and a flow meter on the
+node's free D3 pin, would turn both capacity figures into measurements.
 
 ### 5.11 Water temperature is the larger term, and distribution is the smaller one
 
