@@ -1,6 +1,6 @@
 # Utility air-handler node: install plan
 
-The rev A air-handler shield goes on the utility zone's Unico M2430 as its coil node. The unit's S.M.A.R.T.
+The rev A air-handler shield is the utility zone's Unico M2430's coil node, installed 2026-11-01 as a temporary mount until the rev B carrier. The unit's S.M.A.R.T.
 Control Board already reaches Signal K over the Pi's USB (`pivac.UnicoSCB_Utility`), so the node adds only
 what the SCB cannot give, the coil's water and air temperatures, and together they are the data set rev B
 was designed to deliver from one box: calls, airflow and RPM from the SCB, four coil temperatures from the
@@ -63,6 +63,12 @@ connections, axial and greased, two to three inches of thermal lead-in, insulati
 after the zone pump, both probes of a pair mounted the same way so their mounting error is common-mode;
 air sensors in the supply plenum downstream of the coil and in the return ahead of it, out of radiant
 sight of the coil. Strain relief an inch or two behind each probe and each bead.
+
+As installed on 2026-11-01: PA9A and PA9B are strapped to the coil's supply and return pipes with cable
+ties and insulated over; the supply-air bead sits about 18 inches above the coil in the supply plenum; the
+return-air bead sits near the coil at the end of the return duct, after its last turn, so it reads mixed
+return air. On the first heat call the coil water read about 3 °F below the loop B probes in the boiler
+room on both legs with the pair's ΔT within 0.3 °F of loop B's, so the mounting carries no visible bias.
 
 | Plug | Positions | Lead |
 |---|---|---|
