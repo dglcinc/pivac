@@ -22,8 +22,9 @@ for b in ${*:-int ext}; do
     echo "$b: attempt $attempt not clean"
     [ $attempt -eq 6 ] && { echo "$b: giving up"; exit 1; }
   done
+  W=1600; H=2300; [ "$b" = ah ] && { W=2400; H=1600; }     # the air-handler shield is landscape
   for side in top bottom; do
-    $CLI pcb render --output $b-board/$b-board-$side.png --side $side --width 1600 --height 2300 \
+    $CLI pcb render --output $b-board/$b-board-$side.png --side $side --width $W --height $H \
       --quality basic --background opaque --zoom 1.0 $b-board/$b-board.kicad_pcb
   done
   $CLI pcb export svg --output $b-board/$b-board-copper-front.svg --layers "F.Cu,F.Silkscreen,Edge.Cuts" --page-size-mode 2 --exclude-drawing-sheet $b-board/$b-board.kicad_pcb
