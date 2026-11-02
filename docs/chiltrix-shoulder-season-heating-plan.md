@@ -106,7 +106,7 @@ stage on `W1/E` below it. The relevant settings, from the installation guide:
 | Dual-fuel heat stages | 1 / 2 | 1, the boiler |
 | Zone thermostat type, per zone | HTPUMP-O, HTPUMP-B, CONVENTIONAL | CONVENTIONAL: the Prestige IAQ zones are wired as heat/cool thermostats and the panel does the changeover |
 | Dual fuel changeover | OT / OT+MULTISTG | OT+MULTISTG: by outdoor temperature, and a second-stage heat call also switches to the boiler for at least an hour |
-| OT balance temperature | 0 to 50 °F, default 30 | Start at 40 °F and move it on capacity evidence; at $1.93 a therm the chiller is the cheaper source down to about 35 °F (§8) |
+| OT balance temperature | 0 to 50 °F, default 30 | 30 °F since 2026-10-18; capacity sets it, and price holds the chiller cheaper to about 20 °F (§8) |
 | Changeover delay | 15 to 180 min, default 30 | 30 |
 | Auto changeover delay | 15 / 20 / 30 min | 30, the arbitration when one zone calls heat and another cool in the same hour |
 | Emergency Heat | button on the panel | Forces the boiler regardless of outdoor temperature |
@@ -269,7 +269,7 @@ point with the controller off it does nothing, and §9 prices keeping the chille
 6. Force one heating call on a mild evening and watch four things: register 141 goes to 1, the
    Taco runs on `HPCALL`, the boiler stays quiet on `BLR`, and `UBT` climbs toward the target with
    loop supply following it after the tank lag.
-7. Leave the balance temperature at 40 °F for a fortnight and read the record: zone droop,
+7. Hold each balance temperature for a week of cold nights and read the record: zone droop,
    second-stage calls, and the Chiltrix's runtime and COP against outdoor temperature decide
    whether it moves.
 
@@ -441,9 +441,14 @@ swings. The same heat from the boiler costs $22.60; the chiller's $14.87 is a sa
 heat was wanted and a tie with the boiler's $14.50 if only the 648 kBTU net was. The changeovers
 are what decide the saving, and the hydronic thermostats on Heat remove them. And a 40 °F day averages 27 kBTU/h with peaks
 near twice that, close to what the CX75 delivers at that ambient through coils giving 70 % of
-their rating, so below about 40 °F capacity decides before price does. The plan's 40 °F starting
-balance temperature stands; the fortnight in §5 step 7 tests capacity, and the price would only
-argue for lowering it further.
+their rating, so capacity decides before price does. The week from 11 to 18 October 2026, with the
+balance at 35 °F, put every heat call on the chiller. The night of the 17th fell to 38 °F, and
+from 01:00 to 08:00 the compressor ran 75 to 87 % of each hour for 49 to 61 kBTU/h, the first
+defrosts on record among them, with no room below its setpoint. Overall COP was 2.94 at 33 to
+36 °F ambient and 3.12 at 36 to 39 °F, so the chiller stays cheaper than gas down to about 20 °F,
+while the load, growing 2.6 % per °F, meets full duty near 30 to 32 °F. The panel offers 30 °F
+and not 32, so the balance is 30 °F since 18 October. Return it to 35 °F if an hour runs above
+95 % duty or a room falls 1 °F below its setpoint overnight.
 
 The gas side carries about ±10 % from reading the chart and the weather scatter above. The chiller
 side carries ±10 % on the measured COP at 50 and 55 °F and ±20 % on the estimate below 45 °F, where
@@ -454,7 +459,7 @@ cents per 100 kBTU that is not in the table.
 ## 9. Winter: the chiller stays on, and taking it out of service
 
 The chiller stays on through the winter in heat mode (decided 15 September 2026). The HZ-432
-balance point, 40 °F to start, sends every call below it to the boiler; the chiller holds the tank on
+balance point, 30 °F, sends every call below it to the boiler; the chiller holds the tank on
 its 117 to 128 °F band, and the §4.1 bridge feeds the zones from it whenever the boiler refuses a
 call for DHW. Above the balance point the chiller heats the house as in the shoulder season. Below
 it the chiller sees both contacts closed, which under option 2 means the mode it last held, heat, and
@@ -542,7 +547,7 @@ Out of service is four settings together:
 1. Chiltrix controller to off on the HMI. The breaker stays on. Confirm through
    `hvac.chiller.chiltrix.switchOn` reading 0.
 2. HZ-432 to boiler-only: balance temperature to 50 °F or the Emergency Heat button (§3). The panel
-   cannot tell that the heat pump is stopped, and a January day above 40 °F would otherwise call it
+   cannot tell that the heat pump is stopped, and a January day above 30 °F would otherwise call it
    and heat nothing.
 3. The five hydronic thermostats on Heat, never Auto, so solar gain in the master bedroom cannot
    raise a cool call. With the chiller off a cool call harms nothing, but it runs the Taco against
@@ -554,7 +559,7 @@ Out of service is four settings together:
    tank at room temperature.
 
 Return to service is the reverse in the same order: controller back on, `DHWX` inhibit closed,
-balance temperature back to 40 °F, thermostats back to Heat. No warm-up wait is needed because the
+balance temperature back to 30 °F, thermostats back to Heat. No warm-up wait is needed because the
 unit never lost power. Spring, whether the unit ran all winter or not, is thermostats to Cool or
 Auto, Loop B to LOW and the 45 °F loop-probe offsets swapped in, then a check of the loop pressure,
 the glycol reading and the first cooling run's `startupFlow` against 51.7 L/min.

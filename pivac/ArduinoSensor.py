@@ -1,5 +1,6 @@
 import requests
 import logging
+from pivac import offset_at
 import re
 import ast
 import pytemperature
@@ -20,6 +21,14 @@ def _to_kelvin(value, scale):
     if scale == "celsius":
         return pytemperature.c2k(float(value))
     return pytemperature.f2k(float(value))
+
+
+def _apply_offset(kelvin, offset):
+    """Add a per-input calibration offset in Kelvin (the OneWireTherm convention),
+    before rounding. `offset` is a number, or a mapping of degrees F to Kelvin that
+    gives the offset at the reading (pivac.offset_at). A missing or null offset
+    leaves the reading alone."""
+    return kelvin + offset_at(offset, kelvin)
 
 
 def _round_temp(kelvin, digits):
@@ -73,6 +82,8 @@ def status(config = {}, output = "default"):
         # from the module block, then DEFAULT_ROUNDING. Checking the module block directly
         # means it works whether or not the operator remembered to list it in `propagate`.
         # It applies only to the temperature branch; pass-through values are never rounded.
+        # `offset` (Kelvin, per input) is added before rounding, as OneWireTherm does, so a
+        # pair calibration from the bench lives in config rather than in the sketch.
         for field, scfg in sensors.items():
             if field not in parsed:
                 logger.warning("Arduino at %s: field '%s' missing from response %s"
@@ -84,7 +95,8 @@ def status(config = {}, output = "default"):
 
             if scfg.get("type") == "temperature":
                 digits = scfg.get("rounding", config.get("rounding", DEFAULT_ROUNDING))
-                kelvin = _round_temp(_to_kelvin(raw, scfg.get("scale", "fahrenheit")), digits)
+                kelvin = _to_kelvin(raw, scfg.get("scale", "fahrenheit"))
+                kelvin = _round_temp(_apply_offset(kelvin, scfg.get("offsets", scfg.get("offset"))), digits)
                 if output == "signalk":
                     sk_add_value(sk_source, "%s.%s.temperature" % (sk_path, outname), kelvin)
                 else:

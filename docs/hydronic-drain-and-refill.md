@@ -42,6 +42,10 @@ Set it up as a closed purge cart:
 - Discharge: ball valve, then hose to a boiler-drain fitting downstream of the autofill's
   pressure-reducing valve, with the autofill isolated. A 1" to ¾" GHT adapter is needed at the
   pump.
+- Fill path: for any fill of more than a top-up, temporarily remove the Caleffi
+  demineralisation filter from the autofill line and fill through the bypass valve behind the
+  autofill's pressure regulator, so the fill cannot over-pressurise the system. Refit the filter
+  once the loop is at its cold fill pressure.
 - Purge return: hose from the purge cock in use back into the drum, so purged fluid is not lost.
 
 Propylene glycol is fine through the pump. Rinse it afterwards; the old fluid carries the 8-Way
@@ -86,6 +90,10 @@ a filled loop leaves the refractometer reading one concentration at the gauge an
 the attic. Premixed inhibited glycol already comes in demineralised water, so purified water is
 only needed for the balance; RO or distilled from a grocery or water store is good enough.
 Inhibited concentrate carries its own inhibitor, so no 8-Way.
+
+Fill through the bypass valve behind the autofill's pressure regulator, with the
+demineralisation filter removed, as in §2; this applies to every fill of a significant volume,
+whether pumped from the drum or from the domestic supply. Refit the filter afterwards.
 
 1. Fill with every vent open, pump throttled, closing each vent as it spits solid fluid, attic
    vent last.
