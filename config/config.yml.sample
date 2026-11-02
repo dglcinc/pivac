@@ -116,10 +116,11 @@ pivac.OneWireTherm:
     # operating point. IN/OUT/UBT/LBT are single-point ice values; the difference that
     # makes at 45 F is under 0.04 K.
     #
-    # In heating season the loops run near 140 F, where the correct offsets are
-    # LOOPA_SUP +0.346, LOOPA_RET +0.220, LOOPB_SUP +0.029, LOOPB_RET +0.152 --
-    # up to 0.32 K from the values set here. Pair delta-T needs those heating values
-    # too, because each loop spans two bench pairs (see the supply note below).
+    # The loops run near 45 F in cooling and near 140 F in heating, and the offsets
+    # differ by up to 0.32 K between them, so each loop probe carries both points as
+    # `offsets: {45: cooling, 140: heating}` and the module interpolates on the reading
+    # (pivac.offset_at). `offset:` is the single-point form. Pair delta-T needs the
+    # heating values too, because each loop spans two bench pairs (see the supply note below).
     #
     # There is no physical outdoor DS18B20 — outdoor air comes solely from pivac.RedLink
     # (environment.outside.thermostat.temperature).
@@ -145,18 +146,18 @@ pivac.OneWireTherm:
         # so each loop spans two bench pairs. Offsets stay with their ROM.
         000000cc0c90:
             outname: LOOPA_SUP
-            offset: 0.653
+            offsets: {45: 0.653, 140: 0.346}
         0000001a9154:
             outname: LOOPA_RET
-            offset: 0.171
+            offsets: {45: 0.171, 140: 0.220}
         # Secondary loop B — lower family room, kitchen, great room.
         # Supply PA2A, return PA1B.
         0000001ac0a9:
             outname: LOOPB_SUP
-            offset: -0.062
+            offsets: {45: -0.062, 140: 0.029}
         000000c99b56:
             outname: LOOPB_RET
-            offset: 0.474
+            offsets: {45: 0.474, 140: 0.152}
         0316a015e7ff:
             outname: Unassigned
 
@@ -236,6 +237,21 @@ pivac.LoopDelta:
             return: ah.mbr.air.return
             relay: HPCALL
             zones: [MASTER_BR]
+        # The utility zone's node (pivac.UnicoAH_Utility) sits beside the unit's SCB tap
+        # (pivac.UnicoSCB_Utility), which publishes the control board's own call bits every
+        # 5 s. `gate:` lists paths under sk_path whose value of 1 opens the gate, in place of
+        # `relay:` and the zone narrowing: no RedLink lag, and a dead SCB reader shuts the
+        # gate (no evidence of flow). Water moves through the coil on a Y1 or W1 call, when
+        # the zone pump runs; the fan alone moves air over still water, so the air pair
+        # gates on G. Design: docs/utility-air-handler-node-plan.md.
+        ah.utility.water:
+            supply: ah.utility.water.supply
+            return: ah.utility.water.return
+            gate: [ah.utility.call.y1, ah.utility.call.w1]
+        ah.utility.air:
+            supply: ah.utility.air.supply
+            return: ah.utility.air.return
+            gate: [ah.utility.call.g]
 
 pivac.TED5000:
     description: Reports real-time KWh usage from TED5000 MTUs (from LiveData.xml)
@@ -347,6 +363,22 @@ pivac.ArduinoThermPSI:
             sk_path: propulsion.mainEngine.fuel
             outname: pressure
 
+pivac.UnicoSCB_Utility:
+    # The utility zone's Unico air handler, read from its S.M.A.R.T. Control Board over the
+    # control box's USB board on the Pi (pivac.UnicoSCB). One section per air handler; when the
+    # unit gets its own node (the rev B shield) replace `port:` with `node: http://<ip>/` and the
+    # paths stay the same. The reader transmits nothing unless `answer: true`, which brings the
+    # 51-byte frame's extra fields (fan.state, scb.dcBus, scb.switches, scb.firmware).
+    # daemon_sleep 5 publishes the newest frame every 5 s; calls and airflow change over minutes.
+    description: Utility zone Unico M2430, calls, airflow and fan speed from the SCB
+    module: pivac.UnicoSCB
+    enabled: true
+    port: /dev/serial/by-id/*unicousb*
+    sk_path: environment.inside.hvac.ah.utility
+    daemon_sleep: 5
+    stale_s: 10
+    answer: false
+
 pivac.UnicoAH_MBR:
     # Master bedroom Unico air handler node: UNO R4 WiFi at 10.0.0.180 (MAC e8:f6:0a:aa:a3:88),
     # two DS18B20 on the coil's water pipes, two 10K NTC duct sensors, and the thermostat's Y2
@@ -396,6 +428,52 @@ pivac.UnicoAH_MBR:
             outname: y2Seconds
         uptime_ms:
             sk_path: environment.inside.hvac.ah.mbr
+            outname: uptimeMs
+
+pivac.UnicoAH_Utility:
+    # Utility zone Unico air handler node: the rev A shield on an UNO R4 WiFi at 10.0.0.181
+    # (MAC e8:f6:0a:a9:fd:e8), two DS18B20 on the coil's water pipes and two 10K NTC duct
+    # sensors. The unit's calls, airflow and RPM come from its SCB over the Pi's USB
+    # (pivac.UnicoSCB_Utility), so the node's Y2/W2 inputs are unwired and not mapped here.
+    # Design: docs/utility-air-handler-node-plan.md. Shares pivac.ArduinoSensor.
+    description: Utility zone Unico M2430, coil water and air temperatures
+    module: pivac.ArduinoSensor
+    enabled: true
+    ipaddr: 10.0.0.181
+    rounding: 2
+    daemon_sleep: 5
+    inputs:
+        # `offset` is a per-input calibration in KELVIN, added before rounding. The water
+        # probes are PA9A (supply, 28-000000D47F08) and PA9B (return, 28-000000D48567) from
+        # the 2026-11 batch, which reads 6.2 F low on every probe
+        # (docs/air-handler-probe-calibration-2026-11-01.md). Both bath columns are in config,
+        # 55 F (cooling water) and 115 F (heating), interpolated on the reading.
+        # Pair correction (supply - return): -0.005 K at 55 F, -0.039 K at 115 F.
+        wsup:
+            sk_path: environment.inside.hvac.ah.utility.water
+            outname: supply
+            type: temperature
+            offsets: {55: 3.382, 115: 3.556}
+        wret:
+            sk_path: environment.inside.hvac.ah.utility.water
+            outname: return
+            type: temperature
+            offsets: {55: 3.387, 115: 3.595}
+        # NTC residuals after the sketch's pair-1 constants (R25 9877, beta 4001, same baths):
+        # RET 1 on A0 reads +0.0 to +0.5 F, SUP 1 on A1 -0.1 to -0.3 F, each within 0.07 K of
+        # constant from 55 to 110 F.
+        aret:
+            sk_path: environment.inside.hvac.ah.utility.air
+            outname: return
+            type: temperature
+            offset: -0.15
+        asup:
+            sk_path: environment.inside.hvac.ah.utility.air
+            outname: supply
+            type: temperature
+            offset: 0.10
+        uptime_ms:
+            sk_path: environment.inside.hvac.ah.utility
             outname: uptimeMs
 
 # ---------------------------------------------------------------------------

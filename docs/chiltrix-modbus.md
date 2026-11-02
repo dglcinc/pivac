@@ -62,7 +62,7 @@ On the sibling CX35-1/CX50-2 board these are one 8-position connector reading `+
 
 **⚠️ Drop `TMO` rows before any state-machine analysis of the log.** Parsing a timeout as `0` makes `hz or 0` read as compressor-off, which split one 354-minute run into three and manufactured three fake "degraded cycles". The register value is absent, not zero.
 
-**Register `284` is the controller's fault/lockout register, caught with a known cause on 2026-09-03.** It read **32** for sixteen consecutive minutes (16:19–16:34 EDT) and **0 for every other sample of the surrounding eight days**, ~8,400 of them. The cause is known rather than inferred: David left an isolation valve closed for a couple of minutes during a glycol top-up. The sequence reads cleanly — inlet reached the 54.7 °F restart band, the controller commanded the pump to 100 % (`248` 10 → 100), flow read 54.0 for one cycle and **0.0** the next, `284` went to 32, the controller commanded the pump to 0, and the unit sat locked for sixteen minutes while the loop coasted to 62.2 °F before releasing itself and restarting to 60 Hz and 14.6 A. `243` and `244` stayed 0 and 2 throughout, so neither is the fault word. **`284` = 2 is P1 high pressure protection**, matched against the panel's error log on 2026-10-20 (see P1 in heating below). Treat any value other than 2 and 32 as new information. The register shows a fault only while it is active, and a P1 that clears inside one poll never reaches it: four of the thirteen logged P1s did.
+**Register `284` is the controller's fault/lockout register, caught with a known cause on 2026-09-03.** It read **32** for sixteen consecutive minutes (16:19–16:34 EDT) and **0 for every other sample of the surrounding eight days**, ~8,400 of them. The cause is known rather than inferred: David left an isolation valve closed for a couple of minutes during a glycol top-up. The sequence reads cleanly — inlet reached the 54.7 °F restart band, the controller commanded the pump to 100 % (`248` 10 → 100), flow read 54.0 for one cycle and **0.0** the next, `284` went to 32, the controller commanded the pump to 0, and the unit sat locked for sixteen minutes while the loop coasted to 62.2 °F before releasing itself and restarting to 60 Hz and 14.6 A. `243` and `244` stayed 0 and 2 throughout, so neither is the fault word. **`284` = 2 is P1 high pressure protection**, matched against the panel's error log on 2026-10-20 (see P1 in heating below). Treat any value other than 2 and 32 as new information. The register shows a fault only while it is active, and a P1 that clears inside one poll never reaches it: the full scan every ~70 s missed 6 of the 18 P1s logged to 2026-10-26. Since 2026-10-26 17:49 EDT the module reads 227 and 284 every ~6 s between full scans (now every ~76 s), and publishes `faultCode`, which holds a non-zero 284 for 60 s so a fault seen by one read still fills a minute bucket; count P1s as rises of `faultCode` to 2 and check the count against the panel log.
 
 **⚠️ The `P5` reading rests on the mechanism alone and was never confirmed against a panel code.** The controller's error log read empty when checked on 2026-09-06; it had been cleared. What supports `P5` is the sequence itself plus the CX65 IOM p70, which names insufficient flow **and air in the lines** as the two `P5` triggers — and a glycol fill introduces air, so an open valve does not rule out an air lock. **The next occurrence is the chance to confirm it**: touch **ERROR** on the controller home screen (IOM p55), find the row by timestamp (the log lists TIME / DATE / ERROR), and record it before pressing anything. **"Error Reset" clears the fault; "Clear" wipes the history.** Codes worth recognising (IOM p63): `P5` indoor unit water flow error, `P1` high pressure, `P2` low pressure, `E14` system anti freeze twice, `E17` **AC** system anti freeze twice.
 
@@ -205,19 +205,84 @@ defrost; one or two on a cold night are no concern.
 
 | Setting | Meaning | Before | Now |
 |---|---|---|---|
-| Heating target | Register 143 | 50 °C | 48 °C |
+| Heating target | Register 143 | 50 °C | 46 °C |
 | P38 | Coil temperature that ends defrost | 30 °C | 15 °C |
 | P39 | Air-to-coil difference that starts defrost | 8 °C | 12 °C |
 | P53 | Pump minimum speed | 40 % | 50 % |
 
-1. Heating target: entered as 119 °F. The controller truncates a °F entry to whole °C, so 118 °F
-   stored as 47 °C. Return water at the end of a run should fall to about 118–122 °F.
+1. Heating target: 48 °C from 10-20 12:22 EDT, entered as 119 °F (the controller truncates a °F
+   entry to whole °C, so 118 °F would store as 47 °C), and 46 °C since 10-29 12:58 EDT, entered in
+   °C and read back from register 143 (319.15 K). The second step followed the 10-29 lockout below.
 2. P38 and P39: later and shorter defrosts. Inspect the outdoor coil after the first freezing
    rain or snowy night for frost left behind.
 3. P53: the pump floor in every mode. A lockout now idles the pump at about 30 L/min, and in
    cooling the higher floor narrows the evaporator ΔT at low load, which adds margin to `P59`.
 4. Judge the change by the P1 count in the panel log and by `chiltrix-fault-latched`; go back up a
    degree if a room falls 1 °F below setpoint overnight.
+
+**Panel log since the change** (cleared 2026-10-20, last read 2026-10-26; the panel clock runs 2–3
+minutes behind EDT):
+
+| Panel time | Code | Condition |
+|---|---|---|
+| 10-21 01:12 | P1 | End of run, 50 °F: 37 Hz, return 120 °F, leaving 127 °F |
+| 10-21 23:41 | P1 | End of run, 49 °F: 37 Hz, return 120 °F, leaving 127 °F |
+| 10-24 07:27 | P4 | End of a 25 min run, 38 °F: 43–53 Hz at 15–18.7 A on the minute samples; compressor off two minutes, restarted 07:32, 75 Hz at 26 A at 07:37 (the highest frequency on record), stopped at target 07:39 with the return at 125 °F |
+| 10-24 22:37 | P1 | End of run, 44 °F: 40 Hz, return 122 °F, leaving 129 °F; `284` read 2 |
+| 10-26 04:50 | P1 | End of run, 43 °F: 40 Hz, return 120 °F, leaving 127 °F; `284` read 2 |
+| 10-26 06:38 | P1 | End of run, 43 °F: 40 Hz, return 122 °F, leaving 129 °F; `284` missed it; restarted 06:46 |
+
+Five P1s in 144 heating starts from 10-20 12:23 to 10-26 08:10 EDT (3.5 %), against 12 in 329
+heating stops at 50 °C (3.6 %), so the 48 °C target moved the trip water down with it and left the
+rate unchanged. Every one came at the end of a run at 37–40 Hz, with the return at 120–122 °F and the
+leaving water at 127–129 °F: the P1 belongs to the end of a run, whatever the target. The 10-26
+04:50 and 06:38 pair, 108 minutes apart, cleared on its own like the pairs 88 and 103 minutes apart
+at 50 °C; only the 30-minute pair of 10-20 latched. `284` caught three of the five at its 70 s
+cadence, so the panel log is the count. The P4 stood alone, cleared itself in two minutes, and
+never showed in `284`, so `chiltrix-fault-latched` had nothing to see and the panel log is the only
+record of a P4. Both P4s on record came on a defrost-range morning (36 °F on 10-18, 38 °F on 10-24, the
+coldest hour since the change).
+
+**The 2026-10-29 lockout and the high-side pressure.** Two P1s on consecutive heating runs, at 07:15:02
+and 07:36:41 EDT, latched `284` at 2 until a breaker cycle at 07:58; the unit restarted at 07:59. Both
+ended a run at 36 Hz with flow trimmed to 39–41 L/min, return 121–123 °F and leaving 129–131 °F, at
+50 °F outdoors. Over all heating stops since 09-27, counted from the panel log to 10-26 and from
+`284` at its 6 s cadence after:
+
+| Period | Heating stops | P1 | Rate |
+|---|---|---|---|
+| 50 °C, 09-27 to 10-20 | 334 | 14 | 4.2 % |
+| 48 °C, 10-20 to 10-26 17:49 | 146 | 5 | 3.4 % |
+| 48 °C, 10-26 17:49 to 10-29 | 50 | 7 | 14 % |
+
+The rise began within hours of the fast fault poll going live (10-26 17:49), in similar weather and
+with no setting changed; whether the poll has any part in it is untested.
+
+Registers 210 and 215 behave as the high-side pressure in kPa and its saturation temperature in
+tenths of a °C: both correlate 0.89 with leaving water and barely with compressor Hz, 210 runs a
+median 3,339 kPa while heating, peaks at 4,244 kPa at a P1, and rises 44.5 kPa per °F of leaving
+water. Neither identity is confirmed against a panel readout. Read that way:
+
+1. The plate exchanger is not fouling. At 125–130 °F leaving water and 33–42 Hz the daily median of
+   210 held 3,350–3,470 kPa on every day from 09-27 to 10-29.
+2. A P1 is a sudden rise, not the end of a slow one. In 12 of 15 cleanly sampled P1 stops, 210
+   jumped 350–650 kPa in the last minute (medians 3,682 to 3,984 kPa) while the compressor held
+   36–38 Hz, flow held 38–42 L/min with the pump at 67–73 %, and leaving water was flat or falling.
+   One of 297 ordinary stops shows such a jump; those stop while still ramping down from 55 Hz, with
+   210 rising gradually to a median 3,608 kPa and leaving water higher than at the P1s (133 against
+   128.5 °F).
+3. The jump points at the refrigerant side, likely the expansion valve on the low-Hz plateau near
+   target. Water-side settings only lower the baseline it starts from: 46 °C takes about 160 kPa
+   off it, which keeps a median jump under the trip; `P53` at 75 % would hold about 3 L/min more
+   at the end of a run and take about 30 kPa, so it stays at 50 %.
+
+Devon Powell had this data on 10-29 with five questions: the identities of 210 and 215 and the P1
+cutout pressure, the cause of the jump and any EEV setting to change (`P76`, `P77`, `P96` and `P102`
+differ from the CX65 defaults), a better fix than the target, whether reading two registers every
+6 s could affect the controller, and a setting that recovers from a P1 lockout without a power cycle. He agreed to 46 °C as a stopgap and is
+checking the Modbus analysis with Chiltrix.
+Judge 46 °C by the P1 rate a week on, against the 14 % above; if it stays over 5 %, turn the fast
+poll off for three days as the next test.
 
 The 2026-10-20 lockout fired only `chiltrix-pump-only-flow-low`, because the module took the
 40 % pump of the lockout as a start plateau (50 % since P53 changed). The module now takes an idle-side plateau only at a

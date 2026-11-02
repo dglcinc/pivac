@@ -3,6 +3,7 @@ from w1thermsensor import W1ThermSensor, Unit
 import os
 import time
 import logging
+from pivac import offset_at
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +121,14 @@ def status(config = {}, output="default"):
                 thermtemp = sensor.get_temperature(Unit.DEGREES_F)
             logger.debug("Temp for %s is: %f" % (sensor.id, thermtemp))
 
-            offset_k = dnames[sensor.id].get("offset", 0)
+            # `offsets` (a mapping of degrees F to Kelvin) gives the offset at the reading;
+            # `offset` is the single-point form. Either way the correction is in Kelvin.
+            read_fahrenheit = (output != "signalk" and temp_type == DEG_FAHRENHEIT)
+            read_celsius = (output != "signalk" and temp_type == DEG_CELSIUS)
+            kelvin = (thermtemp - 32.0) * 5.0 / 9.0 + 273.15 if read_fahrenheit else \
+                     thermtemp + 273.15 if read_celsius else thermtemp
+            offset_k = offset_at(dnames[sensor.id].get("offsets", dnames[sensor.id].get("offset", 0)), kelvin)
             if offset_k:
-                read_fahrenheit = (output != "signalk" and temp_type == DEG_FAHRENHEIT)
                 thermtemp = _apply_offset(thermtemp, offset_k, read_fahrenheit)
                 logger.debug("Offset %+.3f K applied to %s" % (offset_k, sensor.id))
 
