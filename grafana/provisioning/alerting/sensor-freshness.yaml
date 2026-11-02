@@ -1176,8 +1176,7 @@ groups:
 # Leave this block in place permanently. Deleting an already-absent rule is a no-op, and
 # removing the block would let a stale Grafana DB resurrect these UIDs.
       # ---- Utility zone air-handler node (rev A shield at 10.0.0.181, pivac.UnicoAH_Utility) ----
-      # Shipped paused: the path does not publish until the node is installed. Unpause once it
-      # does and verify against the alert_rule table (CLAUDE.md, Grafana alerting).
+      # Installed and publishing since 2026-11-01 18:55 EST; unpaused the same evening.
       - uid: ah-utility-air-return-stale
         title: Utility air handler node (.181) stale (>30m)
         condition: C
@@ -1274,7 +1273,7 @@ groups:
         labels:
           severity: warning
           source: arduino
-        isPaused: true
+        isPaused: false
         notification_settings:
           receiver: graph-bridge
 
