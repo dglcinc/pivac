@@ -129,17 +129,17 @@ pivac.OneWireTherm:
         # Probes PA4A / PA4B, installed 2026-08-23.
         000000c98b14:
             outname: IN
-            offset: 0.468
+            offsets: {32: 0.468}
         0000001aa0a8:
             outname: OUT
-            offset: 0.143
+            offsets: {32: 0.143}
         # Buffer tank, upper and lower. Probes PA3A / PA3B, installed 2026-08-22.
         000000c9e879:
             outname: UBT
-            offset: 0.348
+            offsets: {32: 0.348}
         000000c915c1:
             outname: LBT
-            offset: 0.466
+            offsets: {32: 0.466}
         # Secondary loop A — kids room, then master bedroom (attic coil).
         # Supply PA1A, return PA2B. The two supply probes were cross-connected between
         # the loops at install and are relabelled here rather than physically re-run,
@@ -345,10 +345,12 @@ pivac.ArduinoPSI:
         # type: temperature converts the raw reading (scale, default fahrenheit) to
         # Kelvin and emits at {sk_path}.{outname}.temperature, e.g.
         # environment.inside.hvac.dhw.recirc.temperature
+        # PA6B: degrees F to Kelvin, interpolated on the reading.
         temp:
             sk_path: environment.inside.hvac.dhw
             outname: recirc
             type: temperature
+            offsets: {45: 0.348, 140: 0.254}
             scale: fahrenheit
 
 pivac.ArduinoThermPSI:
@@ -408,18 +410,18 @@ pivac.UnicoAH_MBR:
             outname: return
             type: temperature
             offsets: {55: 0.186, 115: 0.295}
-        # NTC residuals after the sketch's beta 3995 (same baths): supply sensor on A0 reads
-        # +0.45 F, return sensor on A1 -0.05 F, each within 0.4 F of constant from 32 to 130 F.
+        # NTC residuals after the sketch's beta 3995, one point per bath (32, 90, 130 F), from
+        # docs/data/ah-mbr-node: supply sensor on A0, return sensor on A1.
         aret:
             sk_path: environment.inside.hvac.ah.mbr.air
             outname: return
             type: temperature
-            offset: 0.03
+            offsets: {32: -0.103, 90: 0.165, 130: 0.027}
         asup:
             sk_path: environment.inside.hvac.ah.mbr.air
             outname: supply
             type: temperature
-            offset: -0.25
+            offsets: {32: -0.167, 90: -0.134, 130: -0.456}
         y2:
             sk_path: environment.inside.hvac.ah.mbr
             outname: y2
@@ -460,18 +462,17 @@ pivac.UnicoAH_Utility:
             type: temperature
             offsets: {55: 3.387, 115: 3.595}
         # NTC residuals after the sketch's pair-1 constants (R25 9877, beta 4001, same baths):
-        # RET 1 on A0 reads +0.0 to +0.5 F, SUP 1 on A1 -0.1 to -0.3 F, each within 0.07 K of
-        # constant from 55 to 110 F.
+        # one point per bath (32, 90, 130 F): RET 1 on A0, SUP 1 on A1.
         aret:
             sk_path: environment.inside.hvac.ah.utility.air
             outname: return
             type: temperature
-            offset: -0.15
+            offsets: {32: -0.066, 90: -0.270, 130: -0.013}
         asup:
             sk_path: environment.inside.hvac.ah.utility.air
             outname: supply
             type: temperature
-            offset: 0.10
+            offsets: {32: 0.126, 90: 0.067, 130: 0.149}
         uptime_ms:
             sk_path: environment.inside.hvac.ah.utility
             outname: uptimeMs

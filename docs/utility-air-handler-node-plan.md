@@ -106,8 +106,8 @@ constants only:
 
 1. The ROM bytes are the bus order the sketch prints; the w1 names reverse the six serial bytes.
 2. The NTC constants are the pair's means. With them, RET 1 reads +0.0 to +0.5 °F and SUP 1 −0.1 to
-   −0.3 °F across the three baths, so the per-input offsets in pivac config are −0.15 K for the return
-   bead and +0.10 K for the supply bead, each within 0.07 K of constant from 55 to 110 °F. The master
+   −0.3 °F across the three baths, so pivac config carries one offset per bath at 32, 90 and 130 °F: −0.066,
+   −0.270, −0.013 K for the return bead and +0.126, +0.067, +0.149 K for the supply bead. The master
    bedroom node carries its residuals the same way.
 3. The sketch's Y2 code stays; D8 reads high with nothing on TB1's Y2, so the node reports `y2` 0, and
    pivac does not map it (§6).
