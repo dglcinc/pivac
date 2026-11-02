@@ -142,16 +142,15 @@ pivac.UnicoAH_Utility:
     rounding: 2
     daemon_sleep: 5
     inputs:
-        wsup:  { sk_path: environment.inside.hvac.ah.utility.water, outname: supply, type: temperature, offset: 3.382 }
-        wret:  { sk_path: environment.inside.hvac.ah.utility.water, outname: return, type: temperature, offset: 3.387 }
+        wsup:  { sk_path: environment.inside.hvac.ah.utility.water, outname: supply, type: temperature, offsets: {55: 3.382, 115: 3.556} }
+        wret:  { sk_path: environment.inside.hvac.ah.utility.water, outname: return, type: temperature, offsets: {55: 3.387, 115: 3.595} }
         aret:  { sk_path: environment.inside.hvac.ah.utility.air,   outname: return, type: temperature, offset: -0.15 }
         asup:  { sk_path: environment.inside.hvac.ah.utility.air,   outname: supply, type: temperature, offset: 0.10 }
         uptime_ms: { sk_path: environment.inside.hvac.ah.utility, outname: uptimeMs }
 ```
 
-1. The water offsets are the 55 °F column, for cooling water. The heating column is +3.556 for PA9A and
-   +3.595 for PA9B; they swap in with the loop probes' seasonal offsets, and the comment in the file
-   carries both, as the master bedroom block does.
+1. The water offsets carry both bath columns, 55 °F for cooling water and 115 °F for heating, and the
+   module interpolates on the reading, so there is no seasonal swap.
 2. `y2` and `y2_s` are not mapped: the input is unwired and the SCB's `call.y2` is the truth.
 3. The SCB section stays as it is, `port:` on the Pi's USB. Its comment about replacing `port:` with
    `node:` applies to a rev B node with the serial tap; this node has none.

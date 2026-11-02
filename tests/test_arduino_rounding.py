@@ -31,7 +31,8 @@ def _load():
     except ImportError:
         # requests/pytemperature missing -- re-exec just the helper.
         src = open(_spec.origin).read()
-        ns = {}
+        from pivac import offset_at
+        ns = {"offset_at": offset_at}
         start = src.index("DEFAULT_ROUNDING")
         end = src.index("def status(")
         exec(src[start:end].replace("import pytemperature", ""), ns)

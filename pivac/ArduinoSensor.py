@@ -1,5 +1,6 @@
 import requests
 import logging
+from pivac import offset_at
 import re
 import ast
 import pytemperature
@@ -24,10 +25,10 @@ def _to_kelvin(value, scale):
 
 def _apply_offset(kelvin, offset):
     """Add a per-input calibration offset in Kelvin (the OneWireTherm convention),
-    before rounding. A missing or null offset leaves the reading alone."""
-    if offset in (None, ""):
-        return kelvin
-    return kelvin + float(offset)
+    before rounding. `offset` is a number, or a mapping of degrees F to Kelvin that
+    gives the offset at the reading (pivac.offset_at). A missing or null offset
+    leaves the reading alone."""
+    return kelvin + offset_at(offset, kelvin)
 
 
 def _round_temp(kelvin, digits):
@@ -95,7 +96,7 @@ def status(config = {}, output = "default"):
             if scfg.get("type") == "temperature":
                 digits = scfg.get("rounding", config.get("rounding", DEFAULT_ROUNDING))
                 kelvin = _to_kelvin(raw, scfg.get("scale", "fahrenheit"))
-                kelvin = _round_temp(_apply_offset(kelvin, scfg.get("offset")), digits)
+                kelvin = _round_temp(_apply_offset(kelvin, scfg.get("offsets", scfg.get("offset"))), digits)
                 if output == "signalk":
                     sk_add_value(sk_source, "%s.%s.temperature" % (sk_path, outname), kelvin)
                 else:

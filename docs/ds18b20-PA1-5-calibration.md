@@ -11,9 +11,10 @@ referenced at 32.10 °F, and a sous vide circulator at **100.0** and **144.5 °F
 Thermapen held among the probe tips. Bath stability was 0.025 °F range over 14 minutes for the ice,
 0.011 °F over 9 minutes at 100, and 0.03 °F over 4 minutes at 144.5.
 
-`OneWireTherm` applies an offset but has no gain term, so the product of several points is not a fit
-to install — it is the ability to state the offset **at the temperature where the probe works**. The
-chilled loop runs near 45 °F, and that is the column deployed.
+`OneWireTherm` and `ArduinoSensor` take the offset as a single number or as `offsets: {45: a, 140: b}`,
+one value per operating point, and interpolate on the reading (`pivac.offset_at`, since 2026-11-01). The
+loop probes carry the 45 °F and 140 °F columns below, so cooling and heating water are each corrected at
+their own point with no seasonal swap.
 
 | Label | slope | @32 | @100 | @144.5 | **offset K @45 (deployed)** | offset K @140 |
 |---|---|---|---|---|---|---|
