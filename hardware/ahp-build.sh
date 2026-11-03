@@ -1,7 +1,8 @@
 #!/bin/sh
 # Generate, route, pour and check the Pico W carrier, then export its gerbers. Freerouting is not
 # deterministic, so the board is regenerated and routed again until DRC reports no error and nothing
-# unconnected, up to sixteen attempts. Needs KiCad 10 in ~/Applications and Freerouting 1.9.0.
+# unconnected, up to sixteen attempts. ahp-paste.py replaces the Pico footprint's oversized paste
+# apertures with its pads' own. Needs KiCad 10 in ~/Applications and Freerouting 1.9.0.
 set -e
 cd "$(dirname "$0")"
 rm -rf ahp-board/gerbers ahp-board/ahp-board-gerbers.zip
@@ -10,6 +11,7 @@ CLI=~/Applications/KiCad.app/Contents/MacOS/kicad-cli
 P=ahp-board/ahp-board.kicad_pcb
 for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
   $PY gen-ah-pico.py >/dev/null 2>&1
+  python3 ahp-paste.py $P >/dev/null
   $PY route.py $P ${1:-100} 2>&1 | grep -E "routed|failed" || true
   $PY ahp-pour.py $P 2>/dev/null
   $CLI pcb drc --output ahp-board/ahp-board-drc.json --format json --severity-error $P >/dev/null 2>&1
