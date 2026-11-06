@@ -281,8 +281,22 @@ cutout pressure, the cause of the jump and any EEV setting to change (`P76`, `P7
 differ from the CX65 defaults), a better fix than the target, whether reading two registers every
 6 s could affect the controller, and a setting that recovers from a P1 lockout without a power cycle. He agreed to 46 °C as a stopgap and is
 checking the Modbus analysis with Chiltrix.
-Judge 46 °C by the P1 rate a week on, against the 14 % above; if it stays over 5 %, turn the fast
-poll off for three days as the next test.
+At 46 °C the rate was 8.1 % (10 P1s in 123 heating stops to 2026-11-03), with lockouts on 11-02 and
+11-03. With the poll slowed to a full scan every ~72 s from 2026-11-03 04:54 to 2026-11-06 14:37 EST,
+the panel logged no P1 in 50 heating stops; those days ran 50 °F minimum and 63 °F mean outdoors,
+against 40 and 55 °F in the 46 °C week before, so the weather confounds the test.
+
+Matt Dail, Chiltrix's engineer, answered on 2026-11-06 that polling cannot disturb the controller (he
+reads all 286 registers within 2 s on his own units and still sees faults he induces) and that the
+controller answers a read of every register at once, though he uses blocks of 50. He asked for the
+raw registers 0–146 and 200–286 at 1 s. Since 2026-11-06 14:39 EST the module sweeps all 234 in five
+block reads of up to 50 about once a second, sending a value to Signal K only when it changes and
+every value every 30 s. For the next lockout, export every `raw.r*` and named register from an
+hour before the first P1 to the restart, reverse the named conversions to raw integers (tempK:
+`(K − 273.15) × 10`; whole-°C targets: `K − 273.15`; flow and current: × 10), and forward-fill to the
+sweeps that `registerCount` marks. Before 2026-11-06 the logger never read 200, 201, 218–224,
+228–242, 249–255, 262, 263, 265–280 or 286. The raw export of the four earlier lockouts sent to him
+is OneDrive `Claude/cx75-p1-raw-registers.zip`.
 
 The 2026-10-20 lockout fired only `chiltrix-pump-only-flow-low`, because the module took the
 40 % pump of the lockout as a start plateau (50 % since P53 changed). The module now takes an idle-side plateau only at a

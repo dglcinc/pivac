@@ -24,7 +24,7 @@ pivac.ChiltrixModbus:
   # A value goes to Signal K only when it changes, and every value is resent
   # once refresh_s has passed, so InfluxDB stores an exact 1 s record without
   # a point per register per second.
-  refresh_s: 60
+  refresh_s: 30
 
   # faultCode holds a non-zero 284 for fault_hold_s.
   fault_hold_s: 60

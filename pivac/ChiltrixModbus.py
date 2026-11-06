@@ -12,8 +12,8 @@ controller answers a read of every register at once (their tools use blocks
 of 50).  Five function 03 requests of up to 50 registers sweep all 234 in
 about a second.  To keep InfluxDB's write load and disk in check, a value goes
 to Signal K only when it changes, and every value is resent once `refresh_s`
-(60 s) has passed, so a reader of the stored series forward-fills to the exact
-1 s record.  `registerCount` is published every sweep and marks each one.
+(30 s, so no 1-minute bucket in Grafana is empty) has passed, so a reader of
+the stored series forward-fills to the exact 1 s record.  `registerCount` is published every sweep and marks each one.
 `mode: scan` restores the old one-register-per-transaction `s <from> <to>`
 scan with its fast 227/284 poll.
 
@@ -106,7 +106,7 @@ RAW_RANGES = [(0, 139),
 
 # Block mode: every register Chiltrix asked for, in blocks of 50 or fewer.
 BLOCKS = [(0, 49), (50, 99), (100, 146), (200, 249), (250, 286)]
-DEFAULT_REFRESH_S = 60
+DEFAULT_REFRESH_S = 30
 # Published every sweep whether or not they changed: registerCount marks the
 # sweep, and the rest are derived state the alerts read.
 ALWAYS = ("registerCount", "faultCode", "runDuration", "startupFlow")
