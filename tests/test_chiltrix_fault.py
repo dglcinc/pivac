@@ -67,7 +67,7 @@ def _cycle(clock, chiller, sleep, config):
 
 def test_fast_cycles_between_full_scans():
     clock, chiller = _setup()
-    cfg = {"scan_s": 60}
+    cfg = {"mode": "scan", "scan_s": 60}
     result, asked = _cycle(clock, chiller, 5, cfg)
     assert asked == m.RAW_RANGES, asked
     assert "registerCount" in result
@@ -87,13 +87,13 @@ def test_fast_cycles_between_full_scans():
 def test_daemon_sleep_60_is_always_a_full_scan():
     clock, chiller = _setup()
     for _ in range(5):
-        _, asked = _cycle(clock, chiller, 60, {"scan_s": 60})
+        _, asked = _cycle(clock, chiller, 60, {"mode": "scan", "scan_s": 60})
         assert asked == m.RAW_RANGES
 
 
 def test_fault_code_holds_one_fast_read_for_a_minute():
     clock, chiller = _setup()
-    cfg = {"scan_s": 60, "fault_hold_s": 60}
+    cfg = {"mode": "scan", "scan_s": 60, "fault_hold_s": 60}
     _cycle(clock, chiller, 5, cfg)
     chiller.regs[284] = 2                        # a P1 seen by one fast read
     result, _ = _cycle(clock, chiller, 5, cfg)
