@@ -402,6 +402,7 @@ Rules live in this file; the evidence, measurements and incident history behind 
 | `docs/new-pi-cutover.md` | Day-of procedure for fitting the new Pi and its I/O and 1-wire boards on the clone card: freeze and clone, card prep, UniFi reservation, plug wiring, channel and bus proof, rollback |
 | `docs/valve-lever-replacement.md` | 316 stainless replacement lever for the rusted A.Y. McDonald ball valves: stem, flat-pattern dimensions, ordering and bending; `hardware/valve-lever/` holds the DXF, 1:1 SVG and generator |
 | `docs/butterfly-handle-replacement.md` | Replacement for the red butterfly handle on the hose-end drain valves (M6×1 nut, 5 × 8 mm double-D drive, groove-and-lug stop): dimensions from the broken base, 85 mm rising wings, 316L print; `hardware/butterfly-handle/` holds the CadQuery generator, STEP, STL and 1:1 SVG |
+| `docs/video-tour-plan.md` | Video tour of the system for Unico: shot list, narration script, Mac and iPad screen capture, what to keep off screen, iMovie edit and delivery |
 
 ## Known Operational Behaviours (Not Bugs)
 
