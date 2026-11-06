@@ -3,8 +3,19 @@
 The chiller is a Modbus *slave* on terminals A3/B3 (9600 8N1, slave 1,
 function 03).  An Arduino UNO R4 with an RS-485 shield sits between it and the
 Pi on USB, running the `ChiltrixScan` sketch from ~/github/Arduino.  This
-module drives that sketch's `s <from> <to>` range-read command and republishes
-every register the unit answers.
+module drives that sketch's `r <lo> <n>` block-read command and republishes
+every register in 0-146 and 200-286 about once a second.
+
+Block mode (the default since 2026-11-06).  Chiltrix's engineer asked for the
+raw registers 0-146 and 200-286 at about 1 s around a P1 lockout, and said the
+controller answers a read of every register at once (their tools use blocks
+of 50).  Five function 03 requests of up to 50 registers sweep all 234 in
+about a second.  To keep InfluxDB's write load and disk in check, a value goes
+to Signal K only when it changes, and every value is resent once `refresh_s`
+(30 s, so no 1-minute bucket in Grafana is empty) has passed, so a reader of
+the stored series forward-fills to the exact 1 s record.  `registerCount` is published every sweep and marks each one.
+`mode: scan` restores the old one-register-per-transaction `s <from> <to>`
+scan with its fast 227/284 poll.
 
 READ ONLY.  The sketch only ever issues function 03.  Registers 140-146 are
 writable on the chiller and include the on/off switch and the cooling target;
@@ -93,6 +104,13 @@ RAW_RANGES = [(0, 139),
               (140, 146), (202, 217), (225, 227), (243, 248),
               (256, 261), (264, 264), (281, 285)]
 
+# Block mode: every register Chiltrix asked for, in blocks of 50 or fewer.
+BLOCKS = [(0, 49), (50, 99), (100, 146), (200, 249), (250, 286)]
+DEFAULT_REFRESH_S = 30
+# Published every sweep whether or not they changed: registerCount marks the
+# sweep, and the rest are derived state the alerts read.
+ALWAYS = ("registerCount", "faultCode", "runDuration", "startupFlow")
+
 DEFAULT_PORT = "/dev/ttyACM0"
 SK_ROOT = "hvac.chiller.chiltrix"
 
@@ -121,6 +139,8 @@ _state = {
     "last_scan": None,       # wall clock of the last full scan
     "fault_code": None,      # last non-zero register 284
     "fault_at": None,        # wall clock it was last read non-zero
+    "sent": None,            # block mode: last value sent to Signal K per key
+    "refreshed_at": None,    # block mode: wall clock of the last full send
 }
 
 # Idle-side flow samples this soon after a stop edge are the pump spinning
@@ -204,6 +224,60 @@ def _read_range(s, lo, hi, quiet=0.4, deadline=15.0):
                 out[int(p[0])] = int(p[3])
             except ValueError:
                 continue
+    return out
+
+
+def _read_block(s, lo, hi, deadline=3.0):
+    """Issue `r <lo> <n>` and return {addr: int16} for lo..hi.
+
+    The sketch echoes the command (`> r 0 50`) and answers on one line:
+        R <lo> <n> v0 v1 ...     signed values
+        E <lo> <n> <rc>          ModbusMaster failure code
+    A failed or short block returns {} so the other blocks still publish and
+    registerCount shows the loss; only a silent board raises.
+    """
+    n = hi - lo + 1
+    s.reset_input_buffer()
+    s.write(("r %d %d\n" % (lo, n)).encode())
+    s.flush()
+    t0 = time.time()
+    while time.time() - t0 < deadline:
+        raw = s.readline()
+        if not raw:
+            continue
+        p = raw.decode("utf-8", "replace").split()
+        if len(p) < 3 or p[0] not in ("R", "E") or p[1] != str(lo):
+            continue
+        if p[0] == "E":
+            logger.debug("ChiltrixModbus block %d-%d failed: %s", lo, hi, " ".join(p[3:]))
+            return {}
+        vals = p[3:]
+        if len(vals) != n:
+            logger.debug("ChiltrixModbus block %d-%d short: %d values", lo, hi, len(vals))
+            return {}
+        try:
+            return {lo + i: int(v) for i, v in enumerate(vals)}
+        except ValueError:
+            return {}
+    raise RuntimeError("no reply to 'r %d %d' within %.0fs" % (lo, n, deadline))
+
+
+def _changed(result, refresh_s=DEFAULT_REFRESH_S):
+    """Keep the keys whose value differs from the last one sent, every key
+    once `refresh_s` has passed, and the ALWAYS keys every time."""
+    now = time.time()
+    sent = _state["sent"]
+    if sent is None:
+        sent = _state["sent"] = {}
+    refresh = (_state["refreshed_at"] is None
+               or now - _state["refreshed_at"] >= refresh_s)
+    if refresh:
+        _state["refreshed_at"] = now
+    out = {}
+    for k, v in result.items():
+        if refresh or k in ALWAYS or sent.get(k) != v:
+            out[k] = v
+            sent[k] = v
     return out
 
 
@@ -322,12 +396,19 @@ def _fault(regs, result, hold_s=DEFAULT_FAULT_HOLD_S):
 def status(config={}, output="default"):
     port = config.get("port", DEFAULT_PORT)
     baud = int(config.get("baud", 115200))
-    full = (_state["last_scan"] is None
-            or time.time() - _state["last_scan"] >= float(config.get("scan_s", DEFAULT_SCAN_S)))
-    if full:
-        ranges = config.get("ranges") or RAW_RANGES
+    block = config.get("mode", "block") == "block"
+    if block:
+        full = True
+        ranges = [tuple(b) for b in (config.get("blocks") or BLOCKS)]
+        read = _read_block
     else:
-        ranges = [(a, a) for a in FAST_REGS]
+        full = (_state["last_scan"] is None
+                or time.time() - _state["last_scan"] >= float(config.get("scan_s", DEFAULT_SCAN_S)))
+        if full:
+            ranges = config.get("ranges") or RAW_RANGES
+        else:
+            ranges = [(a, a) for a in FAST_REGS]
+        read = _read_range
 
     global _ser
     regs = {}
@@ -336,7 +417,7 @@ def status(config={}, output="default"):
             logger.warning("ChiltrixModbus opening %s", port)
             _open(port, baud)
         for lo, hi in ranges:
-            regs.update(_read_range(_ser, lo, hi))
+            regs.update(read(_ser, lo, hi))
         if full:
             _state["last_scan"] = time.time()
     except Exception as e:
@@ -373,6 +454,9 @@ def status(config={}, output="default"):
 
     if output != "signalk":
         return result
+
+    if block:
+        result = _changed(result, float(config.get("refresh_s", DEFAULT_REFRESH_S)))
 
     from pivac import sk_init_deltas, sk_add_source, sk_add_value
     deltas = sk_init_deltas()
