@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O Boards — Rev C Plan
 
 **Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). In production since 2026-10-11 19:43 EDT with the rev B INT board, bench-proven the same day (record in `docs/rpi-io-boards-assembly.md`; U1 was replaced once on the bench). §9 lists what the next revision changes. · **Owner:** David

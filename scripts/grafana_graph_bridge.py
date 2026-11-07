@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Grafana webhook → Microsoft Graph sendMail bridge.
 
 Listens on 127.0.0.1:8125 for Grafana alerting webhook POSTs and forwards

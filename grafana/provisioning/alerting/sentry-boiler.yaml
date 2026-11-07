@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 apiVersion: 1
 
 # Freshness + sanity alerts for the Sentry 2100 boiler display reader

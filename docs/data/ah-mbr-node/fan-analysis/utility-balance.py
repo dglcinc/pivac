@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 import pandas as pd,numpy as np,sys,warnings
 warnings.filterwarnings('ignore')
 df=pd.read_pickle(sys.argv[1]+'/u.pkl')

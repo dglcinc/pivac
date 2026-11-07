@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate docs/air-handler-shield-pcb-layout.svg, the floor plan of the air-handler node shield PCB
 (docs/air-handler-shield-pcb-plan.md).
 

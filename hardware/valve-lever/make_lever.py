@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Flat pattern for a 316 stainless replacement lever (A.Y. McDonald ball valve).
 
 Writes valve-lever-316.dxf (cut outline and hole only) and valve-lever-1to1.svg

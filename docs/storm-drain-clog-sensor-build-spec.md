@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Storm-Drain Clog Sensor Node — Build Spec
 
 **Status:** Design/spec. Nothing built or ordered yet.

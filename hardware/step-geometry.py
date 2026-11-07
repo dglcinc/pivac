@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Extract the board geometry from the Phoenix RPI-BC STEP models.
 
 Reads the AP214 STEP files in hardware/vendor/ and prints, for each board, the

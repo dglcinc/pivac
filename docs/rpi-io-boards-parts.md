@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O boards, rev A — parts to order
 
 Quantities are for one populated INT board and one populated EXT board, then for all three of

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Phantom-hundreds-digit guard for pivac.Sentry water-temp reads.
 
 Dependency-free (no pytest/cv2 needed): run directly with

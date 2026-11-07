@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Domestic Water Node — Build Spec
 
 **Status:** Sketch built (meter-only) and **flashed to the spare UNO R4 WiFi 2026-07-03**

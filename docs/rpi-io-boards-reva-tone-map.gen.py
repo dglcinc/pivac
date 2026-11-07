@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate rpi-io-boards-reva-tone-map.svg: the rev A INT board as a meter reference.
 
 Component side up, the four PTSM plugs along the top edge, the Pi header down the left

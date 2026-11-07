@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate docs/air-handler-shield-assembly.svg, the placement drawing for the bench sheet
 docs/air-handler-shield-assembly.md.
 

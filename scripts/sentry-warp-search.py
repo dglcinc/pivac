@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Recalibrate pivac.Sentry's ``display_warp`` quad after the camera view drifts.
 
 The Sentry reader decodes a 7-segment display through a perspective warp defined by

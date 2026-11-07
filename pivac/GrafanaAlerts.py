@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.GrafanaAlerts — Grafana's alert state as Signal K notifications.
 
 Every alert rule Grafana evaluates is published every cycle under

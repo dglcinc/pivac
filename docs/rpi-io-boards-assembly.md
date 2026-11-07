@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O boards, rev A — assembly
 
 Build flattest to tallest so each board rests on the bench while you solder from the back.

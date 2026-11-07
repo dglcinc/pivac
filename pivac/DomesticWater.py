@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.DomesticWater — the DAE MJ-75a domestic water-meter node.
 
 A thin wrapper over pivac.ArduinoSensor that adds one value the node does not

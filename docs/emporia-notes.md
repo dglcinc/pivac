@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Emporia Vue — circuit history, CT scaling and dashboard conventions
 
 Evidence and history behind the Emporia rules in `CLAUDE.md`.

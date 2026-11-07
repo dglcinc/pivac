@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Chiltrix CX75 heat pump over RS-485 Modbus RTU.
 
 The chiller is a Modbus *slave* on terminals A3/B3 (9600 8N1, slave 1,

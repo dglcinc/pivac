@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Unico S.M.A.R.T. Control Board serial protocol
 
 This is the protocol between Unico's ECMConfig program and the S.M.A.R.T. Control Board (SCB), carried by the A01470 USB board. `scripts/unico-scb.py` implements it and `docs/unico-scb-live-test.md` is the procedure for proving it against an air handler, with the record of the 2026-10-24 run on the utility zone's M2430 (firmware 3.21), which passed every stage. Statements marked "measured" come from that run; the rest is read from the program.

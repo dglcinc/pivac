@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # CDP Relay + RPi Label Rework — single-chiller conversion
 
 **Status:** partially executed.

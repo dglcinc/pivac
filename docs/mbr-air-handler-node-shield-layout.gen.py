@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate the parts layout on the Olimex PROTO-SHIELD rev A: docs/mbr-air-handler-node-shield-layout.svg (the whole
 board) and docs/mbr-air-handler-node-shield-holes.svg (the proto area enlarged, with every lead hole named).
 

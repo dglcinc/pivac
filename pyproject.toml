@@ -7,7 +7,7 @@ name = "pivac"
 version = "0.7.7"
 description = "Raspberry Pi input utilities"
 readme = "DESC.rst"
-license = "MIT"
+license = "PolyForm-Noncommercial-1.0.0"
 authors = [
     {name = "David Lewis", email = "david@dglc.com"}
 ]

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 apiVersion: 1
 
 # Freshness alerts for the 1-wire hydronic + buffer-tank temperatures.

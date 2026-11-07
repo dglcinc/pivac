@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Pour GND on the back of the routed Pico W carrier, behind the Pico only: the routed tracks join every GND
 pad, the left side's tracks would cut a wider pour into islands, and the antenna's keep-out stays bare.
 Run after route.py."""

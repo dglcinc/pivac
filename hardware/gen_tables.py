@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Pin and net tables shared by gen-boards.py (placement, nets) and gen-schematics.py."""
 PITCH = 2.54
 

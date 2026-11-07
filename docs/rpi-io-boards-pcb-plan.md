@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O Boards on Fabricated PCBs — Plan
 
 **Status:** Rev A boards fabricated, populated and in service since the 2026-09-26 cutover. Rev B, which moves the power section to EXT, is `docs/rpi-io-boards-revb-plan.md`; `hardware/` now generates rev B. · **Owner:** David

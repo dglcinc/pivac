@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """The air-handler node's Pico W carrier for the Hammond 1593K (docs/air-handler-shield-pcb-plan.md §0).
 
 Run with KiCad's Python. Writes hardware/ahp-board/ahp-board.kicad_pcb with the parts placed and the

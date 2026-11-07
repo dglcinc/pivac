@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # DS18B20 1-wire — roster, bus diagnostics and probe behaviour
 
 Evidence and history behind the 1-wire rules in `CLAUDE.md`. The bus build procedure and electrical background are in `ds18b20-bus-topology.md`; the calibration record is in `ds18b20-PA1-5-calibration.md`.

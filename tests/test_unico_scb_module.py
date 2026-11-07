@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Checks for pivac.UnicoSCB: the same paths from a frame and from a node line.
 Run: python tests/test_unico_scb_module.py"""
 import os

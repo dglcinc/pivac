@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Print cable-flag labels on a Brother PT-E550W over USB (raster mode, no driver).
 
 A cable flag is two identical text blocks with a blank wrap zone between them; folded round the cable the

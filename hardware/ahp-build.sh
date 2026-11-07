@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Generate, route, pour and check the Pico W carrier, then export its gerbers. Freerouting is not
 # deterministic, so the board is regenerated and routed again until DRC reports no error and nothing
 # unconnected, up to sixteen attempts. ahp-paste.py replaces the Pico footprint's oversized paste

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Air-handler node shield: PCB plan
 
 **Status:** The node is the Pico W carrier of §0, in a Hammond 1593K: routed and DRC clean, with gerbers in `hardware/ahp-board/ahp-board-gerbers.zip`. Rev B's board and stencil are ordered from JLC, and every required part not in stock from Digi-Key. The rest of this plan is the UNO R4 shield with the serial tap of §4.3, the fallback route, not built past rev A.

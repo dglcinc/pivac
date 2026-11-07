@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # DS18B20 ice-point calibration record
 
 Fourteen DS18B20 stainless probes, addressed, labelled, and ice-point calibrated on the bench

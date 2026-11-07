@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Paste the Pico W's castellated pads through their own copper, in a saved .kicad_pcb.
 
 KiCad's RaspberryPi_Pico_W_SMD_HandSolder footprint prints paste through 40 separate 3.8 x 2.2 mm

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O Board — Build Procedure
 
 **Status:** Ready to build. · **Owner:** David

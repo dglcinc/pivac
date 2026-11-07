@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Chiltrix CX75 Modbus reader — merge this block into /etc/pivac/config.yml.
 #
 # The chiller is a Modbus slave on A3/B3 (9600 8N1, slave 1, function 03). An

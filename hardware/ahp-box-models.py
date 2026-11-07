@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """VRML models of the Hammond 1593K and the carrier's unmodelled parts, for gen-ah-pico.py's render.
 
 Run with FreeCAD's command-line Python: freecadcmd ahp-box-models.py -- OUTDIR. Frame: origin at the

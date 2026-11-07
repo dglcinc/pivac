@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # New Pi cutover — procedure
 
 **Status:** run 2026-09-07; kept as history. The 2026-09-26 cutover to the rev A boards and

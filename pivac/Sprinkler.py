@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """
 pivac.Sprinkler — OpenSprinkler irrigation flow via the local HTTP API.
 

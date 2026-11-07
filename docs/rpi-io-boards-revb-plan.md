@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Raspberry Pi I/O Boards — Rev B Plan
 
 **Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). In production since 2026-10-11 19:43 EDT with the rev C EXT board, on the production Pi and its own card: bench-proven the same day (record in `docs/rpi-io-boards-assembly.md`), plugs moved position for position with J4 and the 24 VAC entry per §4 and §2, wall adapter retired. The rev A pair is the rollback. · **Owner:** David

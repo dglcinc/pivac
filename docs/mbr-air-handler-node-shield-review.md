@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Master bedroom air-handler node: PROTO-SHIELD layout
 
 This is the parts layout for the Olimex PROTO-SHIELD rev A on the master bedroom air-handler node. The circuit is in `mbr-air-handler-node-plan.md` §3; this file places it on the board. Eleven screw terminals sit along the left edge, the six small parts sit on the prototyping area, and a bare wire adds the 5 V rail the shield lacks. `mbr-air-handler-node-shield-layout.gen.py` generates both drawings: the whole board, and the proto area enlarged with every lead hole named. Parts are drawn as outlines under the pads, so each hole stays visible. A coloured ring marks a hole that takes a part's lead, a pink pad marks a joint on the 5 V rail, and a coloured dot marks a hole where a solder-side wire lands.
