@@ -15,7 +15,7 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 | Seg | Topic | Time |
 |-----|-------|------|
 | 0 | Open | 0:30 |
-| 1 | System diagram | 1:00 |
+| 1 | Water and control diagrams | 1:45 |
 | 2 | Air handlers | 1:30 |
 | 3 | Utility room plumbing | 1:30 |
 | 4 | Integration panel | 2:30 |
@@ -44,7 +44,7 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 |---|-----|------|--------|
 | 1 | 0 | Owner at the panel, wide | iPhone |
 | 2 | 0 | Title card | Keynote |
-| 3 | 1 | System diagram | Keynote |
+| 3 | 1 | Water and control diagrams | Keynote |
 | 4 | 2 | MBR air handler, wide | iPhone |
 | 5 | 2 | MBR node on DIN rail | iPhone |
 | 6 | 2 | MBR coil probes | iPhone |
@@ -91,7 +91,7 @@ Each entry gives the framing, what must be in the frame, the camera position, an
 
 1. **Owner at the panel.** Medium-wide, from your knees to a foot above your head, with the integration panel filling the right two thirds of the frame. Tripod at chest height, 6 to 8 ft back, square to the panel. Stand to the left of the panel, turn to face the lens, then turn and look at the panel. Lock on your face. This is the only on-camera shot; say nothing.
 2. **Title card.** In Keynote, use the title "Monitoring a Unico hydronic system", with [owner's name] and "November 2026" below it. Use a plain dark background with white type, and nothing else on the slide.
-3. **System diagram.** Build one slide and reveal it in four stages: (a) CX75 → buffer tank; (b) primary loop → loops A and B → five Unico air handlers; (c) Ti-200 boiler on the same loop and the two Bosch units; (d) the HZ-432 above, with dotted lines to every unit. Use the same box shape for every piece of equipment and label each one in plain words. Export each stage as its own PNG.
+3. **Water and control diagrams.** Two slides, built in stages, exported as `shot-03-water-a` to `-d` and `shot-03-control-a` to `-c`. The water slide: (a) the two sources, each with its own pump into the primary header, the CX75 and buffer tank through the Taco 0015, and the Ti-200 through its UP26-99F, with domestic hot water off the boiler; (b) the loop A and loop B pumps, a zone valve for each air handler, and the five Unico air handlers; (c) the Bosch Bova DX units for kitchen and great room cooling; (d) the temperature probes. The control slide: (a) each zone's thermostat, wireless to its EIM, which drives the air handler's S.M.A.R.T. board; (b) the board's W, Y and G outputs as the zone calls at the HZ-432, and the panel's outputs to the Taco, the zone valves and loop pumps, the boiler and the Chiltrix mode; (c) the relays that repeat each output to the Pi, and the AirMaster on the board's USB port. Each stage is its own PNG, so the diagram builds as the edit cuts from one to the next.
 4. **MBR air handler, wide.** The whole unit in frame with some space on each side, so the plenum, the coil section and the node box all read as one assembly. Stand back as far as the room allows, at the unit's mid-height, and angle 30° off its front so the box and the coil section both show. Lock on the node box.
 5. **MBR node on the DIN rail.** The node box filling about two thirds of the frame. Its label and the cable entries must be readable, along with the 24 VAC lead back to the Unico transformer. Shoot square to the box face, 12 to 18 in away. Lock on the label. Then tilt down slowly along the cable bundle to show where the leads go.
 6. **MBR coil probes.** The water supply and return pipes at the coil, with both probes and their insulation in one frame. Then cut to the supply-air and return-air sensors in the ducts. Shoot square to the pipes so they run straight across the frame. Lock on the nearer probe. Light from the side so the copper does not flare.
@@ -189,7 +189,9 @@ Read at an easy pace, about 140 words a minute. Each block is one voice-over tak
 I'm [owner's name]. This is the monitoring system I built around my Unico installation. Everything in this video is home-built: the sensors, the software, the dashboards, and the circuit boards. I'll walk through the equipment first, then show how the data is collected and displayed.
 
 **Seg 1, shot 3.**
-The house has five Unico air handlers, installed in 2009, all on hydronic coils. A Chiltrix CX75 heat pump makes chilled and hot water into a buffer tank. A primary loop carries water from the tank to two secondary loops, which feed the coils. An NTI Ti-200 boiler shares the same loop for heat below 30 degrees outside, and for domestic hot water. The kitchen and great room have Bosch units for cooling; in winter all five zones heat from the water loop.
+The house has five Unico air handlers, installed in 2009, all on hydronic coils. A Chiltrix CX75 heat pump makes chilled and hot water into a buffer tank. Two sources feed the primary header, each through its own pump: the Taco puts the tank in circuit, and the NTI Ti-200 boiler's pump puts the boiler in circuit, for heat below 30 degrees outside. The boiler also makes the domestic hot water. From the header, two secondary loops, each with its own pump, feed the coils through a zone valve at each air handler. The kitchen and great room also have Bosch units for cooling; in winter all five zones heat from the water.
+
+Each room's Honeywell thermostat talks wirelessly to an interface module at its air handler, which signals the Unico S.M.A.R.T. Control Board. The board's heat, cool and fan outputs are that zone's call at the HZ-432 zone panel. The panel chooses the heat pump or the boiler, sets the Chiltrix to heating or cooling, opens the zone's valve and starts its loop pump. A relay repeats each of those outputs so the Pi can read it.
 
 **Seg 2, shots 4–9.**
 This is the master bedroom air handler. The box on the DIN rail is a sensor node I built on an Arduino. It reads the coil's water in and out, the supply and return air, and the high-fan call, and it runs on the air handler's own 24 volts. The utility zone has the same node, plus one more connection. This USB cable goes into the S.M.A.R.T. Control Board. I worked out the board's serial protocol, so the Pi reads all six thermostat inputs, the actual airflow and the motor RPM every few seconds, without changing anything on the board.
