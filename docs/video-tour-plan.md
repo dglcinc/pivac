@@ -1,6 +1,6 @@
 # Video tour of the monitoring setup, for Unico
 
-Brian Intagliata (Unico customer service) asked on 2026-11-06 for a video of the monitoring setup so his team can review it. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
+Unico's customer service team asked on 2026-11-06 for a video of the monitoring setup, so their staff can review it. The video carries no names: the narration, title cards and screens identify neither the homeowner nor anyone at Unico. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
 
 ## Approach
 
@@ -42,7 +42,7 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 
 | # | Seg | Shot | Source |
 |---|-----|------|--------|
-| 1 | 0 | David at the panel, wide | iPhone |
+| 1 | 0 | Owner at the panel, wide | iPhone |
 | 2 | 0 | Title card | Keynote |
 | 3 | 1 | System diagram | Keynote |
 | 4 | 2 | MBR air handler, wide | iPhone |
@@ -85,18 +85,52 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 | 41 | 10 | GitHub Arduino repo | Mac |
 | 42 | 11 | Closing card | Keynote |
 
-Notes by shot number:
+### Shot direction
 
-1. Shot 1 is the one on-camera shot. Prop the phone on a tripod at chest height with the panel behind you. Say nothing; the voice-over covers it.
-2. Shots 2, 27 and 42: build them in one Keynote deck, 1920 × 1080, plain dark background. Export with File → Export To → Images (PNG) and drop the stills into iMovie.
-3. Shot 3 is one Keynote slide drawn as boxes and arrows. Outdoors sits the CX75. In the utility room are the buffer tank, the primary loop and loops A and B to the five Unico air handlers, with the Ti-200 boiler on the same loop and the two Bosch units for kitchen and great room cooling. Reveal one group per click, then export each build stage as its own PNG so the diagram assembles in step with the words.
-4. Shots 5, 6 and 9: show the node's label, the coil supply and return probes, and the duct air sensors. Shot 8 is a close-up of the USB cable at the SCB. It matters most to Unico, so hold it 10 seconds.
-5. Shot 11: film the CX75 display at an angle to avoid glare.
-6. Shot 15: one probe close up, with the insulation pulled back if it can be refitted easily. This shows how the probe is mounted.
-7. Shots 17 to 23 are a slow walk across the panel from left to right. Then repeat each part as a held close-up, in 4K if the terminal labels must be legible.
-8. Shot 24: film the Emporia CTs with the panel's dead front on, or with the panel safely open by someone qualified. Never reach into a live panel holding a phone.
-9. Shot 26: the camera and the boiler display it reads. Avoid bumping the camera: any knock moves the Sentry calibration (CLAUDE.md, Sentry operating rules), so film from a distance and check `decodeMargin` afterwards.
-10. Shots 28 to 41 follow the screen capture section below.
+Each entry gives the framing, what must be in the frame, the camera position, and where to lock focus. "Lock" means press and hold on that point until AE/AF LOCK shows. A close-up should hold the subject for 8 to 10 seconds with no movement. A move should be one slow pan or push lasting 6 to 8 seconds, then a 3-second hold at the end.
+
+1. **Owner at the panel.** Medium-wide, from your knees to a foot above your head, with the integration panel filling the right two thirds of the frame. Tripod at chest height, 6 to 8 ft back, square to the panel. Stand to the left of the panel, turn to face the lens, then turn and look at the panel. Lock on your face. This is the only on-camera shot; say nothing.
+2. **Title card.** In Keynote, use the title "Monitoring a Unico hydronic system", with "November 2026" below it and no name. Use a plain dark background with white type, and nothing else on the slide.
+3. **System diagram.** Build one slide and reveal it in four stages: (a) CX75 → buffer tank; (b) primary loop → loops A and B → five Unico air handlers; (c) Ti-200 boiler on the same loop and the two Bosch units; (d) the HZ-432 above, with dotted lines to every unit. Use the same box shape for every piece of equipment and label each one in plain words. Export each stage as its own PNG.
+4. **MBR air handler, wide.** The whole unit in frame with some space on each side, so the plenum, the coil section and the node box all read as one assembly. Stand back as far as the room allows, at the unit's mid-height, and angle 30° off its front so the box and the coil section both show. Lock on the node box.
+5. **MBR node on the DIN rail.** The node box filling about two thirds of the frame. Its label and the cable entries must be readable, along with the 24 VAC lead back to the Unico transformer. Shoot square to the box face, 12 to 18 in away. Lock on the label. Then tilt down slowly along the cable bundle to show where the leads go.
+6. **MBR coil probes.** The water supply and return pipes at the coil, with both probes and their insulation in one frame. Then cut to the supply-air and return-air sensors in the ducts. Shoot square to the pipes so they run straight across the frame. Lock on the nearer probe. Light from the side so the copper does not flare.
+7. **Utility air handler, wide.** Frame as in shot 4, with the control box door visible. Show the M2430 rating plate if it is legible from there; otherwise add a 3-second close-up of the plate.
+8. **SCB and USB cable.** This is the shot Unico cares about most. Open the control box with power on, staying clear of the terminals. Frame the S.M.A.R.T. Control Board so its silkscreen name and the USB connector are both in frame, with the cable running out of the box. Shoot square to the board, 10 to 12 in away. Lock on the USB connector. Hold for 10 seconds, then pull back slowly to show the cable route to the node. Light from one side, never straight on, because the board's coating reflects.
+9. **Utility node, rev A shield.** The UNO R4 with its shield, showing the terminal block legends and the leads to PA9A/PA9B and SUP 1/RET 1. Shoot from 30° above so the board and the terminal faces both show. Lock on the shield's terminal block. If the board's status LED blinks, keep it in frame.
+10. **CX75 outdoors.** Wide, with the whole unit, the fan grille and the piping into the house wall. Shoot from a corner at 45° and at the unit's mid-height, with the house wall behind it to show scale. In daylight, keep the sun behind you. If the compressor is running, record 10 seconds with the fan turning.
+11. **CX75 panel display.** The display filling the frame, with mode, setpoint and water temperature readable. Shoot about 20° off-axis to the side and slightly above, to kill glare and your reflection. Lock on the digits. Hold 10 seconds while the unit is running, so a live temperature shows.
+12. **Buffer tank and probes.** Start with the full tank top to bottom, then tilt slowly from the upper probe (UBT) down to the lower (LBT). Shoot from 6 to 8 ft back at mid-height so the tank stays vertical with no keystone. Lock on each probe as you reach it, and hold 3 seconds on each.
+13. **Primary pump and tees.** The Taco 0015 primary pump and the run of pipe past both secondary tees, so the eye follows the water from the tank to the tees. Shoot along the pipe at about 30°, so the run recedes across the frame. Lock on the first tee.
+14. **Loop A and B pumps.** Both secondary pumps in frame. If their pipe labels or tags are readable, hold on them. Loop B's UP26-99F speed switch should be visible (it sits on HIGH in heating). Shoot square to the pump bodies. Lock on the loop B speed switch.
+15. **Probe at a tee, close.** One loop probe on its copper, with the insulation pulled back if it refits easily, so the probe body, the grease and the cable strain relief show. Shoot from 6 in away, square to the pipe. Use 2× zoom rather than moving the phone closer, which keeps focus. Lock on the probe. Light from the side to show texture.
+16. **Y-strainer and gauges.** The strainer body, the cap and the gauge or pressure sensor on the same run in one frame. Then cut to the gauge face alone, readable. Shoot the gauge square-on to avoid parallax on the needle. Lock on the needle.
+17. **Integration panel, wide walk.** Begin with the whole panel in frame and hold 3 seconds. Then truck slowly left to right at chest height, keeping the phone parallel to the panel face, about 4 ft away. Use the 0.5× lens if the panel will not fit at 1×, and keep its edges straight. Do not pan by turning your wrist.
+18. **HZ-432 and zone lights.** The HZ-432 face with its zone and equipment LEDs readable. Film it during a call, so at least one zone light and an equipment light are lit. Shoot square to the panel, slightly below its centre so the LEDs face the lens. Lock on the LED column. Turn exposure down a stop (drag the sun icon after locking) so the LEDs do not bloom.
+19. **Quattro blocks.** A row of the pass-through blocks with their wires in, showing the colour-coded leads entering and leaving. Shoot from 30° to one side so the wire entries show along the row. Lock on the middle block. Shoot in 4K if you want to crop to a legible terminal label in the edit.
+20. **Relays.** The relay row with each label readable (HPCALL, HPHEAT, HPCOOL, DHWX, BLR, DHW, BOS1, BOS2). Square-on, and close enough that the labels fill the width. If a relay has an indicator LED, film it while that relay is energised. Lock on the HPCALL label.
+21. **Pi with INT and EXT.** The Pi with INT on top and EXT hanging below it, solder side out, in one frame. Then a push-in to the 7-way link and the plugs. Shoot square-on to EXT's face, then from 30° above to show INT on the Pi. Lock on the board legends. Keep the Pi's LEDs in frame.
+22. **Modbus UNO R4 and RS-485.** The UNO R4, its RS-485 adapter, and the twisted pair leaving toward the Chiltrix. Show the board's TX/RX LEDs flickering, which marks the 1 s sweep. Shoot from 30° above, 8 in away. Lock on the RS-485 terminal block. Hold 10 seconds so the flicker reads.
+23. **1-wire trunk and H plugs.** The CAT6 trunk entering EXT and the H plugs with their legend (GND · DATA · VCC). Shoot square-on to the plugs. Lock on the legend. Then tilt along the trunk as far as it stays in view.
+24. **Emporia in the panel.** The Vue unit and its CTs on the feeders and branch circuits, with the circuit directory visible if possible. Have someone qualified open the panel and film from outside the opening without reaching in. Shoot from 3 ft back and slightly above. Lock on the Vue's label. If the panel cannot be opened safely, film the closed panel and use an Emporia app screenshot instead.
+25. **Thermostat on the wall.** One RedLink thermostat, with the room temperature and setpoint readable. Shoot square-on at the display's height, 12 to 18 in away, about 10° off-axis to avoid reflection. Lock on the digits.
+26. **Sentry camera on the boiler.** The Tapo camera and the boiler display it watches, both in one frame, so the angled mount shows. Film from 4 to 6 ft away without touching either one; a knock moves the Sentry calibration (CLAUDE.md, Sentry operating rules). Then a 2× zoom of the boiler display alone, at an angle. Lock on the display digits. Check `decodeMargin` in Signal K afterwards.
+27. **Data-flow diagram.** One Keynote slide built in three stages: (a) the sources on the left (relays, 1-wire, Modbus, SCB, nodes, Emporia, RedLink, Sentry); (b) the pivac collectors and Signal K in the middle; (c) InfluxDB, Grafana and WilhelmSK on the right. Use the same colour for each source type as in shot 3.
+28. **pivac services.** A Terminal window at 125 % font, cropped tight to the output of `systemctl list-units "pivac-*"`, with every line `active running`. Hold 5 seconds. No scrolling.
+29. **Signal K data browser.** A browser window cropped to the data table with no tabs or bookmarks showing. Type `hvac` in the filter, hold 5 seconds, then change it to `environment.inside.hvac` and hold. Leave the pointer still while values update.
+30. **Chiltrix raw registers.** The same view filtered on `chiltrix.raw`, with a column of `raw.r2xx` values changing. Hold 10 seconds with no pointer movement, so the eye catches the updates.
+31. **Hand holding the iPad.** Over-the-shoulder at 45°, with your hand and the iPad in frame and WilhelmSK page 1 showing. Turn the iPad brightness to full. Tilt it slightly away from overhead lights to avoid glare. Lock on the screen. Tap one room tile. This is the only phone shot of a screen.
+32. **WilhelmSK pages.** An iPad screen recording in landscape: hold page 1 for 8 seconds, swipe to page 2, then hold for 8 seconds. Make no taps that open dialogs.
+33. **Grafana PivacR, 24 h.** A browser cropped to the dashboard, with the time picker showing "Last 24 hours". Scroll slowly through the panels, pausing 3 seconds on each panel the script names.
+34. **Utility fan per call.** Zoom to one utility zone heat call, with the airflow, RPM and call panels stacked. Hover the pointer on the 500 CFM, 1630 RPM point so the tooltip shows. Hold 5 seconds.
+35. **A P1 lockout.** Zoom to 03:30–05:00 EST on 2026-11-03, with `raw.r284`, `raw.r210` and compressor Hz on screen. Hover on the r210 jump just before the trip. Hold 5 seconds.
+36. **INT and EXT on the bench.** If a spare set is on hand, place both boards side by side on a plain dark surface, component side up, and then flip them to show the copper. Shoot from directly overhead on a tripod, filling the frame, with soft light from two sides so the solder joints do not flare. Lock on the silkscreen titles. If no spare set exists, use shot 37 alone.
+37. **KiCad 3D of INT and EXT.** KiCad's 3D viewer, full window. Start top-down, then orbit slowly to 45° over 8 seconds and hold. Hide the toolbar panels.
+38. **AirMaster.** The rendered images in `docs/air-handler-pico-*.png`, moved with Ken Burns in the edit, in this order: board top, box open, box closed showing the LEDs. If the Rev B boards have arrived, shoot a bare board overhead as in shot 36 instead, with the USB-A cable and the 24 VAC terminal in frame.
+39. **AirMaster web page.** A browser cropped to the page, showing calls, airflow and RPM. Hold 8 seconds. Drop this shot if no unit is running.
+40. **GitHub pivac.** Follow steps 1 to 3 of the GitHub tour. Use browser zoom at 125 %. Pause 3 seconds on each folder or file the script names, and scroll in short steps.
+41. **GitHub Arduino.** Follow steps 4 and 5 of the GitHub tour, at the same zoom and pace.
+42. **Closing card.** In Keynote, show "Thanks for watching" with no name, email or address. Leave the repo URLs off; they carry the GitHub account name, and the reply email can give them to anyone who asks.
 
 ## Screen capture
 
@@ -120,7 +154,7 @@ Notes by shot number:
 ### What to record
 
 1. Shot 28: in Terminal, `ssh pi@10.0.0.82 'systemctl list-units "pivac-*" --no-pager'`, at a large font size (Cmd-+ three times). It shows one service per collector.
-2. Shot 29: the Signal K admin at `https://68lookout.dglc.com/admin/` → Data Browser, filtered on `hvac`, then `environment.inside.hvac`. The values update live, which is the point of the shot.
+2. Shot 29: the Signal K admin → Data Browser, with the address bar cropped out of the recording, filtered on `hvac`, then `environment.inside.hvac`. The values update live, which is the point of the shot.
 3. Shot 30: the same browser filtered on `chiltrix.raw`, which shows the registers ticking once a second.
 4. Shot 32: WilhelmSK, page 1 (rooms, water temperatures, relays, pressures, Sentry), then a swipe to page 2 (Grafana).
 5. Shots 33 to 35: Grafana's PivacR dashboard over the last 24 hours. Then zoom to a utility zone heat call showing airflow and RPM per call (`docs/air-handler-fan-optimization.md` has the times). Then zoom to the 2026-11-03 04:00 EST lockout with `raw.r284` and `raw.r210`.
@@ -135,10 +169,11 @@ Notes by shot number:
 3. Email, Teams and Messages notifications.
 4. The AirMaster label sheet and `~/.config/airmaster/units.csv`, which carry each unit's setup password.
 5. The `wilhelm-sk` repo, which is private. Show the layout in the app instead.
+6. Names and places: the browser address bar (it shows the Pi's public hostname), the GitHub account name at the top of each repo page, the house address on any equipment label or delivery box, and mail or papers in the utility room.
 
 ## GitHub tour
 
-Both `dglcinc/pivac` and `dglcinc/Arduino` are public, so show them in the browser at github.com, signed in so the private repos list is not needed. In 60 seconds:
+Both `pivac` and `Arduino` are public repos. Show them in the browser, cropped below the address bar and the repo title line, so the GitHub account name stays off screen. A name visible in a file path or a commit author can be blurred in the edit (iMovie has no blur, so crop or cut away instead). In 60 seconds:
 
 1. `pivac`: the README and file list, then `pivac/` with one file per collector, opening `ChiltrixModbus.py` and `UnicoSCB.py` briefly.
 2. `pivac/docs/`: scroll the list, then open `unico-scb-protocol.md` and scroll its frame tables. This is the doc Unico will care about most.
@@ -151,7 +186,7 @@ Both `dglcinc/pivac` and `dglcinc/Arduino` are public, so show them in the brows
 Read at an easy pace, about 140 words a minute. Each block is one voice-over take, labelled with its segment and shots. Pause a beat between paragraphs; the cut uses those pauses.
 
 **Seg 0, shots 1–2.**
-I'm David Lewis. This is the monitoring system I built around my Unico installation in northern New Jersey. Everything in this video is home-built: the sensors, the software, the dashboards, and the circuit boards. I'll walk through the equipment first, then show how the data is collected and displayed.
+This is the monitoring system I built around my Unico installation. Everything in this video is home-built: the sensors, the software, the dashboards, and the circuit boards. I'll walk through the equipment first, then show how the data is collected and displayed.
 
 **Seg 1, shot 3.**
 The house has five Unico air handlers, installed in 2009, all on hydronic coils. A Chiltrix CX75 heat pump makes chilled and hot water into a buffer tank. A primary loop carries water from the tank to two secondary loops, which feed the coils. An NTI Ti-200 boiler shares the same loop for heat below 30 degrees outside, and for domestic hot water. The kitchen and great room have Bosch units for cooling; in winter all five zones heat from the water loop.
@@ -206,4 +241,4 @@ That's the system. I'd be glad to walk your team through any part of it on a cal
 
 ## Delivery
 
-The file is too large to attach to email. Upload it to OneDrive and send Brian a view-only link, or upload it to YouTube as Unlisted and send that link. YouTube plays better on a phone and lets his team share it internally. Reply on the "Intro to David Lewis" thread so the context travels with it.
+The file is too large to attach to email. Upload it to OneDrive and send a view-only link, or upload it to YouTube as Unlisted from an account whose channel name does not identify you, and send that link. YouTube plays better on a phone and lets Unico share it internally. Send the link as a reply on the existing email thread with Unico customer service, so the context travels with it.
