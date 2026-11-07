@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate docs/mbr-air-handler-node-wiring.svg, the wiring of the master bedroom air-handler node.
 
 Run from the repo root: python3 docs/mbr-air-handler-node-wiring.gen.py

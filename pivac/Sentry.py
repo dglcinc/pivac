@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """
 pivac.Sentry — NTI Trinity Ti-200 boiler monitor via Tapo C120 / Sentry 2100 display.
 

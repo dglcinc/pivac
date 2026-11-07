@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Write a KiCad schematic for each board, from the same tables gen-boards.py places.
 
     python3 hardware/gen-schematics.py          (plain python3 is enough; no pcbnew needed)

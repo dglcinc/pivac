@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.LoopDelta — gated supply/return delta-T for the chilled-water loops and
 the air-handler node's coil pairs.
 

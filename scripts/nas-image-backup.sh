@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Monthly incremental image-backup of the live Pi filesystem into the
 # NFS-mounted .img on LookoutNas. Stops the documented set of disk-writing
 # services for a clean rsync, then restarts them — even on failure.

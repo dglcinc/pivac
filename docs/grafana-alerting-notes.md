@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Grafana alert rules — descriptions, thresholds and retired-rule evidence
 
 Per-file record of the provisioned alert rules in `grafana/provisioning/alerting/`, all routing to the `graph-bridge` contact point. The bridge, the deployment recipe and the `deleteRules:` rule are in `CLAUDE.md`.

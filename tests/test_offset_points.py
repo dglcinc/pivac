@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.offset_at: a probe's calibration offset at the temperature it is reading.
 
 Dependency-free: python tests/test_offset_points.py

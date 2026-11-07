@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Per-sensor calibration offsets for pivac.OneWireTherm.
 
 Dependency-free (no pytest, no w1thermsensor): run directly with

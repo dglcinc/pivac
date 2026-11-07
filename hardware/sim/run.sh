@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Runs the EXT supply model over a table of cases and prints one line per case.
 # usage: hardware/sim/run.sh     (needs ngspice: brew install ngspice)
 cd "$(dirname "$0")"

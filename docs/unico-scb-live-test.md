@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Unico SCB live test
 
 This is the procedure for proving `scripts/unico-scb.py` against an air handler's S.M.A.R.T. Control Board, from a Mac on the USB port of the control box. The protocol is `docs/unico-scb-protocol.md`. The outcome decides the serial interface on the air-handler node's fabricated shield, which taps the same line on the UNO R4's `Serial1` (`docs/air-handler-shield-pcb-plan.md`, PR #242). The protocol is the same on every SCB, so any zone's control box serves; the record of the 2026-10-24 run on the utility zone's unit is at the end.

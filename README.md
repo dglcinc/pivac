@@ -596,3 +596,18 @@ The `ArduinoSensor` module polls a small Arduino web server over HTTP. The Ardui
 A single module implementation can serve multiple sensor instances by using the `module:` key in each config section. For example, the hydronic loop and DHW pressure sensors each have their own config section (`pivac.ArduinoPSI` and `pivac.ArduinoThermPSI`) with different IP addresses, both pointing to `module: pivac.ArduinoSensor`.
 
 The Arduinos are configured with static IP addresses in your config file. If an Arduino is unreachable (timeout), a warning is logged and the module returns an empty delta — the service continues running and retries on the next poll interval.
+
+# Licensing
+
+pivac is free for personal and other noncommercial use. Commercial use, including installing it for a customer, building it into a product, or selling boards made from these designs, needs a separate licence from the copyright holder; ask through [github.com/dglcinc](https://github.com/dglcinc).
+
+| Content | Licence |
+|---------|---------|
+| Code, scripts, firmware, configuration | PolyForm Noncommercial 1.0.0 (`LICENSE`) |
+| Documents, drawings, images, board designs | CC BY-NC 4.0 (`LICENSE-DOCS`) |
+| `hardware/vendor/` | Each maker's own terms |
+
+1. The code row covers `pivac/`, `scripts/`, `tests/`, `config/`, `grafana/`, the generator scripts in `hardware/`, and the package files. Source files carry an `SPDX-License-Identifier` line.
+2. The documents row covers `docs/`, this README, the KiCad projects, gerbers and fabrication outputs in `hardware/`, and the architecture slides.
+3. `hardware/vendor/` holds Phoenix Contact's 3D models, which stay under Phoenix Contact's terms.
+4. Commits up to and including `b0b5cea` (2026-11-06) were released under the MIT licence. Copies of those versions keep the MIT terms; everything after is under the licences above.

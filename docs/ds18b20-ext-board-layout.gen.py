@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate the two placement sheets for the RPI-BC EXT-PCB HBUS SET (Phoenix drawing
 00913308/02) into this script's own directory:
 

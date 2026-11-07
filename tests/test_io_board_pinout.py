@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Cross-check the optocoupler pinout figure against the I/O board build procedure.
 
 Dependency-free (no pytest): run directly with

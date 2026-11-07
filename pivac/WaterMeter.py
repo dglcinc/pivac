@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """
 pivac.WaterMeter — Sensus iPerl water-meter LCD reader via RTSP camera.
 

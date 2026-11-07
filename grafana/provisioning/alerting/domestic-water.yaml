@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 apiVersion: 1
 
 # Domestic water leak/anomaly alerts (monitor-only — no shutoff valve exists; the

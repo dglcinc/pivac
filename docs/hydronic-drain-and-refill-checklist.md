@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Procedure to drain and refill hydronic system
 1. Prep the setup
 	* move the workbench for easy access to system and move the toolbox and compressor out of the way

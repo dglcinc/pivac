@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """RedLink — Honeywell thermostat polling via the official mobile API.
 
 Replaces the previous mytotalconnectcomfort.com HTML scraper. The scraper

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Master bedroom air-handler node: wiring and sketch plan
 
 An Arduino UNO R4 WiFi at the master bedroom's Unico M2430 reads five signals: the water entering and

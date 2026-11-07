@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate rpi-io-board-ic-pinout.svg — per-pin destination reference for the three
 LTV-847 optocouplers on the RPI-BC INT-PCB input board. No traces: each pin carries only
 its number, its leg letter, its hole, and what it connects to.

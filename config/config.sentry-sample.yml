@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # pivac.Sentry sample config — ROI coordinates set by --calibrate interactive
 # session on 2026-03-23 against a 2560x1440 frame.  Run --debug to verify,
 # then copy the pivac.Sentry block into /etc/pivac/config.yml.

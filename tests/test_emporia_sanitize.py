@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Dependency-free tests for pivac.Emporia._sanitize.
 
 Run with:  python tests/test_emporia_sanitize.py

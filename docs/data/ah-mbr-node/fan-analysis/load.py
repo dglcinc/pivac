@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 import pandas as pd,numpy as np,glob,os,sys
 D=sys.argv[1]
 names={'environment.inside.hvac.ah.mbr.water.supply.temperature':'wsup','environment.inside.hvac.ah.mbr.water.return.temperature':'wret','environment.inside.hvac.ah.mbr.air.supply.temperature':'asup','environment.inside.hvac.ah.mbr.air.return.temperature':'aret','environment.inside.hvac.ah.mbr.y2':'y2','environment.inside.thermostat.MASTER_BR.statenum':'st','environment.inside.thermostat.MASTER_BR.temperature':'room','environment.inside.thermostat.MASTER_BR.heatset':'hset','environment.inside.thermostat.MASTER_BR.coolset':'cset','environment.inside.thermostat.MASTER_BR.humidity':'rh','environment.outside.thermostat.temperature':'out','environment.inside.hvac.LOOPA_SUP.temperature':'lsup','environment.inside.hvac.LOOPA_RET.temperature':'lret','environment.inside.hvac.IN.temperature':'IN','electrical.ac.switch.utility.HPCALL.statenum':'hpcall','electrical.ac.switch.utility.HPHEAT.statenum':'hpheat','electrical.ac.switch.utility.HPCOOL.statenum':'hpcool'}

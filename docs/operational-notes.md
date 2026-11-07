@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Operational notes
 
 Evidence and history behind the RedLink, relay, sprinkler, Arduino, platform, network, backup and dashboard rules in `CLAUDE.md`.

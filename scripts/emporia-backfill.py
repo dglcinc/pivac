@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Backfill electrical.emporia.* in InfluxDB from Emporia's cloud after an outage.
 
 Emporia's cloud keeps minute data even when its API refuses pivac's polls, so a

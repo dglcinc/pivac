@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Sentry boiler-display reader — capture, computer vision and incident notes
 
 Evidence and history behind the `pivac.Sentry` rules in `CLAUDE.md`. Config keys are in `config/config.sentry-sample.yml`; live coordinates are in `/etc/pivac/config.yml` on the Pi.

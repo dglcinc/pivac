@@ -1,4 +1,6 @@
 #!/home/pi/pivac-venv/bin/python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 import logging
 logger = logging.getLogger(__name__)
 import sys

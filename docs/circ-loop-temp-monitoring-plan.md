@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Plan — Hot-Water Circulator-Loop Temperature Monitoring
 
 **Status:** ✅ COMPLETE (2026-06-01) — recirc temp live end-to-end: Arduino (10.0.0.114) → Signal K → InfluxDB → Grafana + WilhelmSK, with the `circ-temp-stale` freshness alert deployed. Only the pump-health alert remains, intentionally deferred (§8.3). · **Created:** 2026-05-31 · **Owner:** David

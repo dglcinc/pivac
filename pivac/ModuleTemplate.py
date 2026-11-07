@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # pivac module template
 #
 # Copy this file to pivac/MyModuleName.py and fill in the TODOs.

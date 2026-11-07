@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Replacement butterfly handle for the red-handled drain ball valves (M6x1 stem nut).
 
 Writes butterfly-handle.step and butterfly-handle.stl (for printing in 316L or PA12)

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 mkdir -p /tmp/upull && cd /tmp/upull
 P=environment.inside.hvac.ah.utility
 for m in $P.fan.airflow $P.fan.rpm $P.call.g $P.call.y1 $P.call.y2 $P.call.w1 $P.call.w2 $P.call.e environment.inside.hvac.LOOPB_SUP.temperature environment.inside.hvac.LOOPB_RET.temperature environment.inside.hvac.IN.temperature environment.inside.thermostat.DSTRS_FAM_ROOM.statenum environment.inside.thermostat.DSTRS_FAM_ROOM.temperature environment.inside.thermostat.DSTRS_FAM_ROOM.humidity environment.inside.thermostat.DSTRS_FAM_ROOM.heatset environment.inside.thermostat.DSTRS_FAM_ROOM.coolset environment.inside.thermostat.KITCHEN.statenum environment.inside.thermostat.GREAT_ROOM.statenum environment.outside.thermostat.temperature electrical.ac.switch.utility.HPHEAT.statenum electrical.ac.switch.utility.HPCOOL.statenum electrical.ac.switch.utility.HPCALL.statenum; do

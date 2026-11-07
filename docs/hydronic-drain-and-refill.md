@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Hydronic loop — drain and refill procedure
 
 The shared four-pipe loop (Ti-200 boiler, CX75 chiller with its VCT37C buffer tank, two

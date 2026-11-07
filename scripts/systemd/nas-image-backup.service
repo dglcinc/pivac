@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 [Unit]
 Description=Monthly Pi image-backup to LookoutNas
 Documentation=file:///home/pi/CLAUDE.md

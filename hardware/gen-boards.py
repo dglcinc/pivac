@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate the KiCad boards that replace the two Phoenix RPI-BC perfboards.
 
 Run with KiCad's own Python so that ``pcbnew`` imports:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Block mode in pivac.ChiltrixModbus: coverage, line parsing, change-only send.
 
 Dependency-free (no pytest, no pyserial): run directly with

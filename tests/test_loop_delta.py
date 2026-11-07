@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Gating and run accounting for pivac.LoopDelta.
 
 Dependency-free (no pytest, no Signal K): run directly with

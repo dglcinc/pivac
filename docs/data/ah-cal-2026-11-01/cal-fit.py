@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Fit the 2026-11-01 bath session: ten DS18B20s and two NTC pairs on the rev A air-handler shield.
 
 Reads ah-cal-2026-11-01.wall.log (AirHandlerCal's CSV with a wall-clock prefix) and prints, for each

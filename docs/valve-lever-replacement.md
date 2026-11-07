@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Replacement lever for the chilled-water ball valves
 
 Two A.Y. McDonald brass ball valves on the chilled-water side (600 WOG / 150 WSP, yellow vinyl grip) have plated steel levers rusted through at the hub. The stems sweat at loop temperature, and the vinyl grip holds the condensate against the steel. The replacement is a 316 stainless lever cut flat and bent by hand. It is not urgent; the old levers still turn the valves.

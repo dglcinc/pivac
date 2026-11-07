@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 import pandas as pd,numpy as np,sys
 df=pd.read_pickle(sys.argv[1]+'/df.pkl'); df.index=pd.to_datetime(df.index,format='ISO8601',utc=True); df=df[df.wsup.notna()].resample('1min').mean().ffill(limit=3)
 df['mode']=np.where(df.st>0.9,'heat',np.where(df.st<-0.9,'cool','off'))

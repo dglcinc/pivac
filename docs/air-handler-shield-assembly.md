@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Air-handler shield rev A: build sheet
 
 This sheet covers the shield in `hardware/ah-board/` as fabricated: the UNO R4 WiFi shield with the 24 VAC converter,

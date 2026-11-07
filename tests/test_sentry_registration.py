@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Camera-creep registration in pivac.Sentry.
 
 Run directly: python tests/test_sentry_registration.py (needs numpy + OpenCV,

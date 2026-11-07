@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Autoroute a generated board with Freerouting and write the routed .kicad_pcb back.
 
     <kicad python> hardware/route.py hardware/int-board/int-board.kicad_pcb [passes]

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate rpi-io-board-schematic.svg (into this script's own directory) — complete schematic
 of the twelve-channel optoisolated input board. Each channel is drawn as two separate runs per
 side, meeting at the package: field side, the +14 V rail to A and K through the 4.7 k to the

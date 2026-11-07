@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Regenerate the rows of PhoenixContact-BC-RPI-label.docx (in this script's directory).
 
 The docx is its own template: the script opens it, keeps every style, the page setup and the

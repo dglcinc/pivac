@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # DS18B20 Bus — Build Procedure
 
 **Status:** EXT board built and bench-proven on the new Pi (`new-pivac`, `10.0.0.40`): the

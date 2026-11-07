@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Air-handler probe calibration, 2026-11-01
 
 Ten new DS18B20 probes and two NTC pairs for the air-handler nodes, calibrated in one session on the rev A

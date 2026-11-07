@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.GrafanaAlerts mapping: rules + Alertmanager alerts -> notifications.
 
 Dependency-free: run directly with

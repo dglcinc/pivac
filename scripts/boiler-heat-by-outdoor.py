@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Daily boiler gas input against outdoor temperature, from the Sentry record in InfluxDB.
 
 Runs on the Pi (needs the `influx` CLI configured for the pivac bucket). For each day it

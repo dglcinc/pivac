@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Lay Phoenix's STEP models of the PTSM headers on the rev C EXT board's footprints.
 
 Two steps, because KiCad's Python has no STEP reader and the STEP reader has no pcbnew:

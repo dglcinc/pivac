@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Channel-by-channel bench test for the Raspberry Pi I/O board.
 
 Run this on the bench Pi with the board seated on the header and the sense supply

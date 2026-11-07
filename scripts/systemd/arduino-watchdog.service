@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 [Unit]
 Description=Watchdog: auto-power-cycle the pressure Arduinos' Shelly plug if a board is unreachable
 After=network.target

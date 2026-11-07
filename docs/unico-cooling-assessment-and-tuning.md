@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Unico Hydronic Cooling — Assessment and Tuning
 
 **Date:** 2026-09-07.

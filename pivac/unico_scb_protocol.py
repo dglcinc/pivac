@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """The Unico S.M.A.R.T. Control Board (SCB) serial protocol: framing, decoding and the
 PC's answer frames. `docs/unico-scb-protocol.md` is the specification, with every claim
 cited to the decompiled ECMConfig 4.6 and the facts measured on 2026-10-24.

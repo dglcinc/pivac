@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Copy the routed Pico W carrier and add the render's 3D models: parts.wrl always, base.wrl with a box,
 lid.wrl and plugs.wrl closed. Usage: ahp-add-models.py ROUTED.kicad_pcb MODELS none|open|closed OUT.kicad_pcb"""
 import os, sys

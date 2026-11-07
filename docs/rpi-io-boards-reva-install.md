@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Rev A boards and the new Pi into the housing — cutover
 
 **Status:** run 2026-09-26, 13:53 to 15:10 EDT. The new Pi is the production Pi on the rev A

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 [Unit]
 Description=Pivac Arduino DHW pressure provider
 After=network.target signalk.service

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 import re, sys, statistics as s
 log, anchor = sys.argv[1], float(sys.argv[2])
 rows=[]
