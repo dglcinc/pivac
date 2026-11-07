@@ -4,6 +4,8 @@ Unico's customer service team asked on 2026-11-06 for a video of the monitoring 
 
 ## Approach
 
+Shoot after the first Rev B AirMaster is built and installed on the great room air handler. That unit has both a hydronic module and a DX coil, so it shows the dual configuration with the AirMaster running live; the utility air handler then shows a pure hydronic unit with the Pi's USB tap and the sensor node.
+
 Shoot the equipment on the iPhone as silent B-roll, record every screen directly with the built-in screen recorders, and narrate afterwards as one voice-over read from the script below. Narrating live while holding a phone in the utility room yields uneven audio and long takes. A voice-over recorded in a quiet room is even in level, can be re-read line by line, and sets the pace for the cut, so the pictures are trimmed to fit the words.
 
 Record the screens rather than filming them with the phone. A phone filming a monitor picks up moiré, glare and a tilted frame, and small text becomes unreadable. Native screen recordings stay sharp at any zoom. The one exception is a short shot of a hand holding the iPad running WilhelmSK, which shows the app in use. Film that one with the phone.
@@ -16,7 +18,7 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 |-----|-------|------|
 | 0 | Open | 0:30 |
 | 1 | Water and control diagrams | 1:45 |
-| 2 | Air handlers | 1:30 |
+| 2 | Air handlers | 2:00 |
 | 3 | Utility room plumbing | 1:30 |
 | 4 | Integration panel | 2:30 |
 | 5 | Power, thermostats, boiler | 1:00 |
@@ -45,12 +47,12 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 | 1 | 0 | Owner at the panel, wide | iPhone |
 | 2 | 0 | Title card | Keynote |
 | 3 | 1 | Water and control diagrams | Keynote |
-| 4 | 2 | MBR air handler, wide | iPhone |
-| 5 | 2 | MBR node on DIN rail | iPhone |
-| 6 | 2 | MBR coil probes | iPhone |
-| 7 | 2 | Utility air handler, wide | iPhone |
-| 8 | 2 | SCB, USB cable | iPhone |
-| 9 | 2 | Utility node, rev A shield | iPhone |
+| 4 | 2 | Great room air handler, wide | iPhone |
+| 5 | 2 | Hydronic module and DX coil | iPhone |
+| 6 | 2 | AirMaster on the SCB | iPhone |
+| 7 | 2 | AirMaster page on the phone | iPhone |
+| 8 | 2 | Utility air handler, wide | iPhone |
+| 9 | 2 | Utility SCB USB and node | iPhone |
 | 10 | 3 | Chiltrix CX75 outdoors | iPhone |
 | 11 | 3 | CX75 panel display | iPhone |
 | 12 | 3 | Buffer tank, UBT/LBT probes | iPhone |
@@ -79,8 +81,8 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 | 35 | 8 | A P1 lockout | Mac |
 | 36 | 9 | INT and EXT boards, bench | iPhone |
 | 37 | 9 | KiCad 3D of INT and EXT | Mac |
-| 38 | 9 | AirMaster renders, board | Mac/iPhone |
-| 39 | 9 | AirMaster web page | Mac |
+| 38 | 9 | AirMaster renders | Mac |
+| 39 | 9 | AirMaster board in hand | iPhone |
 | 40 | 10 | GitHub pivac repo | Mac |
 | 41 | 10 | GitHub Arduino repo | Mac |
 | 42 | 11 | Closing card | Keynote |
@@ -92,12 +94,12 @@ Each entry gives the framing, what must be in the frame, the camera position, an
 1. **Owner at the panel.** Medium-wide, from your knees to a foot above your head, with the integration panel filling the right two thirds of the frame. Tripod at chest height, 6 to 8 ft back, square to the panel. Stand to the left of the panel, turn to face the lens, then turn and look at the panel. Lock on your face. This is the only on-camera shot; say nothing.
 2. **Title card.** In Keynote, use the title "Monitoring a Unico hydronic system", with [owner's name] and "November 2026" below it. Use a plain dark background with white type, and nothing else on the slide.
 3. **Water and control diagrams.** Two slides, built in stages, exported as `shot-03-water-a` to `-d` and `shot-03-control-a` to `-c`. The water slide: (a) the two sources, each with its own pump into the primary header, the CX75 and buffer tank through the Taco 0015, and the Ti-200 through its UP26-99F, with domestic hot water off the boiler; (b) the loop A and loop B pumps, a zone valve for each air handler, and the five Unico air handlers; (c) the Bosch Bova DX units for kitchen and great room cooling; (d) the temperature probes. The control slide: (a) each zone's thermostat, wireless to its EIM, which drives the air handler's S.M.A.R.T. board; (b) the board's W, Y and G outputs as the zone calls at the HZ-432, and the panel's outputs to the Taco, the zone valves and loop pumps, the boiler and the Chiltrix mode; (c) the relays that repeat each output to the Pi, and the AirMaster on the board's USB port. Each stage is its own PNG, so the diagram builds as the edit cuts from one to the next.
-4. **MBR air handler, wide.** The whole unit in frame with some space on each side, so the plenum, the coil section and the node box all read as one assembly. Stand back as far as the room allows, at the unit's mid-height, and angle 30° off its front so the box and the coil section both show. Lock on the node box.
-5. **MBR node on the DIN rail.** The node box filling about two thirds of the frame. Its label and the cable entries must be readable, along with the 24 VAC lead back to the Unico transformer. Shoot square to the box face, 12 to 18 in away. Lock on the label. Then tilt down slowly along the cable bundle to show where the leads go.
-6. **MBR coil probes.** The water supply and return pipes at the coil, with both probes and their insulation in one frame. Then cut to the supply-air and return-air sensors in the ducts. Shoot square to the pipes so they run straight across the frame. Lock on the nearer probe. Light from the side so the copper does not flare.
-7. **Utility air handler, wide.** Frame as in shot 4, with the control box door visible. Show the M2430 rating plate if it is legible from there; otherwise add a 3-second close-up of the plate.
-8. **SCB and USB cable.** This is the shot Unico cares about most. Open the control box with power on, staying clear of the terminals. Frame the S.M.A.R.T. Control Board so its silkscreen name and the USB connector are both in frame, with the cable running out of the box. Shoot square to the board, 10 to 12 in away. Lock on the USB connector. Hold for 10 seconds, then pull back slowly to show the cable route to the node. Light from one side, never straight on, because the board's coating reflects.
-9. **Utility node, rev A shield.** The UNO R4 with its shield, showing the terminal block legends and the leads to PA9A/PA9B and SUP 1/RET 1. Shoot from 30° above so the board and the terminal faces both show. Lock on the shield's terminal block. If the board's status LED blinks, keep it in frame.
+4. **Great room air handler, wide.** The whole unit with space on each side, so the blower, the hydronic module, the DX coil and the control box read as one assembly, with the refrigerant lineset and the water pipes both visible where they enter. Stand back as far as the space allows, at the unit's mid-height, 30° off the control-box end. Lock on the control box.
+5. **Hydronic module and DX coil.** First the M3036 hydronic module with its supply and return pipes and zone valve; then the DX coil section with the insulated suction line and liquid line from the Bosch unit. Shoot each square to the pipes so they run straight across the frame, 18 in away. Lock on the pipe connections. Light from the side so copper and foil insulation do not flare. If one frame can hold both coil sections, hold it 5 seconds; it is the shot that shows the dual configuration.
+6. **AirMaster on the SCB.** The installed AirMaster with its status LEDs lit, the USB cable into the S.M.A.R.T. Control Board, and the 24 VAC leads to the Unico's terminal strip, in one frame. Shoot square to the box face, 10 to 12 in away. Lock on the AirMaster's label. Hold 10 seconds, then pull back slowly to the board's USB connector and the board's silkscreen name.
+7. **AirMaster page on the phone.** Record the iPhone's own screen (Control Center → Screen Recording, microphone off) while the page shows the calls, airflow and RPM. For the cut, start the recording, then raise the zone's setpoint from its thermostat so a call and the airflow rise appear on the page within the take; airflow reaches its stored value in about 20 s. Hold 30 seconds.
+8. **Utility air handler, wide.** Frame as in shot 4. It is the pure hydronic unit, so frame the coil and its water pipes with no lineset in view. Show the M2430 rating plate if it is legible from there; otherwise add a 3-second close-up of the plate.
+9. **Utility SCB USB and node.** Open the control box with power on, staying clear of the terminals. Frame the S.M.A.R.T. Control Board with the USB cable running out of the box toward the Pi, square to the board, 10 to 12 in away, lit from one side because the board's coating reflects. Lock on the USB connector and hold 8 seconds. Then cut to the node: the UNO R4 and its shield from 30° above, the terminal legends and the leads to PA9A/PA9B and SUP 1/RET 1 readable. Lock on the shield's terminal block.
 10. **CX75 outdoors.** Wide, with the whole unit, the fan grille and the piping into the house wall. Shoot from a corner at 45° and at the unit's mid-height, with the house wall behind it to show scale. In daylight, keep the sun behind you. If the compressor is running, record 10 seconds with the fan turning.
 11. **CX75 panel display.** The display filling the frame, with mode, setpoint and water temperature readable. Shoot about 20° off-axis to the side and slightly above, to kill glare and your reflection. Lock on the digits. Hold 10 seconds while the unit is running, so a live temperature shows.
 12. **Buffer tank and probes.** Start with the full tank top to bottom, then tilt slowly from the upper probe (UBT) down to the lower (LBT). Shoot from 6 to 8 ft back at mid-height so the tank stays vertical with no keystone. Lock on each probe as you reach it, and hold 3 seconds on each.
@@ -126,8 +128,8 @@ Each entry gives the framing, what must be in the frame, the camera position, an
 35. **A P1 lockout.** Zoom to 03:30–05:00 EST on 2026-11-03, with `raw.r284`, `raw.r210` and compressor Hz on screen. Hover on the r210 jump just before the trip. Hold 5 seconds.
 36. **INT and EXT on the bench.** If a spare set is on hand, place both boards side by side on a plain dark surface, component side up, and then flip them to show the copper. Shoot from directly overhead on a tripod, filling the frame, with soft light from two sides so the solder joints do not flare. Lock on the silkscreen titles. If no spare set exists, use shot 37 alone.
 37. **KiCad 3D of INT and EXT.** KiCad's 3D viewer, full window. Start top-down, then orbit slowly to 45° over 8 seconds and hold. Hide the toolbar panels.
-38. **AirMaster.** The rendered images in `docs/air-handler-pico-*.png`, moved with Ken Burns in the edit, in this order: board top, box open, box closed showing the LEDs. If the Rev B boards have arrived, shoot a bare board overhead as in shot 36 instead, with the USB-A cable and the 24 VAC terminal in frame.
-39. **AirMaster web page.** A browser cropped to the page, showing calls, airflow and RPM. Hold 8 seconds. Drop this shot if no unit is running.
+38. **AirMaster renders.** The rendered images in `docs/air-handler-pico-*.png`, moved with Ken Burns in the edit, in this order: board top, box open, box closed showing the LEDs.
+39. **AirMaster board in hand.** A spare Rev B board and its box on a plain dark surface, shot overhead as in shot 36, with the USB-A cable and the 24 VAC terminal in frame. Then lift the board and turn it slowly to show both sides. Lock on the board's silkscreen title.
 40. **GitHub pivac.** Follow steps 1 to 3 of the GitHub tour. Use browser zoom at 125 %. Pause 3 seconds on each folder or file the script names, and scroll in short steps.
 41. **GitHub Arduino.** Follow steps 4 and 5 of the GitHub tour, at the same zoom and pace.
 42. **Closing card.** In Keynote, show [owner's name] and [owner's email], with the two repo URLs below.
@@ -194,7 +196,9 @@ The house has five Unico air handlers, installed in 2009, all on hydronic coils.
 Each room's Honeywell thermostat talks wirelessly to an interface module at its air handler, which signals the Unico S.M.A.R.T. Control Board. The board's heat, cool and fan outputs are that zone's call at the HZ-432 zone panel. The panel chooses the heat pump or the boiler, sets the Chiltrix to heating or cooling, opens the zone's valve and starts its loop pump. A relay repeats each of those outputs so the Pi can read it.
 
 **Seg 2, shots 4–9.**
-This is the master bedroom air handler. The box on the DIN rail is a sensor node I built on an Arduino. It reads the coil's water in and out, the supply and return air, and the high-fan call, and it runs on the air handler's own 24 volts. The utility zone has the same node, plus one more connection. This USB cable goes into the S.M.A.R.T. Control Board. I worked out the board's serial protocol, so the Pi reads all six thermostat inputs, the actual airflow and the motor RPM every few seconds, without changing anything on the board.
+This is the great room air handler. It has two coils: a hydronic module on the water loop for heat, and a DX coil from a Bosch heat pump for cooling. The box on the S.M.A.R.T. Control Board's USB port is the AirMaster, a board I designed. It reads the control board's serial line and serves a web page. Here it is on my phone: the thermostat calls, the airflow and the motor RPM, live. When I raise the setpoint, the call comes in and the airflow climbs to its stored value.
+
+The utility air handler is pure hydronic. Its sensor node, on an Arduino, reads the coil's water in and out and the supply and return air, and runs on the air handler's own 24 volts. This USB cable takes the same control board data straight to the Pi. I worked out the board's serial protocol, so neither connection changes anything on the board.
 
 **Seg 3, shots 10–16.**
 The CX75 sits outside. In the utility room, its water goes into this buffer tank, with temperature probes at the top and bottom. The primary pump carries tank water past these tees, where the two secondary loops draw from it. Loop A serves the kids room and master bedroom; loop B serves the family room, kitchen and great room. Each loop has a probe on its supply and its return, mounted on the copper and insulated, so I can measure the temperature difference every loop delivers. The Y-strainer protects the Chiltrix's heat exchanger, and the pressure readings catch a fouling screen before it trips the low-flow alarm.
@@ -215,7 +219,7 @@ On the iPad and the phone, an app called WilhelmSK shows the live picture: each 
 Grafana draws the history. Here is a day of the whole system. This is the utility zone's fan during a heat call: the stored airflow and the actual airflow and RPM, read from the control board. I use this to tune airflow per call. And this is a Chiltrix high-pressure lockout, with the compressor's high-side pressure jumping in the last minute before the trip. I've shared this data with Chiltrix.
 
 **Seg 9, shots 36–39.**
-These are the custom boards. INT sits on the Pi and carries the relay inputs. EXT holds the 24-volt power supply that runs the Pi, and the 1-wire interface. This is the AirMaster, the newest board. It plugs into the S.M.A.R.T. Control Board's USB port, runs on the air handler's 24 volts, and puts the board on Wi-Fi. It serves its own web page, so a homeowner or technician can see the calls, airflow and RPM without any other software, and it can also report to a home system like mine. The second revision is being made now.
+These are the custom boards. INT sits on the Pi and carries the relay inputs. EXT holds the 24-volt power supply that runs the Pi, and the 1-wire interface. And this is the AirMaster you saw on the great room air handler. It plugs into the S.M.A.R.T. Control Board's USB port, runs on the air handler's 24 volts, and puts the board on Wi-Fi. A homeowner or technician can see the calls, airflow and RPM from its own page, with no other software, and it can also report to a home system like mine.
 
 **Seg 10, shots 40–41.**
 All of the code and the hardware designs are on GitHub. The pivac repository has the collectors, the dashboards and the documentation, including the full write-up of the control board protocol. The Arduino repository has the firmware for the nodes and the AirMaster.
