@@ -1,6 +1,6 @@
 # Video tour of the monitoring setup, for Unico
 
-Unico's customer service team asked on 2026-11-06 for a video of the monitoring setup, so their staff can review it. The contact already knows the owner, so the video can name him; this plan, which sits in a public repo, uses placeholders for names and contacts. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
+Unico's customer service team asked on 2026-11-06 for a video of the monitoring setup, so their staff can review it. The contact already knows the owner, so the video can name the owner; this plan, which sits in a public repo, uses placeholders for names and contacts. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
 
 ## Approach
 
