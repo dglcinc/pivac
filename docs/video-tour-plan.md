@@ -1,6 +1,6 @@
 # Video tour of the monitoring setup, for Unico
 
-Unico's customer service team asked on 2026-11-06 for a video of the monitoring setup, so their staff can review it. The video carries no names: the narration, title cards and screens identify neither the homeowner nor anyone at Unico. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
+Unico's customer service team asked on 2026-11-06 for a video of the monitoring setup, so their staff can review it. The contact already knows the owner, so the video can name him; this plan, which sits in a public repo, uses placeholders for names and contacts. This plan covers the shot list, the narration script, how to capture the Mac and iPad screens, and how to cut the video together in iMovie. The target length is 12 to 14 minutes.
 
 ## Approach
 
@@ -90,7 +90,7 @@ All the software is already on hand: the iPhone camera, Screenshot (Cmd-Shift-5)
 Each entry gives the framing, what must be in the frame, the camera position, and where to lock focus. "Lock" means press and hold on that point until AE/AF LOCK shows. A close-up should hold the subject for 8 to 10 seconds with no movement. A move should be one slow pan or push lasting 6 to 8 seconds, then a 3-second hold at the end.
 
 1. **Owner at the panel.** Medium-wide, from your knees to a foot above your head, with the integration panel filling the right two thirds of the frame. Tripod at chest height, 6 to 8 ft back, square to the panel. Stand to the left of the panel, turn to face the lens, then turn and look at the panel. Lock on your face. This is the only on-camera shot; say nothing.
-2. **Title card.** In Keynote, use the title "Monitoring a Unico hydronic system", with "November 2026" below it and no name. Use a plain dark background with white type, and nothing else on the slide.
+2. **Title card.** In Keynote, use the title "Monitoring a Unico hydronic system", with [owner's name] and "November 2026" below it. Use a plain dark background with white type, and nothing else on the slide.
 3. **System diagram.** Build one slide and reveal it in four stages: (a) CX75 → buffer tank; (b) primary loop → loops A and B → five Unico air handlers; (c) Ti-200 boiler on the same loop and the two Bosch units; (d) the HZ-432 above, with dotted lines to every unit. Use the same box shape for every piece of equipment and label each one in plain words. Export each stage as its own PNG.
 4. **MBR air handler, wide.** The whole unit in frame with some space on each side, so the plenum, the coil section and the node box all read as one assembly. Stand back as far as the room allows, at the unit's mid-height, and angle 30° off its front so the box and the coil section both show. Lock on the node box.
 5. **MBR node on the DIN rail.** The node box filling about two thirds of the frame. Its label and the cable entries must be readable, along with the 24 VAC lead back to the Unico transformer. Shoot square to the box face, 12 to 18 in away. Lock on the label. Then tilt down slowly along the cable bundle to show where the leads go.
@@ -130,7 +130,7 @@ Each entry gives the framing, what must be in the frame, the camera position, an
 39. **AirMaster web page.** A browser cropped to the page, showing calls, airflow and RPM. Hold 8 seconds. Drop this shot if no unit is running.
 40. **GitHub pivac.** Follow steps 1 to 3 of the GitHub tour. Use browser zoom at 125 %. Pause 3 seconds on each folder or file the script names, and scroll in short steps.
 41. **GitHub Arduino.** Follow steps 4 and 5 of the GitHub tour, at the same zoom and pace.
-42. **Closing card.** In Keynote, show "Thanks for watching" with no name, email or address. Leave the repo URLs off; they carry the GitHub account name, and the reply email can give them to anyone who asks.
+42. **Closing card.** In Keynote, show [owner's name] and [owner's email], with the two repo URLs below.
 
 ## Screen capture
 
@@ -169,11 +169,11 @@ Each entry gives the framing, what must be in the frame, the camera position, an
 3. Email, Teams and Messages notifications.
 4. The AirMaster label sheet and `~/.config/airmaster/units.csv`, which carry each unit's setup password.
 5. The `wilhelm-sk` repo, which is private. Show the layout in the app instead.
-6. Names and places: the browser address bar (it shows the Pi's public hostname), the GitHub account name at the top of each repo page, the house address on any equipment label or delivery box, and mail or papers in the utility room.
+6. The house address on equipment labels or delivery boxes, and mail or papers in the utility room, since the video may be passed around inside Unico.
 
 ## GitHub tour
 
-Both `pivac` and `Arduino` are public repos. Show them in the browser, cropped below the address bar and the repo title line, so the GitHub account name stays off screen. A name visible in a file path or a commit author can be blurred in the edit (iMovie has no blur, so crop or cut away instead). In 60 seconds:
+Both `pivac` and `Arduino` are public repos. Show them in the browser at github.com, cropped below the browser's tab bar. In 60 seconds:
 
 1. `pivac`: the README and file list, then `pivac/` with one file per collector, opening `ChiltrixModbus.py` and `UnicoSCB.py` briefly.
 2. `pivac/docs/`: scroll the list, then open `unico-scb-protocol.md` and scroll its frame tables. This is the doc Unico will care about most.
@@ -186,7 +186,7 @@ Both `pivac` and `Arduino` are public repos. Show them in the browser, cropped b
 Read at an easy pace, about 140 words a minute. Each block is one voice-over take, labelled with its segment and shots. Pause a beat between paragraphs; the cut uses those pauses.
 
 **Seg 0, shots 1–2.**
-This is the monitoring system I built around my Unico installation. Everything in this video is home-built: the sensors, the software, the dashboards, and the circuit boards. I'll walk through the equipment first, then show how the data is collected and displayed.
+I'm [owner's name]. This is the monitoring system I built around my Unico installation. Everything in this video is home-built: the sensors, the software, the dashboards, and the circuit boards. I'll walk through the equipment first, then show how the data is collected and displayed.
 
 **Seg 1, shot 3.**
 The house has five Unico air handlers, installed in 2009, all on hydronic coils. A Chiltrix CX75 heat pump makes chilled and hot water into a buffer tank. A primary loop carries water from the tank to two secondary loops, which feed the coils. An NTI Ti-200 boiler shares the same loop for heat below 30 degrees outside, and for domestic hot water. The kitchen and great room have Bosch units for cooling; in winter all five zones heat from the water loop.
@@ -241,4 +241,4 @@ That's the system. I'd be glad to walk your team through any part of it on a cal
 
 ## Delivery
 
-The file is too large to attach to email. Upload it to OneDrive and send a view-only link, or upload it to YouTube as Unlisted from an account whose channel name does not identify you, and send that link. YouTube plays better on a phone and lets Unico share it internally. Send the link as a reply on the existing email thread with Unico customer service, so the context travels with it.
+The file is too large to attach to email. Upload it to OneDrive and send a view-only link, or upload it to YouTube as Unlisted and send that link. YouTube plays better on a phone and lets Unico share it internally. Send the link as a reply on the existing email thread with Unico customer service, so the context travels with it.
