@@ -7,7 +7,7 @@
 
 **pivac** collects data from Raspberry Pi sensors and outputs standardized JSON. It's a read-only monitoring tool for HVAC/home automation, feeding downstream systems (Signal K, InfluxDB, Grafana, WilhelmSK mobile app).
 
-**Licensing:** code is PolyForm Noncommercial 1.0.0 (`LICENSE`), documents and board designs CC BY-NC 4.0 (`LICENSE-DOCS`); commercial use needs a separate licence from David. Every new source file starts with `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0` and `Copyright David Lewis` in its comment syntax, and every new doc in `docs/` with the same two lines as HTML comments naming `CC-BY-NC-4.0`. `hardware/vendor/` keeps its makers' terms. The README's Licensing section is the public statement.
+**Licensing:** code is PolyForm Noncommercial 1.0.0 (`LICENSE`), documents and board designs CC BY-NC 4.0 (`LICENSE-DOCS`); commercial use needs a separate licence from David. Every new source file starts with `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0` and `Copyright David Lewis` in its comment syntax, and every new doc in `docs/` with the same two lines as HTML comments naming `CC-BY-NC-4.0`. `hardware/vendor/` keeps its makers' terms. The README's Licensing section is the public statement. **Every new board revision carries `© <year> David Lewis · CC BY-NC 4.0` on F.SilkS beside its title block** (the monogram, name and version from `gen-boards.py` `title_block`, or the hand-placed legend in `gen-ah-pico.py`), added in the generator when that revision is generated; the boards already ordered (INT rev B, EXT rev C, AirMaster Rev B) are left as they are.
 
 ## Running the Project
 
