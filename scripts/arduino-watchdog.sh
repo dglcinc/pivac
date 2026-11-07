@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 #
 # arduino-watchdog.sh — auto-recover the two UNO R4 WiFi pressure boards.
 #

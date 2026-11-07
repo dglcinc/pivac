@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 [Unit]
 Description=Pivac OpenSprinkler irrigation flow reader (local HTTP API)
 After=network.target signalk.service

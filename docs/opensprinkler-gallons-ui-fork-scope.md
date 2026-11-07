@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # OpenSprinkler "Gallons" UI Fork — Scoping
 
 **Status:** scoping only (no code written). Optional/cosmetic — see "Do we even need this?".

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Fast fault poll in pivac.ChiltrixModbus: scan scheduling and faultCode hold.
 
 Dependency-free (no pytest, no pyserial): run directly with

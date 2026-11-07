@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """The AirMaster label for the base of the Hammond 1593K, full size. Writes airmaster-label.svg, a one-label PDF for a
 sticker maker, a Letter sheet of labels for paper, and PNG previews. Needs Chrome for the PDFs and PNGs.
 

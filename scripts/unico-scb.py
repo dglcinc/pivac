@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Talk to a Unico S.M.A.R.T. Control Board (SCB) through its A01470 USB board.
 
 The SCB is the bus master. It sends a status frame to the PC on its own and the PC

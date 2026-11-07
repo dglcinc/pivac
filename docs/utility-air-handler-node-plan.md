@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Utility air-handler node: install plan
 
 The rev A air-handler shield is the utility zone's Unico M2430's coil node, installed 2026-11-01 as a temporary mount until the rev B carrier. The unit's S.M.A.R.T.

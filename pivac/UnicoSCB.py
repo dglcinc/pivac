@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """pivac.UnicoSCB — a Unico air handler's S.M.A.R.T. Control Board (SCB), read from
 its serial line and published as Signal K deltas.
 

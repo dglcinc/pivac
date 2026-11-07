@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Dependency-free tests for the RedLink refresh-failure rollup.
 
 Run with:  python tests/test_redlink_failure_summary.py

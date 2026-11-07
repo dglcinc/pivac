@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Render the routed Pico W carrier alone and in the 1593K: needs KiCad in ~/Applications and FreeCAD. The box
 # models come from ahp-box-models.py under FreeCAD; pass their folder and an output folder.
 # Usage: ahp-render.sh MODELS OUT

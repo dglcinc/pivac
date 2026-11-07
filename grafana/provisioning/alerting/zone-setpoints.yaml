@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Zone setpoint spread. The house is open plan, so a zone set apart from its
 # neighbours carries their load: docs/unico-cooling-assessment-and-tuning.md
 # Appendix J has the measurement. Each rule compares the five RedLink setpoints

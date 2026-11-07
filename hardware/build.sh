@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Regenerate, route, check, render and export the boards named, or int and ext (rev B) when none
 # is named. "extc" is the rev C EXT board, in extc-board. Needs KiCad 10 in ~/Applications and
 # Freerouting 1.9.0 in ~/Applications/freerouting (see docs/rpi-io-boards-pcb-plan.md §6).

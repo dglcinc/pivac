@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Dependency-free checks on pivac.ArduinoSensor's temperature rounding.
 
 Run with:  python tests/test_arduino_rounding.py

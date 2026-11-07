@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Domestic Water Consumption Monitoring — Implementation Plan
 
 **Status:** DRAFT FOR REVIEW — 2026-06-15 (rev 2)

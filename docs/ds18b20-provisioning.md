@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # DS18B20 provisioning — addressing, labelling and calibration
 
 **Purpose:** bench work on the four secondary-loop probes before they go on the pipe. Enumerate each

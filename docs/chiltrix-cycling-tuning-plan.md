@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Chiltrix CX75 — cycling-reduction tuning plan
 
 Goal: fewer compressor starts at part load, with the unit throttling the pump and

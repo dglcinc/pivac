@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Chiltrix CX75 Modbus Bring-Up — Runbook
 
 **Status:** The Arduino end is proven good and the chiller has never answered. The open question is

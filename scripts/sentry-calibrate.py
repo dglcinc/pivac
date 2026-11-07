@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """
 sentry-calibrate.py — Tapo C120 / Sentry 2100 calibration utility
 

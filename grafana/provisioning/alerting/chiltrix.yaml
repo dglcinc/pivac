@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 apiVersion: 1
 
 # Chiltrix CX75 water-side fouling and health alerts. Source = the RS-485 Modbus link

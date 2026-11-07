@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # 1-wire proof for the EXT board on the bench Pi: bring up the DS2482 at 0x18 on i2c-1,
 # wait for the bus search, then read every DS18B20 N times and count clean (CRC YES) reads.
 #   sudo sh w1-proof.sh [reads-per-probe]     (default 40)

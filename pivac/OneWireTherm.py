@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Import Libraries
 from w1thermsensor import W1ThermSensor, Unit
 import os

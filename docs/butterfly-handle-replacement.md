@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Replacement butterfly handle for the red-handled drain valves
 
 The hose-end drain ball valves on the chilled-water piping carry a red cast butterfly handle held by an M6×1 nut. One handle's wings broke off at the base. No catalog handle publishes a matching hole, so this part copies the broken base and adds longer wings that rise clear of the pipe insulation. `hardware/butterfly-handle/` holds the generator (`make_handle.py`, needs `cadquery`), the STEP and STL to order from (PA12 and 316L versions), and a 1:1 SVG to check against the old base.

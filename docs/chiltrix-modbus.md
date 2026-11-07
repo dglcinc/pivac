@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Chiltrix CX75 — Modbus link, register map and operating notes
 
 Evidence and history behind the Chiltrix rules in `CLAUDE.md`. Parameter tuning is in `chiltrix-cycling-tuning-plan.md`; the alert rules and the evidence behind the retired ones are in `grafana-alerting-notes.md`.

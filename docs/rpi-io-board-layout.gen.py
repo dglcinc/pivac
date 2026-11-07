@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Generate rpi-io-board-layout.svg (into this script's own directory) — grid-accurate placement figure for the
 RPI-BC INT-PCB input board. Coordinates: col 1-23 left-to-right, row 1-30 top-to-bottom,
 matching drawing 00914691/00 viewed from the component (TOP) side."""

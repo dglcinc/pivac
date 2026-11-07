@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Write a BOM CSV for each generated board from the board file itself.
 
     <kicad python> hardware/bom.py

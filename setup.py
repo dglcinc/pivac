@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 
 # (tailored from: https://github.com/pypa/sampleproject/blob/master/setup.py
 from setuptools import setup, find_packages
@@ -17,10 +19,10 @@ setup (
   long_description=long_description,
 
   url='https://github.com/dglcinc/pivac',
-  license='MIT',
+  license='PolyForm-Noncommercial-1.0.0',
   classifiers=[
     'Development Status :: 4 - Beta',
-    'License :: OSI Approved :: MIT License',
+    'License :: Other/Proprietary License',
     'Programming Language :: Python :: 2.7'
   ],
 

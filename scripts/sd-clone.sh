@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 # Weekly hot-recovery clone of the live Pi filesystem to the USB-attached
 # spare microSD. Used for fast card-death recovery: pull live SD, drop spare
 # in, reboot. rpi-clone runs on a live system; no service stop needed.

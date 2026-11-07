@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+# Copyright David Lewis
 """Checks for scripts/unico-scb.py: framing, decoding, the idle and the mirror answer.
 
 The two PC frames are the ones verified in docs/unico-scb-protocol.md §3.1. The

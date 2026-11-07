@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Hydronic pressure reset: lower the loop to 20 psi cold
 
 This sheet lowers the glycol loop's pressure by letting air out of the Extrol EX-60 expansion tank while the tank stays open to the loop. You add or drain no fluid. The bladder keeps the fluid it holds, so the loop still has a cushion when it is cold.

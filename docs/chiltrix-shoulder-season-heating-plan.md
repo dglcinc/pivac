@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Chiltrix shoulder-season heating — plan
 
 **Date:** 2026-09-07.

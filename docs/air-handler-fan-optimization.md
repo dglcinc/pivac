@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
+<!-- Copyright David Lewis -->
+
 # Air handler fan optimization
 
 This is the control approach for a Unico air handler's fan speed, and what the data from two M2430s says to do now. The master bedroom data is `pivac.UnicoAH_MBR` at one-minute means from the evening of 2026-10-20 to 2026-11-01, 11.5 days. The downstairs family and utility data is `pivac.UnicoSCB_Utility` from 2026-10-24 to 2026-11-01, 7.7 days. `docs/data/ah-mbr-node/fan-analysis/` holds the scripts.
