@@ -610,4 +610,3 @@ pivac is free for personal and other noncommercial use. Commercial use, includin
 1. The code row covers `pivac/`, `scripts/`, `tests/`, `config/`, `grafana/`, the generator scripts in `hardware/`, and the package files. Source files carry an `SPDX-License-Identifier` line.
 2. The documents row covers `docs/`, this README, the KiCad projects, gerbers and fabrication outputs in `hardware/`, and the architecture slides.
 3. `hardware/vendor/` holds Phoenix Contact's 3D models, which stay under Phoenix Contact's terms.
-4. Commits up to and including `b0b5cea` (2026-11-06) were released under the MIT licence. Copies of those versions keep the MIT terms; everything after is under the licences above.

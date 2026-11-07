@@ -7,7 +7,7 @@
 
 **pivac** collects data from Raspberry Pi sensors and outputs standardized JSON. It's a read-only monitoring tool for HVAC/home automation, feeding downstream systems (Signal K, InfluxDB, Grafana, WilhelmSK mobile app).
 
-**Licensing (since 2026-11-07):** code is PolyForm Noncommercial 1.0.0 (`LICENSE`), documents and board designs CC BY-NC 4.0 (`LICENSE-DOCS`); commercial use needs a separate licence from David. Every new source file starts with `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0` and `Copyright David Lewis` in its comment syntax, and every new doc in `docs/` with the same two lines as HTML comments naming `CC-BY-NC-4.0`. `hardware/vendor/` keeps its makers' terms. Commits through `b0b5cea` were MIT and stay so. The README's Licensing section is the public statement.
+**Licensing (since 2026-11-07):** code is PolyForm Noncommercial 1.0.0 (`LICENSE`), documents and board designs CC BY-NC 4.0 (`LICENSE-DOCS`); commercial use needs a separate licence from David. Every new source file starts with `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0` and `Copyright David Lewis` in its comment syntax, and every new doc in `docs/` with the same two lines as HTML comments naming `CC-BY-NC-4.0`. `hardware/vendor/` keeps its makers' terms. The README's Licensing section is the public statement.
 
 ## Running the Project
 
