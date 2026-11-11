@@ -19,7 +19,8 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | U4 | SC0918 | Pico W | Digi-Key 10-31 |
 | U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
 | U2 | DS2482S-100+T&R | I2C 1-wire master, SOIC-8 | Digi-Key 10-31 |
-| U1 | TMR 3-4811WI | 24 V to 5 V converter, SIP-8 | rev A U1 |
+| U1 | TMR 3-4811WI | 24 V to 5 V converter, SIP-8 | rev A U1, three in hand |
+| U1 | TEC 3-4811WI | the same, Traco's newer series | to order, note 3 |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 1 %, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
 | R5–R10 | RC0805FR-07220RL | 220 Ω, 0805 | Digi-Key 10-31 |
@@ -49,7 +50,11 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
    C1 (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does not fit, and neither does the Panasonic EEE-FK1H470P,
    which is also 8 mm. Confirm J4 is in the drawer before starting.
 2. The rev A D1 (S1M-13-F) fits D1's pads if the Vishay part runs short. The rev A C4–C6 are the same part as C3–C6.
-3. TP1–TP3 and the three screw holes take no part. TP1 and TP2 take a probe hook, and TP3 is the low-side ground.
+3. The TEC 3-4811WI has the TMR's pins (1 −Vin, 2 +Vin, 3 Remote, 6 +Vout, 7 −Vout), 18–75 V in, 5 V at 600 mA, a
+   21.8 × 9.1 mm body and no minimum load, so it fits U1's footprint and takes the boards beyond the three TMRs in hand.
+   Mouser 495-TEC3-4811WI, Digi-Key 1951-1492-ND. Avoid the TMR 3-4811WIE: it needs 150 mA minimum load, above
+   the node's 90 mA, and Traco no longer recommends it.
+4. TP1–TP3 and the three screw holes take no part. TP1 and TP2 take a probe hook, and TP3 is the low-side ground.
 
 ## Assembly order
 
