@@ -144,7 +144,14 @@ On Rev B, U1's 5 V output is wired to the Pico's VBUS (pin 40), the same net as 
 1. Power. U1's +5 V leaves VBUS and feeds VSYS (pin 39) through Q1: drain to +5 V, source to VSYS, gate to VBUS with R11 to ground. This is the arrangement Raspberry Pi's Pico datasheet gives for an external supply beside USB. With no laptop, VBUS is at 0 V and Q1 conducts. With a laptop, VBUS holds the gate at 5 V, Q1 turns off, and the Pico runs from the laptop through its own VBUS-to-VSYS Schottky. Q1's body diode points from U1 to VSYS; with a laptop on, VSYS sits near 4.7 V, so the diode sees about 0.3 V forward, below its threshold, and passes nothing that matters. Neither source drives the other. J4's 5 V stays on U1's rail and never reaches VBUS.
 2. Data. U5's common D+ and D− (pins 3 and 4) go to TP3 and TP2 under the Pico, HSD1+ and HSD1− (pins 7 and 6) to J4, HSD2 open, SEL (pin 2) to GND, VCC (pin 1) to 3V3 with C7. OE (pin 10) takes VBUS through R12 over R13, 3.0 V with a laptop and held at 0 V by R13 without one; the control inputs must not float. OE high disconnects both channels, OE low connects D to HSD1 (onsemi truth table). Its on-resistance is 6.5 Ω at most and its on-capacitance 3.7 pF, nothing at full speed.
 3. Firmware. The Pico W reports VBUS on WL_GPIO2. `AirHandlerPico` stops the USB host while it reads high and restarts it when it falls, so the native port comes up as a device for the laptop and returns to the SCB on unplugging.
-4. The Rev B rule stays printed on the board until Rev C exists: no laptop on the micro-USB with 24 VAC on J1.
+4. Until Rev C exists the Rev B rule stands: no laptop on the micro-USB with 24 VAC on J1. Rev B's silkscreen does not say so.
+
+Rev C also carries:
+
+5. The legend `© 2026 David Lewis · CC BY-NC 4.0` on F.SilkS beside the title block, added in `gen-ah-pico.py`.
+6. A paste layer only on the parts meant for paste and hot air: none on U4, J2, J3, the through-hole parts or anything else built with the iron, so the stencil needs no tape.
+7. The results of the Rev B checks above: the J1 notch from a seated plug, RSSI in the closed box, and LED brightness through the drilled wall.
+
 
 | Part | Digi-Key | Mouser | Price at 1 |
 |---|---|---|---|
