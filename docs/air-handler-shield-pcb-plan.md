@@ -129,6 +129,37 @@ The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO
 2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
 3. Check the LEDs on the first carrier through the drilled wall, for brightness.
 
+### Rev C: USB lockout
+
+On Rev B, U1's 5 V output is wired to the Pico's VBUS (pin 40), the same net as the micro-USB's 5 V, and J4 takes D+ and D− from the Pico's TP2 and TP3, the same pair as the micro-USB. A laptop plugged in with 24 VAC on puts two 5 V sources on one rail and two USB hosts on one pair. Rev C makes the micro-USB the master: a laptop's VBUS cuts U1 off the Pico and disconnects J4's data, and 24 VAC keeps J4's 5 V up with neither change visible to the laptop. Nothing locks out the USB port, because it is the only way to load firmware.
+
+| Ref | Part | Where |
+|---|---|---|
+| Q1 | DMG2305UX-7 P-FET, SOT-23 | between U1's +5 V and VSYS |
+| R11 | 100 k 0805 | Q1 gate to GND |
+| U5 | FSUSB42MUX USB 2.0 switch, MSOP-10 | between TP2/TP3 and J4 |
+| R12, R13 | 22 k and 33 k 0805 | VBUS divider to U5's OE |
+| C7 | 100 nF 0805 | U5 VCC |
+
+1. Power. U1's +5 V leaves VBUS and feeds VSYS (pin 39) through Q1: drain to +5 V, source to VSYS, gate to VBUS with R11 to ground. This is the arrangement Raspberry Pi's Pico datasheet gives for an external supply beside USB. With no laptop, VBUS is at 0 V and Q1 conducts. With a laptop, VBUS holds the gate at 5 V, Q1 turns off, and the Pico runs from the laptop through its own VBUS-to-VSYS Schottky. Q1's body diode points from U1 to VSYS; with a laptop on, VSYS sits near 4.7 V, so the diode sees about 0.3 V forward, below its threshold, and passes nothing that matters. Neither source drives the other. J4's 5 V stays on U1's rail and never reaches VBUS.
+2. Data. U5's common D+ and D− (pins 3 and 4) go to TP3 and TP2 under the Pico, HSD1+ and HSD1− (pins 7 and 6) to J4, HSD2 open, SEL (pin 2) to GND, VCC (pin 1) to 3V3 with C7. OE (pin 10) takes VBUS through R12 over R13, 3.0 V with a laptop and held at 0 V by R13 without one; the control inputs must not float. OE high disconnects both channels, OE low connects D to HSD1 (onsemi truth table). Its on-resistance is 6.5 Ω at most and its on-capacitance 3.7 pF, nothing at full speed.
+3. Firmware. The Pico W reports VBUS on WL_GPIO2. `AirHandlerPico` stops the USB host while it reads high and restarts it when it falls, so the native port comes up as a device for the laptop and returns to the SCB on unplugging.
+4. Until Rev C exists the Rev B rule stands: no laptop on the micro-USB with 24 VAC on J1. Rev B's silkscreen does not say so.
+
+Rev C also carries:
+
+5. The legend `© 2026 David Lewis · CC BY-NC 4.0` on F.SilkS beside the title block, added in `gen-ah-pico.py`.
+6. No stencil: every part is hand soldered with the iron, as on Rev B, because only a few parts would take paste and hot air.
+7. The results of the Rev B checks above: the J1 notch from a seated plug, RSSI in the closed box, and LED brightness through the drilled wall.
+
+
+| Part | Digi-Key | Mouser | Price at 1 |
+|---|---|---|---|
+| DMG2305UX-7 | [DMG2305UX-7DICT-ND](https://www.digikey.com/en/products/detail/diodes-incorporated/DMG2305UX-7/4340667), 74,154 in stock | 621-DMG2305UX-7, none in stock to 2027-05-21; 621-DMG2305UX-13 (same part on a larger reel) in stock | $0.38 Digi-Key, $0.41 Mouser |
+| FSUSB42MUX | [FSUSB42MUXCT-ND](https://www.digikey.com/en/products/detail/onsemi/FSUSB42MUX/2036916), 54,401 in stock | 512-FSUSB42MUX, 48,838 in stock | $0.86 |
+
+Both are Active as of 2026-11-10. The FSUSB30MUX that first suggested itself is obsolete; the FSUSB42MUX is onsemi's replacement. Both parts are surface-mount on the board's own pads, so neither needs a breakout. Amazon: [DMG2305UX](https://www.amazon.com/s?k=DMG2305UX), [FSUSB42MUX](https://www.amazon.com/s?k=FSUSB42MUX).
+
 The firmware is `AirHandlerPico` in `~/github/Arduino`: the built-in USB host listening to the SCB, the DS2482 and ADS1115 on I2C, the LEDs, and one JSON line that `pivac.UnicoSCB` with `node:` and `pivac.ArduinoSensor` both read, so the paths are the ones the utility zone publishes today from the Pi's USB. It also reads and changes the SCB's settings over HTTP, with the Mac tool's sequence, limits and key names: `GET /settings`, `/settings/read?token=T` and `/set?token=T&cfm.Y2=500`. It answers the SCB only while such a job runs, and it cannot send the thermostat override or the test bytes.
 
 ## 1. Scope
