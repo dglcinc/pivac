@@ -149,7 +149,7 @@ On Rev B, U1's 5 V output is wired to the Pico's VBUS (pin 40), the same net as 
 Rev C also carries:
 
 5. The legend `© 2026 David Lewis · CC BY-NC 4.0` on F.SilkS beside the title block, added in `gen-ah-pico.py`.
-6. A paste layer only on the parts meant for paste and hot air: none on U4, J2, J3, the through-hole parts or anything else built with the iron, so the stencil needs no tape.
+6. No stencil: every part is hand soldered with the iron, as on Rev B, because only a few parts would take paste and hot air.
 7. The results of the Rev B checks above: the J1 notch from a seated plug, RSSI in the closed box, and LED brightness through the drilled wall.
 
 
