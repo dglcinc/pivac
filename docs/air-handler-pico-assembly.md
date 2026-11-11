@@ -11,20 +11,22 @@ not used, because its U4 openings are the library's oversized ones and the back 
 
 ## Parts for one board
 
-Source says where the part on the bench comes from: the Digi-Key order of 2026-10-31 (sales order 102617558), or
-the spares from the rev A shield's Mouser order, which bought parts for five boards, under its rev A reference.
+Source says where the part on the bench comes from: the Digi-Key orders of 2026-10-31 (sales order 102617558) and
+2026-11-10 (sales order 102840140), the Mouser order of 2026-11-10, or the spares from the rev A shield's Mouser order,
+which bought parts for five boards, under its rev A reference. Between them they cover five carriers.
 
 | Ref | Part number | Description | Source |
 |---|---|---|---|
-| U4 | SC0918 | Pico W | Digi-Key 10-31 |
+| U4 | SC0918 | Pico W | Digi-Key 10-31 (2), Mouser 11-10 (3) |
 | U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
 | U2 | DS2482S-100+T&R | I2C 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TMR 3-4811WI | 24 V to 5 V converter, SIP-8 | rev A U1, three in hand |
-| U1 | TEC 3-4811WI | the same, Traco's newer series | to order, note 3 |
+| U1 | TEC 3-4811WI | the same, Traco's newer series | Digi-Key 11-10 (2), note 3 |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 1 %, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
-| R5–R10 | RC0805FR-07220RL | 220 Ω, 0805 | Digi-Key 10-31 |
-| C1 | UUD1H470MCL1GS | 47 µF 50 V can, 6.3 mm | Mouser, 647-UUD1H470MCL1GS |
+| R5–R10 | RC0805FR-07220RL | 220 Ω, 0805 | Digi-Key 10-31 (25) |
+| R5–R10 | ERJ-6ENF2200V | 220 Ω, 1 %, 0805, same pads | Mouser 11-10 (100) |
+| C1 | UUD1H470MCL1GS | 47 µF 50 V can, 6.3 mm | Digi-Key 11-10 |
 | C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
 | C3–C6 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
@@ -35,20 +37,17 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | LED3, LED4 | LTST-S220TBKT | blue, side-firing, Y1, Y2 | Digi-Key 10-31 |
 | LED5, LED6 | LTST-S220KRKT | red, side-firing, W1, W2 | Digi-Key 10-31 |
 | J1 | Bonsicoky 3.81 mm 2-pin | 24 VAC header and plug | Amazon, in hand |
-| J2 | 1778777 | PTSM 3-pin header, 1-wire | rev A TB3 |
-| J2 plug | 1778845 | PTSM 3-pin plug | rev A TB3 |
-| J3 | 1778780 | PTSM 4-pin header, NTC | rev A TB2 |
-| J3 plug | 1778858 | PTSM 4-pin plug | rev A TB2 |
-| J4 | 61400416021 | Würth USB-A, through-hole | see note 1 |
-| Box | 1593KGY | Hammond box, grey | Digi-Key 10-31 |
+| J2 | 1778777 | PTSM 3-pin header, 1-wire | rev A TB3, Mouser 11-10 |
+| J2 plug | 1778845 | PTSM 3-pin plug | rev A TB3, Mouser 11-10 |
+| J3 | 1778780 | PTSM 4-pin header, NTC | rev A TB2, Mouser 11-10 |
+| J3 plug | 1778858 | PTSM 4-pin plug | rev A TB2, Mouser 11-10 |
+| J4 | 61400416021 | Würth USB-A, through-hole | Digi-Key 11-10 |
+| Box | 1593KGY | Hammond box, grey | Digi-Key 10-31 (2), 11-10 (5) |
 | Screws | 1593ATS50 | #4 × 1/4, three per board | Digi-Key 10-31 |
 
-1. C1 and J4 are on neither order. C1 is the Nichicon UUD1H470MCL1GS, 6.3 mm across and 8 mm tall at most on a
-   6.6 mm land, Active with 53,229 in stock at $0.66 on 2026-11-10
-   ([Digi-Key](https://www.digikey.com/en/products/detail/nichicon/UUD1H470MCL1GS/590044),
-   [Amazon](https://www.amazon.com/s?k=UUD1H470MCL1GS)); the UCD1H470MCL1GS is a direct substitute. The rev A shield's
-   C1 (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does not fit, and neither does the Panasonic EEE-FK1H470P,
-   which is also 8 mm. Confirm J4 is in the drawer before starting.
+1. C1 is the Nichicon UUD1H470MCL1GS, 6.3 mm across and 8 mm tall at most on a 6.6 mm land. The rev A shield's C1
+   (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does not fit, and neither does the Panasonic EEE-FK1H470P, which
+   is also 8 mm. The UCD1H470MCL1GS is a direct substitute.
 2. The rev A D1 (S1M-13-F) fits D1's pads if the Vishay part runs short. The rev A C4–C6 are the same part as C3–C6.
 3. The TEC 3-4811WI has the TMR's pins (1 −Vin, 2 +Vin, 3 Remote, 6 +Vout, 7 −Vout), 18–75 V in, 5 V at 600 mA, a
    21.8 × 9.1 mm body and no minimum load, so it fits U1's footprint and takes the boards beyond the three TMRs in hand.
