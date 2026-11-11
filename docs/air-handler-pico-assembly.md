@@ -23,7 +23,7 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 1 %, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
 | R5–R10 | RC0805FR-07220RL | 220 Ω, 0805 | Digi-Key 10-31 |
-| C1 | UUD1H470MCL1GS | 47 µF 50 V can, 6.3 mm | to order, note 1 |
+| C1 | UUD1H470MCL1GS | 47 µF 50 V can, 6.3 mm | Mouser, 647-UUD1H470MCL1GS |
 | C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
 | C3–C6 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
