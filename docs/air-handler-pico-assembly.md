@@ -23,7 +23,7 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 1 %, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
 | R5–R10 | RC0805FR-07220RL | 220 Ω, 0805 | Digi-Key 10-31 |
-| C1 | 47 µF 50 V | electrolytic, SMD 6.3 × 7.7 | see note 1 |
+| C1 | UUD1H470MCL1GS | 47 µF 50 V can, 6.3 mm | to order, note 1 |
 | C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
 | C3–C6 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
@@ -42,9 +42,13 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | Box | 1593KGY | Hammond box, grey | Digi-Key 10-31 |
 | Screws | 1593ATS50 | #4 × 1/4, three per board | Digi-Key 10-31 |
 
-1. C1, J1 and J4 are on neither order. The rev A shield's C1 (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does
-   not fit C1's 6.3 mm pads. The plan names the Bonsicoky 3.81 mm set from Amazon for J1. Confirm all three are in
-   the drawer before starting.
+1. C1, J1 and J4 are on neither order. C1 is the Nichicon UUD1H470MCL1GS, 6.3 mm across and 8 mm tall at most on a
+   6.6 mm land, Active with 53,229 in stock at $0.66 on 2026-11-10
+   ([Digi-Key](https://www.digikey.com/en/products/detail/nichicon/UUD1H470MCL1GS/590044),
+   [Amazon](https://www.amazon.com/s?k=UUD1H470MCL1GS)); the UCD1H470MCL1GS is a direct substitute. The rev A shield's
+   C1 (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does not fit, and neither does the Panasonic EEE-FK1H470P,
+   which is also 8 mm. The plan names the Bonsicoky 3.81 mm set from Amazon for J1. Confirm J1 and J4 are in the
+   drawer before starting.
 2. The rev A D1 (S1M-13-F) fits D1's pads if the Vishay part runs short. The rev A C4–C6 are the same part as C3–C6.
 3. TP1–TP3 and the three screw holes take no part. TP1 and TP2 take a probe hook, and TP3 is the low-side ground.
 
