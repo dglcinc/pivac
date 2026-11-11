@@ -33,7 +33,7 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | LED2 | LTST-S220KSKT | yellow, side-firing, FAN | Digi-Key 10-31 |
 | LED3, LED4 | LTST-S220TBKT | blue, side-firing, Y1, Y2 | Digi-Key 10-31 |
 | LED5, LED6 | LTST-S220KRKT | red, side-firing, W1, W2 | Digi-Key 10-31 |
-| J1 | 3.81 mm 2-pin | 24 VAC header and plug | see note 1 |
+| J1 | Bonsicoky 3.81 mm 2-pin | 24 VAC header and plug | Amazon, in hand |
 | J2 | 1778777 | PTSM 3-pin header, 1-wire | rev A TB3 |
 | J2 plug | 1778845 | PTSM 3-pin plug | rev A TB3 |
 | J3 | 1778780 | PTSM 4-pin header, NTC | rev A TB2 |
@@ -42,13 +42,12 @@ the spares from the rev A shield's Mouser order, which bought parts for five boa
 | Box | 1593KGY | Hammond box, grey | Digi-Key 10-31 |
 | Screws | 1593ATS50 | #4 × 1/4, three per board | Digi-Key 10-31 |
 
-1. C1, J1 and J4 are on neither order. C1 is the Nichicon UUD1H470MCL1GS, 6.3 mm across and 8 mm tall at most on a
+1. C1 and J4 are on neither order. C1 is the Nichicon UUD1H470MCL1GS, 6.3 mm across and 8 mm tall at most on a
    6.6 mm land, Active with 53,229 in stock at $0.66 on 2026-11-10
    ([Digi-Key](https://www.digikey.com/en/products/detail/nichicon/UUD1H470MCL1GS/590044),
    [Amazon](https://www.amazon.com/s?k=UUD1H470MCL1GS)); the UCD1H470MCL1GS is a direct substitute. The rev A shield's
    C1 (EEE-FK1J101P, 100 µF 63 V) is an 8 mm can and does not fit, and neither does the Panasonic EEE-FK1H470P,
-   which is also 8 mm. The plan names the Bonsicoky 3.81 mm set from Amazon for J1. Confirm J1 and J4 are in the
-   drawer before starting.
+   which is also 8 mm. Confirm J4 is in the drawer before starting.
 2. The rev A D1 (S1M-13-F) fits D1's pads if the Vishay part runs short. The rev A C4–C6 are the same part as C3–C6.
 3. TP1–TP3 and the three screw holes take no part. TP1 and TP2 take a probe hook, and TP3 is the low-side ground.
 
