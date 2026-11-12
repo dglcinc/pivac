@@ -151,6 +151,7 @@ Rev C also carries:
 5. The legend `© 2026 David Lewis · CC BY-NC 4.0` on F.SilkS beside the title block, added in `gen-ah-pico.py`.
 6. No stencil: every part is hand soldered with the iron, as on Rev B, because only a few parts would take paste and hot air.
 7. The results of the Rev B checks above: the J1 notch from a seated plug, RSSI in the closed box, and LED brightness through the drilled wall.
+8. The status LEDs face the base's floor and show through six holes drilled in it. The floor is flat and carries the box's label. They are top-view 1206 LEDs on the back of the board, each lying across the board, in one column at x 3.5 on the USB-A side, under the centre of that side's cover screw (x 3.5, y 20.7). They keep Rev B's 4 mm pitch from y 26.5 (PWR) to y 46.5 (W2). Seen from outside the floor, the column runs straight down from the right-hand screw hole. The label's notch at that screw is cut on to the label's bottom edge, so the holes sit in the slot and the label is not drilled. The LED names go on the label to the left of the slot. Each lens stands about 3.4 mm above the floor's inside face, behind 2.5 mm of floor. The first LED is 5.8 mm below the screw's centre and clears the cover-post boss by 2.3 mm. A 1:1 floor template replaces the wall template. Each LED's resistor moves inboard of the column, and its cathode via moves out of the monogram's keep-out. The four colours are chosen, with stock checked, when Rev C is generated.
 
 
 | Part | Digi-Key | Mouser | Price at 1 |
