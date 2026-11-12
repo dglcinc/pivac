@@ -60,7 +60,7 @@ for a, b in zip(pts, pts[1:] + pts[:1]):
 # --- Pico W flat, micro-USB at the top edge
 PY = 26.8
 pico = B.lib("U4", "Module", "RaspberryPi_Pico_W_SMD_HandSolder", CX, PY, 0, value="Pico W SC0918")
-pico.Reference().SetPosition(mm(CX, 53.6)); pico.Reference().SetTextAngleDegrees(0)
+pico.Reference().SetPosition(mm(CX, 54.3)); pico.Reference().SetTextAngleDegrees(0)
 # the footprint's keep-outs: the two wide ones cover the sensor headers either side of the antenna and
 # the four small ones TP2 and TP3's new holes, so they go and the antenna gets its own to the board edge
 for z in pico.Zones():
@@ -313,6 +313,7 @@ for x0, x1, name in ((X0, 7.5, "left notch"), (49.6, X1, "right notch")):
     B.rect_keepout(x0, 16.9 if x0 == X0 else 17.0, x1, 24.5, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=True, vias=True, pour=False)
 # no vias through the monogram and legends, front or back
 for x0, y0, x1, y1, name in ((2.9, 36.4, 8.1, 44.1, "monogram"), (7.5, 37.0, 16.0, 38.9, "AIR HANDLER"), (8.0, 38.9, 11.8, 41.6, "PICO W Rev C"),
+                             (CX - 8.0, 48.8, CX + 8.0, 52.0, "licence"),
                              *((LX + 4.5, y - 0.7, LX + 6.7, y + 0.7, "LED legend") for y in (26.5, 30.5, 34.5, 38.5, 42.5, 46.5))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
 
@@ -331,9 +332,10 @@ gb.monogram(B, 4.2, 40.2, 0.8)
 B.text("AIR HANDLER", 7.7, 38.0, size=0.8, bold=True, left=True)
 B.text("PICO W", 8.2, 39.5, size=0.7, left=True)
 B.text("Rev C", 8.2, 40.8, size=0.7, left=True)
-# the lower left screw head and the 1-wire legend leave no room beside the title block, so the licence runs
-# along the bottom edge under the Pico, between J2 and J3
-B.text("\u00a9 2026 David Lewis \u00b7 CC BY-NC 4.0", CX, 55.0, size=0.65)
+# the lower left screw head and the 1-wire legend leave no room beside the title block on the front, so the
+# licence goes on the back, in the open pour under the Pico
+B.text("\u00a9 2026 David Lewis", CX, 49.6, layer="B.SilkS", size=0.9)
+B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 for ref, x, y, angle in (("F1", 52.3, 14.2, 90), ("D2", 54.8, 8.6, 0), ("C1", 51.2, 25.0, 0)):
     t = B.refs[ref].Reference(); t.SetPosition(mm(x, y)); t.SetTextAngleDegrees(angle)
