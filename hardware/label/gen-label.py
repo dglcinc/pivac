@@ -23,6 +23,8 @@ FONT = "Helvetica Neue, Helvetica, Arial, sans-serif"
 REVC = sys.argv[1:] == ["revc"]
 TX = -7.5 if REVC else -5.5        # title block centre, left on Rev C to clear the LED names
 TS = 7.0 if REVC else 8.4          # title size, and the tag line below it in proportion
+# bottom legends' baselines: on Rev C the plug name, its pin letters and the arrow stand 0.8 mm apart, clear of W2
+BT, BP = (-24.75, -27.15) if REVC else (-22.9, -25.8)
 LEDX = 25.0                        # Rev C: the LED holes, under the right-hand cover screw
 LEDS = (("PWR", 1.5, "#18a848"), ("FAN", -2.5, "#e8b400"), ("Y1", -6.5, "#1f5fd8"), ("Y2", -10.5, "#1f5fd8"),
         ("W1", -14.5, "#d8261c"), ("W2", -18.5, "#d8261c"))
@@ -72,13 +74,13 @@ def art():
     a += [tri(0, HH - 0.25, "up"), text(0, 24.9, "PROG", 2.5, "bold"), text(0, 22.2, "24 VAC off", 2.0)]
     a += [tri(19.8, HH - 0.25, "up"), text(19.8, 24.9, "UNICO", 2.5, "bold"), text(19.8, 22.2, "USB", 2.2)]
     # bottom panel: sensor plugs, pin letters at the true 2.5 mm pitch
-    a += [tri(-20.0, -HH + 0.25, "down"), text(-20.0, -22.9, "AIR NTC", 2.5, "bold")]
+    a += [tri(-20.0, -HH + 0.25, "down"), text(-20.0, BT, "AIR NTC", 2.5, "bold")]
     for x, s in ((-23.75, "S"), (-21.25, "&#8211;"), (-18.75, "R"), (-16.25, "&#8211;")):
-        a.append(text(x, -25.8, s, 2.2))
+        a.append(text(x, BP, s, 2.2))
     if REVC:    # the slot takes the plug's G end, so the legend and its pin letters stand 1.5 mm left of true
-        a += [tri(18.9, -HH + 0.25, "down"), text(20.3, -22.9, "1-WIRE", 2.5, "bold", "end")]
+        a += [tri(18.9, -HH + 0.25, "down"), text(20.3, BT, "1-WIRE", 2.5, "bold", "end")]
         for x, s in ((14.9, "V"), (17.4, "D"), (19.9, "G")):
-            a.append(text(x, -25.8, s, 2.2))
+            a.append(text(x, BP, s, 2.2))
         # LEDs through the floor, in the slot, so the lit LED shows its own colour: a name and a pointer to its hole
         for name, y, col in LEDS:
             a.append(tri(NX - 0.4, y, "right"))
