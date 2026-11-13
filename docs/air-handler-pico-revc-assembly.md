@@ -47,9 +47,9 @@ or the next order.
 | Box | 1593KGY | Hammond box, grey | Digi-Key |
 | Screws | 1593ATS50 | #4 × 1/4, three | Digi-Key 10-31 |
 
-1. The next order: R11–R13, Mouser 603-RC0805FR-07100KL, 603-RC0805FR-0722KL and 603-RC0805FR-0733KL, and ten
-   100 Ω 0805s, Panasonic ERJ-6ENF1000V (Mouser 667-ERJ-6ENF1000V), for note 3. Open each page and confirm stock
-   before ordering. Q1 is the DMG2305UX-13, the -7 part on a larger reel; Mouser had the -7 out of stock.
+1. The next order, from Digi-Key: R11–R13 (311-100KCRCT-ND, 311-22.0KCRCT-ND, 311-33.0KCRCT-ND) and ten 100 Ω
+   0805s, Yageo RC0805FR-07100RL (311-100CRCT-ND), for note 3. Q1 is the DMG2305UX-13, the -7 part on a larger
+   reel; Mouser had the -7 out of stock.
 2. The LEDs are the 200-piece 0805 kit, Amazon B09Y1K1MFD, five colours with 40 of each. They are unbranded, so find
    each one's cathode with the meter's diode test before it goes on: the LED glows faintly when the red lead is on
    the anode, and the black lead then marks the cathode.
