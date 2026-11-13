@@ -27,9 +27,9 @@ or the next order.
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
 | R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 |
-| R11 | RC0805FR-07100KL | 100 k, 0805 | next order |
-| R12 | RC0805FR-0722KL | 22 k, 0805 | next order |
-| R13 | RC0805FR-0733KL | 33 k, 0805 | next order |
+| R11 | RC0805FR-07100KL | 100 k, 0805 | Mouser 11-12 |
+| R12 | RC0805FR-0722KL | 22 k, 0805 | Mouser 11-12 |
+| R13 | RC0805FR-0733KL | 33 k, 0805 | Mouser 11-12 |
 | C1 | UUD1H470MCL1GS | 47 µF 50 V can | Digi-Key 11-10 |
 | C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
 | C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
@@ -47,9 +47,8 @@ or the next order.
 | Box | 1593KGY | Hammond box, grey | Digi-Key |
 | Screws | 1593ATS50 | #4 × 1/4, three | Digi-Key 10-31 |
 
-1. The next order, from Digi-Key: R11–R13 (311-100KCRCT-ND, 311-22.0KCRCT-ND, 311-33.0KCRCT-ND) and ten 100 Ω
-   0805s, Yageo RC0805FR-07100RL (311-100CRCT-ND), for note 3. Q1 is the DMG2305UX-13, the -7 part on a larger
-   reel; Mouser had the -7 out of stock.
+1. The Mouser order of 2026-11-12 carries R11–R13 and the 100 Ω 0805s of note 3 (Panasonic ERJ-6ENF1000V). Q1 is
+   the DMG2305UX-13, the -7 part on a larger reel; Mouser had the -7 out of stock.
 2. The LEDs are the 200-piece 0805 kit, Amazon B09Y1K1MFD, five colours with 40 of each. They are unbranded, so find
    each one's cathode with the meter's diode test before it goes on: the LED glows faintly when the red lead is on
    the anode, and the black lead then marks the cathode.
