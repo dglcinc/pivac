@@ -22,8 +22,8 @@ or the next order.
 | U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
 | U2 | DS2482S-100+T&R | 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TEC 3-4811WI | 24 V to 5 V, SIP-8 | Digi-Key 11-10 |
-| U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | next order |
-| Q1 | DMG2305UX-7 | P-FET, SOT-23 | next order |
+| U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | Mouser 11-10 (10) |
+| Q1 | DMG2305UX-13 | P-FET, SOT-23 | Mouser 11-10 (10) |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
 | R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
 | R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 |
@@ -47,11 +47,9 @@ or the next order.
 | Box | 1593KGY | Hammond box, grey | Digi-Key |
 | Screws | 1593ATS50 | #4 × 1/4, three | Digi-Key 10-31 |
 
-1. The next order: U5, Mouser 512-FSUSB42MUX or Digi-Key FSUSB42MUXCT-ND. Q1 from Digi-Key (DMG2305UX-7DICT-ND),
-   because Mouser has the -7 reel out of stock to 2027-05-21; its 621-DMG2305UX-13 is the same part on a larger
-   reel. R11–R13 on Mouser are 603-RC0805FR-07100KL, 603-RC0805FR-0722KL and 603-RC0805FR-0733KL. Add ten 100 Ω
-   0805s, Panasonic ERJ-6ENF1000V (Mouser 667-ERJ-6ENF1000V), for note 3. Open each page and confirm stock before
-   ordering. U5 and Q1 are surface-mount on the board's own pads and need no breakout.
+1. The next order: R11–R13, Mouser 603-RC0805FR-07100KL, 603-RC0805FR-0722KL and 603-RC0805FR-0733KL, and ten
+   100 Ω 0805s, Panasonic ERJ-6ENF1000V (Mouser 667-ERJ-6ENF1000V), for note 3. Open each page and confirm stock
+   before ordering. Q1 is the DMG2305UX-13, the -7 part on a larger reel; Mouser had the -7 out of stock.
 2. The LEDs are the 200-piece 0805 kit, Amazon B09Y1K1MFD, five colours with 40 of each. They are unbranded, so find
    each one's cathode with the meter's diode test before it goes on: the LED glows faintly when the red lead is on
    the anode, and the black lead then marks the cathode.
