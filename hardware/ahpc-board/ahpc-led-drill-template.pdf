@@ -1,0 +1,178 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 4839 >>
+stream
+BT /F2 13 Tf 56.69 737.01 Td (AirMaster Rev C: LED drill template, 1593K base, floor) Tj ET
+BT /F1 9 Tf 56.69 717.17 Td (Print at 100 % / Actual size. The bar below must measure 50 mm; if not, do not use the print.) Tj ET
+56.69 688.82 m
+198.43 688.82 l
+1.13 w [] 0 d S
+56.69 683.15 m
+56.69 694.49 l
+1.13 w [] 0 d S
+198.43 683.15 m
+198.43 694.49 l
+1.13 w [] 0 d S
+BT /F1 8 Tf 107.72 674.65 Td (50 mm) Tj ET
+226.32 372.44 m
+385.68 372.44 l
+393.51 372.44 399.86 378.79 399.86 386.62 c
+399.86 548.82 l
+399.86 556.64 393.51 562.99 385.68 562.99 c
+226.32 562.99 l
+218.49 562.99 212.14 556.64 212.14 548.82 c
+212.14 386.62 l
+212.14 378.79 218.49 372.44 226.32 372.44 c
+0.85 w [2.83] 0 d S
+306.00 363.94 m
+306.00 571.49 l
+0.43 w [2.83] 0 d S
+203.64 467.72 m
+408.36 467.72 l
+0.43 w [2.83] 0 d S
+BT /F2 8 Tf 220.96 574.33 Td (TOP PANEL: J1 24 VAC, micro-USB, J4) Tj ET
+BT /F2 8 Tf 243.64 352.60 Td (BOTTOM PANEL: sensor plugs) Tj ET
+243.64 488.49 m
+243.64 493.19 239.83 497.00 235.13 497.00 c
+230.44 497.00 226.63 493.19 226.63 488.49 c
+226.63 483.80 230.44 479.99 235.13 479.99 c
+239.83 479.99 243.64 483.80 243.64 488.49 c
+1.13 w [] 0 d S
+232.30 488.49 m
+237.97 488.49 l
+0.43 w [] 0 d S
+235.13 485.66 m
+235.13 491.33 l
+0.43 w [] 0 d S
+385.37 488.49 m
+385.37 493.19 381.56 497.00 376.87 497.00 c
+372.17 497.00 368.36 493.19 368.36 488.49 c
+368.36 483.80 372.17 479.99 376.87 479.99 c
+381.56 479.99 385.37 483.80 385.37 488.49 c
+1.13 w [] 0 d S
+374.03 488.49 m
+379.70 488.49 l
+0.43 w [] 0 d S
+376.87 485.66 m
+376.87 491.33 l
+0.43 w [] 0 d S
+BT /F1 7 Tf 215.29 501.25 Td (cut out) Tj ET
+BT /F1 7 Tf 357.02 501.25 Td (cut out) Tj ET
+381.12 471.97 m
+381.12 474.32 379.21 476.22 376.87 476.22 c
+374.52 476.22 372.61 474.32 372.61 471.97 c
+372.61 469.62 374.52 467.72 376.87 467.72 c
+379.21 467.72 381.12 469.62 381.12 471.97 c
+0.85 w [] 0 d S
+371.48 471.97 m
+382.25 471.97 l
+0.43 w [] 0 d S
+376.87 466.58 m
+376.87 477.35 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 469.13 Td (PWR) Tj ET
+381.12 460.63 m
+381.12 462.98 379.21 464.88 376.87 464.88 c
+374.52 464.88 372.61 462.98 372.61 460.63 c
+372.61 458.28 374.52 456.38 376.87 456.38 c
+379.21 456.38 381.12 458.28 381.12 460.63 c
+0.85 w [] 0 d S
+371.48 460.63 m
+382.25 460.63 l
+0.43 w [] 0 d S
+376.87 455.24 m
+376.87 466.02 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 457.80 Td (FAN) Tj ET
+381.12 449.29 m
+381.12 451.64 379.21 453.54 376.87 453.54 c
+374.52 453.54 372.61 451.64 372.61 449.29 c
+372.61 446.94 374.52 445.04 376.87 445.04 c
+379.21 445.04 381.12 446.94 381.12 449.29 c
+0.85 w [] 0 d S
+371.48 449.29 m
+382.25 449.29 l
+0.43 w [] 0 d S
+376.87 443.91 m
+376.87 454.68 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 446.46 Td (Y1) Tj ET
+381.12 437.95 m
+381.12 440.30 379.21 442.20 376.87 442.20 c
+374.52 442.20 372.61 440.30 372.61 437.95 c
+372.61 435.60 374.52 433.70 376.87 433.70 c
+379.21 433.70 381.12 435.60 381.12 437.95 c
+0.85 w [] 0 d S
+371.48 437.95 m
+382.25 437.95 l
+0.43 w [] 0 d S
+376.87 432.57 m
+376.87 443.34 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 435.12 Td (Y2) Tj ET
+381.12 426.61 m
+381.12 428.96 379.21 430.87 376.87 430.87 c
+374.52 430.87 372.61 428.96 372.61 426.61 c
+372.61 424.27 374.52 422.36 376.87 422.36 c
+379.21 422.36 381.12 424.27 381.12 426.61 c
+0.85 w [] 0 d S
+371.48 426.61 m
+382.25 426.61 l
+0.43 w [] 0 d S
+376.87 421.23 m
+376.87 432.00 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 423.78 Td (W1) Tj ET
+381.12 415.28 m
+381.12 417.62 379.21 419.53 376.87 419.53 c
+374.52 419.53 372.61 417.62 372.61 415.28 c
+372.61 412.93 374.52 411.02 376.87 411.02 c
+379.21 411.02 381.12 412.93 381.12 415.28 c
+0.85 w [] 0 d S
+371.48 415.28 m
+382.25 415.28 l
+0.43 w [] 0 d S
+376.87 409.89 m
+376.87 420.66 l
+0.43 w [] 0 d S
+BT /F2 6.5 Tf 344.27 412.44 Td (W2) Tj ET
+BT /F1 9 Tf 56.69 320.31 Td (1. Cut out the template along the dashed outline, then cut out the two screw circles.) Tj ET
+BT /F1 9 Tf 56.69 303.31 Td (2. Close the box with its two cover screws. Lay the template on the floor, outside, TOP PANEL toward the end) Tj ET
+BT /F1 9 Tf 56.69 290.55 Td (   with J1, the micro-USB and J4, the screw circles seated round the two screw heads. Tape it down.) Tj ET
+BT /F1 9 Tf 56.69 272.13 Td (3. Open the box and take the board out. Centre-punch each cross on the floor, drill 1.5 mm, then 3 mm.) Tj ET
+BT /F1 9 Tf 56.69 259.37 Td (   Plastic: low speed, light pressure. Deburr inside, where the LEDs face the holes.) Tj ET
+BT /F1 9 Tf 56.69 240.94 Td (4. The column is 4 mm pitch, straight below the right-hand screw; PWR's centre is 5.83 mm below the screw's.) Tj ET
+BT /F1 9 Tf 56.69 228.19 Td (   From the top: PWR green, FAN yellow, Y1 blue, Y2 blue, W1 red, W2 red.) Tj ET
+BT /F1 9 Tf 56.69 209.76 Td (5. Fit the Rev C label afterwards: its right slot runs from that screw to the bottom edge, over the holes.) Tj ET
+BT /F1 7 Tf 56.69 189.92 Td (Generated by hardware/ahpc-led-template.py.) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+5287
+%%EOF
