@@ -108,8 +108,8 @@ stage on `W1/E` below it. The relevant settings, from the installation guide:
 | Dual fuel operation | NO / YES | YES; requires the C7089U1006 wired outdoor sensor |
 | Dual-fuel heat stages | 1 / 2 | 1, the boiler |
 | Zone thermostat type, per zone | HTPUMP-O, HTPUMP-B, CONVENTIONAL | CONVENTIONAL: the Prestige IAQ zones are wired as heat/cool thermostats and the panel does the changeover |
-| Dual fuel changeover | OT / OT+MULTISTG | OT+MULTISTG: by outdoor temperature, and a second-stage heat call also switches to the boiler for at least an hour |
-| OT balance temperature | 0 to 50 °F, default 30 | 30 °F since 2026-10-18; capacity sets it, and price holds the chiller cheaper to about 20 °F (§8) |
+| Dual fuel changeover | OT / OT+MULTISTG | OT+MULTISTG planned: by outdoor temperature, and a second-stage heat call also switches to the boiler for at least an hour; the record shows no second-stage changeover (§8.1), so read the panel's setting |
+| OT balance temperature | 0 to 50 °F, default 30 | 35 °F since 2026-11-13, to see the changeover while Chiltrix support is engaged; 30 °F is the setting the measured capacity and price give (§8.1) |
 | Changeover delay | 15 to 180 min, default 30 | 30 |
 | Auto changeover delay | 15 / 20 / 30 min | 30, the arbitration when one zone calls heat and another cool in the same hour |
 | Emergency Heat | button on the panel | Forces the boiler regardless of outdoor temperature |
@@ -451,9 +451,68 @@ balance at 35 °F, put every heat call on the chiller. The night of the 17th fel
 from 01:00 to 08:00 the compressor ran 75 to 87 % of each hour for 49 to 61 kBTU/h, the first
 defrosts on record among them, with no room below its setpoint. Overall COP was 2.94 at 33 to
 36 °F ambient and 3.12 at 36 to 39 °F, so the chiller stays cheaper than gas down to about 20 °F,
-while the load, growing 2.6 % per °F, meets full duty near 30 to 32 °F. The panel offers 30 °F
-and not 32, so the balance is 30 °F since 18 October. Return it to 35 °F if an hour runs above
-95 % duty or a room falls 1 °F below its setpoint overnight.
+while the load, growing 2.6 % per °F, meets full duty near 30 to 32 °F. §8.1 measures the cutover from the November record.
+
+### 8.1 The cutover from the cold running of November 2026
+
+The balance point belongs at 30 °F. Capacity puts the ideal near 32 °F, which the panel does not
+offer, and price holds the chiller cheaper than gas to about 27 °F, so 30 °F loses less than 35 °F.
+
+The record from the 46 °C target (29 October 2026, 13:00 EDT) to 14 November 08:00 EST holds 272
+hours with the panel in heat mode all hour and no boiler call. Heat is the chiller's water side,
+flow × (205 − 281) for 25 % PG at 1.02 kg/L and 3.85 kJ/kg·K; power is the Emporia `chiltrix`
+circuit, so COP includes the fan, controls and defrost. Hours are grouped by their mean RedLink
+outdoor temperature, which reads about 3 °F above the Chiltrix's own sensor (register 202) while
+the unit runs. `scripts/chiltrix-heat-by-outdoor.py` produces the table from the per-minute export
+of `scripts/chiltrix-heat-fetch.sh`.
+
+| Outdoor | Hours | Heat delivered | Power | COP | Duty |
+|---|---|---|---|---|---|
+| 34–36 °F | 4 | 49 kBTU/h | 4.8 kW | 3.0 | 89 % |
+| 36–38 °F | 11 | 45 | 4.1 | 3.2 | 91 % |
+| 38–40 °F | 12 | 40 | 3.5 | 3.4 | 80 % |
+| 40–44 °F | 13 | 35 | 3.0 | 3.4 | 71 % |
+| 44–48 °F | 59 | 28 | 2.3 | 3.6 | 56 % |
+| 50–54 °F | 61 | 18 | 1.4 | 3.8 | 39 % |
+
+The night of 13 to 14 November held the record's coldest hours. RedLink read 36 to 37 °F until
+05:00 and 34 °F at 07:00. After the 17:36 restart from the day's P4 lockout, the compressor ran
+in stretches of 33 to 83 minutes with 7 to 10 minute gaps, at 75 to 79 Hz, with seven 4 to
+5 minute defrosts at 65 Hz. The hours at 37 °F ran 93 to 100 % duty for 40 to 55 kBTU/h, and the
+06:00 hour at 34.4 °F gave 63 kBTU/h at 98 %. No room fell below its heat setpoint, and the upper
+tank cycled between 105 and 124 °F, dipping to 95 °F in a defrost and recovering each time.
+
+Capacity sets the cutover. The load grows about 1.9 kBTU/h for each °F colder, to about
+54 kBTU/h at 32 °F and 58 kBTU/h at 30 °F, against 50 to 60 kBTU/h of full output at 34 to 37 °F.
+The two meet near 32 to 34 °F. Between 30 °F and that point the rooms can slip on the coldest
+hours, which is an extrapolation until an hour below 34 °F is on record.
+
+Price does not. At 35 °F, COP 3.0 makes 100 kBTU cost $1.80 on the chiller against $2.24 on gas,
+about $5 a day saved. COP falls about 0.08 per °F, so it reaches the 2.4 break-even near 27 °F;
+defrost near freezing may bring that warmer.
+
+Judge the setting by the rooms and the tank, never by duty. Return the balance to 35 °F if a room
+falls 1 °F below its setpoint overnight, or the upper tank stays under 105 °F outside a defrost.
+Five hours of the night of 13 November ran above 95 % duty with every room held, so a duty test
+would have handed the boiler a night the chiller carried for less.
+
+A latched lockout above the balance point leaves the house on the tank. The panel calls the boiler
+only below the balance point, so a P4 or double P1 that latches above it stops all heat until a
+breaker power cycle. On 7 November the lockout of 21:07 EST left the great room 3 °F and the
+master bedroom and kitchen 2 °F below setpoint for up to 131 minutes, with `BLR` open throughout.
+The P4 trips of 13 November came at 28.0 to 28.5 A at the top of fast ramps to 71 to 74 Hz at
+37 °F; through the night that followed the current held at 27.0 A with no fault, and 28.2 A came
+only on the run from 07:46. `chiltrix-fault-latched` emails six minutes into a latch. Until
+Chiltrix answers whether the ramp rate or top frequency can be limited, 35 °F keeps the coldest
+nights on the boiler.
+
+`OT+MULTISTG` would cover both cases: a second-stage heat call hands the panel to the boiler for at
+least an hour after the changeover delay. The 7 November shortfall raised no boiler call in
+131 minutes, so either the panel is on `OT` alone or no second-stage call reaches it. The manual
+offers the multistage changeover only on a dual-fuel panel configured for two heat pump stages,
+and the panel's heat pump stage count is not on record. If it is enabled, the thermostats' stage 2 at 1 °F (ISU 3030) also
+drives the air handlers' high fan, so a delay of 60 minutes or more keeps a morning recovery of
+2 to 3 °F on the chiller.
 
 The gas side carries about ±10 % from reading the chart and the weather scatter above. The chiller
 side carries ±10 % on the measured COP at 50 and 55 °F and ±20 % on the estimate below 45 °F, where
@@ -464,7 +523,8 @@ cents per 100 kBTU that is not in the table.
 ## 9. Winter: the chiller stays on, and taking it out of service
 
 The chiller stays on through the winter in heat mode (decided 15 September 2026). The HZ-432
-balance point, 30 °F, sends every call below it to the boiler; the chiller holds the tank on
+balance point, 35 °F since 13 November with 30 °F the measured setting (§8.1), sends every call
+below it to the boiler; the chiller holds the tank on
 its 117 to 128 °F band, and the §4.1 bridge feeds the zones from it whenever the boiler refuses a
 call for DHW. Above the balance point the chiller heats the house as in the shoulder season. Below
 it the chiller sees both contacts closed, which under option 2 means the mode it last held, heat, and
@@ -599,5 +659,7 @@ roster on its own.
   in parallel with its coil?
 - How far do the rooms fall during a refused call? The RedLink record over last spring's 38 refused
   calls would say, and it decides how much the bridge is worth.
+- Is the panel's dual fuel changeover `OT` or `OT+MULTISTG`, and is it configured for one heat
+  pump stage or two? The 7 November lockout raised no second-stage boiler call (§8.1).
 - Has the glycol been re-measured since the 3 September top-up? The concentration sets nothing in
   heating, but the record wants it.
