@@ -4,8 +4,8 @@
 # AirMaster carrier Rev C: build sheet
 
 This sheet covers the Pico W carrier in `hardware/ahpc-board/`: the Rev C board of
-`docs/air-handler-shield-pcb-plan.md` §0, in a Hammond 1593K. Every joint is made with the iron; the board has no
-stencil. Rev C adds the USB lockout on the back (Q1, U5 and their parts), so a laptop may be plugged into the
+`docs/air-handler-shield-pcb-plan.md` §0, in a Hammond 1593K. Five bare boards are ordered from JLC (2026-11-13, due to ship 2026-11-16). Every joint is made
+with the iron; the board has no stencil. Rev C adds the USB lockout on the back (Q1, U5 and their parts), so a laptop may be plugged into the
 micro-USB with 24 VAC on, and it puts the status LEDs on the back, shining through six holes in the base's floor.
 
 ![Where each part goes, front and back](air-handler-pico-revc-assembly.svg)
