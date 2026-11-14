@@ -84,19 +84,21 @@ parts = [(ptsm(3, J2X), "black"), (ptsm(4, J3X), "black"), (jack, "metal"),
          (box(40.5 - 28.5, 49.7 - 28.5, 28 - 39.14, 28 - 17.05, 0, 11.2), "black")]
 for x, y in ((14, 14), (-14, -14), (14, -14)):
     parts.append((cyl(x, y, 2.8, 0, 1.9), "head"))
-# status LEDs, side-firing on the board's back at the left edge, 0.6 tall, lens toward the wall
+# status LEDs, Rev C: top-view 0805s on the board's back under the USB-A side's cover screw (board x 3.5),
+# 2.0 x 1.25 x 0.8, lens toward the floor
+LX = 3.5 - 28.5
 LED = ((26.5, "ledG"), (30.5, "ledY"), (34.5, "ledB"), (38.5, "ledB"), (42.5, "ledR"), (46.5, "ledR"))
 for y, col in LED:
-    parts.append((box(-27.95, -26.95, 28 - y - 1.05, 28 - y + 1.05, -2.2, -1.6), col))
+    parts.append((box(LX - 1.0, LX + 1.0, 28 - y - 0.625, 28 - y + 0.625, -2.4, -1.6), col))
 wrl("parts.wrl", parts)
 
 # --- the box from Hammond's model: solids 0 base, 1 lid, 2 and 3 the flat end panels
-src = Part.Shape(); src.read(os.environ.get("AHP_STEP") or "/tmp/scbbench/1593K.stp")
+src = Part.Shape(); src.read(os.environ.get("AHP_STEP") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor", "1593K.stp"))
 def placed(k):
     t = src.Solids[k].copy(); t.rotate(V(0, 0, 0), V(0, 0, 1), 180); t.translate(V(0, 0, 5.4)); return t
 base = placed(0)
-for y, _ in LED:     # holes drilled in the left wall at the LEDs' height
-    base = base.cut(Part.makeCylinder(1.5, 8, V(-36, 28 - y, -1.9), V(1, 0, 0)))
+for y, _ in LED:     # 3 mm holes drilled through the floor under each LED
+    base = base.cut(Part.makeCylinder(1.5, 6, V(LX, 28 - y, ZB - 1), V(0, 0, 1)))
 PZ0 = -5.95          # the panels' lower edge
 def panel(k, notches):
     p = placed(k)

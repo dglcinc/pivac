@@ -125,9 +125,8 @@ The legend in the lower left carries the DL monogram and reads AIR HANDLER, PICO
 
 ### To check before ordering
 
-1. Measure the J1 plug seated in a header before cutting its notch. The model takes it 10 mm wide and 9.5 mm above the board, which are estimates; the notch can rise about 1.5 mm.
-2. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
-3. Check the LEDs on the first carrier through the drilled wall, for brightness.
+1. The bottom corners' headers stand inside the suggested RF keep-out of the footprint, either side of the antenna, whose own copper keep-out stays clear to the board edge. The bench Pico read -38 to -59 dBm in free air; check RSSI on the first carrier in the closed box.
+2. Check the LEDs on the first carrier through the drilled wall, for brightness.
 
 ### Rev C: USB lockout
 
@@ -148,9 +147,22 @@ On Rev B, U1's 5 V output is wired to the Pico's VBUS (pin 40), the same net as 
 
 Rev C also carries:
 
-5. The legend `© 2026 David Lewis · CC BY-NC 4.0` on F.SilkS beside the title block, added in `gen-ah-pico.py`.
-6. No stencil: every part is hand soldered with the iron, as on Rev B, because only a few parts would take paste and hot air.
-7. The results of the Rev B checks above: the J1 notch from a seated plug, RSSI in the closed box, and LED brightness through the drilled wall.
+5. The legend `© 2026 David Lewis` over `CC BY-NC 4.0` on B.SilkS, in the open pour under the Pico above J2 and J3. The lower-left screw head and the 1-wire legend leave no room beside the title block on the front.
+6. No stencil: every part is hand soldered with the iron, as on Rev B, because only a few parts would take paste and hot air. `ahp-build.sh` exports no paste layer.
+7. The first Rev B carrier fits its box: the board, J1 and J4 in their notches, and the screws round the Pico. Its RSSI in the closed box, read once C1 is fitted, decides whether Rev C goes to order unchanged.
+8. The status LEDs face the base's floor and show through six holes drilled in it. The floor is flat and carries the box's label. They are top-view 0805 LEDs from the 200-piece Amazon kit ([B09Y1K1MFD](https://www.amazon.com/SMD-LED-Diode-Electronics-Components/dp/B09Y1K1MFD), five colours, 40 of each), on the back of the board, each lying across the board with its cathode outboard, in one column at x 3.5 on the USB-A side, under the centre of that side's cover screw (x 3.5, y 20.7). They keep Rev B's 4 mm pitch from y 26.5 (PWR) to y 46.5 (W2). Seen from outside the floor, the column runs straight down from the right-hand screw hole. The label's notch at that screw is cut on to the label's bottom edge, so the holes sit in the slot and the label is not drilled. The LED names go on the label to the left of the slot. Each lens stands about 3.4 mm above the floor's inside face, behind 2.5 mm of floor. The first LED is 5.8 mm below the screw's centre and clears the cover-post boss by 2.3 mm. A 1:1 floor template replaces the wall template. Each LED's 220 Ω resistor stands inboard of it, and the cathodes share one ground bus along the outboard pads, taken to the front by one via between LED2 and LED3. The colours are Rev B's: green PWR, yellow FAN, blue Y1 and Y2, red W1 and W2. The kit is unbranded, so check each LED's polarity with the diode test before it goes on. A blue or green kit LED near 3 V forward runs about 1 mA through 220 Ω from 3.3 V; if it is too dim through the floor, drop its resistor to 100 Ω. The Mouser order of 2026-11-12 carries 100 Ω 0805s for that, Panasonic ERJ-6ENF1000V.
+9. The lockout parts are on the back. Q1 and R11 sit behind the Pico's VBUS and VSYS pins at the top right. U5 sits under the Pico, straight below TP2 and TP3, with its common pins up, and D+ and D− run straight down from TP3 and TP2 between the Pico's USB leg holes, as Rev B's D− did. C7 sits left of U5, and R12 and R13 below it. U5's 0.5 mm pads carry hand-laid copper, as U3's do, because Freerouting cannot leave pads closer than its clearance: its VCC pin leaves by the inner end to C7, and its SEL and GND pins leave by their inner ends onto a ground strip under the body that reaches the back pour.
+10. `gen-ah-pico.py` writes Rev C to `hardware/ahpc-board/`, with its gerbers in `hardware/ahpc-board/ahpc-board-gerbers.zip` and the 1:1 floor drill template in `hardware/ahpc-board/ahpc-led-drill-template.pdf` (`hardware/ahpc-led-template.py`); Rev B as ordered stays in `hardware/ahp-board/`. The build sheet is `docs/air-handler-pico-revc-assembly.md`. `hardware/label/gen-label.py revc` writes the Rev C label to `hardware/label/airmaster-label-revc.*`: the slot from the right-hand screw to the bottom edge, the LED names left of it without colour dots, since the lit LEDs show their own, and the 1-wire pin letters 1.5 mm left of true so the slot does not take the G.
+
+Rev C as routed, for review before its gerbers (`NOGERBERS=1 sh hardware/ahp-build.sh` stops at the clean routed board):
+
+![Rev C from above](air-handler-pico-revc-board-top.png)
+![Rev C, back](air-handler-pico-revc-board-back.png)
+![Rev C](air-handler-pico-revc-board-iso.png)
+![Rev C in the base, lid off](air-handler-pico-revc-box-open.png)
+![Rev C closed, the base floor with the LED holes, LEDs drawn lit](air-handler-pico-revc-box-closed-floor.png)
+![Rev C closed, power end](air-handler-pico-revc-box-closed-power.png)
+![Rev C closed, sensor end](air-handler-pico-revc-box-closed-sensors.png)
 
 
 | Part | Digi-Key | Mouser | Price at 1 |
