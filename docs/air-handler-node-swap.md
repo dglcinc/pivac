@@ -4,9 +4,9 @@
 # Air-handler nodes: rev A to the utility unit, the Rev B AirMaster to the master bedroom
 
 The rev A shield goes back on the utility zone's M2430, with the SCB read again over the Pi's USB. The Rev B
-AirMaster, `AM-0001` until step 3 makes it `AM-0014`, replaces the UNO R4 node on the master bedroom's M2430 and
-reads that unit's SCB on J4. Both nodes keep their addresses: rev A 10.0.0.181, the AirMaster 10.0.0.182. Never
-connect a computer to the Pico's micro-USB while 24 VAC is on J1.
+AirMaster, re-flashed in step 3 as the first Rev C serial `AM-0001`, replaces the UNO R4 node on the master
+bedroom's M2430 and reads that unit's SCB on J4. Both nodes keep their addresses: rev A 10.0.0.181, the AirMaster
+10.0.0.182. Never connect a computer to the Pico's micro-USB while 24 VAC is on J1.
 
 ## 1. Utility unit
 
@@ -42,17 +42,17 @@ connect a computer to the Pico's micro-USB while 24 VAC is on J1.
 
 ## 3. New identity
 
-AM-0001's label is retired, so the board takes the first Rev C label, AM-0014, before it goes up. With J1
-unplugged, hold BOOTSEL, plug the micro-USB into the M2 and run, from `~/github/Arduino`:
+Every label from before the Rev C sheet is retired, so the board takes the sheet's first label, AM-0001, before it
+goes up. With J1 unplugged, hold BOOTSEL, plug the micro-USB into the M2 and run, from `~/github/Arduino`:
 
 ```bash
 arduino-cli compile -b rp2040:rp2040:rpipicow:usbstack=tinyusb_host,flash=2097152_1048576 --output-dir build AirMaster
 ~/.config/airmaster/venv/bin/python AirMaster/factory/airmaster_factory.py flash --uf2 build/AirMaster.ino.uf2 --new-identity
 ```
 
-1. The tool names the label, `Use label AM-0014`; stick it on the base. The unit keeps its WiFi, name and
-   offsets, and its setup network becomes `AirMaster-A8B6`.
-2. A Rev C board later takes the same serial with `flash --serial AM-0014`; this board is then re-flashed with
+1. The tool names the label, `Use label AM-0001`; stick it on the base. The unit keeps its WiFi, name and
+   offsets, and its setup network becomes `AirMaster-6553`.
+2. A Rev C board later takes the same serial with `flash --serial AM-0001`; this board is then re-flashed with
    `--new-identity` or retired.
 
 ## 4. The unit's page
