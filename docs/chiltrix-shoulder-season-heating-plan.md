@@ -108,7 +108,7 @@ stage on `W1/E` below it. The relevant settings, from the installation guide:
 | Dual fuel operation | NO / YES | YES; requires the C7089U1006 wired outdoor sensor |
 | Dual-fuel heat stages | 1 / 2 | 1, the boiler |
 | Zone thermostat type, per zone | HTPUMP-O, HTPUMP-B, CONVENTIONAL | CONVENTIONAL: the Prestige IAQ zones are wired as heat/cool thermostats and the panel does the changeover |
-| Dual fuel changeover | OT / OT+MULTISTG | OT+MULTISTG planned: by outdoor temperature, and a second-stage heat call also switches to the boiler for at least an hour; the record shows no second-stage changeover (§8.1), so read the panel's setting |
+| Dual fuel changeover | OT / OT+MULTISTG | OT, read on the panel 2026-11-14. OT+MULTISTG, where a second-stage heat call hands the panel to the boiler for at least an hour, needs compressor stages 2 (§8.1) |
 | OT balance temperature | 0 to 50 °F, default 30 | 35 °F since 2026-11-13, to see the changeover while Chiltrix support is engaged; 30 °F is the setting the measured capacity and price give (§8.1) |
 | Changeover delay | 15 to 180 min, default 30 | 30 |
 | Auto changeover delay | 15 / 20 / 30 min | 30, the arbitration when one zone calls heat and another cool in the same hour |
@@ -506,13 +506,29 @@ only on the run from 07:46. `chiltrix-fault-latched` emails six minutes into a l
 Chiltrix answers whether the ramp rate or top frequency can be limited, 35 °F keeps the coldest
 nights on the boiler.
 
-`OT+MULTISTG` would cover both cases: a second-stage heat call hands the panel to the boiler for at
-least an hour after the changeover delay. The 7 November shortfall raised no boiler call in
-131 minutes, so either the panel is on `OT` alone or no second-stage call reaches it. The manual
-offers the multistage changeover only on a dual-fuel panel configured for two heat pump stages,
-and the panel's heat pump stage count is not on record. If it is enabled, the thermostats' stage 2 at 1 °F (ISU 3030) also
-drives the air handlers' high fan, so a delay of 60 minutes or more keeps a morning recovery of
-2 to 3 °F on the chiller.
+The panel's dual fuel changeover is `OT` alone (read 14 November), which is why the 7 November
+shortfall raised no boiler call in 131 minutes. `OT+MULTISTG` would cover both cases: a
+second-stage heat call hands the panel to the boiler for at least an hour after the changeover
+delay. The manual offers it only on a dual-fuel panel configured for two heat pump stages, so it
+needs these settings:
+
+| Setting | Now | For the boiler as second stage |
+|---|---|---|
+| Compressor stages | 1 | 2 |
+| Dual fuel changeover | OT | OT+MULTISTG |
+| Dual fuel Mstage changeover delay | 30 min | 60 min |
+
+1. Compressor stages 2 makes the panel drive its `Y2` terminal on a second-stage call. The CX75 has
+   one stage on `C`-`H`-`COM`, so `Y2` must stay unwired at the panel.
+2. The changeover delay counts from the second-stage call. The thermostats call stage 2 at 1 °F
+   (ISU 3030), which also drives the air handlers' high fan, so 60 minutes keeps a morning recovery
+   of 2 to 3 °F on the chiller while a lockout reaches the boiler within the hour.
+3. A second-stage heat call must reach the panel. The zones are CONVENTIONAL, so that is each EIM's
+   stage 2 heat output on the panel's `W2` zone terminal. Check the wiring before changing the
+   settings; without it the setting does nothing.
+4. Prove it with the chiller's breaker off on a mild day: hold one thermostat 2 °F above the room,
+   and `BLR` should close one changeover delay after its stage 2 call.
+
 
 The gas side carries about ±10 % from reading the chart and the weather scatter above. The chiller
 side carries ±10 % on the measured COP at 50 and 55 °F and ±20 % on the estimate below 45 °F, where
@@ -659,7 +675,6 @@ roster on its own.
   in parallel with its coil?
 - How far do the rooms fall during a refused call? The RedLink record over last spring's 38 refused
   calls would say, and it decides how much the bridge is worth.
-- Is the panel's dual fuel changeover `OT` or `OT+MULTISTG`, and is it configured for one heat
-  pump stage or two? The 7 November lockout raised no second-stage boiler call (§8.1).
+- Does each EIM's stage 2 heat output reach the panel's `W2` zone terminal (§8.1)?
 - Has the glycol been re-measured since the 3 September top-up? The concentration sets nothing in
   heating, but the record wants it.
