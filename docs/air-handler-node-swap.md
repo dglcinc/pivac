@@ -1,18 +1,18 @@
 <!-- SPDX-License-Identifier: CC-BY-NC-4.0 -->
 <!-- Copyright David Lewis -->
 
-# Air-handler nodes: rev A to the utility unit, AM-0001 to the master bedroom
+# Air-handler nodes: rev A to the utility unit, the Rev B AirMaster to the master bedroom
 
-The rev A shield goes back on the utility zone's M2430, with the SCB read again over the Pi's USB. AirMaster
-`AM-0001` (Rev B) replaces the UNO R4 node on the master bedroom's M2430 and reads that unit's SCB on J4.
-Both nodes keep their addresses: rev A 10.0.0.181, AM-0001 10.0.0.182. Never connect a computer to the
-Pico's micro-USB while 24 VAC is on J1.
+The rev A shield goes back on the utility zone's M2430, with the SCB read again over the Pi's USB. The Rev B
+AirMaster, `AM-0001` until step 3 makes it `AM-0014`, replaces the UNO R4 node on the master bedroom's M2430 and
+reads that unit's SCB on J4. Both nodes keep their addresses: rev A 10.0.0.181, the AirMaster 10.0.0.182. Never
+connect a computer to the Pico's micro-USB while 24 VAC is on J1.
 
 ## 1. Utility unit
 
 | Step | From | To |
 |---|---|---|
-| Power off | AM-0001 J1 | unplugged |
+| Power off | AirMaster J1 | unplugged |
 | Water pair | J2 plug | rev A TB3 |
 | Air pair | J3 plug | rev A TB2 |
 | 24 VAC | J1 plug, R and C | TB1 plug, positions 1 and 2 |
@@ -40,7 +40,22 @@ Pico's micro-USB while 24 VAC is on J1.
 3. The PA5 pair ran at 5 V on the UNO; the DS2482 runs it at 3.3 V, which DS18B20s accept.
 4. Without a USB board in this control box the temperatures still publish and the calls do not.
 
-## 3. AM-0001's page
+## 3. New identity
+
+AM-0001's label is retired, so the board takes the first Rev C label, AM-0014, before it goes up. With J1
+unplugged, hold BOOTSEL, plug the micro-USB into the M2 and run, from `~/github/Arduino`:
+
+```bash
+arduino-cli compile -b rp2040:rp2040:rpipicow:usbstack=tinyusb_host,flash=2097152_1048576 --output-dir build AirMaster
+~/.config/airmaster/venv/bin/python AirMaster/factory/airmaster_factory.py flash --uf2 build/AirMaster.ino.uf2 --new-identity
+```
+
+1. The tool names the label, `Use label AM-0014`; stick it on the base. The unit keeps its WiFi, name and
+   offsets, and its setup network becomes `AirMaster-A8B6`.
+2. A Rev C board later takes the same serial with `flash --serial AM-0014`; this board is then re-flashed with
+   `--new-identity` or retired.
+
+## 4. The unit's page
 
 Browse to `http://10.0.0.182/`.
 
@@ -59,7 +74,7 @@ Browse to `http://10.0.0.182/`.
 3. Air offsets: the beads' mean residual from 90 to 130 °F on R0 10000, beta 3995, the curve both the UNO
    sketch and AirMaster use.
 
-## 4. Pi
+## 5. Pi
 
 The config is staged as `/etc/pivac/config.yml.swap`, and the live one is kept as
 `/etc/pivac/config.yml.bak-20261114-swap`.
@@ -72,10 +87,10 @@ sudo systemctl restart pivac-ah-mbr pivac-ah-utility pivac-scb-utility
 sudo systemctl restart signalk
 ```
 
-1. The signalk restart drops `ah.mbr.y2` and `ah.mbr.y2Seconds`, which AM-0001 does not publish; the high-fan
+1. The signalk restart drops `ah.mbr.y2` and `ah.mbr.y2Seconds`, which the AirMaster does not publish; the high-fan
    call is `ah.mbr.call.y2`.
 
-## 5. Checks
+## 6. Checks
 
 | Check | Expect |
 |---|---|
@@ -85,7 +100,7 @@ sudo systemctl restart signalk
 | `ah.mbr.air.*` | room ±1 °F, fan off |
 | `ah.mbr.call.*` | matches MASTER_BR in RedLink |
 
-## 6. Rollback
+## 7. Rollback
 
 Copy `/etc/pivac/config.yml.bak-20261114-swap` back over the config, stop and disable `pivac-scb-mbr`, and
 restart the three services and signalk. Put each node back on its unit as it was before step 1.
