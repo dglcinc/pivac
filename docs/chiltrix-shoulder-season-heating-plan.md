@@ -671,9 +671,56 @@ The bridge covers DHW refusals of 12 to 15 minutes, up to 39, that the house wou
 through; with the chiller on all winter it costs nothing beyond the standby above, and on its own it
 would not justify that standby.
 
+### 9.1 The boiler's reset curve and DHW water
+
+The Sentry 2100 sets the heating water target from its own outdoor sensor as
+`RES + (RES − outdoor) × (HI − RES) / RES` (Trinity manual, Table 13-3 and p. 51), so the curve
+only matters below the balance point and through a chiller lockout. The settings are:
+
+| Item | Setting | Purpose |
+|---|---|---|
+| `HI` | 175 | Heating target with the sensor at 0 °F |
+| `RES` | 82 | Where the curve meets the outdoor temperature |
+| `DIF` | 10 | Relight below target |
+| `LO` | 160 | Boiler water on a DHW call |
+| `SFS`/`HFS`/`LFS` | 85/240/40 | Gas input start, maximum, minimum |
+| `ER5`, `FRE` | ON | DHW timeout, freeze protection |
+
+1. **What the coils need.** Above the balance point the chiller's 115 to 122 °F water held every
+   room this season, and the great room is the zone that limits the curve: from 34 to 38 °F
+   outside it held setpoint calling 73 to 100 % of the time on 119 °F supply, with its coil's mean
+   water 40.5 °F above the room. Scaled with the measured boiler load, `1884 − 28.9 × T`
+   kBTU/day (zero at 65 °F), at 85 % duty, the supply needed against RedLink's outdoor reading is
+   about 125 °F at 35 °F, 140 °F at 20 °F, 150 °F at 10 °F and 160 °F at 0 °F.
+2. **The boiler's outdoor sensor reads warm.** It is NTI's 6000083604 (10 kΩ), on 50 ft of
+   thermostat wire to O and D, with no heat source near it. On 2026-11-14 at 39 °F it read 20.7 kΩ
+   on its own and 19.75 kΩ through the run, against about 27.5 kΩ for a sound 10k sensor, while
+   the boiler showed 47 °F. From 2026-10-15 to 11-14 at night the display read above RedLink by
+   5.1 °F at 65 °F, 5.9 at 55, 7.6 at 45, 8.5 at 40 and 8.2 at 35, so the gap is modelled as
+   `11.85 − 0.1 × RedLink`, extrapolated to 10 °F at 20 °F and 12 °F at 0 °F. HI 175 and RES 82
+   put the targets above back on RedLink's scale: 110 °F at 50 °F, 126 at 35, 141 at 20, 151 at
+   10 and 160 at 0. With a sound sensor the same curve is HI 160, RES 80. The control reads the Type II 10k curve: fixed resistors across O and D showed 77 °F at 10 kΩ and 32 °F at 33 kΩ (Type II gives 32.9 °F, Type III 26.6 °F), so a replacement is any 10K Type II outdoor sensor, such as the BAPI BA/10K-2-O-BB.
+3. **Condensing.** The previous curve, HI 190 and RES 100, gave 151 °F at 35 °F and returned
+   water above 140 °F on every call. On this one the return is under 130 °F, and the boiler
+   condenses, whenever RedLink reads above about 20 °F.
+4. **Checking it.** `sentry-outdoor-divergence` fires when the boiler's outdoor reading departs
+   from the modelled drift by more than 5 °F for two hours, so a sensor that drifts further
+   announces itself (`docs/grafana-alerting-notes.md`). On the first nights below 30 °F, where
+   the drift is extrapolated, compare the boiler's `air` reading with RedLink; if the gap reaches
+   12 °F above 0 °F outside, raise `HI` by 5. If the great room falls 1 °F below setpoint on a
+   boiler call, raise `HI` by 5; if it never calls more than 80 % of an hour, lower it by 5.
+5. **DHW.** `LO` is the boiler water during a tank call and leaves the tank temperature to the
+   Burnham AL119CLT's own aquastat. At 160 °F the coil heats the 119 gal tank about a quarter
+   slower than at 180 °F (Burnham rates it at 200 °F boiler water), more of the recovery condenses,
+   and the tank calls, already 7.4 % of the day, run longer while the `DHWX` bridge carries the
+   zones. The recirc probe on the return beside the tank reads 94 to 110 °F between the recirc
+   pump's runs, inside Legionella's 77 to 113 °F growth range, so the tank goes no lower: 140 °F
+   behind an ASSE 1017 mixing valve at 120 to 125 °F, with the return held at 115 °F or more, or
+   125 to 130 °F until a mixing valve is fitted.
+
 ## 10. What this plan does not touch
 
-The boiler, its pump and the Sentry path. The BOVA condensers, which cool their two zones and take
+The boiler beyond the Sentry 2100 settings of §9.1, its pump and the Sentry path. The BOVA condensers, which cool their two zones and take
 no part in heating. The buffer tank and the glycol loop, which run at 110 to 120 °F on 25 %
 propylene glycol without complaint. The `.wlyt` layouts, since the SwitchBank enumerates the relay
 roster on its own.
