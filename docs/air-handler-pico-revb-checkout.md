@@ -55,8 +55,7 @@ Start `nc -ul 5515` on the Mac Mini (`10.0.0.84`) before plugging in J1. The ben
 
 1. Log: the join line carries the IP address and RSSI, and is sometimes lost as the first packet after boot; the
    `boot:` line also carries the address. Without `DS2482 found`, the log asks for 3.3 V at U2 pins 1 and 3; measure
-   that first. Since 2026-11-13 a UDP logger on the Mac Mini already holds port 5515, so `nc` reports the address in
-   use; read the logger's file instead, or stop it first.
+   that first.
 2. Probes: use two calibrated probes. The bench build reads the first two on the bus in search order and logs every ROM.
 3. Water and air pairs: a probe from the 2026-11 batch reads 6.2 to 7.0 °F low until its offset is applied, so
    judge a batch pair against each other. The NTCs need their own calibration on this ADC. A missing `asup` or
