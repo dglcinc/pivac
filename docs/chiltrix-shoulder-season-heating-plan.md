@@ -699,7 +699,7 @@ only matters below the balance point and through a chiller lockout. The settings
    5.1 °F at 65 °F, 5.9 at 55, 7.6 at 45, 8.5 at 40 and 8.2 at 35, so the gap is modelled as
    `11.85 − 0.1 × RedLink`, extrapolated to 10 °F at 20 °F and 12 °F at 0 °F. HI 175 and RES 82
    put the targets above back on RedLink's scale: 110 °F at 50 °F, 126 at 35, 141 at 20, 151 at
-   10 and 160 at 0. With a sound sensor the same curve is HI 160, RES 80.
+   10 and 160 at 0. With a sound sensor the same curve is HI 160, RES 80. The control reads the Type II 10k curve: fixed resistors across O and D showed 77 °F at 10 kΩ and 32 °F at 33 kΩ (Type II gives 32.9 °F, Type III 26.6 °F), so a replacement is any 10K Type II outdoor sensor, such as the BAPI BA/10K-2-O-BB.
 3. **Condensing.** The previous curve, HI 190 and RES 100, gave 151 °F at 35 °F and returned
    water above 140 °F on every call. On this one the return is under 130 °F, and the boiler
    condenses, whenever RedLink reads above about 20 °F.
