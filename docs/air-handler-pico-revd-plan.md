@@ -75,13 +75,13 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 
 ## The case
 
-`hardware/ahpd-case.py`, run with `freecadcmd`, writes the tray and the cap to `hardware/ahpd-case/` as STEP and STL. Closed, the case is 70.8 × 61.4 × 22.1 mm, and 84.8 mm across its two ears.
+`hardware/ahpd-case.py`, run with `freecadcmd`, writes the tray and the cap to `hardware/ahpd-case/` as STEP and STL. Closed, the case is 71.0 × 61.6 × 22.1 mm, and 85.0 mm across its two ears.
 
 | Item | Value |
 |---|---|
 | Wall | 2.4 mm |
 | Floor, top | 2.0 mm |
-| Board to wall | 0.3 mm |
+| Board to wall | 0.4 mm |
 | Posts under the board | 3.5 mm |
 | Room above the board | 13.0 mm |
 | Tray volume | 12.8 cm³ |
@@ -91,12 +91,12 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 1. The seam is the board's top face. The tray holds the board on eight posts between its walls. The cap carries four tapered pins that press the board on to four of those posts.
 2. Every connector stands in a notch in one of the cap's end walls, open at the seam, so the cap lifts off with the plugs in place. The tray's wall dips 2.2 mm under the micro-USB for the plug's overmould.
 3. The cap's left wall carries a solid block over the LED column, 1.8 mm above the board, with a tapered bore over each LED, 2.0 mm across at the LED and 3.2 mm at the face. The block separates the six lights.
-4. The cap's face carries the names cut 0.5 mm deep: `PWR FAN Y1 Y2 W1 W2` beside the bores, `USB`, `PGM` and `24 VAC` along the top edge, `SUP`, `RET` and `1-WIRE` along the bottom.
+4. The cap's face carries the names cut 1.0 mm deep: `PWR FAN Y1 Y2 W1 W2` beside the bores, `USB`, `PGM` and `24 VAC` along the top edge, `SUP`, `RET` and `1-WIRE` along the bottom.
 5. The inner half of each tray side wall stands 2 mm into a rabbet in the cap, which locates the cap.
-   Two snap hooks hold the board in the tray with the cap off. Each is a 17.5 mm beam cut from that inner half, fixed near the ear and free toward one end, with a barb standing 0.6 mm over the board's edge: the left hook toward the top edge, the right hook toward the sensor edge. Pressing the board in bends each beam 0.9 mm outward, 0.7 % strain. A slot 18 mm long and 3.6 mm high in the tray wall behind each beam gives it room and takes a fingernail to release the board. The closed cap stands behind the beams' tops and locks them.
+   Two snap hooks hold the board in the tray with the cap off. Each is a 17.5 mm beam cut from that inner half, fixed near the ear and free toward one end, with a barb standing 0.8 mm over the board's edge: the left hook toward the top edge, the right hook toward the sensor edge. Pressing the board in bends each beam 1.2 mm outward, 1.0 % strain. A slot 18 mm long and 3.8 mm high in the tray wall behind each beam gives it room and takes a fingernail to release the board. The closed cap stands behind the beams' tops and locks them.
 6. One ear at the middle of each side takes a #4 × 1/4 thread-forming screw, the Hammond 1593ATS50 screw of the Rev B and Rev C boxes: 3 mm of cap ear under the head and 3.3 mm of thread in a 2.5 mm pilot in the tray's ear.
 7. The tray's floor goes to the air handler with VHB tape. Undoing the two screws leaves the tray and board on the wall.
-8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the 0.5 mm lettering. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
+8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the lettering. The fits are sized for Xometry's SLS nylon 12 limits: ±0.38 mm on a dimension, 1 mm engraving depth, 0.5 mm between mating parts. The cap's rabbet clears the tray's lap by 0.3 mm a side and the slots round the hooks are 0.8 mm. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
 9. The script checks 26 part and plug bodies against both halves and stops if any shares volume with either.
 
 `sh hardware/ahpd-render.sh docs` renders the board and the case.

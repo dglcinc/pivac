@@ -34,7 +34,7 @@ X = lambda x: x - OX
 Y = lambda y: OY - y
 HX, HY = (BX1 - BX0) / 2, BL / 2                  # board half sizes
 
-GAP = 0.3              # board to wall, each side
+GAP = 0.4              # board to wall, each side: Xometry holds SLS nylon to +/-0.38 mm
 WALL = 2.4
 FLOOR = 2.0
 STAND = 3.5            # tray posts: the through-hole leads stand up to 2.5 mm below the board
@@ -45,7 +45,7 @@ EX, EY = IX + WALL, IY + WALL                     # outside half sizes
 ZB = -BT - STAND - FLOOR                          # outside bottom
 ZT = ROOM + TOP                                   # outside top
 LAP = 2.0              # the tray's side walls stand this far into the cap, at half thickness
-FIT = 0.15
+FIT = 0.3
 
 # where the cap's pins press the board on to the tray's posts (gen-ah-pico-d.py PINS, moved 7 mm right)
 PINS = [(2.4, 14.5), (62.6, 7.6), (2.4, 44.1), (49.5, 42.0)]
@@ -66,9 +66,9 @@ BORE = (1.0, 1.6)      # bore radius at the LED and at the cap's face
 # board, with a barb over the board's edge. Left hook toward the top edge, right hook toward the sensor edge.
 HOOK_Y = (5.0, 22.5)   # the beam, as distance from mid length: fixed end, free end
 HOOK_Z = -3.0          # the beam's lower edge
-HOOK_SLOT = 0.6        # the slot under the beam and past its free end
+HOOK_SLOT = 0.8        # the slot under the beam and past its free end
 BARB_Y = (18.0, 22.0)  # the barb, same measure
-CATCH = 0.6            # how far the barb stands over the board
+CATCH = 0.8            # how far the barb stands over the board
 BARB_Z = (0.15, 0.45, 1.9)                        # underside, top of the tip, top of the ramp at the wall
 # ears: one each side at mid length
 EAR_R, EAR_OUT = 4.0, 3.0
@@ -85,7 +85,7 @@ def cone(x, y, r0, r1, z0, z1):
 def rounded(hx, hy, z0, z1, r):
     b = box(-hx, hx, -hy, hy, z0, z1)
     return b.makeFillet(r, [e for e in b.Edges if abs(e.Vertexes[0].Z - e.Vertexes[1].Z) > 1])
-def legend(s, size, x, y, depth=0.5, rot=0):
+def legend(s, size, x, y, depth=1.0, rot=0):
     """Text cut into the cap's top face, centred on board position x, y."""
     faces = [Part.makeFace(ch, "Part::FaceMakerBullseye") for ch in
              Part.makeWireString(s, os.path.dirname(FONT) + "/", os.path.basename(FONT), size, 0) if ch]
