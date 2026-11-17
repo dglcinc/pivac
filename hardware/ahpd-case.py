@@ -52,7 +52,7 @@ PINS = [(2.4, 14.5), (62.6, 7.6), (2.4, 44.1), (49.5, 42.0)]
 # posts that only support: under the jack, the Pico's middle and the two ends of the sensor edge
 POSTS = [(15.7, 3.0), (35.5, 28.0), (9.0, 51.0), (56.5, 51.0)]
 # notches in the cap's end walls: centre x, half width, height above the board
-TOP_NOTCH = (("USB", 15.7, 7.7, 7.4), ("PGM", 35.5, 6.3, 5.6), ("24 VAC", 54.5, 5.3, 10.6))
+TOP_NOTCH = (("USB", 14.7, 7.0, 7.5), ("PGM", 35.5, 6.3, 5.6), ("24 VAC", 54.5, 5.3, 10.6))
 BOT_NOTCH = (("SUP", 6.25, 3.9, 6.0), ("RET", 17.85, 3.9, 6.0), ("1-WIRE", 56.5, 5.1, 6.0))
 PGM_DIP = 2.2          # the tray's wall dips this far under the micro-USB, for the plug's overmould
 # status LEDs: one column, a bore in the cap over each
@@ -154,18 +154,18 @@ for y, name, col in LED:
 cap = cap.removeSplitter()
 
 # --- fit: no part body may share volume with either half. x0, x1, y0, y1 in the board's frame, z0, z1 above its top
-BODIES = {"board": (BX0, BX1, 0, BL, -BT, 0), "leads": (8.0, 23.5, 6.5, 13.0, -BT - 3.0, -BT),
-          "U1 leads": (50.0, 52.2, 18.0, 38.2, -BT - 2.6, -BT), "J1 leads": (51.5, 57.5, 7.4, 9.6, -BT - 2.6, -BT),
-          "J4": (8.45, 22.95, -1.5, 12.5, 0, 6.9), "U4": (25.0, 46.0, 1.3, 52.3, 0, 3.7),
-          "micro-USB": (31.6, 39.4, -0.2, 6.0, 1.0, 3.8), "J1": (49.45, 59.66, 0.0, 10.85, 0, 9.3),
+BODIES = {"board": (BX0, BX1, 0, BL, -BT, 0),
+          "U1 leads": (50.0, 52.2, 18.0, 38.2, -BT - 2.6, -BT),
+          "J4": (8.1, 21.3, -2.8, 10.9, 0, 7.1), "J4 tabs": (6.7, 22.7, 5.6, 10.7, 0, 1.0), "U4": (25.0, 46.0, 1.3, 52.3, 0, 3.7),
+          "micro-USB": (31.6, 39.4, -0.2, 6.0, 1.0, 3.8), "J1": (50.3, 58.7, -1.5, 7.7, 0, 7.2),
           "U1": (48.39, 58.15, 17.0, 39.2, 0, 12.0), "C1": (58.8, 65.4, 26.3, 32.9, 0, 7.8),
           "D2": (60.0, 63.6, 9.5, 16.5, 0, 2.5), "F1": (52.4, 58.8, 12.2, 16.2, 0, 1.6),
           "D1 C2": (58.3, 65.4, 35.7, 43.1, 0, 2.5), "Q1 R11 R12": (47.2, 51.5, 0.5, 16.4, 0, 1.3),
           "LEDs": (1.3, 5.2, 19.9, 42.1, 0, 0.9), "R5-R10": (5.3, 7.4, 19.0, 43.0, 0, 0.7), "left parts": (7.5, 23.8, 13.0, 37.0, 0, 1.8),
           "J3": (2.9, 9.6, 48.5, 56.0, 0, 5.0), "J5": (14.5, 21.2, 48.5, 56.0, 0, 5.0), "J2": (51.9, 61.1, 48.5, 56.0, 0, 5.0),
           "J3 plug": (3.0, 9.5, 51.0, 68.0, 0, 5.2), "J5 plug": (14.6, 21.1, 51.0, 68.0, 0, 5.2),
-          "J2 plug": (52.0, 61.0, 51.0, 68.0, 0, 5.2), "J1 plug": (49.5, 59.5, -13.0, 0.5, 0.4, 10.0),
-          "USB-A plug": (9.7, 21.7, -4.0, 9.5, 1.0, 5.5), "micro-USB plug": (30.0, 41.0, -9.0, -0.4, -1.2, 5.4)}
+          "J2 plug": (52.0, 61.0, 51.0, 68.0, 0, 5.2), "J1 plug": (50.3, 58.7, -13.0, -1.0, 0.4, 10.0),
+          "USB-A plug": (8.7, 20.7, -5.3, 8.2, 1.0, 5.5), "micro-USB plug": (30.0, 41.0, -9.0, -0.4, -1.2, 5.4)}
 for part, (x0, x1, y0, y1, z0, z1) in BODIES.items():
     b = box(X(x0), X(x1), Y(y1), Y(y0), z0, z1)
     for shape, name in ((tray, "tray"), (cap, "cap")):
@@ -215,10 +215,11 @@ if MODELS:
         hw = (n - 1) * 1.25 + 2.1
         b = box(X(xc) - hw, X(xc) + hw, -HY, -HY + 7.5, 0, 5.0)
         return b.cut(box(X(xc) - hw + 0.6, X(xc) + hw - 0.6, -HY - 1, -HY + 4.5, 0.8, 4.2))
-    jx = X(15.7)
-    jack = box(jx - 7.25, jx + 7.25, HY - 12.5, HY + 1.5, 0, 6.9).cut(box(jx - 6.25, jx + 6.25, HY - 11, HY + 2.5, 0.9, 6.0))
-    jack = jack.fuse(box(jx - 6.0, jx + 6.0, HY - 9.5, HY + 1.0, 3.0, 4.6))
-    parts = [(ptsm(2, 6.25), "black"), (ptsm(2, 17.85), "black"), (ptsm(3, 56.5), "black"), (jack, "metal"),
+    jx = X(14.7)
+    jack = box(jx - 6.58, jx + 6.58, HY - 10.9, HY + 2.8, 0, 7.1).cut(box(jx - 6.1, jx + 6.1, HY - 9.4, HY + 3.8, 0.9, 6.2))
+    jack = jack.fuse(box(jx - 5.8, jx + 5.8, HY - 8.2, HY + 2.3, 3.0, 4.6))
+    hdr = box(X(50.3), X(58.7), HY - 7.7, HY + 1.5, 0, 7.2).cut(box(X(50.9), X(58.1), HY - 5.0, HY + 2.5, 1.0, 6.4))
+    parts = [(ptsm(2, 6.25), "black"), (ptsm(2, 17.85), "black"), (ptsm(3, 56.5), "black"), (jack, "metal"), (hdr, "black"),
              (box(X(48.49), X(58.09), Y(39.1), Y(17.1), 0, 12.0), "black")]
     for y, name, col in LED:
         parts.append((box(X(LED_X) - 1.0, X(LED_X) + 1.0, Y(y) - 0.625, Y(y) + 0.625, 0, 0.8), col))
@@ -236,12 +237,12 @@ if MODELS:
         for i, c in enumerate(cols):
             pl.append(wire(X(xc) - a / 2 + i * 2.5, -HY - 34, -HY - 11, 2.6, c, 0.7))
     xc = X(54.5)
-    pl.append((box(xc - 5.0, xc + 5.0, HY - 0.5, HY + 13, 0.4, 9.5), "plugG"))
-    for dx, c in ((1.905, "wireR"), (-1.905, "wireK")):
+    pl.append((box(xc - 4.2, xc + 4.2, HY - 4.5, HY + 13, 1.1, 6.3).fuse(box(xc - 4.2, xc + 4.2, HY + 1.5, HY + 13, 0.4, 9.5)), "plugG"))
+    for dx, c in ((1.75, "wireR"), (-1.75, "wireK")):
         pl.append((cyl(xc + dx, HY + 8.5, 1.3, 9.5, 10.0), "metal"))
         pl.append(wire(xc + dx, HY + 12.5, HY + 36, 4.0, c, 0.95))
-    pl.append((box(jx - 6.0, jx + 6.0, HY - 9.5, HY + 4.0, 1.0, 5.5), "metal"))
-    pl.append((box(jx - 8.0, jx + 8.0, HY + 4.0, HY + 27.5, -0.75, 7.25), "cable"))
+    pl.append((box(jx - 6.0, jx + 6.0, HY - 8.2, HY + 5.3, 1.0, 5.5), "metal"))
+    pl.append((box(jx - 8.0, jx + 8.0, HY + 5.3, HY + 27.5, -0.75, 7.25), "cable"))
     pl.append(wire(jx, HY + 27, HY + 48, 3.25, "cable", 2.3))
     wrl("plugs.wrl", pl)
     print("wrote models to", MODELS)

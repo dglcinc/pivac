@@ -10,8 +10,8 @@
 
 It reads the .kicad_pcb as text, so it needs no KiCad. PARTS maps each reference to the part JLCPCB places, by its
 LCSC number, checked against JLCPCB's assembly library on 2026-11-16. A reference in HAND is left for the bench and
-appears in neither file. Rev C leaves five parts for the bench; Rev D leaves none, and its three through-hole parts
-(U1, J1, J4) are in both files for JLCPCB's through-hole soldering. Positions are KiCad's own placement
+appears in neither file. Rev C leaves five parts for the bench; Rev D leaves none, and its one through-hole part
+(U1) is in both files for JLCPCB's through-hole soldering. Positions are KiCad's own placement
 convention (millimetres, Y up, rotation as stored), so check every polarised part in JLCPCB's placement preview
 before paying: its library does not share KiCad's zero.
 """
@@ -58,8 +58,8 @@ if REV == "d":      # Rev D: every part from JLCPCB's stock, a basic part where 
     part("J3 J5", "1778764 PTSM 0,5/2-HH-2,5-SMD", "C5149246", EXT, 1.491)
     part("U4", "Raspberry Pi Pico W", "C7203003", EXT, 12.842)
     part("U1", "URB4805S-3WR3", "C20198635", EXT, 3.589)
-    part("J1", "1803277 MC 1,5/2-G-3,81", "C480537", EXT, 0.638)
-    part("J4", "61400416021 USB-A", "C6264900", EXT, 1.173)
+    part("J1", "110-M-211-SMD/02 3.5 mm header", "C19108923", EXT, 0.836)
+    part("J4", "U-A-24SS-W-1 USB-A", "C283549", EXT, 0.190)
 
 # Left for the bench, with the reason. J3 and U4 had no stock at JLCPCB on 2026-11-16; U4 also needs its two USB
 # holes filled from the back by hand, and U1, J1 and J4 are through-hole.
