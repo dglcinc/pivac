@@ -8,7 +8,8 @@ Writes ahpd-case/airmaster-tray.{step,stl} and ahpd-case/airmaster-cap.{step,stl
 AHPD_MODELS set, the VRML models of ahpd-render.sh in that folder (tray.wrl, cap.wrl, parts.wrl, plugs.wrl).
 
 The board lies in the tray on posts, located by the tray's walls, and four pins under the cap press it down on
-four of those posts; the board has no holes. The seam is the board's top face, so every connector stands in a
+four of those posts; the board has no holes. Two snap hooks, one in each side wall at opposite ends, catch the
+board's top edge and hold it in the tray with the cap off. The seam is the board's top face, so every connector stands in a
 notch in the cap's end walls and the cap lifts off with the plugs in place. Two #4 x 1/4 thread-forming screws
 through the cap's ears into the tray's ears close it. The tray's floor goes to the air handler with VHB tape.
 
@@ -61,6 +62,14 @@ LED = ((21.0, "PWR", "ledG"), (25.0, "FAN", "ledY"), (29.0, "Y1", "ledB"), (33.0
 BLOCK = (0.0, 5.1, 18.6, 43.4)                    # the light block: x0, x1, y0, y1, down to 1.8 above the board
 BLOCK_Z = 1.8
 BORE = (1.0, 1.6)      # bore radius at the LED and at the cap's face
+# snap hooks: in each side wall a beam, the wall's inner half, fixed near the ear and free toward one end of the
+# board, with a barb over the board's edge. Left hook toward the top edge, right hook toward the sensor edge.
+HOOK_Y = (5.0, 22.5)   # the beam, as distance from mid length: fixed end, free end
+HOOK_Z = -3.0          # the beam's lower edge
+HOOK_SLOT = 0.6        # the slot under the beam and past its free end
+BARB_Y = (18.0, 22.0)  # the barb, same measure
+CATCH = 0.6            # how far the barb stands over the board
+BARB_Z = (0.15, 0.45, 1.9)                        # underside, top of the tip, top of the ramp at the wall
 # ears: one each side at mid length
 EAR_R, EAR_OUT = 4.0, 3.0
 EAR_TAB = 3.0          # the cap ear's thickness under the screw head
@@ -105,6 +114,18 @@ for x, y in PINS + POSTS:
 tray = tray.fuse(ear(ZB, 0))
 for sgn in (-1, 1):
     tray = tray.cut(cyl(sgn * (EX + EAR_OUT), 0, PILOT / 2, ZB + 1.0, 1))
+for sgn in (-1, 1):                               # snap hooks
+    y = lambda d: -sgn * d
+    x0, x1 = sorted((sgn * (IX - 0.05), sgn * (EX + 1)))
+    y0, y1 = sorted((y(HOOK_Y[0]), y(HOOK_Y[1] + HOOK_SLOT)))
+    tray = tray.cut(box(x0, x1, y0, y1, HOOK_Z - HOOK_SLOT, LAP + 1))
+    x0, x1 = sorted((sgn * IX, sgn * (IX + WALL / 2)))
+    y0, y1 = sorted((y(HOOK_Y[0] - 0.5), y(HOOK_Y[1])))
+    tray = tray.fuse(box(x0, x1, y0, y1, HOOK_Z, LAP))
+    xw, xt = sgn * (IX + 0.1), sgn * (HX - CATCH)
+    y0, y1 = sorted((y(BARB_Y[0]), y(BARB_Y[1])))
+    pts = [V(xw, y0, BARB_Z[0]), V(xt, y0, BARB_Z[0]), V(xt, y0, BARB_Z[1]), V(xw, y0, BARB_Z[2]), V(xw, y0, BARB_Z[0])]
+    tray = tray.fuse(Part.Face(Part.makePolygon(pts)).extrude(V(0, y1 - y0, 0)))
 name, xc, hw, h = TOP_NOTCH[1]
 tray = tray.cut(box(X(xc) - hw, X(xc) + hw, IY - 0.1, EY + 1, -PGM_DIP, 1))
 tray = tray.removeSplitter()
@@ -152,7 +173,15 @@ for part, (x0, x1, y0, y1, z0, z1) in BODIES.items():
             continue                                # the board rests on the posts
         v = shape.common(b).Volume
         assert v < 0.01, "%s meets the %s: %.2f mm3" % (part, name, v)
-print("fit: %d bodies clear of tray and cap" % len(BODIES))
+v = tray.common(cap).Volume
+assert v < 0.01, "tray meets cap: %.2f mm3" % v
+board = box(-HX, HX, -HY, HY, -BT, 0)
+assert tray.common(board).Volume < 0.01, "board meets the tray"
+held = tray.common(box(-HX, HX, -HY, HY, 0, 2)).Volume      # the barbs' volume over the board
+assert held > 1.0, "the hooks do not reach over the board"
+L = BARB_Y[0] + (BARB_Y[1] - BARB_Y[0]) / 2 - HOOK_Y[0]
+print("fit: %d bodies clear of tray and cap; hooks bend %.1f mm, strain %.1f %%"
+      % (len(BODIES), CATCH + GAP, 150 * (WALL / 2) * (CATCH + GAP) / L ** 2))
 
 for shape, name in ((tray, "airmaster-tray"), (cap, "airmaster-cap")):
     assert shape.isValid() and len(shape.Solids) == 1, name

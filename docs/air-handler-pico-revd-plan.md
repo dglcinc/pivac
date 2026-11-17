@@ -84,7 +84,7 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 | Board to wall | 0.3 mm |
 | Posts under the board | 3.5 mm |
 | Room above the board | 13.0 mm |
-| Tray volume | 12.9 cm³ |
+| Tray volume | 12.8 cm³ |
 | Cap volume | 16.9 cm³ |
 | Screws | 2, #4 × 1/4 thread-forming |
 
@@ -93,9 +93,10 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 3. The cap's left wall carries a solid block over the LED column, 1.8 mm above the board, with a tapered bore over each LED, 2.0 mm across at the LED and 3.2 mm at the face. The block separates the six lights.
 4. The cap's face carries the names cut 0.5 mm deep: `PWR FAN Y1 Y2 W1 W2` beside the bores, `USB`, `PGM` and `24 VAC` along the top edge, `SUP`, `RET` and `1-WIRE` along the bottom.
 5. The inner half of each tray side wall stands 2 mm into a rabbet in the cap, which locates the cap.
+   Two snap hooks hold the board in the tray with the cap off. Each is a 17.5 mm beam cut from that inner half, fixed near the ear and free toward one end, with a barb standing 0.6 mm over the board's edge: the left hook toward the top edge, the right hook toward the sensor edge. Pressing the board in bends each beam 0.9 mm outward, 0.7 % strain. A slot 18 mm long and 3.6 mm high in the tray wall behind each beam gives it room and takes a fingernail to release the board. The closed cap stands behind the beams' tops and locks them.
 6. One ear at the middle of each side takes a #4 × 1/4 thread-forming screw, the Hammond 1593ATS50 screw of the Rev B and Rev C boxes: 3 mm of cap ear under the head and 3.3 mm of thread in a 2.5 mm pilot in the tray's ear.
 7. The tray's floor goes to the air handler with VHB tape. Undoing the two screws leaves the tray and board on the wall.
-8. Print the tray floor down and the cap face down; neither needs support. MJF or SLS nylon suits the screws and the 0.5 mm lettering. A light colour shows the LEDs through the bore walls from off axis.
+8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the 0.5 mm lettering. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
 9. The script checks 26 part and plug bodies against both halves and stops if any shares volume with either.
 
 `sh hardware/ahpd-render.sh docs` renders the board and the case.
@@ -129,4 +130,4 @@ Through-hole soldering, shipping and duty are extra. The upload shows whether th
 2. The URB4805S-3WR3 on the bench: start-up on the half-wave rail, whose valley is about 27 V, and ripple at the node's load.
 3. RSSI in the closed printed case, against the Rev B figure in the Hammond box.
 4. LED brightness through the bores. A blue or green 0805 near 3 V forward runs about 1 mA through 220 Ω; 100 Ω is the next value.
-5. The fit of the first print: the board in the tray, each plug through its notch, and the screws' bite in the chosen material.
+5. The fit of the first print: the board in the tray and under its hooks, each plug through its notch, and the screws' bite in the chosen material.
