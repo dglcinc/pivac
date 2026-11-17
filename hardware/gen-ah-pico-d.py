@@ -90,20 +90,9 @@ gb._fp_rect(j, -6.6, -13.3, 6.6, 0.4, pcbnew.F_SilkS, 0.12)
 gb._fp_rect(j, -8.45, -13.55, 8.45, 3.3, pcbnew.F_CrtYd, 0.05)
 B.place("J4", j, JX, JO, 0, value="U-A-24SS-W-1"); j.Reference().SetVisible(False)
 
-# --- top edge: 24 VAC, WECO 110-M-211-SMD/02, a surface-mount 3.5 mm header for a screw plug (LCSC C19108923;
-# pads from its data sheet). Entry toward the edge, the face 1.5 past it, in the tray's wall.
+# --- top edge: 24 VAC, Phoenix MC 1,5/2-G-3,81 footprint, entry toward the edge
 MX = 47.5
-MY = -1.5 + 9.95       # the footprint's origin, the middle of its pads: the face is 9.95 from it
-mc = pcbnew.FOOTPRINT(B.board); mc.SetFPID(pcbnew.LIB_ID("pivac", "WECO_110-M-211-SMD_02"))
-mc.SetAttributes(pcbnew.FP_SMD)
-gb._smd(mc, 1, -1.75, 0, 1.3, 5.5)
-gb._smd(mc, 2, 1.75, 0, 1.3, 5.5)
-gb._fp_rect(mc, -4.2, -9.95, 4.2, -0.75, pcbnew.F_SilkS, 0.12)
-cy = pcbnew.PCB_SHAPE(mc); cy.SetShape(pcbnew.SHAPE_T_POLY); cy.SetLayer(pcbnew.F_CrtYd); cy.SetWidth(FromMM(0.05))
-cy.SetPolyPoints([mm(x, y) for x, y in ((-4.45, -10.2), (4.45, -10.2), (4.45, -0.5), (2.65, -0.5), (2.65, 3.0),
-                                         (-2.65, 3.0), (-2.65, -0.5), (-4.45, -0.5))])
-mc.Add(cy)
-B.place("J1", mc, MX, MY, 0, value="3.5 mm 2-pin 24VAC")
+mc = B.lib("J1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_2-G-3.81_1x02_P3.81mm_Horizontal", MX + 1.905, 8.5, 180, value="3.81 mm 2-pin 24VAC")
 mc.Reference().SetVisible(False)
 B.text("24 VAC", 53.6, 5.2, size=0.8, bold=True, rot=90)
 
@@ -292,15 +281,14 @@ for net, tp in (("PD+", "TP3"), ("PD-", "TP2")):
     x, y = B.pad_xy("U4", tp)
     path(net, "F.Cu", (x, y), (x, y + 1.7), width=0.2); via(net, x, y + 1.7, 0.6, 0.3)
 path("PD-", "F.Cu", u(4), (u(4)[0], u(4)[1] + 1.3), (u(4)[0] + 0.8, u(4)[1] + 2.1), width=0.2)
-path("ACR", "F.Cu", pj1, (pj1[0], 12.0), f1a)
+path("ACR", "F.Cu", pj1, (47.8, 11.2), f1a)
 path("ACF", "F.Cu", f1b, (52.6, d2a[1]), d2a)
 path("ACF", "F.Cu", f1b, (49.4, 16.4)); via("ACF", 49.4, 16.4)
 path("ACF", "B.Cu", (49.4, 16.4), (49.0, 17.0), (49.0, 26.0), (57.6, 34.6), (57.6, 35.6)); via("ACF", 57.6, 35.6)
 path("ACF", "F.Cu", (57.6, 35.6), d1a)
 path("VS", "F.Cu", u1v, (52.4, u1v[1]), d1v); path("VS", "F.Cu", (53.1, u1v[1]), (52.4, u1v[1])); path("VS", "F.Cu", (53.1, u1v[1]), c1v)
-path("COM", "F.Cu", pj2, (pj2[0], 11.0), (48.9, 12.0)); via("COM", 48.9, 12.0)
-path("COM", "B.Cu", u1c, (45.9, u1c[1]), (47.5, 35.4), (47.5, 13.4), (48.9, 12.0))
-path("COM", "B.Cu", (48.9, 12.0), (52.9, 12.0), (52.9, d2c[1])); via("COM", 52.9, d2c[1])
+path("COM", "B.Cu", u1c, (45.9, u1c[1]), (47.5, 35.4), (47.5, 12.0), pj2)
+path("COM", "B.Cu", (47.5, 12.0), (52.9, 12.0), (52.9, d2c[1])); via("COM", 52.9, d2c[1])
 path("COM", "F.Cu", (52.9, d2c[1]), d2c)
 path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
@@ -332,6 +320,10 @@ B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 for ref, x, y, angle in (("F1", 52.3, 14.2, 90), ("D2", 56.9, 13.0, 90), ("C1", 55.1, 24.2, 0), ("D1", 56.9, 39.9, 0), ("C2", 55.4, 44.0, 0)):
     t = B.refs[ref].Reference(); t.SetPosition(mm(x, y)); t.SetTextAngleDegrees(angle)
+# R and C mark J1's pins, so the footprint's pin 1 triangle moves off the silkscreen
+for g in mc.GraphicalItems():
+    if g.GetLayer() == pcbnew.F_SilkS and g.GetClass() != "PCB_TEXT" and pcbnew.ToMM(g.GetBoundingBox().GetTop()) > 10.2:
+        g.SetLayer(pcbnew.F_Fab)
 # U1's outline stops inside the body on the right, where D1 and C1 stand against it
 for g in u1.GraphicalItems():
     if g.GetLayer() == pcbnew.F_SilkS and g.GetClass() != "PCB_TEXT" and g.GetShape() == pcbnew.SHAPE_T_RECT:
@@ -339,7 +331,7 @@ for g in u1.GraphicalItems():
 for a, b in (((51.25, 16.99), (40.44, 16.99)), ((40.44, 16.99), (40.44, 39.2)), ((40.44, 39.2), (51.25, 39.2)), ((51.25, 16.99), (51.25, 39.2))):
     B.line(a[0], a[1], b[0], b[1], "F.SilkS", 0.12)
 for lab, ref, pad in (("R", "J1", 1), ("C", "J1", 2)):
-    x, y = B.pad_xy(ref, pad); B.text(lab, x, y + 3.4, size=0.7, bold=True)
+    x, y = B.pad_xy(ref, pad); B.text(lab, x, y + 2.6, size=0.7, bold=True)
 for ref, labs in (("J2", "VDG"),):
     for i, lab in enumerate(labs, start=1):
         x, y = B.pad_xy(ref, i); B.text(lab, x, y - 2.4, size=0.7, bold=True)

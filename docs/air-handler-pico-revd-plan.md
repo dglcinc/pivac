@@ -22,7 +22,6 @@ Rev D is the AirMaster Pico W carrier laid out for a fabricator to assemble and 
 | LEDs | back, through the floor | front, under the cap |
 | USB pair | holes filled by hand | pads joined in the oven |
 | Air sensors | one 4-pin header | two 2-pin headers |
-| 24 VAC header | 3.81 mm, through-hole | 3.5 mm, surface-mount |
 | USB-A jack | through-hole | surface-mount |
 | U1 | TMR 3-4811WI | URB4805S-3WR3 |
 | D1 | S1M | M7 |
@@ -41,7 +40,7 @@ Rev D is the AirMaster Pico W carrier laid out for a fabricator to assemble and 
 | U3 | ADS1115IDGS | C37593 |
 | U5 | FSUSB42MUX | C11355 |
 | Q1 | DMG2305UX-7 | C150470 |
-| J1 | WECO 110-M-211-SMD/02 | C19108923 |
+| J1 | Phoenix 1803277 | C480537 |
 | J2 | Phoenix 1778777 | C3583902 |
 | J3, J5 | Phoenix 1778764 | C5149246 |
 | J4 | HRO U-A-24SS-W-1 | C283549 |
@@ -68,8 +67,8 @@ Rev D is the AirMaster Pico W carrier laid out for a fabricator to assemble and 
 4. C2: HI-LINK's application circuit puts 100 µF on the output and Mornsun's 10 µF. 100 µF is inside the limit of each converter, the Traco's 1,680 µF included.
 5. J3, J5: one 2-pin header for each air sensor, `SUP` then `RET`, beside U3 and its dividers. A 10K NTC has no polarity. The two plugs are alike, so mark them. JLCPCB had no stock of the 4-pin header, 1778780, on 2026-11-16.
 6. J2: the 1-wire header, pins V, D, G from the right, on the right of the antenna.
-7. U1 is the one through-hole part, seven joints. JLCPCB solders it, or it takes two minutes with the iron. The surface-mount converters of this rating (Traco TMR 3-4811WISM, TDN 3-4811WISM) cost $45 to $49 at JLCPCB against $3.59.
-   J1: a surface-mount 3.5 mm header on two 1.3 × 5.5 mm pads, its face 1.5 mm past the board edge. It takes WECO's series 110 screw plug; the 3.81 mm plugs of Rev B and Rev C do not fit. Pads are from WECO's data sheet.
+7. U1, J1: through-hole, nine joints. JLCPCB solders them, or they take three minutes with the iron. The surface-mount converters of this rating (Traco TMR 3-4811WISM, TDN 3-4811WISM) cost $45 to $49 at JLCPCB against $3.59.
+   J1: the 3.81 mm header of Rev B and Rev C, so the 24 VAC screw plug is unlike every other plug on the board and cannot enter a sensor header.
    J4: a surface-mount USB-A jack: four signal pads, a 2.2 × 5.0 mm shell pad each side and two plastic pegs in unplated 1.3 mm holes. Its face stands 2.8 mm past the board edge, flush with the outside of the tray's wall, which keeps its pads clear of U5. Pads are from HRO's drawing and JLCPCB's footprint.
 8. LED1–LED6: one column down the left strip at x 3.2, y 21 to 41, 4 mm apart, cathodes outboard on a ground bus that runs up to the GND test loop. The names are on the silkscreen beside the resistors and cut into the cap.
 9. U5, C7, R13: under the jack's pins, with U5's HSD1 pair going straight up into the jack's pins 2 and 3. Q1, R11 and R12 stand beside the Pico's VBUS and VSYS pins.
@@ -113,20 +112,20 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 | BOM | `ahpd-board-jlc-bom.csv` |
 | CPL | `ahpd-board-jlc-cpl.csv` |
 
-The assembly is one side: 40 parts on 26 BOM lines, 152 surface-mount joints and U1's seven through-hole joints. Eleven lines are basic parts and fifteen extended. The parts cost $28.19 a board, of which the Pico W is $12.84. Stock and prices are JLCPCB's of 2026-11-16.
+The assembly is one side: 40 parts on 26 BOM lines, 150 surface-mount joints and nine through-hole joints on U1 and J1. Eleven lines are basic parts and fifteen extended. The parts cost $27.99 a board, of which the Pico W is $12.84. Stock and prices are JLCPCB's of 2026-11-16.
 
 Estimate for five boards on the Economic service, from JLCPCB's published fees:
 
 | Item | USD |
 |---|---|
-| Parts | 141 |
+| Parts | 140 |
 | Extended parts, 15 at $3 | 45 |
 | Setup and stencil, one side | 10 |
-| Placement, 152 joints a board | 1 |
+| Placement, 150 joints a board | 1 |
 | Bare boards | 5–10 |
 | Total | about 205 |
 
-Through-hole soldering of U1 (about $4 an order by JLCPCB's FAQ), shipping and duty are extra. The upload shows whether the Economic service takes the Pico W and the headers; the Standard service adds about $58 at its two-sided rate. The case is quoted from the two STEP files.
+Through-hole soldering of U1 and J1 (about $4 an order by JLCPCB's FAQ), shipping and duty are extra. The upload shows whether the Economic service takes the Pico W and the headers; the Standard service adds about $58 at its two-sided rate. The case is quoted from the two STEP files.
 
 ## To check before ordering
 
@@ -134,5 +133,4 @@ Through-hole soldering of U1 (about $4 an order by JLCPCB's FAQ), shipping and d
 2. The URB4805S-3WR3 on the bench: start-up on the half-wave rail, whose valley is about 27 V, and ripple at the node's load.
 3. RSSI in the closed printed case, against the Rev B figure in the Hammond box.
 4. LED brightness through the bores. A blue or green 0805 near 3 V forward runs about 1 mA through 220 Ω; 100 Ω is the next value.
-5. J1's plug: confirm that the screw plug on hand or ordered is 3.5 mm pitch and enters the WECO header (WECO series 110; Phoenix's MC 1,5/2-ST-3,5 is the same pitch and style, fit unconfirmed). J1 holds by its two pads alone, so pull its plug with a finger on the header.
-6. The fit of the first print: the board in the tray and under its hooks, each plug through its notch, and the screws' bite in the chosen material.
+5. The fit of the first print: the board in the tray and under its hooks, each plug through its notch, and the screws' bite in the chosen material.
