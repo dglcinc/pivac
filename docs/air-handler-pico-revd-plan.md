@@ -99,7 +99,7 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
    Two snap hooks hold the board in the tray with the cap off. Each is a 17.5 mm beam cut from that inner half, fixed near the ear and free toward one end, with a barb standing 0.8 mm over the board's edge: the left hook toward the top edge, the right hook toward the sensor edge. Pressing the board in bends each beam 1.2 mm outward, 1.0 % strain. A slot 18 mm long and 3.8 mm high in the tray wall behind each beam gives it room and takes a fingernail to release the board. The closed cap stands behind the beams' tops and locks them.
 6. One ear at the middle of each side takes a #4 × 1/4 thread-forming screw, the Hammond 1593ATS50 screw of the Rev B and Rev C boxes: 3 mm of cap ear under the head and 3.3 mm of thread in a 2.5 mm pilot in the tray's ear.
 7. The tray's floor goes to the air handler with VHB tape. Undoing the two screws leaves the tray and board on the wall.
-8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the lettering. The fits are sized for Xometry's SLS nylon 12 limits: ±0.38 mm on a dimension, 1 mm engraving depth, 0.5 mm between mating parts. The cap's rabbet clears the tray's lap by 0.3 mm a side and the slots round the hooks are 0.8 mm. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
+8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the lettering. The printer is JLC3DP, SLS in 1172Pro, their white unfilled PA12, about $9 a case in a lot of five (quoted 2026-11-16), with no dye or polish. Their 3201PA-F is black and 3401GB is glass-filled. Xometry quoted $18 a case in grey MJF and offers no white. The fits are sized for Xometry's SLS nylon 12 limits, the looser of the two: ±0.38 mm on a dimension, 1 mm engraving depth, 0.5 mm between mating parts. The cap's rabbet clears the tray's lap by 0.3 mm a side and the slots round the hooks are 0.8 mm. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
 9. The script checks 26 part and plug bodies against both halves and stops if any shares volume with either.
 
 `sh hardware/ahpd-render.sh docs` renders the board and the case.
@@ -125,7 +125,7 @@ Estimate for five boards on the Economic service, from JLCPCB's published fees:
 | Bare boards | 5–10 |
 | Total | about 205 |
 
-Through-hole soldering of U1 and J1 (about $4 an order by JLCPCB's FAQ), shipping and duty are extra. The upload shows whether the Economic service takes the Pico W and the headers; the Standard service adds about $58 at its two-sided rate. The case is quoted from the two STEP files.
+Through-hole soldering of U1 and J1 (about $4 an order by JLCPCB's FAQ), shipping and duty are extra. The upload shows whether the Economic service takes the Pico W and the headers; the Standard service adds about $58 at its two-sided rate. The case is about $9 from JLC3DP (the case section, note 8).
 
 ## To check before ordering
 
