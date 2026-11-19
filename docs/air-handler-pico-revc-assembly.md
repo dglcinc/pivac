@@ -13,26 +13,26 @@ micro-USB with 24 VAC on, and it puts the status LEDs on the back, shining throu
 ## Parts for one board
 
 Source says where the part on the bench comes from: the Digi-Key orders of 2026-10-31 and 2026-11-10, the Mouser
-order of 2026-11-10, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
+orders of 2026-11-10, 11-11 and 11-12, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
 or the next order.
 
 | Ref | Part number | Description | Source |
 |---|---|---|---|
-| U4 | SC0918 | Pico W | Digi-Key, Mouser |
+| U4 | SC0918 | Pico W | Digi-Key 10-31 (2), Mouser 11-10 (3), 11-12 (3) |
 | U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
 | U2 | DS2482S-100+T&R | 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TEC 3-4811WI | 24 V to 5 V, SIP-8 | Digi-Key 11-10 |
 | U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | Mouser 11-10 (10) |
 | Q1 | DMG2305UX-13 | P-FET, SOT-23 | Mouser 11-10 (10) |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
-| R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
-| R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 |
-| R11 | RC0805FR-07100KL | 100 k, 0805 | Mouser 11-12 |
-| R12 | RC0805FR-0722KL | 22 k, 0805 | Mouser 11-12 |
-| R13 | RC0805FR-0733KL | 33 k, 0805 | Mouser 11-12 |
+| R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31, Mouser 11-11 (20) |
+| R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 (100) |
+| R11 | RC0805FR-07100KL | 100 k, 0805 | Mouser 11-12 (100) |
+| R12 | RC0805FR-0722KL | 22 k, 0805 | Mouser 11-12 (100) |
+| R13 | RC0805FR-0733KL | 33 k, 0805 | Mouser 11-12 (100) |
 | C1 | UUD1H470MCL1GS | 47 µF 50 V can | Digi-Key 11-10 |
-| C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
-| C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
+| C2 | GCJ31CR71A106MA13L | 10 µF, 1206 | Mouser 11-11 (20) |
+| C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31, Mouser 11-11 (50) |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
 | D1 | S1M-E3/61T | rectifier, SMA | Digi-Key 10-31 |
 | D2 | SMAJ43CA | TVS 43 V, SMA | Digi-Key 10-31 |
@@ -44,7 +44,7 @@ or the next order.
 | J2 | 1778777, 1778845 | PTSM 3-pin, plug | Mouser 11-10 |
 | J3 | 1778780, 1778858 | PTSM 4-pin, plug | Mouser 11-10 |
 | J4 | 61400416021 | USB-A, through-hole | Digi-Key 11-10 |
-| Box | 1593KGY | Hammond box, grey | Digi-Key |
+| Box | 1593KGY | Hammond box, grey | Digi-Key, Mouser 11-12 (3) |
 | Screws | 1593ATS50 | #4 × 1/4, three | Digi-Key 10-31 |
 
 1. The Mouser order of 2026-11-12 carries R11–R13 and the 100 Ω 0805s of note 3 (Panasonic ERJ-6ENF1000V). Q1 is
@@ -57,6 +57,9 @@ or the next order.
 4. C1, U1 and the Rev B notes on them hold here: C1 is 6.3 mm across at most, the TEC 3-4811WI takes U1's footprint,
    and the TMR 3-4811WIE does not suit (`docs/air-handler-pico-assembly.md`, notes 1 and 3).
 5. TP1–TP3 and the three screw holes take no part.
+6. C2: the rev A shield's C2 spares (GCJ31CR71A106KA13L, the 10 % part) also fit.
+7. Two bags from the Mouser order of 2026-11-11 belong to no Rev C position: 100 of RC0603FR-07220RL, which is
+   220 Ω in 0603 where R5–R10 take 0805, and 10 of LTST-S220KGKT, the Rev B side-firing green LED.
 
 ## Assembly order
 
