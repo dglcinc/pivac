@@ -259,7 +259,9 @@ groups:
       #    Kelvin, so the conversion is unchanged.)
       #    The boiler's outdoor sensor is a BAPI BA/10K-2-O-BB2 (10K Type II),
       #    fitted 2026-11-19, so the rule compares the two readings directly and
-      #    fires on a gap of more than 5 F. The NTI sensor it replaced had
+      #    fires on a gap of more than 8 F. The sensor read 5 F above RedLink
+      #    through its first night at 46-47 F and within 2 F at 56-64 F, cause
+      #    not yet found, so the threshold is 8 F until it is. The NTI sensor it replaced had
       #    drifted low and read 5 to 8.5 F warm; the rule carried a drift term
       #    for it (sentry - 0.9 * redlink - 11.85) from 2026-11-14 to 11-19.
       # ---------------------------------------------------------------------
@@ -387,7 +389,7 @@ groups:
                 - evaluator:
                     type: gt
                     params:
-                      - 5
+                      - 8
                   operator:
                     type: and
                   query:
@@ -402,12 +404,12 @@ groups:
         execErrState: OK
         for: 2h
         annotations:
-          summary: "Boiler outdoor temp is >5 F off RedLink for 2h — the display reader is misreading digits, or the boiler's outdoor sensor reads wrong"
+          summary: "Boiler outdoor temp is >8 F off RedLink for 2h — the display reader is misreading digits, or the boiler's outdoor sensor reads wrong"
           runbook: |
             hvac.boiler.sentry.outdoorTemp (read off the boiler display by CV) and
             environment.outside.thermostat.temperature (Honeywell RedLink) are both
             outdoor air. The boiler's sensor is a BAPI BA/10K-2-O-BB2 fitted
-            2026-11-19; this rule fires when the two differ by more than 5 F for
+            2026-11-19; this rule fires when the two differ by more than 8 F for
             2h while BOTH are still publishing. Either the CV is producing
             fresh-but-wrong numbers (and then the water-temp digits on the same
             display are wrong too), or the sensor reads wrong and the reset
