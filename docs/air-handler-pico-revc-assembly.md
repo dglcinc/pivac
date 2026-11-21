@@ -22,6 +22,7 @@ or the next order.
 | U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
 | U2 | DS2482S-100+T&R | 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TEC 3-4811WI | 24 V to 5 V, SIP-8 | Digi-Key 11-10 |
+| U1 | SPBW03G-05 | the same, Mean Well | note 8 |
 | U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | Mouser 11-10 (10) |
 | Q1 | DMG2305UX-13 | P-FET, SOT-23 | Mouser 11-10 (10) |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
@@ -60,6 +61,12 @@ or the next order.
 6. C2: the rev A shield's C2 spares (GCJ31CR71A106KA13L, the 10 % part) also fit.
 7. Two bags from the Mouser order of 2026-11-11 belong to no Rev C position: 100 of RC0603FR-07220RL, which is
    220 Ω in 0603 where R5–R10 take 0805, and 10 of LTST-S220KGKT, the Rev B side-firing green LED.
+8. U1 alternative: Mean Well SPBW03G-05, Mouser 709-SPBW03G-05, $8.42 with 131 in stock on 2026-11-21, when Mouser
+   had no TEC 3-4811WI. It has the TEC's pins (1 −Vin, 2 +Vin, 3 remote, 5 and 8 no connection, 6 +Vout, 7 −Vout),
+   18–75 V in, 5 V ±1.5 % at 600 mA, no minimum load, and runs with pin 3 open. Its body is 21.8 × 9.2 × 11.1 mm with
+   the pin row 3.5 mm from the face toward the Pico, 0.1 mm wider than the TEC, so it clears C1's base by 0.1 mm:
+   solder C1 first and seat U1 toward the Pico before soldering it. Mean Well specifies it on a DC input, so run
+   the first one on 24 VAC at the node's load before fitting more. Use the G part; the SPBW03F-05 is 9–36 V.
 
 ## Assembly order
 
@@ -88,7 +95,7 @@ part with a pad 1.
    iron brief on the LEDs, because the lens is plastic.
 8. **J2, J3.** Push each PTSM header's pegs into their holes with the entry face flush to the board edge, solder one
    end anchor, check it sits square, then the contacts and the other anchor. Keep the iron off the housing.
-9. **U1, J1, J4.** U1's pin 1 is the dot. J1's entry faces the top edge. J4's opening faces past the top edge;
+9. **U1, J1, J4.** U1's pin 1 is the dot; seat an SPBW03G-05 toward the Pico (note 8). J1's entry faces the top edge. J4's opening faces past the top edge;
    solder both shield legs fully through. Wash the board with isopropyl alcohol, around U3 and U5 most of all.
 
 ## The box
