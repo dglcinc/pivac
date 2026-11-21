@@ -13,16 +13,16 @@ micro-USB with 24 VAC on, and it puts the status LEDs on the back, shining throu
 ## Parts for one board
 
 Source says where the part on the bench comes from: the Digi-Key orders of 2026-10-31 and 2026-11-10, the Mouser
-orders of 2026-11-10, 11-11 and 11-12, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
+orders of 2026-11-10, 11-11, 11-12 and 11-21, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
 or the next order.
 
 | Ref | Part number | Description | Source |
 |---|---|---|---|
 | U4 | SC0918 | Pico W | Digi-Key 10-31 (2), Mouser 11-10 (3), 11-12 (3) |
-| U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
+| U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31, Mouser 11-21 (3) |
 | U2 | DS2482S-100+T&R | 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TEC 3-4811WI | 24 V to 5 V, SIP-8 | Digi-Key 11-10 |
-| U1 | SPBW03G-05 | the same, Mean Well | note 8 |
+| U1 | SPBW03G-05 | the same, Mean Well | Mouser 11-21 (3), note 8 |
 | U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | Mouser 11-10 (10) |
 | Q1 | DMG2305UX-13 | P-FET, SOT-23 | Mouser 11-10 (10) |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
@@ -36,13 +36,13 @@ or the next order.
 | C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31, Mouser 11-11 (50) |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
 | D1 | S1M-E3/61T | rectifier, SMA | Digi-Key 10-31 |
-| D2 | SMAJ43CA | TVS 43 V, SMA | Digi-Key 10-31 |
+| D2 | SMAJ43CA | TVS 43 V, SMA | Digi-Key 10-31, Mouser 11-21 (10) |
 | LED1 | 0805 green | PWR | Amazon kit |
 | LED2 | 0805 yellow | FAN | Amazon kit |
 | LED3, LED4 | 0805 blue | Y1, Y2 | Amazon kit |
 | LED5, LED6 | 0805 red | W1, W2 | Amazon kit |
 | J1 | 3.81 mm 2-pin | 24 VAC header, plug | Amazon, in hand |
-| J2 | 1778777, 1778845 | PTSM 3-pin, plug | Mouser 11-10 |
+| J2 | 1778777, 1778845 | PTSM 3-pin, plug | Mouser 11-10, 11-21 (5 headers) |
 | J3 | 1778780, 1778858 | PTSM 4-pin, plug | Mouser 11-10 |
 | J4 | 61400416021 | USB-A, through-hole | Digi-Key 11-10 |
 | Box | 1593KGY | Hammond box, grey | Digi-Key, Mouser 11-12 (3) |
@@ -67,6 +67,8 @@ or the next order.
    the pin row 3.5 mm from the face toward the Pico, 0.1 mm wider than the TEC, so it clears C1's base by 0.1 mm:
    solder C1 first and seat U1 toward the Pico before soldering it. Mean Well specifies it on a DC input, so run
    the first one on 24 VAC at the node's load before fitting more. Use the G part; the SPBW03F-05 is 9–36 V.
+9. The Mouser order of 2026-11-21 also carries 5 of Phoenix 1808190 (PTSM 0,5/2-HH0-2,5-SMD), a 2-pin header that
+   belongs to no Rev C position. Rev D's air-sensor headers J3 and J5 are drawn for 1778764, the HH part.
 
 ## Assembly order
 
