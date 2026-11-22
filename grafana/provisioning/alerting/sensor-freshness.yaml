@@ -1177,10 +1177,10 @@ groups:
 #
 # Leave this block in place permanently. Deleting an already-absent rule is a no-op, and
 # removing the block would let a stale Grafana DB resurrect these UIDs.
-      # ---- Utility zone air-handler node (rev A shield at 10.0.0.181, pivac.UnicoAH_Utility) ----
-      # Installed and publishing since 2026-11-01 18:55 EST; unpaused the same evening.
+      # ---- Utility zone air-handler node (AirMaster AM-0003 at 10.0.0.184, pivac.UnicoAH_Utility) ----
+      # Publishing since 2026-11-01; AirMaster AM-0003 serves the zone since 2026-11-21.
       - uid: ah-utility-air-return-stale
-        title: Utility air handler node (.181) stale (>30m)
+        title: Utility air handler node (.184) stale (>30m)
         condition: C
         data:
           - refId: A
@@ -1259,19 +1259,18 @@ groups:
         execErrState: Alerting
         for: 1m
         annotations:
-          summary: "Utility air handler node stale for >30m (environment.inside.hvac.ah.utility.air.return.temperature — board at 10.0.0.181)"
+          summary: "Utility air handler node stale for >30m (environment.inside.hvac.ah.utility.air.return.temperature — AirMaster at 10.0.0.184)"
           runbook: |
-            The utility zone air-handler node (UNO R4 WiFi, 10.0.0.181, MAC e8:f6:0a:aa:a3:88,
-            module pivac.UnicoAH_Utility via pivac.ArduinoSensor) has stopped publishing. It is powered
-            from the Unico's 24 VAC through a buck converter that measured 4.65 V at the shield, so a
-            supply dropout is the first suspect; it is not on the Arduinos Shelly plug and the
-            arduino-watchdog cannot cycle it.
-            1. `curl http://10.0.0.181` — a line with 'aret' means the board is up; a low
-               'uptime_ms' means it rebooted (supply or watchdog); host-unreachable means it is
-               off WiFi or unpowered.
+            The utility zone air-handler node (AirMaster AM-0003, Rev C Pico W carrier, 10.0.0.184,
+            MAC 28:cd:c1:17:4e:7f, module pivac.UnicoAH_Utility via pivac.ArduinoSensor) has
+            stopped publishing. It is powered from the Unico's 24 VAC on J1; it is not on the
+            Arduinos Shelly plug and the arduino-watchdog cannot cycle it.
+            1. `curl http://10.0.0.184/data` — a line with 'aret' means the unit is up; a low
+               'uptime_ms' with 'last_boot' gives the restart and its reason; host-unreachable
+               means it is off WiFi or unpowered. A line without 'aret' means the NTC failed to
+               read, since the unit leaves a failed probe out.
             2. `journalctl -u pivac-ah-utility -n 30` for timeouts or parse failures on the Pi side.
-            3. Recovery is at the air handler: cycle the Unico's 24 VAC (its service switch) or the
-               converter's USB-C plug.
+            3. Recovery is at the air handler: cycle the Unico's 24 VAC (its service switch).
         labels:
           severity: warning
           source: arduino
@@ -1380,6 +1379,208 @@ groups:
         notification_settings:
           receiver: graph-bridge
 
+
+      # ---- Kids room air-handler node (AirMaster AM-0004 at 10.0.0.187, pivac.UnicoAH_Kids) ----
+      # Installed 2026-11-22 and publishing from the same afternoon.
+      - uid: ah-kids-air-return-stale
+        title: Kids room air handler node (.187) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.ah.kids.air.return.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Kids room air handler node stale for >30m (environment.inside.hvac.ah.kids.air.return.temperature — AirMaster at 10.0.0.187)"
+          runbook: |
+            The kids room air-handler node (AirMaster AM-0004, Rev C Pico W carrier, 10.0.0.187,
+            MAC 28:cd:c1:17:4e:83, module pivac.UnicoAH_Kids via pivac.ArduinoSensor) has
+            stopped publishing. It is powered from the Unico's 24 VAC on J1; it is not on the
+            Arduinos Shelly plug and the arduino-watchdog cannot cycle it.
+            1. `curl http://10.0.0.187/data` — a line with 'aret' means the unit is up; a low
+               'uptime_ms' with 'last_boot' gives the restart and its reason; host-unreachable
+               means it is off WiFi or unpowered. A line without 'aret' means the NTC failed to
+               read, since the unit leaves a failed probe out.
+            2. `journalctl -u pivac-ah-kids -n 30` for timeouts or parse failures on the Pi side.
+            3. Recovery is at the air handler: cycle the Unico's 24 VAC (its service switch).
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
+
+      # ---- Kitchen air-handler node (AirMaster AM-0005 at 10.0.0.191, pivac.UnicoAH_Kitchen) ----
+      # Installed 2026-11-22 and publishing from the same afternoon.
+      - uid: ah-kitchen-air-return-stale
+        title: Kitchen air handler node (.191) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.ah.kitchen.air.return.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Kitchen air handler node stale for >30m (environment.inside.hvac.ah.kitchen.air.return.temperature — AirMaster at 10.0.0.191)"
+          runbook: |
+            The kitchen air-handler node (AirMaster AM-0005, Rev C Pico W carrier, 10.0.0.191,
+            MAC 28:cd:c1:17:4e:81, module pivac.UnicoAH_Kitchen via pivac.ArduinoSensor) has
+            stopped publishing. It is powered from the Unico's 24 VAC on J1; it is not on the
+            Arduinos Shelly plug and the arduino-watchdog cannot cycle it.
+            1. `curl http://10.0.0.191/data` — a line with 'aret' means the unit is up; a low
+               'uptime_ms' with 'last_boot' gives the restart and its reason; host-unreachable
+               means it is off WiFi or unpowered. A line without 'aret' means the NTC failed to
+               read, since the unit leaves a failed probe out.
+            2. `journalctl -u pivac-ah-kitchen -n 30` for timeouts or parse failures on the Pi side.
+            3. Recovery is at the air handler: cycle the Unico's 24 VAC (its service switch).
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
 # Grafana alert-rule provisioning is ADDITIVE: deleting a rule from `groups:` above does NOT
 # remove it from Grafana. It keeps running with provenance=file (uneditable in the UI) until
 # it is named here. Verified live 2026-08-06 — after the UBT/LBT rename, hydronic-crw-stale,
