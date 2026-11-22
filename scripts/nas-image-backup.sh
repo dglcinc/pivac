@@ -26,12 +26,13 @@ STOP_SVCS=(pivac-1wire pivac-redlink pivac-gpio pivac-arduino-psi
            pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
            pivac-grafana-alerts pivac-ah-mbr pivac-ah-utility pivac-scb-utility pivac-scb-mbr
            pivac-ah-greatroom pivac-scb-greatroom pivac-ah-kids pivac-scb-kids
-           signalk influxdb)
+           pivac-ah-kitchen pivac-scb-kitchen signalk influxdb)
 START_SVCS=(signalk influxdb pivac-1wire pivac-redlink pivac-gpio
             pivac-arduino-psi pivac-arduino-therm-psi pivac-emporia pivac-sentry
             pivac-sprinkler pivac-domestic-water pivac-chiltrix pivac-loop-delta
             pivac-grafana-alerts pivac-ah-mbr pivac-ah-utility pivac-scb-utility pivac-scb-mbr
-            pivac-ah-greatroom pivac-scb-greatroom pivac-ah-kids pivac-scb-kids)
+            pivac-ah-greatroom pivac-scb-greatroom pivac-ah-kids pivac-scb-kids
+            pivac-ah-kitchen pivac-scb-kitchen)
 
 log() { echo "[$(date -Is)] $*"; }
 

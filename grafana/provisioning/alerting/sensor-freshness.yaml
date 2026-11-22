@@ -1480,6 +1480,107 @@ groups:
         isPaused: false
         notification_settings:
           receiver: graph-bridge
+
+      # ---- Kitchen air-handler node (AirMaster AM-0005 at 10.0.0.191, pivac.UnicoAH_Kitchen) ----
+      # Installed 2026-11-22 and publishing from the same afternoon.
+      - uid: ah-kitchen-air-return-stale
+        title: Kitchen air handler node (.191) stale (>30m)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: bdxaqnfllu5fkf
+            model:
+              datasource:
+                type: influxdb
+                uid: bdxaqnfllu5fkf
+              measurement: environment.inside.hvac.ah.kitchen.air.return.temperature
+              policy: default
+              resultFormat: time_series
+              orderByTime: ASC
+              groupBy:
+                - type: time
+                  params:
+                    - $__interval
+                - type: fill
+                  params:
+                    - none
+              select:
+                - - type: field
+                    params:
+                      - value
+                  - type: mean
+                    params: []
+              tags: []
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              datasource:
+                type: __expr__
+                uid: __expr__
+              refId: C
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    type: last
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          summary: "Kitchen air handler node stale for >30m (environment.inside.hvac.ah.kitchen.air.return.temperature — AirMaster at 10.0.0.191)"
+          runbook: |
+            The kitchen air-handler node (AirMaster AM-0005, Rev C Pico W carrier, 10.0.0.191,
+            MAC 28:cd:c1:17:4e:81, module pivac.UnicoAH_Kitchen via pivac.ArduinoSensor) has
+            stopped publishing. It is powered from the Unico's 24 VAC on J1; it is not on the
+            Arduinos Shelly plug and the arduino-watchdog cannot cycle it.
+            1. `curl http://10.0.0.191/data` — a line with 'aret' means the unit is up; a low
+               'uptime_ms' with 'last_boot' gives the restart and its reason; host-unreachable
+               means it is off WiFi or unpowered. A line without 'aret' means the NTC failed to
+               read, since the unit leaves a failed probe out.
+            2. `journalctl -u pivac-ah-kitchen -n 30` for timeouts or parse failures on the Pi side.
+            3. Recovery is at the air handler: cycle the Unico's 24 VAC (its service switch).
+        labels:
+          severity: warning
+          source: arduino
+        isPaused: false
+        notification_settings:
+          receiver: graph-bridge
 # Grafana alert-rule provisioning is ADDITIVE: deleting a rule from `groups:` above does NOT
 # remove it from Grafana. It keeps running with provenance=file (uneditable in the UI) until
 # it is named here. Verified live 2026-08-06 — after the UBT/LBT rename, hydronic-crw-stale,
