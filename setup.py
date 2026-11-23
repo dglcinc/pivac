@@ -33,7 +33,7 @@ setup (
 
 # before running this setup, apt install libxml2-dev libxslt-dev
 packages=['pivac'],
-  install_requires=['w1thermsensor','pytemperature','lxml','requests','mechanize','beautifulsoup4', 'PyYAML', 'soupsieve'],
+  install_requires=['w1thermsensor','pytemperature','requests', 'PyYAML', 'websocket-client', 'aiosomecomfort'],
 
   scripts=['scripts/provider.sh','scripts/pivac-provider.sh','scripts/pivac-provider.py','scripts/pivac'],
   data_files=[('/etc/pivac', ['config/config.yml.sample']),('/etc/pivac/signalk',['config/config.yml.flir','signalk/example_settings.json'])],
