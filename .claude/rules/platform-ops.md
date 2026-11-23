@@ -72,5 +72,6 @@ sudo systemctl start signalk
 | Doc | Covers |
 |-----|--------|
 | `docs/operational-notes.md` | RedLink internals, relay roster and zone map, GPIO 26, sprinkler calibration and watering rules, Shelly plugs, watchdog design, dashboard panel transforms, network, backup history |
+| `docs/pi-backup-runbook.md` | Manual backup procedures: an incremental by hand, building a new NAS image from scratch, verifying and restoring one |
 | `docs/valve-lever-replacement.md` | 316 stainless replacement lever for the rusted A.Y. McDonald ball valves: stem, flat-pattern dimensions, ordering and bending; `hardware/valve-lever/` holds the DXF, 1:1 SVG and generator |
 | `docs/butterfly-handle-replacement.md` | Replacement for the red butterfly handle on the hose-end drain valves (M6×1 nut, 5 × 8 mm double-D drive, groove-and-lug stop): dimensions from the broken base, 85 mm rising wings, 316L print; `hardware/butterfly-handle/` holds the CadQuery generator, STEP, STL and 1:1 SVG |
