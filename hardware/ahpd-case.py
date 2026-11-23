@@ -74,7 +74,8 @@ GRIP = 3.0             # the guide hole's depth under the lip; below it the shaf
 LED_X = 3.2
 LED = ((21.0, "PWR", "ledG"), (25.0, "FAN", "ledY"), (29.0, "Y1", "ledB"), (33.0, "Y2", "ledB"),
        (37.0, "W1", "ledR"), (41.0, "W2", "ledR"))
-CELL = (1.0, 5.4, 1.2)                            # the wide shaft over each LED: x0, x1, half length along y
+CELL = (1.0, 5.4, 1.35)                           # the wide shaft over each LED: x0, x1, half length along y,
+                                                  # the guide hole's radius, so the two meet without a step
 LABEL = (7.6, 65.0, -1.1, 57.1, 0.3)              # the label's pocket in the face: x0, x1, y0, y1, depth
 # snap hooks for the board: a tab cut from the wall by two slits, hanging from ROOT, with a barb under the board.
 # side ("L", "R" or "S", the sensor end), then the tab's extent along its wall
@@ -129,11 +130,11 @@ cx0, cx1, ch = CELL
 # bench a pipe drops into each shaft, head up; pressing the board in traps all six. Each pipe then stands between a
 # 0.8 mm lip at the face, with a 1.5 mm window through it, and its LED, with 0.4 mm of play. A strip of the face is
 # sunk to put the lip at that height. With no pipe fitted the same shaft is an open hole over the LED.
-tr0, tr1 = LED[0][0] - 2.5, LED[-1][0] + 2.5
+tr0, tr1 = LED[0][0] - 2.8, LED[-1][0] + 2.8      # flush with the outer faces of the first and last walls
 top = top.fuse(box(WL - 0.1, cx1 + 1.0, tr0, tr1, 1.2, ROOM + 0.1))      # 1.0 mm between a shaft and the room beside it
 for y in [LED[0][0] - 2.0] + [l[0] + 2.0 for l in LED]:                             # the walls reach down between the LEDs
     top = top.fuse(box(WL - 0.1, cx1, y - 0.8, y + 0.8, 0.3, 1.3))
-top = top.cut(box(cx0 - 0.4, cx1 + 0.4, tr0 + 0.3, tr1 - 0.3, ZT - SEAT, ZT + 1))  # the sunk strip
+top = top.cut(box(cx0 - 0.4, cx1 + 0.4, tr0 + 0.6, tr1 - 0.6, ZT - SEAT, ZT + 1))  # the sunk strip
 ZL = ZT - SEAT - LIP                              # the lip's underside, which the pipe meets
 for y, name, col in LED:
     top = top.cut(box(cx0, cx1, y - ch, y + ch, 0, ZL - GRIP))
@@ -173,10 +174,10 @@ def tab(shape, side, a0, a1, root, thin_inside, foot):
 zc = -BT - 0.15                                   # a hook's catch face, under the board's back
 for side, a0, a1 in HOOKS:
     top = tab(top, side, a0, a1, HOOK_ROOT, False, 0.6)
-    top = top.fuse(wall_prism(side, [(0.05, zc), (-GAP - CATCH, zc), (-GAP - CATCH, zc - 0.45), (0.05, zc - 2.05)], a0, a1))
+    top = top.fuse(wall_prism(side, [(0.0, zc), (-GAP - CATCH, zc), (-GAP - CATCH, zc - 0.8), (0.0, zc - 2.4)], a0, a1))
 for side, a0, a1 in LATCH:
     top = tab(top, side, a0, a1, LATCH_ROOT, True, 0.3)
-    top = top.fuse(wall_prism(side, [(WALL - 0.05, -3.0), (WALL + BARB, -3.0), (WALL + BARB, -3.6), (WALL - 0.05, -4.8)], a0, a1))
+    top = top.fuse(wall_prism(side, [(WALL, -3.0), (WALL + BARB, -3.0), (WALL + BARB, -3.8), (WALL, -4.8)], a0, a1))
     for z in (2.0, 3.7, 5.4):                     # three ribs mark where to press
         top = top.fuse(wall_box(side, a0 + 0.6, a1 - 0.6, WALL - 0.05, WALL + 0.5, z, z + 0.8))
 top = top.removeSplitter()
@@ -185,12 +186,15 @@ top = top.removeSplitter()
 base = rounded(EX, EY, ZB, ZS, 3.0)
 rim = rounded(IX - FIT, IY - FIT, ZS - 0.1, RIM_TOP, 0.8).cut(rounded(IX - FIT - RIM_T, IY - FIT - RIM_T, ZS - 1, 0, 0.4))
 for side, a0, a1 in HOOKS + LATCH:                # the rim stops where a tab comes down or moves in
-    rim = rim.cut(wall_box(side, a0 - 1.6, a1 + 1.6, -4.0, 0.5, ZS, 1))
+    # a gap that ends within 6 mm of a corner runs on through it, so no sliver of the end rim is left there
+    lo = a0 - 1.6 if a0 > 6 else a0 - 6
+    hi = a1 + 1.6 if a1 < BL - 6 else a1 + 6
+    rim = rim.cut(wall_box(side, lo, hi, -4.0, 0.5, ZS, 1))
 base = base.fuse(rim)
 for side, a0, a1 in LATCH:
     d = WALL + LUG_GAP
-    base = base.fuse(wall_prism(side, [(WALL - 0.5, ZB), (d + LUG_T, ZB), (d + LUG_T, LUG_TOP), (WALL + FIT + 0.5, LUG_TOP),
-                                       (WALL + FIT, LUG_TOP - 0.5), (WALL + FIT, LIP_Z), (d, LIP_Z), (d, ZS), (WALL - 0.5, ZS)],
+    base = base.fuse(wall_prism(side, [(WALL - 0.5, ZB), (d + LUG_T, ZB), (d + LUG_T, LUG_TOP), (WALL + FIT + 0.4, LUG_TOP),
+                                       (WALL + FIT, LUG_TOP - 0.4), (WALL + FIT, LIP_Z), (d, LIP_Z), (d, ZS), (WALL - 0.5, ZS)],
                                a0 + 0.3, a1 - 0.3))
 for x, y, way in SCREWS:
     dx, dy = ((SLOT_L - SLOT_W) / 2, 0) if way == "x" else (0, (SLOT_L - SLOT_W) / 2)
@@ -242,6 +246,13 @@ print("fit: %d bodies clear of top and base; hooks bend %.1f mm, strain %.1f %%;
 
 for shape, name in ((base, "airmaster-base"), (top, "airmaster-top")):
     assert shape.isValid() and len(shape.Solids) == 1, name
+    thin = [e.Length for e in shape.Edges if 0.02 < e.Length < 0.3]       # the mark a sliver leaves: a very short edge
+    print("%s: %d edges under 0.3 mm%s" % (name, len(thin), ", shortest %.2f" % min(thin) if thin else ""))
+    if os.environ.get("AHPD_THIN"):
+        for e in shape.Edges:
+            if 0.02 < e.Length < 0.3:
+                c = e.CenterOfMass
+                print("  short edge %.2f at board x %.1f, y %.1f, z %.1f" % (e.Length, c.x + OX, OY - c.y, c.z))
     shape.exportStep(os.path.join(OUT, name + ".step"))
     MeshPart.meshFromShape(Shape=shape, LinearDeflection=0.03, AngularDeflection=0.35).write(os.path.join(OUT, name + ".stl"))
     b = shape.BoundBox
