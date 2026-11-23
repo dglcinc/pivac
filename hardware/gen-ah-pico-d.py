@@ -283,7 +283,7 @@ path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
 # no vias through the monogram and legends, front or back
 for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 38.6, 15.5, 40.4, "AirMaster"), (10.2, 40.4, 14.0, 41.9, "Rev D"),
-                             (CX - 8.0, 50.2, CX + 8.0, 53.4, "licence"),
+                             (CX - 8.0, 48.8, CX + 8.0, 52.0, "licence"),
                              *((LX + 4.3, y - 0.6, LX + 6.3, y + 0.6, "LED legend") for y in (21, 25, 29, 33, 37, 41))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
 
@@ -331,8 +331,6 @@ B.text("open", XOFF - 2.6, yf + 1.5, layer="B.SilkS", size=0.8); B.text("open", 
 # the USB pair, at the two filled holes under the Pico's micro-USB
 B.text("D+ to D-", XN - 1.6, yf + 3.0, layer="B.SilkS", size=0.8, bold=True)
 B.text("no short", XOFF - 2.6, yf + 3.0, layer="B.SilkS", size=0.8)
-B.text("USB on J4", XN - 1.9, yf + 4.5, layer="B.SilkS", size=0.8, bold=True)     # the working test of both joints
-B.text("Unico shows on page", XON - 1.6, yf + 4.5, layer="B.SilkS", size=0.8)
 for lab, num in (("D-", "TP2"), ("D+", "TP3")):
     x, y = B.pad_xy("U4", num)
     B.text(lab, x + (0.3 if lab == "D-" else -0.3), 0.95, layer="B.SilkS", size=0.5, bold=True)
@@ -345,8 +343,8 @@ B.text("AirMaster", 12.1, 39.5, size=0.9, bold=True)       # the two lines centr
 B.text("Rev D", 12.1, 41.15, size=0.7)
 # the sensor legends leave no room beside the title block on the front, so the licence goes on the back, in the
 # open pour under the Pico
-B.text("\u00a9 2026 David Lewis", CX, 51.0, layer="B.SilkS", size=0.9)
-B.text("CC BY-NC 4.0", CX, 52.6, layer="B.SilkS", size=0.9)
+B.text("\u00a9 2026 David Lewis", CX, 49.6, layer="B.SilkS", size=0.9)
+B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 REFS = [("F1", 52.3, 14.2, 90, 0.8), ("D2", 57.7, 13.0, 90, 0.8), ("C1", 55.1, 24.2, 0, 0.8), ("D1", 56.9, 39.9, 0, 0.8), ("C2", 55.4, 44.0, 0, 0.8),
         ("R11", 41.57, 4.7, 0, 0.6), ("R12", 41.57, 5.9, 0, 0.6), ("Q1", 44.1, 11.8, 0, 0.6), ("J1", 52.95, 2.6, 90, 0.7),
