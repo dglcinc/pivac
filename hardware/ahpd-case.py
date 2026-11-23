@@ -364,21 +364,25 @@ MONO = ('<circle r="4.775" fill="%s" stroke="%s" stroke-width="0.35"/><circle r=
 v1.items.append(("raw", v1.at(27.0, 15.4, 0), 0.95, MONO))
 v1.text(33.0, 15.6, "AirMaster", 5.6, "bold")
 v1.text(33.2, 18.8, "for the Unico SMART controller", 1.9)
+# the setup block: one line of instruction, then the code beside three key and value groups of one style, the code
+# as tall as the three groups together
+GX, GY, GP = 20.5, 26.6, 6.3                   # the block's left edge, the first key's baseline, the groups' pitch
+v1.text(GX, GY - 3.3, "To set up, scan the code or join the WiFi:", 2.1)
 random.seed(6)
-qx, qy, qn, qm = 22.0, 23.2, 25, 0.46          # 11.5 mm, the factory label's code; this pattern is a stand-in
+qn = 29                                        # a version 3 code, which the WiFi text needs; this pattern is a stand-in
+qy = GY - 1.5; qs = (GY + 2 * GP + 3.2) - qy; qm = qs / qn
 for r in range(qn):
     for c in range(qn):
         corner = (r < 7 and c < 7) or (r < 7 and c >= qn - 7) or (r >= qn - 7 and c < 7)
-        ring = corner and (min(r % 18, c % 18) in (0, 6) or max(r % 18, c % 18) in (0, 6) or (2 <= r % 18 <= 4 and 2 <= c % 18 <= 4))
+        rr, cc = (r if r < 7 else r - (qn - 7)), (c if c < 7 else c - (qn - 7))
+        ring = corner and (min(rr, cc) == 0 or max(rr, cc) == 6 or (2 <= rr <= 4 and 2 <= cc <= 4))
         if ring or (not corner and random.random() < 0.48):
-            v1.rect(qx + c * qm, qy + r * qm, qx + (c + 1) * qm, qy + (r + 1) * qm, "#111", "none")
-tx = qx + qn * qm + 1.5
-v1.text(tx, qy + 1.7, "To set up:", 2.1)
-v1.text(tx, qy + 4.3, "scan QR or join WiFi ↓", 2.1)
-v1.text(tx, qy + 7.4, "AirMaster-7K2Q", 2.8, "bold")
-v1.text(tx, qy + 10.1, "Password", 2.1)
-v1.text(tx, qy + 13.0, "h7k3m9px", 2.8, "bold", "start", "#111", "Menlo, Consolas, monospace")
-v1.text(tx, qy + 15.6, "S/N AM-0006", 2.0, "normal", "start", LGREY)
+            v1.rect(GX + c * qm, qy + r * qm, GX + (c + 1) * qm, qy + (r + 1) * qm, "#111", "none")
+tx = GX + qs + 2.2
+for i, (key, value, font) in enumerate((("WiFi", "AirMaster-7K2Q", ""), ("Password", "h7k3m9px", "Menlo, Consolas, monospace"),
+                                        ("Serial number", "AM-0006", ""))):
+    v1.text(tx, GY + i * GP, key, 1.9, "normal", "start", LGREY)
+    v1.text(tx, GY + i * GP + 3.2, value, 2.8, "bold", "start", "#111", font)
 v1.text(36.0, ly1 - 0.9, "© 2026 David Lewis", 1.5, "normal", "middle", LGREY)
 v1.call(LED_X, LED[0][0], ZT, "window: 0.8 mm skin over the LED's shaft", -8, -7)
 v1.call(lx1 - 1.0, 40.0, ZT, "one printed label, 56.8 x 57.6, in a 0.3 mm pocket", 16, 6)
