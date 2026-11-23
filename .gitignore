@@ -28,7 +28,8 @@ sentry-*.jpg
 test-output.txt
 
 # Claude Code local state
-.claude/
+.claude/*
+!.claude/rules/
 .DS_Store
 
 # Word/Excel lock files
