@@ -37,7 +37,7 @@ Columns run 1–14, rows 1–32. This is the drawing's TOP view turned 180° in 
 power), **GND**, and **DATA** (the 1-wire line, called DQ in datasheets). On every socket,
 plug and cable in this document the order is VCC, DATA, GND.
 
-**Faces and wire types** follow `docs/rpi-io-board-design.md` §1: components on the component
+**Faces and wire types** follow `docs/io-boards/perfboard/rpi-io-board-design.md` §1: components on the component
 side, wires on the solder side; rails and one-hole stubs bare, everything else insulated
 22 AWG solid; a wire never shares a hole with a pin — it lands on the copper ring beside the
 pin's joint. "Ring (c,r)" below means exactly that. The one exception is a **bridge**: an
@@ -212,7 +212,7 @@ so the cable is a plain five-conductor run with no crossovers:
 | 5 | (12,18) | GND | (5,6) — pin 9 | **the GND rail, which already lands on this pad** |
 
 **The order is set by the Pi board, where those five signals sit on consecutive access pads**
-(`docs/rpi-io-board-design.md` §5.5) — GPIO 4 falls between SCL and GND, which is why the
+(`docs/io-boards/perfboard/rpi-io-board-design.md` §5.5) — GPIO 4 falls between SCL and GND, which is why the
 cable is five conductors rather than four. Position 4 is parked here; on a rollback to
 `w1-gpio` it becomes the bus data line and moves to the DATA net, which is the whole of §9.
 

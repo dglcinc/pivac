@@ -3,7 +3,7 @@
 
 # Unico SCB live test
 
-This is the procedure for proving `scripts/unico-scb.py` against an air handler's S.M.A.R.T. Control Board, from a Mac on the USB port of the control box. The protocol is `docs/unico-scb-protocol.md`. The outcome decides the serial interface on the air-handler node's fabricated shield, which taps the same line on the UNO R4's `Serial1` (`docs/air-handler-shield-pcb-plan.md`, PR #242). The protocol is the same on every SCB, so any zone's control box serves; the record of the 2026-10-24 run on the utility zone's unit is at the end.
+This is the procedure for proving `scripts/unico-scb.py` against an air handler's S.M.A.R.T. Control Board, from a Mac on the USB port of the control box. The protocol is `docs/unico-scb-protocol.md`. The outcome decides the serial interface on the air-handler node's fabricated shield, which taps the same line on the UNO R4's `Serial1` (`docs/airmaster/rev-a/air-handler-shield-pcb-plan.md`, PR #242). The protocol is the same on every SCB, so any zone's control box serves; the record of the 2026-10-24 run on the utility zone's unit is at the end.
 
 The SCB is the bus master. It sends status frames on its own, and every frame the PC sends back is a write request, so the test runs in three stages and the later ones wait for the earlier ones to pass.
 
@@ -98,7 +98,7 @@ Three commands are guarded. Each prints its confirmation word in the dry run and
 ## Afterwards
 
 1. Commit `scb-raw.txt` from stage 1 under `docs/data/unico-scb/` if it shows anything the protocol doc does not already describe, and update the protocol doc's §9.
-2. Record the line measurements in `docs/air-handler-shield-pcb-plan.md` (PR #242) as the input to the rev B serial interface.
+2. Record the line measurements in `docs/airmaster/rev-a/air-handler-shield-pcb-plan.md` (PR #242) as the input to the rev B serial interface.
 
 ## Record: 2026-10-24, utility zone M2430
 

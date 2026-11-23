@@ -73,7 +73,7 @@ def values_from_frame(d, age):
 
 def values_from_node(j):
     """The same values from a rev B node's JSON line, whose field names are the
-    shield plan's (docs/air-handler-shield-pcb-plan.md section 7)."""
+    shield plan's (docs/airmaster/rev-a/air-handler-shield-pcb-plan.md section 7)."""
     out = {}
     for field, path in NODE_FIELDS:
         if field in j:

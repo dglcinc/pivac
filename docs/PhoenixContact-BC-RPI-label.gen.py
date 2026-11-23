@@ -5,9 +5,9 @@
 
 The docx is its own template: the script opens it, keeps every style, the page setup and the
 empty side shape, and replaces the rows of the single table with the ROWS list below; the last
-row carries the Pi's eth0 MAC. Run it after any change to the channel map (rev B INT: docs/rpi-io-boards-revb-plan.md §4; rev A:
-docs/rpi-io-boards-reva-install.md §2; perfboard: docs/rpi-io-board-design.md §2.1), the EXT
-connectors (rev C: docs/rpi-io-boards-revc-plan.md §4) or the 1-wire sockets.
+row carries the Pi's eth0 MAC. Run it after any change to the channel map (rev B INT: docs/io-boards/rev-b/rpi-io-boards-revb-plan.md §4; rev A:
+docs/io-boards/rev-a/rpi-io-boards-reva-install.md §2; perfboard: docs/io-boards/perfboard/rpi-io-board-design.md §2.1), the EXT
+connectors (rev C: docs/io-boards/rev-c/rpi-io-boards-revc-plan.md §4) or the 1-wire sockets.
 
 Each row is "left text" and an optional right-aligned "(BCM,phys)"; a row of None is a spacer.
 The empty rectangle on the page is the label's bounding box: the table must not outgrow it, so the

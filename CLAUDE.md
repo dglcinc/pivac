@@ -205,9 +205,9 @@ This file holds what every session needs. The rules for each subsystem are in `.
 | Topic | Read first | Evidence in `docs/` |
 |---|---|---|
 | Chiller, glycol loop, loop pressure, heating and cooling plant, HZ-432 | `.claude/rules/chiltrix.md` | `chiltrix-*`, `hydronic-*`, `unico-cooling-assessment-and-tuning.md` |
-| AirMaster nodes, Unico air handlers, SCB, `LoopDelta` | `.claude/rules/air-handlers.md` | `*air-handler*`, `unico-scb-*` |
+| AirMaster nodes, Unico air handlers, SCB, `LoopDelta` | `.claude/rules/air-handlers.md` | `airmaster/rev-a` to `rev-d`, `*air-handler*`, `unico-scb-*` |
 | DS18B20 probes, offsets, the DS2482 bus, any ΔT | `.claude/rules/onewire.md` | `onewire-notes.md`, `ds18b20-*` |
-| Relay inputs, GPIO, INT and EXT boards, board designs in `hardware/` | `.claude/rules/relays-io-boards.md` | `rpi-io-boards-*`, `cdp-chiller-rework-plan.md`, `new-pi-cutover.md` |
+| Relay inputs, GPIO, INT and EXT boards, board designs in `hardware/` | `.claude/rules/relays-io-boards.md` | `io-boards/` (`perfboard`, `rev-a` to `rev-c`), `cdp-chiller-rework-plan.md`, `new-pi-cutover.md` |
 | Sentry reader, its camera, boiler display values | `.claude/rules/sentry.md` | `sentry-cv-notes.md` |
 | Dashboards, InfluxDB queries, alert rules, the email bridge, push | `.claude/rules/grafana.md` | `grafana-alerting-notes.md` |
 | RedLink thermostats, Emporia, sprinkler, domestic water, pressure Arduinos, Shelly plugs, Arduino watchdog | `.claude/rules/other-sources.md` | `emporia-notes.md`, `operational-notes.md` |

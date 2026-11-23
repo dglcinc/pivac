@@ -12,7 +12,7 @@ Writes ``hardware/int-board/int-board.kicad_pcb`` and ``hardware/ext-board/ext-b
 (rev B), and with the argument ``extc`` the rev C EXT board in ``hardware/extc-board``, each
 with the outline, the housing's restricted areas as rule areas, every footprint placed and
 every pad on its net. Routing is done afterwards by ``hardware/route.sh`` (Freerouting), and the
-plan is ``docs/rpi-io-boards-pcb-plan.md``.
+plan is ``docs/io-boards/rev-a/rpi-io-boards-pcb-plan.md``.
 
 Frame: the build docs' frame (Appendix A of the plan) — column 1 left, row 1 top, component
 side toward the viewer, origin at the board's top-left corner, y down. All positions in mm.
@@ -599,7 +599,7 @@ def build_int():
     for j, xc in PLUG_X.items():
         custom.append(B.place(j, ptsm_hh(B, 4), xc, PLUG_Y, 0, value="PTSM 0,5/4-HH-2,5-THR"))
     # --- Pi header socket on the solder side. Pad numbering follows the build doc's verified
-    # map (docs/rpi-io-board-design.md §4.2): pin 1 at (4.77, 8.37), pin 2 at (2.23, 8.37),
+    # map (docs/io-boards/perfboard/rpi-io-board-design.md §4.2): pin 1 at (4.77, 8.37), pin 2 at (2.23, 8.37),
     # pin 3 at (4.77, 10.91). Built by hand so the numbering is explicit; §7 of the plan asks
     # for the meter check of pin 1 and pin 2 before ordering.
     j5 = B.place("J5", pi_header(B), 4.77, 8.37, 0, back=True, value="Pi 40-pin socket")
@@ -917,7 +917,7 @@ def build_ext():
 
 # --------------------------------------------------------------------------- EXT board, rev C
 def build_extc():
-    """Rev C of the EXT board (docs/rpi-io-boards-revc-plan.md): every connector at an edge is
+    """Rev C of the EXT board (docs/io-boards/rev-c/rpi-io-boards-revc-plan.md): every connector at an edge is
     the surface-mount PTSM header with its entry face on the edge, J4 is the vertical header of
     the same family, two probe sockets, no tie slots. The power section and the link are rev B's."""
     out = os.path.join(HERE, "extc-board")
@@ -1129,7 +1129,7 @@ def build_extc():
 
 # --------------------------------------------------------------------------- air-handler shield
 def build_ah():
-    """The air-handler node shield for the UNO R4 WiFi (docs/air-handler-shield-pcb-plan.md).
+    """The air-handler node shield for the UNO R4 WiFi (docs/airmaster/rev-a/air-handler-shield-pcb-plan.md).
 
     86.36 x 53.34: the R4's outline plus a 17.78 mm tab past its right edge carrying TB1 to TB3.
     The plan and its floor plan give positions from the bottom-left corner, y up; here y = 53.34

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright David Lewis
-"""The AirMaster Pico W carrier Rev D (docs/air-handler-pico-revd-plan.md): every part on the front, every part
+"""The AirMaster Pico W carrier Rev D (docs/airmaster/rev-d/air-handler-pico-revd-plan.md): every part on the front, every part
 one JLCPCB places or solders, for the printed case of ahpd-case.py.
 
 Run with KiCad's Python. Writes hardware/ahpd-board/ahpd-board.kicad_pcb with the parts placed, the nets assigned
@@ -65,11 +65,10 @@ for z in pico.Zones():
     elif pcbnew.ToMM(r.GetBottom()) < 4:   # TP2 and TP3's own: this board joins them
         z.SetDoNotAllowPads(False); z.SetDoNotAllowTracks(False); z.SetDoNotAllowVias(False)
 B.rect_keepout(21.4, 43.8, 35.6, L, layers=("F.Cu", "B.Cu"), name="antenna", pads=False, footprints=False, tracks=True, vias=True, pour=True)
-# surface pads under the Pico's TP2 (D-) and TP3 (D+), where KiCad's reflow footprint has them, so the oven
-# joins the USB pair and nothing is filled from the back
-for num, x in (("TP2", 1.0), ("TP3", -1.0)):
-    p = gb._smd(pico, num, CX + x, PY - 24.3, 1.4, 1.4)
-    p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+# plated holes under the Pico's TP2 (D-) and TP3 (D+), Rev C's: filled with solder from the back on a hand build,
+# and on an assembled board the paste on each pad joins it in the oven and the hole shows the joint
+for num, x in (("TP2", 0.8), ("TP3", -0.8)):
+    p = gb._pad(pico, num, CX + x, PY - 24.3, 1.1, 0.7)
 
 # --- top edge: USB-A jack, HRO U-A-24SS-W-1, surface mount (LCSC C283549; pads from its drawing and JLCPCB's
 # footprint). Seen from above with the opening toward the top edge, pin 1 is on the right. Two plastic pegs
@@ -88,21 +87,19 @@ for x in (-2.5, 2.5):
     gb._peg(j, x, -3.1, 1.3)
 gb._fp_rect(j, -6.6, -13.3, 6.6, 0.4, pcbnew.F_SilkS, 0.12)
 gb._fp_rect(j, -8.45, -13.55, 8.45, 3.3, pcbnew.F_CrtYd, 0.05)
-B.place("J4", j, JX, JO, 0, value="U-A-24SS-W-1"); j.Reference().SetVisible(False)
+B.place("J4", j, JX, JO, 0, value="U-A-24SS-W-1")
 
 # --- top edge: 24 VAC, Phoenix MC 1,5/2-G-3,81 footprint, entry toward the edge
 MX = 47.5
 mc = B.lib("J1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_2-G-3.81_1x02_P3.81mm_Horizontal", MX + 1.905, 8.5, 180, value="3.81 mm 2-pin 24VAC")
-mc.Reference().SetVisible(False)
-B.text("24 VAC", 53.6, 5.2, size=0.8, bold=True, rot=90)
+B.text("24 VAC", 52.95, 6.7, size=0.8, bold=True, rot=90)
 
 # --- bottom edge: PTSM surface-mount headers, entry toward the edge. The two air sensors take a 2-pin header each
 # on the left, beside the ADS1115; the 1-wire pair shares the 3-pin header on the right
 for ref, n, x, lab in (("J3", 2, -0.75, "SUP"), ("J5", 2, 10.85, "RET"), ("J2", 3, 49.5, "1-WIRE")):
     fp = gb.ptsm_hh_smd(B, n)
     B.place(ref, fp, x, L, 180, value=f"PTSM 0,5/{n}-HH-2,5-SMD")
-    fp.Reference().SetVisible(False)
-    B.text(lab, x, L - 11.9, size=0.8, bold=True)
+    B.text(lab, x, L - 12.1 if n == 3 else L - 10.7, size=0.8, bold=True)     # J2's pin letters stand between
 
 # --- power
 B.lib("F1", "Fuse", "Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder", 48.6, 14.2, 0, value="PTC 0.2A")
@@ -142,17 +139,15 @@ for ref, y, lab, rref, net, pin, part in LED:
     fp = B.lib(ref, "LED_SMD", "LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder", LX, y, 0, value="0805 " + part)
     if B.pad_xy(ref, 1)[0] > LX:       # the cathode goes outboard
         fp.SetOrientationDegrees(180)
-    fp.Reference().SetVisible(False)
     r = B.lib(rref, *R_0805, LX + 3.1, y, 90, value="220R")
-    r.Reference().SetVisible(False)
-    B.text(lab, LX + 5.3, y, size=0.6, bold=True)
+    B.text(lab, LX + 1.2, y - 1.6, size=0.6, bold=True)        # the LED's name and its call, in the gap above it
 
 # --- USB lockout (Rev C's circuit), on the front: a laptop on the micro-USB cuts U1 off the Pico and J4 off its data.
 # Q1, R11 and R12 stand beside the Pico's VBUS and VSYS pins at the top right. U5 stands under the jack's pins with
 # its HSD1 pair up toward them, C7 and R13 beside it; D+ and D- reach it from TP3 and TP2 on the back.
 B.lib("Q1", "Package_TO_SOT_SMD", "SOT-23_Handsoldering", 42.7, 13.6, 90, value="DMG2305UX-7")
 B.lib("R11", *R_0805, 41.25, 2.4, 90, value="100k")
-B.lib("R12", *R_0805, 41.25, 6.6, 90, value="22k")
+B.lib("R12", *R_0805, 41.25, 8.2, 90, value="22k")      # 2.4 mm below R11, for the two references
 UX, UY = 6.2, 17.1
 u5 = B.lib("U5", "Package_SO", "MSOP-10_3x3mm_P0.5mm", UX, UY, 90, value="FSUSB42MUX")
 for rot in (90, 270):       # pins 6-10 along the top, D+ (7) left of D- (6), under the jack's pins 3 and 2
@@ -167,8 +162,6 @@ if B.pad_xy("C7", 1)[1] < UY + 1.7:        # pad 1 (3V3) at the bottom, toward U
 r13 = B.lib("R13", *R_0805, 2.3, B.pad_xy("U5", 10)[1], 0, value="33k")
 if B.pad_xy("R13", 1)[0] < 2.3:        # pad 1 (OE) toward U5
     r13.SetOrientationDegrees(180)
-for ref in ("Q1", "R11", "R12", "R13", "C7", "U5"):
-    B.refs[ref].Reference().SetVisible(False)
 
 for u in ("U3", "U5"):              # 0.5 mm pitch leaves 0.195 mm between pads
     for p in B.refs[u].Pads():
@@ -276,10 +269,6 @@ path("3V3", "F.Cu", u(1), (u(1)[0], c7v[1] + 1.1), (c7v[0], c7v[1] + 1.1), c7v, 
 path("GND", "F.Cu", u(2), (u(2)[0], UY), width=0.25)
 path("GND", "F.Cu", u(5), (u(5)[0], UY), (c7g[0] + 1.5, UY), c7g, width=0.25)
 path("PD+", "F.Cu", u(3), (u(3)[0], u(3)[1] + 2.4), width=0.2)
-# under the Pico each pad of the pair gets a stub to a via clear of TP1, and the router joins the two ends on the back
-for net, tp in (("PD+", "TP3"), ("PD-", "TP2")):
-    x, y = B.pad_xy("U4", tp)
-    path(net, "F.Cu", (x, y), (x, y + 1.7), width=0.2); via(net, x, y + 1.7, 0.6, 0.3)
 path("PD-", "F.Cu", u(4), (u(4)[0], u(4)[1] + 1.3), (u(4)[0] + 0.8, u(4)[1] + 2.1), width=0.2)
 path("ACR", "F.Cu", pj1, (47.8, 11.2), f1a)
 path("ACF", "F.Cu", f1b, (52.6, d2a[1]), d2a)
@@ -293,33 +282,86 @@ path("COM", "F.Cu", (52.9, d2c[1]), d2c)
 path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
 # no vias through the monogram and legends, front or back
-for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 37.7, 16.2, 39.2, "AIR HANDLER"), (8.9, 39.2, 12.6, 41.9, "PICO W Rev D"),
+for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 38.6, 15.5, 40.4, "AirMaster"), (10.2, 40.4, 14.0, 41.9, "Rev D"),
                              (CX - 8.0, 48.8, CX + 8.0, 52.0, "licence"),
                              *((LX + 4.3, y - 0.6, LX + 6.3, y + 0.6, "LED legend") for y in (21, 25, 29, 33, 37, 41))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
 
-# --- test loops for a probe hook, the rev A shield's plated loops: VS and COM on the 24 VAC side, GND on the low side
-for ref, x, y, net, lab, lx, ly in (("TP1", 49.8, 41.7, "VS", "VS", 47.9, 41.9), ("TP2", 55.2, 3.2, "COM", "COM", 55.2, 5.3),
-                                    ("TP3", TP3[0], TP3[1], "GND", "GND", TP3[0], TP3[1] - 2.0)):
-    fp = pcbnew.FOOTPRINT(B.board); fp.SetFPID(pcbnew.LIB_ID("pivac", "TestLoop"))
+# --- test holes, 1.0 mm plated, each named by its net. VS and COM stand on the 24 VAC side and GND on the left strip,
+# named on both faces. Nine low-side nets stand in a column under the Pico, reached from the back, where the
+# checkout table gives each one's reading: with the top off its base the back of a live board faces the bench.
+def test_hole(ref, x, y, net):
+    fp = pcbnew.FOOTPRINT(B.board); fp.SetFPID(pcbnew.LIB_ID("pivac", "TestHole"))
+    fp.SetAttributes(pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
     gb._pad(fp, 1, 0, 0, 1.8, 1.0)
     B.place(ref, fp, x, y, 0, value=net); fp.Reference().SetVisible(False)
-    B.connect(ref, 1, net); B.text(lab, lx, ly, size=0.7, bold=True)
+    B.connect(ref, 1, net)
+for ref, x, y, net, lx, ly in (("TP1", 49.8, 41.7, "VS", 47.9, 41.9), ("TP2", 56.2, 2.6, "COM", 56.2, 4.5),
+                               ("TP3", TP3[0], TP3[1], "GND", TP3[0], TP3[1] - 2.0)):
+    test_hole(ref, x, y, net)
+    B.text(net, lx, ly, size=0.7, bold=True)
+    B.text(net, x, y + 2.0, layer="B.SilkS", size=0.8, bold=True)
+TX, TY0, TDY = CX - 5.5, 13.6, 2.4       # between the Pico's left pads and the keep-outs under its TP4 and TP6
+# name, net, reading with the power off (ohms to GND unless it says otherwise), reading on 24 VAC
+TABLE = (("GND", "GND", "", "reference"), ("3V3", "3V3", "no short", "3.3 V"), ("VSYS", "VSYS", "no short", "5 V"),
+         ("VBUS", "VBUS", "no short", "0, laptop 5 V"), ("5V", "+5V", "no short", "5.1 V"), ("OE", "OE", "no short", "0, laptop 3 V"),
+         ("SUP", "SUP", "20 k", "3.3 V open"), ("RET", "RET", "20 k", "3.3 V open"), ("1W", "OW", "no short", "3.3 V idle"),
+         ("SDA", "SDA", "4k7 to 3V3", "3.3 V idle"), ("SCL", "SCL", "4k7 to 3V3", "3.3 V idle"),
+         # the USB pair at its U5 end: each beeps to its filled hole under the Pico's micro-USB, which proves the
+         # hole took solder and the track from it to U5 is whole
+         ("D+", "PD+", "0 to D+ hole", ""), ("D-", "PD-", "0 to D- hole", ""))
+XN, XOFF, XON = TX - 3.3, TX - 10.2, TX - 20.2    # seen from the back: hole, name, power off, power on
+for i, (name, net, off, on) in enumerate(TABLE):
+    y = TY0 + i * TDY
+    test_hole("TP%d" % (i + 4), TX, y, net)
+    B.text(name, XN, y, layer="B.SilkS", size=0.9, bold=True)
+    if off:
+        B.text(off, XOFF, y, layer="B.SilkS", size=0.8)
+    if on:
+        B.text(on, XON, y, layer="B.SilkS", size=0.8)
+B.text("POWER OFF", XOFF, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
+B.text("to GND", XOFF, TY0 - 2.7, layer="B.SilkS", size=0.8)
+B.text("ON 24 VAC", XON, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
+B.text("to GND", XON, TY0 - 2.7, layer="B.SilkS", size=0.8)
+yf = TY0 + len(TABLE) * TDY
+B.text("VS to COM", XN - 2.0, yf, layer="B.SilkS", size=0.8, bold=True)
+B.text("no short", XOFF - 2.6, yf, layer="B.SilkS", size=0.8); B.text("35 V", XON, yf, layer="B.SilkS", size=0.8)
+B.text("COM to GND", XN - 2.4, yf + 1.5, layer="B.SilkS", size=0.8, bold=True)
+B.text("open", XOFF - 2.6, yf + 1.5, layer="B.SilkS", size=0.8); B.text("open", XON, yf + 1.5, layer="B.SilkS", size=0.8)
+# the USB pair, at the two filled holes under the Pico's micro-USB
+B.text("D+ to D-", XN - 1.6, yf + 3.0, layer="B.SilkS", size=0.8, bold=True)
+B.text("no short", XOFF - 2.6, yf + 3.0, layer="B.SilkS", size=0.8)
+for lab, num in (("D-", "TP2"), ("D+", "TP3")):
+    x, y = B.pad_xy("U4", num)
+    B.text(lab, x + (0.3 if lab == "D-" else -0.3), 0.95, layer="B.SilkS", size=0.5, bold=True)
 path("VS", "F.Cu", (49.8, 41.7), (51.9, 39.6), (d1v[0] - 0.1, 38.4))
-path("COM", "B.Cu", (55.2, 3.2), (52.9, 5.5), (52.9, 11.0))
+path("COM", "B.Cu", (56.2, 2.6), (52.9, 5.9), (52.9, 11.0))
 
 # --- legends
 gb.monogram(B, 5.7, 40.3, 0.6)         # smaller than Rev C's, to stand clear of the LED names
-B.text("AIR HANDLER", 8.9, 38.5, size=0.7, bold=True, left=True)
-B.text("PICO W", 9.1, 39.9, size=0.65, left=True)
-B.text("Rev D", 9.1, 41.2, size=0.65, left=True)
+B.text("AirMaster", 12.1, 39.5, size=0.9, bold=True)       # the two lines centred on each other and on the monogram
+B.text("Rev D", 12.1, 41.15, size=0.7)
 # the sensor legends leave no room beside the title block on the front, so the licence goes on the back, in the
 # open pour under the Pico
 B.text("\u00a9 2026 David Lewis", CX, 49.6, layer="B.SilkS", size=0.9)
 B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
-for ref, x, y, angle in (("F1", 52.3, 14.2, 90), ("D2", 56.9, 13.0, 90), ("C1", 55.1, 24.2, 0), ("D1", 56.9, 39.9, 0), ("C2", 55.4, 44.0, 0)):
+REFS = [("F1", 52.3, 14.2, 90, 0.8), ("D2", 57.7, 13.0, 90, 0.8), ("C1", 55.1, 24.2, 0, 0.8), ("D1", 56.9, 39.9, 0, 0.8), ("C2", 55.4, 44.0, 0, 0.8),
+        ("R11", 41.57, 4.7, 0, 0.6), ("R12", 41.57, 5.9, 0, 0.6), ("Q1", 44.1, 11.8, 0, 0.6), ("J1", 52.95, 2.6, 90, 0.7),
+        ("J2", 44.6, 47.7, 0, 0.7), ("J3", -4.4, 47.7, 0, 0.7), ("J5", 7.1, 47.7, 0, 0.7), ("J4", -1.65, 10.4, 0, 0.7),     # each beside its own pads
+        ("R13", -0.6, B.pad_xy("R13", 1)[1], 0, 0.7), ("C7", 0.8, 18.0, 0, 0.6), ("U5", 6.2, 20.75, 0, 0.7),
+        ("R1", 2.2, 26.5, 90, 0.7), ("R3", 2.2, 30.5, 90, 0.7), ("C5", 2.2, 34.5, 90, 0.7),
+        ("R2", 5.3, 26.5, 90, 0.7), ("R4", 5.3, 30.5, 90, 0.7), ("C6", 5.3, 34.5, 90, 0.7)]
+for ref, y, lab, rref, net, pin, part in LED:
+    REFS += [(ref, LX - 1.3, y - 1.6, 0, 0.6), (rref, 0.3, y + 0.15, 0, 0.6)]
+for ref, x, y, angle, size in REFS:
     t = B.refs[ref].Reference(); t.SetPosition(mm(x, y)); t.SetTextAngleDegrees(angle)
+    t.SetTextSize(VECTOR2I(FromMM(size), FromMM(size))); t.SetTextThickness(FromMM(size * 0.15))
+    if ref in [l[3] for l in LED]:        # the LED resistors' references start beside their parts
+        t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_LEFT)
+for g in u1.GraphicalItems():           # U1's pin names would lie under its body
+    if g.GetClass() == "PCB_TEXT" and g.GetLayer() == pcbnew.F_SilkS:
+        g.SetLayer(pcbnew.F_Fab)
 # R and C mark J1's pins, so the footprint's pin 1 triangle moves off the silkscreen
 for g in mc.GraphicalItems():
     if g.GetLayer() == pcbnew.F_SilkS and g.GetClass() != "PCB_TEXT" and pcbnew.ToMM(g.GetBoundingBox().GetTop()) > 10.2:
@@ -331,10 +373,10 @@ for g in u1.GraphicalItems():
 for a, b in (((51.25, 16.99), (40.44, 16.99)), ((40.44, 16.99), (40.44, 39.2)), ((40.44, 39.2), (51.25, 39.2)), ((51.25, 16.99), (51.25, 39.2))):
     B.line(a[0], a[1], b[0], b[1], "F.SilkS", 0.12)
 for lab, ref, pad in (("R", "J1", 1), ("C", "J1", 2)):
-    x, y = B.pad_xy(ref, pad); B.text(lab, x, y + 2.6, size=0.7, bold=True)
+    x, y = B.pad_xy(ref, pad); B.text(lab, x, 11.8, size=0.6, bold=True)
 for ref, labs in (("J2", "VDG"),):
     for i, lab in enumerate(labs, start=1):
-        x, y = B.pad_xy(ref, i); B.text(lab, x, y - 2.4, size=0.7, bold=True)
+        x, y = B.pad_xy(ref, i); B.text(lab, x, y - 2.5, size=0.7, bold=True)
 
 # --- checks: each cap pin's clearance to the nearest pad, and every pair of front courtyards that overlap
 T = pcbnew.ToMM
@@ -361,7 +403,66 @@ for i, a in enumerate(cys):
         if ox > 0.01 and oy > 0.01:
             print(f"courtyards overlap: {a[0]} and {b[0]} by {ox:.2f} x {oy:.2f}")
 assert not any(fp.IsFlipped() for fp in B.board.GetFootprints()), "a part is on the back"
+
+# --- the silkscreen: every part's reference shows, and no text on either face touches a pad, a part's body,
+# other text or the board's edge. A body is the footprint's fabrication outline.
+def rect(bb, grow=0.0):
+    return (T(bb.GetLeft()) - grow, T(bb.GetTop()) - grow, T(bb.GetRight()) + grow, T(bb.GetBottom()) + grow)
+def meet(a, b):
+    return min(a[2], b[2]) - max(a[0], b[0]) > 0.01 and min(a[3], b[3]) - max(a[1], b[1]) > 0.01
+BODY = {"J4": (JX - 6.6, JY, JX + 6.6, JO + 0.4)}
+texts, pads, bodies = [], [], []
+for fp in B.board.GetFootprints():
+    ref = fp.GetReference()
+    if not ref.startswith("TP"):
+        assert fp.Reference().IsVisible(), ref + " has no visible reference"
+        g = [i.GetBoundingBox() for i in fp.GraphicalItems() if i.GetLayer() == pcbnew.F_Fab and i.GetClass() == "PCB_SHAPE"]
+        if ref in BODY:
+            bodies.append((ref, BODY[ref]))
+        elif g:
+            r = [rect(i) for i in g]
+            bodies.append((ref, (min(i[0] for i in r), min(i[1] for i in r), max(i[2] for i in r), max(i[3] for i in r))))
+        texts.append((ref, fp.Reference().GetLayer(), rect(fp.Reference().GetBoundingBox())))
+    for i in fp.GraphicalItems():
+        if i.GetClass() == "PCB_TEXT" and i.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS):
+            texts.append((ref + " '" + i.GetText() + "'", i.GetLayer(), rect(i.GetBoundingBox())))
+    for p in fp.Pads():
+        through = p.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH)
+        pads.append((ref + "." + p.GetNumber(), through, rect(p.GetBoundingBox(), 0.1)))
+for d in B.board.GetDrawings():
+    if d.GetClass() == "PCB_TEXT" and d.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS):
+        texts.append(("'" + d.GetText() + "'", d.GetLayer(), rect(d.GetBoundingBox())))
+faults = []
+for i, (name, layer, r) in enumerate(texts):
+    front = layer == pcbnew.F_SilkS
+    if r[0] < X0 + 0.3 or r[2] > X1 - 0.3 or r[1] < 0.3 or r[3] > L - 0.3:
+        faults.append(name + " is at the board's edge")
+    faults += ["%s is on pad %s" % (name, pn) for pn, through, pr in pads if (front or through) and meet(r, pr)]
+    if front:
+        faults += ["%s is on the body of %s" % (name, bn) for bn, br in bodies if meet(r, br)]
+    faults += ["%s is on %s" % (name, n2) for n2, l2, r2 in texts[i + 1:] if l2 == layer and meet(r, r2)]
+if os.environ.get("AHPD_DUMP"):
+    want = os.environ["AHPD_DUMP"].split(",")
+    for n, th, r in pads:
+        if n.split(".")[0] in want: print("pad %-10s %6.2f %6.2f %6.2f %6.2f" % ((n,) + r))
+    for n, r in bodies:
+        if n in want: print("body %-9s %6.2f %6.2f %6.2f %6.2f" % ((n,) + r))
+    for n, l, r in texts:
+        if n.split(" ")[0].strip("'") in want or n.strip("'") in want: print("text %-9s %6.2f %6.2f %6.2f %6.2f" % ((n,) + r))
+for f in faults:
+    print("silkscreen:", f)
+print("silkscreen: %d texts, %d faults" % (len(texts), len(faults)))
+if not os.environ.get("AHPD_DRAFT"):
+    assert not faults, "the silkscreen has %d faults" % len(faults)
 # the whole board moves right, so its left edge is x 0.3
 B.board.Move(VECTOR2I(FromMM(SHIFT), 0))
 B.save()
+# the nine test holes stand under the Pico by design, so KiCad's rule against a hole inside another part's
+# courtyard is switched off in the project file
+import json
+pro = B.path[:-len("kicad_pcb")] + "kicad_pro"
+if os.path.exists(pro):
+    d = json.load(open(pro))
+    d["board"]["design_settings"].setdefault("rule_severities", {})["pth_inside_courtyard"] = "ignore"
+    json.dump(d, open(pro, "w"), indent=2)
 print("wrote", B.path)
