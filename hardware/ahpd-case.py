@@ -15,7 +15,7 @@ base. Two latch tabs in the top's side walls, at opposite corners, catch a lug e
 tabs releases the top, which comes away with the board and its plugs. A low rim on the base stands inside the
 top's walls and locates it. Each of the six status LEDs stands under a shaft in a block on the left of the top,
 closed at the face by a 0.8 mm skin: the LED lights the skin, level with the printed label beside it. One pocket
-in the face takes that label, which names the LEDs down its left edge. The port names are cut into the face.
+in the face takes that label, which names the LEDs down its left edge and each port at its notch.
 
 Positions are given in the board's own frame, as gen-ah-pico-d.py leaves it (x 0.3-65.7, y 0-56 from the top
 edge, millimetres), z 0 on the board's top face and positive toward the top's face.
@@ -65,7 +65,7 @@ LED_X = 3.2
 LED = ((21.0, "PWR", "ledG"), (25.0, "FAN", "ledY"), (29.0, "Y1", "ledB"), (33.0, "Y2", "ledB"),
        (37.0, "W1", "ledR"), (41.0, "W2", "ledR"))
 CELL = (1.0, 5.4, 1.2)                            # the shaft over each LED: x0, x1, half length along y
-LABEL = (7.6, 65.0, 8.5, 47.5, 0.3)               # the label's pocket in the face: x0, x1, y0, y1, depth
+LABEL = (7.6, 65.0, -1.1, 57.1, 0.3)              # the label's pocket in the face: x0, x1, y0, y1, depth
 # snap hooks for the board: a tab cut from the wall by two slits, hanging from ROOT, with a barb under the board.
 # side ("L", "R" or "S", the sensor end), then the tab's extent along its wall
 HOOKS = (("L", 3.5, 8.5), ("R", 30.0, 35.0), ("S", 33.0, 39.0))
@@ -131,7 +131,6 @@ for notches, end in ((TOP_NOTCH, "T"), (BOT_NOTCH, "B")):
     for name, xc, hw, h in notches:
         y0, y1 = (WT + 0.1, WT - WALL - 1) if end == "T" else (WB - 0.1, WB + WALL + 1)
         top = top.cut(box(xc - hw, xc + hw, y0, y1, ZS - 1, h))
-        top = top.cut(legend(name, 2.6, xc, 3.6 if end == "T" else BL - 3.6, ZT))
 lx0, lx1, ly0, ly1, ld = LABEL
 top = top.cut(box(lx0, lx1, ly0, ly1, ZT - ld, ZT + 1))
 
@@ -264,9 +263,13 @@ class View:
     def rect(self, x0, y0, x1, y1, fill="#fff", stroke="#111"):
         """A rectangle on the face, in the board's frame; drawn over the outline."""
         self.items.append(("rect", self.at(x0, y0, 0), self.at(x1, y1, 0), fill, stroke))
-    def text(self, x, y, s, size, weight="normal", anchor="start", fill="#111"):
+    def text(self, x, y, s, size, weight="normal", anchor="start", fill="#111", font=""):
         """Printed text on the face, in the board's frame; size is the font size in millimetres."""
-        self.items.append(("text", self.at(x, y, 0), s, size, weight, anchor, fill))
+        self.items.append(("text", self.at(x, y, 0), s, size, weight, anchor, fill, font))
+    def tri(self, x, y, way):
+        """A pointer on the label with its tip at x, y: up, down or left on the page."""
+        d = {"up": ((-0.9, 1.3), (0.9, 1.3)), "down": ((-0.9, -1.3), (0.9, -1.3)), "left": ((1.3, -0.9), (1.3, 0.9))}[way]
+        self.items.append(("fill", [[self.at(x, y, 0)] + [self.at(x + a, y + b, 0) for a, b in d]], "#111"))
     def at(self, x, y, z):
         """A board-frame point in this view's coordinates."""
         p = self.m.multVec(V(X(x), Y(y), z)); return p.x, p.y
@@ -279,11 +282,10 @@ class View:
         d = lambda pts: "M" + " L".join("%.2f %.2f" % T(p) for p in pts)
         out = ['<text x="%.1f" y="%.1f" font-size="3.4" font-weight="bold">%s</text>' % (ox, oy - 6.2, self.title),
                '<text x="%.1f" y="%.1f" font-size="2.5" fill="#444">%s</text>' % (ox, oy - 2.4, self.note)]
-        for it in self.items:
+        for it in self.items:                    # fills, rectangles and text in the order given, then the lines
             if it[0] == "fill":
                 out.append('<path d="%s" fill="%s" fill-rule="evenodd" stroke="#111" stroke-width="0.12"/>'
                            % (" ".join(d(l) + " Z" for l in it[1]), it[2]))
-        for it in self.items:
             if it[0] == "rect":
                 a, b = T(it[1]), T(it[2])
                 out.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" stroke="%s" stroke-width="0.12"/>'
@@ -293,8 +295,8 @@ class View:
                 out.append('<g transform="translate(%.2f %.2f) scale(%.3f)">%s</g>' % (a[0], a[1], it[2] * scale, it[3]))
             if it[0] == "text":
                 a = T(it[1])
-                out.append('<text x="%.2f" y="%.2f" font-size="%.2f" font-weight="%s" text-anchor="%s" fill="%s">%s</text>'
-                           % (a[0], a[1], it[3] * scale, it[4], it[5], it[6], it[2]))
+                out.append('<text x="%.2f" y="%.2f" font-size="%.2f" font-weight="%s" text-anchor="%s" fill="%s"%s>%s</text>'
+                           % (a[0], a[1], it[3] * scale, it[4], it[5], it[6], ' font-family="%s"' % it[7] if it[7] else "", it[2]))
         for it in self.items:
             if it[0] == "line":
                 out.append('<path d="%s" fill="none" stroke="%s" stroke-width="%.2f"/>' % (d(it[1]), it[2], it[3]))
@@ -330,41 +332,56 @@ v1 = View("plan", "1. Closed, from above, with its printed label", "Twice size. 
 v1.outline(closed)
 for y, name, col in LED:                          # where each LED shows through the skin
     v1.rect(CELL[0], y - CELL[2], CELL[1], y + CELL[2], LEDCOL[col], "#111")
-# the printed label, as proposed: one rectangle, with the LED names down its left edge beside the windows
+# the printed label, as proposed: the AirMaster label of Arduino AirMaster/factory/label.py, laid out for this face.
+# One rectangle: each port named at its notch with its pin letters at their true positions, the LED names down the
+# left edge beside the windows, the title block, and the unit's setup details.
 import random
 lx0, lx1, ly0, ly1 = LABEL[0] + 0.3, LABEL[1] - 0.3, LABEL[2] + 0.3, LABEL[3] - 0.3
+BLUE, LGREY = "#062d60", "#777777"
 v1.rect(lx0, ly0, lx1, ly1)
-MONO = ('<circle r="4.425" fill="none" stroke="#1a1a1a" stroke-width="0.35"/>'
-        '<path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 '
-        'A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill="#1a1a1a" fill-rule="evenodd"/>'
-        '<path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 '
-        'L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z" fill="#1a1a1a"/>')
-v1.items.append(("raw", v1.at(lx0 + 5.6, ly0 + 5.2, 0), 0.9, MONO))          # hardware/dl-monogram.svg, 8 mm across
-v1.text(lx0 + 11.4, ly0 + 6.6, "AirMaster", 5.0, "bold")
-v1.text(lx0 + 38.6, ly0 + 6.5, "air handler monitor", 1.9, fill="#444")
-CALLS = {"PWR": "power", "FAN": "fan", "Y1": "cool 1", "Y2": "cool 2", "W1": "heat 1", "W2": "heat 2"}
+for xc, name, sub in ((14.7, "UNICO", "USB"), (35.5, "PROG", "24 VAC off"), (54.5, "24 VAC", "")):
+    v1.tri(xc, ly0 + 0.25, "up")
+    v1.text(xc, ly0 + 4.6, name, 2.5, "bold", "middle")
+    if sub:
+        v1.text(xc, ly0 + 7.3, sub, 2.1, "normal", "middle")
+for x, c in ((52.6, "C"), (56.4, "R")):           # J1's pins
+    v1.text(x, ly0 + 7.3, c, 2.2, "normal", "middle")
+for xc, name, anchor in ((8.6, "SUP", "start"), (17.85, "RET", "middle"), (56.5, "1-WIRE", "middle")):
+    v1.tri(xc, ly1 - 0.25, "down")
+    v1.text(lx0 + 0.7 if anchor == "start" else xc, ly1 - 5.0, name, 2.5, "bold", anchor)
+for x, c in ((54.0, "G"), (56.5, "D"), (59.0, "V")):                   # J2's pins
+    v1.text(x, ly1 - 2.6, c, 2.2, "normal", "middle")
+v1.text(11.2, ly1 - 2.6, "NTC", 2.0, "normal", "middle"); v1.text(17.85, ly1 - 2.6, "NTC", 2.0, "normal", "middle")
 for y, name, col in LED:
-    v1.text(lx0 + 1.2, y + 0.9, name, 2.5, "bold")
-    v1.text(lx0 + 8.2, y + 0.8, CALLS[name], 1.9, fill="#444")
-v1.rect(lx0 + 16.4, LED[0][0] - 1.6, lx0 + 16.5, LED[-1][0] + 1.6, "#888", "none")
+    v1.tri(lx0 + 0.3, y, "left")
+    v1.text(lx0 + 2.4, y + 0.85, name, 2.3, "bold")
+# title block: the board's monogram in the mask's blue, the name, the tag line under it
+MONO = ('<circle r="4.775" fill="%s" stroke="%s" stroke-width="0.35"/><circle r="4.425" fill="none" stroke="#fff" stroke-width="0.35"/>'
+        '<g fill="#fff"><path d="M -2.35 1.01 L -2.35 -2.51 A 0.24 0.24 0 0 1 -2.11 -2.75 L -1.55 -2.75 A 2 2 0 0 1 -1.55 1.25 L -2.11 1.25 '
+        'A 0.24 0.24 0 0 1 -2.35 1.01 Z M -1.55 -1.95 L -1.55 0.45 A 1.2 1.2 0 0 0 -1.55 -1.95 Z" fill-rule="evenodd"/>'
+        '<path d="M 0.8 -1.23 A 0.24 0.24 0 0 1 1.04 -1.47 L 1.36 -1.47 A 0.24 0.24 0 0 1 1.6 -1.23 L 1.6 1.59 A 0.14 0.14 0 0 0 1.74 1.73 '
+        'L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z"/></g>' % (BLUE, BLUE))
+v1.items.append(("raw", v1.at(27.0, 15.4, 0), 0.95, MONO))
+v1.text(33.0, 15.6, "AirMaster", 5.6, "bold")
+v1.text(33.2, 18.8, "for the Unico SMART controller", 1.9)
 random.seed(6)
-qx, qy, qn, qm = lx0 + 19.0, LED[0][0] - 1.4, 25, 0.62
+qx, qy, qn, qm = 22.0, 23.2, 25, 0.46          # 11.5 mm, the factory label's code; this pattern is a stand-in
 for r in range(qn):
     for c in range(qn):
         corner = (r < 7 and c < 7) or (r < 7 and c >= qn - 7) or (r >= qn - 7 and c < 7)
         ring = corner and (min(r % 18, c % 18) in (0, 6) or max(r % 18, c % 18) in (0, 6) or (2 <= r % 18 <= 4 and 2 <= c % 18 <= 4))
         if ring or (not corner and random.random() < 0.48):
             v1.rect(qx + c * qm, qy + r * qm, qx + (c + 1) * qm, qy + (r + 1) * qm, "#111", "none")
-tx = qx + qn * qm + 2.4
-for i, (a, b) in enumerate((("Setup WiFi", "AirMaster-7K2Q"), ("Password", "h7k3m9px"), ("Then open", "192.168.42.1"))):
-    v1.text(tx, qy + 2.0 + i * 5.4, a, 1.7, fill="#444")
-    v1.text(tx, qy + 4.4 + i * 5.4, b, 2.3, "bold")
-v1.text(qx, qy + qn * qm + 2.6, "Scan the code, or join the setup WiFi", 1.6)
-v1.text(qx, qy + qn * qm + 4.8, "and open the address.", 1.6)
-v1.text(lx0 + 1.2, ly1 - 1.3, "AM-0006", 2.2, "bold")
-v1.text(lx1 - 1.2, ly1 - 1.3, "Rev D  ·  24 VAC on R and C  ·  © 2026 David Lewis", 1.5, "normal", "end", "#444")
+tx = qx + qn * qm + 1.5
+v1.text(tx, qy + 1.7, "To set up:", 2.1)
+v1.text(tx, qy + 4.3, "scan QR or join WiFi ↓", 2.1)
+v1.text(tx, qy + 7.4, "AirMaster-7K2Q", 2.8, "bold")
+v1.text(tx, qy + 10.1, "Password", 2.1)
+v1.text(tx, qy + 13.0, "h7k3m9px", 2.8, "bold", "start", "#111", "Menlo, Consolas, monospace")
+v1.text(tx, qy + 15.6, "S/N AM-0006", 2.0, "normal", "start", LGREY)
+v1.text(36.0, ly1 - 0.9, "© 2026 David Lewis", 1.5, "normal", "middle", LGREY)
 v1.call(LED_X, LED[0][0], ZT, "window: 0.8 mm skin over the LED's shaft", -8, -7)
-v1.call(lx1 - 3.0, ly1 - 0.5, ZT, "one printed label, 56.8 x 38.4, in a 0.3 mm pocket", 4, 26)
+v1.call(lx1 - 1.0, 40.0, ZT, "one printed label, 56.8 x 57.6, in a 0.3 mm pocket", 16, 6)
 v1.call(WL - WALL, 51.5, 3.0, "latch tab: press", -8, -4)
 v1.call(WR + WALL, 5.0, 3.0, "latch tab: press", 4, -9)
 v1.call(WL - WALL - 2, 52.5, LUG_TOP, "lug on the base", -6, 7)
