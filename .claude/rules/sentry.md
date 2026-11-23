@@ -14,8 +14,6 @@ paths:
 
 Loaded when a file under its `paths:` is read; `CLAUDE.md` says to read it first for any work on the Sentry reader, its camera, its calibration or the boiler's display values. Rules here; the measurements and incident history behind them are in the docs named.
 
-**Status:** Fully deployed. `pivac-sentry.service` installed, enabled, and running (2026-03-23).
-
 ### Camera Hardware
 
 - **Device:** Tapo C120 IP camera

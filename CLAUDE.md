@@ -1,7 +1,7 @@
 # CLAUDE.md — pivac (project-specific)
 
 > Working style, machine detection, and GitHub conventions are in the global context:
-> `<github-dir>/claude-contexts/CLAUDE.md`
+> `~/.claude/CLAUDE.md`, a symlink to `<github-dir>/claude-contexts/global.md`
 
 ## What This Project Does
 
@@ -96,7 +96,7 @@ Signal K settings are at `/home/pi/.signalk/settings.json` — `pipedProviders` 
 | pivac-arduino-therm-psi | pivac.ArduinoSensor     | **Boiler/hydronic** pressure (Fusch 100PSI) | 10.0.0.219 |
 | pivac-emporia           | pivac.Emporia           | Emporia Vue Gen 2 (house + apt)  | Emporia cloud |
 | pivac-sentry            | pivac.Sentry            | NTI Trinity Ti-200 boiler (Tapo C120 RTSP) | 10.0.0.19 |
-| ~~pivac-watermeter~~ (STOPPED + DISABLED 2026-06-27) | pivac.WaterMeter | Sensus iPerl LCD (Tapo RTSP) — camera-CV retired, ESP32-CAM TBD | 10.0.0.85 |
+| ~~pivac-watermeter~~ (stopped 2026-06-17, disabled 2026-06-27) | pivac.WaterMeter | Sensus iPerl LCD (Tapo RTSP) — camera-CV retired, ESP32-CAM TBD | 10.0.0.85 |
 | pivac-sprinkler         | pivac.Sprinkler         | OpenSprinkler irrigation flow (local API)  | 10.0.0.17:5000 |
 | pivac-domestic-water    | pivac.DomesticWater     | **Domestic** water meter (DAE MJ-75a, 0.1 gal/pulse) on UNO R4 WiFi | 10.0.0.188 |
 | pivac-chiltrix          | pivac.ChiltrixModbus    | **Chiltrix CX75** heat pump, 184 Modbus addresses | RS-485 → UNO R4 on USB |
@@ -268,7 +268,7 @@ pip install <package> --break-system-packages
 
 ## Dependencies
 
-Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `lxml`, `requests`, `PyYAML`, `websocket-client`, `aiosomecomfort` (RedLink — Honeywell mobile API client; replaced the old `mechanize` + `beautifulsoup4` HTML scraper)
+Key packages: `RPi.GPIO`, `w1thermsensor`, `pytemperature`, `requests`, `PyYAML`, `websocket-client`, `aiosomecomfort` (RedLink — Honeywell mobile API client; replaced the old `mechanize` + `beautifulsoup4` HTML scraper)
 
 ## Keeping These Files Current
 
