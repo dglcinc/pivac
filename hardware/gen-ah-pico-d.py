@@ -283,7 +283,7 @@ path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
 # no vias through the monogram and legends, front or back
 for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 38.6, 15.5, 40.4, "AirMaster"), (10.2, 40.4, 14.0, 41.9, "Rev D"),
-                             (CX - 8.0, 48.8, CX + 8.0, 52.0, "licence"),
+                             (CX - 8.0, 50.2, CX + 8.0, 53.4, "licence"),
                              *((LX + 4.3, y - 0.6, LX + 6.3, y + 0.6, "LED legend") for y in (21, 25, 29, 33, 37, 41))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
 
@@ -301,12 +301,15 @@ for ref, x, y, net, lx, ly in (("TP1", 49.8, 41.7, "VS", 47.9, 41.9), ("TP2", 56
     test_hole(ref, x, y, net)
     B.text(net, lx, ly, size=0.7, bold=True)
     B.text(net, x, y + 2.0, layer="B.SilkS", size=0.8, bold=True)
-TX, TY0, TDY = CX - 5.5, 13.6, 2.7       # between the Pico's left pads and the keep-outs under its TP4 and TP6
+TX, TY0, TDY = CX - 5.5, 13.6, 2.4       # between the Pico's left pads and the keep-outs under its TP4 and TP6
 # name, net, reading with the power off (ohms to GND unless it says otherwise), reading on 24 VAC
 TABLE = (("GND", "GND", "", "reference"), ("3V3", "3V3", "no short", "3.3 V"), ("VSYS", "VSYS", "no short", "5 V"),
          ("VBUS", "VBUS", "no short", "0, laptop 5 V"), ("5V", "+5V", "no short", "5.1 V"), ("OE", "OE", "no short", "0, laptop 3 V"),
          ("SUP", "SUP", "20 k", "3.3 V open"), ("RET", "RET", "20 k", "3.3 V open"), ("1W", "OW", "no short", "3.3 V idle"),
-         ("SDA", "SDA", "4k7 to 3V3", "3.3 V idle"), ("SCL", "SCL", "4k7 to 3V3", "3.3 V idle"))
+         ("SDA", "SDA", "4k7 to 3V3", "3.3 V idle"), ("SCL", "SCL", "4k7 to 3V3", "3.3 V idle"),
+         # the USB pair at its U5 end: each beeps to its filled hole under the Pico's micro-USB, which proves the
+         # hole took solder and the track from it to U5 is whole
+         ("D+", "PD+", "0 to D+ hole", ""), ("D-", "PD-", "0 to D- hole", ""))
 XN, XOFF, XON = TX - 3.3, TX - 10.2, TX - 20.2    # seen from the back: hole, name, power off, power on
 for i, (name, net, off, on) in enumerate(TABLE):
     y = TY0 + i * TDY
@@ -314,7 +317,8 @@ for i, (name, net, off, on) in enumerate(TABLE):
     B.text(name, XN, y, layer="B.SilkS", size=0.9, bold=True)
     if off:
         B.text(off, XOFF, y, layer="B.SilkS", size=0.8)
-    B.text(on, XON, y, layer="B.SilkS", size=0.8)
+    if on:
+        B.text(on, XON, y, layer="B.SilkS", size=0.8)
 B.text("POWER OFF", XOFF, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
 B.text("to GND", XOFF, TY0 - 2.7, layer="B.SilkS", size=0.8)
 B.text("ON 24 VAC", XON, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
@@ -341,8 +345,8 @@ B.text("AirMaster", 12.1, 39.5, size=0.9, bold=True)       # the two lines centr
 B.text("Rev D", 12.1, 41.15, size=0.7)
 # the sensor legends leave no room beside the title block on the front, so the licence goes on the back, in the
 # open pour under the Pico
-B.text("\u00a9 2026 David Lewis", CX, 49.6, layer="B.SilkS", size=0.9)
-B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
+B.text("\u00a9 2026 David Lewis", CX, 51.0, layer="B.SilkS", size=0.9)
+B.text("CC BY-NC 4.0", CX, 52.6, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 REFS = [("F1", 52.3, 14.2, 90, 0.8), ("D2", 57.7, 13.0, 90, 0.8), ("C1", 55.1, 24.2, 0, 0.8), ("D1", 56.9, 39.9, 0, 0.8), ("C2", 55.4, 44.0, 0, 0.8),
         ("R11", 41.57, 4.7, 0, 0.6), ("R12", 41.57, 5.9, 0, 0.6), ("Q1", 44.1, 11.8, 0, 0.6), ("J1", 52.95, 2.6, 90, 0.7),
