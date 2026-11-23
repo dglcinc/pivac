@@ -800,7 +800,7 @@
 <text x="95.10" y="192.80" font-size="2.4" fill="#c00" text-anchor="end">pin</text>
 <path d="M54.60 209.00 L45.60 209.00" stroke="#c00" stroke-width="0.15" fill="none"/>
 <circle cx="54.60" cy="209.00" r="0.45" fill="#c00"/>
-<text x="44.80" y="209.80" font-size="2.4" fill="#c00" text-anchor="end">shafts: a pipe drops into each from this side</text>
+<text x="44.80" y="209.80" font-size="2.4" fill="#c00" text-anchor="end">pipe shafts</text>
 <text x="164.8" y="173.0" font-size="3.4" font-weight="bold">3. Base, from above</text>
 <text x="164.8" y="176.8" font-size="2.5" fill="#444">Tape under the plate, or two #6 pan heads in the slots.</text>
 <path d="M168.00 231.20 L168.00 182.20" fill="none" stroke="#111" stroke-width="0.18"/>

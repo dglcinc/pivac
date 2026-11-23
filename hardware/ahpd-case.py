@@ -430,7 +430,7 @@ for side, a0, a1 in HOOKS:
     v2.call(p[0], p[1], -BT - 1, "board hook", {"L": -7, "R": 6, "S": 4}[side], {"L": -7, "R": 9, "S": 8}[side])
 for i, (x, y) in enumerate(PINS):
     v2.call(x, y, 0.1, "pin", 5 if x < 40 else -5, -4 if i % 2 else 4)
-v2.call(LED_X, LED[2][0], 1.2, "shafts: a pipe drops into each from this side", -9, 0)
+v2.call(LED_X, LED[2][0], 1.2, "pipe shafts", -9, 0)
 v3 = View("plan", "3. Base, from above", "Tape under the plate, or two #6 pan heads in the slots.")
 v3.outline(base)
 v3.call(SCREWS[0][0], SCREWS[0][1], ZS, "slot 4 x 10", 3, 14)
