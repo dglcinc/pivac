@@ -22,6 +22,8 @@ headers. `docs/air-handler-shield-pcb-layout.svg` is the floor plan, generated b
 
 The node plugs into the control box's USB-B jack as a USB host and leaves the data cable alone. Its controller is a Raspberry Pi Pico W soldered flat to a 56.4 x 56 mm carrier, using the RP2040's built-in USB host, in a 66 x 67 x 28 mm box. `hardware/gen-ah-pico.py` generates the board in `hardware/ahp-board/`, `hardware/ahp-box-models.py` models the box and `hardware/ahp-render.sh` renders both.
 
+Rev D, laid out for a fabricator to assemble and for a printed case, is `docs/air-handler-pico-revd-plan.md`.
+
 ![Carrier from above](air-handler-pico-board-top.png)
 ![Carrier](air-handler-pico-board-iso.png)
 ![In the base, lid off](air-handler-pico-box-open.png)

@@ -13,38 +13,39 @@ micro-USB with 24 VAC on, and it puts the status LEDs on the back, shining throu
 ## Parts for one board
 
 Source says where the part on the bench comes from: the Digi-Key orders of 2026-10-31 and 2026-11-10, the Mouser
-order of 2026-11-10, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
+orders of 2026-11-10, 11-11, 11-12 and 11-21, the spares from the rev A shield's Mouser order under its rev A reference, the Amazon LED kit,
 or the next order.
 
 | Ref | Part number | Description | Source |
 |---|---|---|---|
-| U4 | SC0918 | Pico W | Digi-Key, Mouser |
-| U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31 |
+| U4 | SC0918 | Pico W | Digi-Key 10-31 (2), Mouser 11-10 (3), 11-12 (3) |
+| U3 | ADS1115IDGSR | 16-bit ADC, VSSOP-10 | Digi-Key 10-31, Mouser 11-21 (3) |
 | U2 | DS2482S-100+T&R | 1-wire master, SOIC-8 | Digi-Key 10-31 |
 | U1 | TEC 3-4811WI | 24 V to 5 V, SIP-8 | Digi-Key 11-10 |
+| U1 | SPBW03G-05 | the same, Mean Well | Mouser 11-21 (3), note 8 |
 | U5 | FSUSB42MUX | USB 2.0 switch, MSOP-10 | Mouser 11-10 (10) |
 | Q1 | DMG2305UX-13 | P-FET, SOT-23 | Mouser 11-10 (10) |
 | R1, R2 | RC0805FR-074K7L | 4.7 k, 0805 | rev A R13–R15 |
-| R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31 |
-| R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 |
-| R11 | RC0805FR-07100KL | 100 k, 0805 | Mouser 11-12 |
-| R12 | RC0805FR-0722KL | 22 k, 0805 | Mouser 11-12 |
-| R13 | RC0805FR-0733KL | 33 k, 0805 | Mouser 11-12 |
+| R3, R4 | RT0805BRD0710KL | 10 k, 0.1 %, 0805 | Digi-Key 10-31, Mouser 11-11 (20) |
+| R5–R10 | ERJ-6ENF2200V | 220 Ω, 0805 | Mouser 11-10 (100) |
+| R11 | RC0805FR-07100KL | 100 k, 0805 | Mouser 11-12 (100) |
+| R12 | RC0805FR-0722KL | 22 k, 0805 | Mouser 11-12 (100) |
+| R13 | RC0805FR-0733KL | 33 k, 0805 | Mouser 11-12 (100) |
 | C1 | UUD1H470MCL1GS | 47 µF 50 V can | Digi-Key 11-10 |
-| C2 | GCJ31CR71A106KA13L | 10 µF, 1206 | rev A C2 |
-| C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31 |
+| C2 | GCJ31CR71A106MA13L | 10 µF, 1206 | Mouser 11-11 (20) |
+| C3–C7 | CC0805KRX7R9BB104 | 100 nF, 0805 | Digi-Key 10-31, Mouser 11-11 (50) |
 | F1 | 1812L020/60DR | PTC fuse 0.2 A, 1812 | rev A F1, F2 |
 | D1 | S1M-E3/61T | rectifier, SMA | Digi-Key 10-31 |
-| D2 | SMAJ43CA | TVS 43 V, SMA | Digi-Key 10-31 |
+| D2 | SMAJ43CA | TVS 43 V, SMA | Digi-Key 10-31, Mouser 11-21 (10) |
 | LED1 | 0805 green | PWR | Amazon kit |
 | LED2 | 0805 yellow | FAN | Amazon kit |
 | LED3, LED4 | 0805 blue | Y1, Y2 | Amazon kit |
 | LED5, LED6 | 0805 red | W1, W2 | Amazon kit |
 | J1 | 3.81 mm 2-pin | 24 VAC header, plug | Amazon, in hand |
-| J2 | 1778777, 1778845 | PTSM 3-pin, plug | Mouser 11-10 |
+| J2 | 1778777, 1778845 | PTSM 3-pin, plug | Mouser 11-10, 11-21 (5 headers) |
 | J3 | 1778780, 1778858 | PTSM 4-pin, plug | Mouser 11-10 |
 | J4 | 61400416021 | USB-A, through-hole | Digi-Key 11-10 |
-| Box | 1593KGY | Hammond box, grey | Digi-Key |
+| Box | 1593KGY | Hammond box, grey | Digi-Key, Mouser 11-12 (3) |
 | Screws | 1593ATS50 | #4 × 1/4, three | Digi-Key 10-31 |
 
 1. The Mouser order of 2026-11-12 carries R11–R13 and the 100 Ω 0805s of note 3 (Panasonic ERJ-6ENF1000V). Q1 is
@@ -57,6 +58,17 @@ or the next order.
 4. C1, U1 and the Rev B notes on them hold here: C1 is 6.3 mm across at most, the TEC 3-4811WI takes U1's footprint,
    and the TMR 3-4811WIE does not suit (`docs/air-handler-pico-assembly.md`, notes 1 and 3).
 5. TP1–TP3 and the three screw holes take no part.
+6. C2: the rev A shield's C2 spares (GCJ31CR71A106KA13L, the 10 % part) also fit.
+7. Two bags from the Mouser order of 2026-11-11 belong to no Rev C position: 100 of RC0603FR-07220RL, which is
+   220 Ω in 0603 where R5–R10 take 0805, and 10 of LTST-S220KGKT, the Rev B side-firing green LED.
+8. U1 alternative: Mean Well SPBW03G-05, Mouser 709-SPBW03G-05, $8.42 with 131 in stock on 2026-11-21, when Mouser
+   had no TEC 3-4811WI. It has the TEC's pins (1 −Vin, 2 +Vin, 3 remote, 5 and 8 no connection, 6 +Vout, 7 −Vout),
+   18–75 V in, 5 V ±1.5 % at 600 mA, no minimum load, and runs with pin 3 open. Its body is 21.8 × 9.2 × 11.1 mm with
+   the pin row 3.5 mm from the face toward the Pico, 0.1 mm wider than the TEC, so it clears C1's base by 0.1 mm:
+   solder C1 first and seat U1 toward the Pico before soldering it. Mean Well specifies it on a DC input, so run
+   the first one on 24 VAC at the node's load before fitting more. Use the G part; the SPBW03F-05 is 9–36 V.
+9. The Mouser order of 2026-11-21 also carries 5 of Phoenix 1808190 (PTSM 0,5/2-HH0-2,5-SMD), a 2-pin header that
+   belongs to no Rev C position. Rev D's air-sensor headers J3 and J5 are drawn for 1778764, the HH part.
 
 ## Assembly order
 
@@ -85,7 +97,7 @@ part with a pad 1.
    iron brief on the LEDs, because the lens is plastic.
 8. **J2, J3.** Push each PTSM header's pegs into their holes with the entry face flush to the board edge, solder one
    end anchor, check it sits square, then the contacts and the other anchor. Keep the iron off the housing.
-9. **U1, J1, J4.** U1's pin 1 is the dot. J1's entry faces the top edge. J4's opening faces past the top edge;
+9. **U1, J1, J4.** U1's pin 1 is the dot; seat an SPBW03G-05 toward the Pico (note 8). J1's entry faces the top edge. J4's opening faces past the top edge;
    solder both shield legs fully through. Wash the board with isopropyl alcohol, around U3 and U5 most of all.
 
 ## The box
