@@ -368,7 +368,11 @@ v1.text(33.0, 15.6, "AirMaster", 5.6, "bold")
 v1.text(33.2, MY + MR, "for the Unico SMART controller", 1.9)
 # the setup block: one line of instruction, then the code beside three key and value groups of one style, the code
 # as tall as the three groups together
-GX, GY, GP = 20.5, 26.6, 6.3                   # the block's left edge, the first key's baseline, the groups' pitch
+GX, GP = 20.5, 6.3                             # the block's left edge and the groups' pitch
+# the block runs from the instruction's capitals (4.8 above the first key's baseline) to the code's foot (2 * GP + 3.2
+# below it), and stands midway between the ring's foot and the tops of the plug names along the bottom edge
+CAP = 0.716                                    # Helvetica's capital height, as a share of the font size
+GY = ((MY + MR) + (ly1 - 5.0 - CAP * 2.5)) / 2 - ((2 * GP + 3.2) - (3.3 + CAP * 2.1)) / 2
 v1.text(GX, GY - 3.3, "To set up, scan the code or join the WiFi:", 2.1)
 random.seed(6)
 qn = 29                                        # a version 3 code, which the WiFi text needs; this pattern is a stand-in
