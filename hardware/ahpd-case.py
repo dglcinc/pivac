@@ -363,9 +363,13 @@ MONO = ('<circle r="4.775" fill="%s" stroke="%s" stroke-width="0.35"/><circle r=
         'L 2.793 1.73 A 0.24 0.24 0 0 1 3.033 1.97 L 3.033 2.29 A 0.24 0.24 0 0 1 2.793 2.53 L 1.04 2.53 A 0.24 0.24 0 0 1 0.8 2.29 Z"/></g>' % (BLUE, BLUE))
 # the monogram just below the centre of the name's capitals, and the tag line under the name
 MY = 15.6 - 0.716 * 5.6 / 2 + 0.5; MR = (4.775 + 0.175) * 0.95       # 0.5 mm below the capitals' centre, by eye
-v1.items.append(("raw", v1.at(27.0, MY, 0), 0.95, MONO))
-v1.text(33.0, 15.6, "AirMaster", 5.6, "bold")
-v1.text(33.2, MY + MR - 0.5, "for the Unico SMART controller", 1.9)        # 0.5 mm above the ring's foot, nearer the name
+# the three keep their spacing and stand centred between the label's side margins. Widths are Helvetica's: the name
+# is 4.612 em in bold and the tag line 13.837 em in regular
+TW = max(6.0 + 4.612 * 5.6, 6.2 + 13.837 * 1.9) + MR      # from the ring's left edge to the longer line's end
+TXO = (lx0 + lx1) / 2 - TW / 2 + MR                        # the monogram's centre
+v1.items.append(("raw", v1.at(TXO, MY, 0), 0.95, MONO))
+v1.text(TXO + 6.0, 15.6, "AirMaster", 5.6, "bold")
+v1.text(TXO + 6.2, MY + MR - 0.5, "for the Unico SMART controller", 1.9)        # 0.5 mm above the ring's foot, nearer the name
 # the setup block: one line of instruction, then the code beside three key and value groups of one style, the code
 # as tall as the three groups together
 GX, GP = 20.5, 6.3                             # the block's left edge and the groups' pitch
