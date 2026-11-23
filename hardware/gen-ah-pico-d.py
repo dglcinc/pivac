@@ -282,7 +282,7 @@ path("COM", "F.Cu", (52.9, d2c[1]), d2c)
 path("COM", "F.Cu", c1c, (47.5, c1c[1])); via("COM", 47.5, c1c[1])
 
 # no vias through the monogram and legends, front or back
-for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 37.7, 16.2, 39.2, "AIR HANDLER"), (8.9, 39.2, 12.6, 41.9, "PICO W Rev D"),
+for x0, y0, x1, y1, name in ((2.9, 37.5, 8.5, 43.1, "monogram"), (8.7, 37.7, 16.2, 39.5, "AirMaster"), (8.9, 39.5, 12.6, 41.2, "Rev D"),
                              (CX - 8.0, 48.8, CX + 8.0, 52.0, "licence"),
                              *((LX + 4.3, y - 0.6, LX + 6.3, y + 0.6, "LED legend") for y in (21, 25, 29, 33, 37, 41))):
     B.rect_keepout(x0, y0, x1, y1, layers=("F.Cu", "B.Cu"), name=name, pads=False, footprints=False, tracks=False, vias=True, pour=False)
@@ -332,9 +332,8 @@ path("COM", "B.Cu", (56.2, 2.6), (52.9, 5.9), (52.9, 11.0))
 
 # --- legends
 gb.monogram(B, 5.7, 40.3, 0.6)         # smaller than Rev C's, to stand clear of the LED names
-B.text("AIR HANDLER", 8.9, 38.5, size=0.7, bold=True, left=True)
-B.text("PICO W", 9.1, 39.9, size=0.65, left=True)
-B.text("Rev D", 9.1, 41.2, size=0.65, left=True)
+B.text("AirMaster", 8.9, 38.6, size=0.9, bold=True, left=True)
+B.text("Rev D", 9.1, 40.4, size=0.7, left=True)
 # the sensor legends leave no room beside the title block on the front, so the licence goes on the back, in the
 # open pour under the Pico
 B.text("\u00a9 2026 David Lewis", CX, 49.6, layer="B.SilkS", size=0.9)
