@@ -92,14 +92,14 @@ B.place("J4", j, JX, JO, 0, value="U-A-24SS-W-1")
 # --- top edge: 24 VAC, Phoenix MC 1,5/2-G-3,81 footprint, entry toward the edge
 MX = 47.5
 mc = B.lib("J1", "Connector_Phoenix_MC", "PhoenixContact_MC_1,5_2-G-3.81_1x02_P3.81mm_Horizontal", MX + 1.905, 8.5, 180, value="3.81 mm 2-pin 24VAC")
-B.text("24 VAC", 53.7, 6.7, size=0.8, bold=True, rot=90)
+B.text("24 VAC", 52.95, 6.7, size=0.8, bold=True, rot=90)
 
 # --- bottom edge: PTSM surface-mount headers, entry toward the edge. The two air sensors take a 2-pin header each
 # on the left, beside the ADS1115; the 1-wire pair shares the 3-pin header on the right
 for ref, n, x, lab in (("J3", 2, -0.75, "SUP"), ("J5", 2, 10.85, "RET"), ("J2", 3, 49.5, "1-WIRE")):
     fp = gb.ptsm_hh_smd(B, n)
     B.place(ref, fp, x, L, 180, value=f"PTSM 0,5/{n}-HH-2,5-SMD")
-    B.text(lab, x, L - 12.1, size=0.8, bold=True)
+    B.text(lab, x, L - 12.1 if n == 3 else L - 10.7, size=0.8, bold=True)     # J2's pin letters stand between
 
 # --- power
 B.lib("F1", "Fuse", "Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder", 48.6, 14.2, 0, value="PTC 0.2A")
@@ -301,18 +301,29 @@ for ref, x, y, net, lx, ly in (("TP1", 49.8, 41.7, "VS", 47.9, 41.9), ("TP2", 56
     test_hole(ref, x, y, net)
     B.text(net, lx, ly, size=0.7, bold=True)
     B.text(net, x, y + 2.0, layer="B.SilkS", size=0.8, bold=True)
-TX, TY0, TDY = CX - 5.5, 13.0, 3.0       # between the Pico's left pads and the keep-outs under its TP4 and TP6
-TABLE = (("GND", "GND", "reference"), ("3V3", "3V3", "3.3 V"), ("VSYS", "VSYS", "5 V"), ("VBUS", "VBUS", "0 V, laptop 5 V"),
-         ("5V", "+5V", "5.1 V"), ("OE", "OE", "0 V, laptop 3.0 V"), ("SUP", "SUP", "20 k to GND, off"),
-         ("RET", "RET", "20 k to GND, off"), ("1W", "OW", "3.3 V idle"))
-for i, (name, net, expect) in enumerate(TABLE):
+TX, TY0, TDY = CX - 5.5, 13.6, 2.7       # between the Pico's left pads and the keep-outs under its TP4 and TP6
+# name, net, reading with the power off (ohms to GND unless it says otherwise), reading on 24 VAC
+TABLE = (("GND", "GND", "", "reference"), ("3V3", "3V3", "no short", "3.3 V"), ("VSYS", "VSYS", "no short", "5 V"),
+         ("VBUS", "VBUS", "no short", "0, laptop 5 V"), ("5V", "+5V", "no short", "5.1 V"), ("OE", "OE", "no short", "0, laptop 3 V"),
+         ("SUP", "SUP", "20 k", "3.3 V open"), ("RET", "RET", "20 k", "3.3 V open"), ("1W", "OW", "no short", "3.3 V idle"),
+         ("SDA", "SDA", "4k7 to 3V3", "3.3 V idle"), ("SCL", "SCL", "4k7 to 3V3", "3.3 V idle"))
+XN, XOFF, XON = TX - 3.3, TX - 10.2, TX - 20.2    # seen from the back: hole, name, power off, power on
+for i, (name, net, off, on) in enumerate(TABLE):
     y = TY0 + i * TDY
     test_hole("TP%d" % (i + 4), TX, y, net)
-    B.text(name, TX - 3.3, y, layer="B.SilkS", size=0.9, bold=True)       # seen from the back: hole, name, reading
-    B.text(expect, TX - 12.8, y, layer="B.SilkS", size=0.8)
-B.text("CHECKS ON 24 VAC", TX - 8.0, TY0 - 3.2, layer="B.SilkS", size=0.9, bold=True)
-B.text("VS to COM  35 V", TX - 8.0, TY0 + 9 * TDY - 0.2, layer="B.SilkS", size=0.8)
-B.text("COM to GND  open", TX - 8.0, TY0 + 9 * TDY + 1.3, layer="B.SilkS", size=0.8)
+    B.text(name, XN, y, layer="B.SilkS", size=0.9, bold=True)
+    if off:
+        B.text(off, XOFF, y, layer="B.SilkS", size=0.8)
+    B.text(on, XON, y, layer="B.SilkS", size=0.8)
+B.text("POWER OFF", XOFF, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
+B.text("to GND", XOFF, TY0 - 2.7, layer="B.SilkS", size=0.8)
+B.text("ON 24 VAC", XON, TY0 - 4.3, layer="B.SilkS", size=0.8, bold=True)
+B.text("to GND", XON, TY0 - 2.7, layer="B.SilkS", size=0.8)
+yf = TY0 + len(TABLE) * TDY
+B.text("VS to COM", XN - 2.0, yf, layer="B.SilkS", size=0.8, bold=True)
+B.text("no short", XOFF - 2.6, yf, layer="B.SilkS", size=0.8); B.text("35 V", XON, yf, layer="B.SilkS", size=0.8)
+B.text("COM to GND", XN - 2.4, yf + 1.5, layer="B.SilkS", size=0.8, bold=True)
+B.text("open", XOFF - 2.6, yf + 1.5, layer="B.SilkS", size=0.8); B.text("open", XON, yf + 1.5, layer="B.SilkS", size=0.8)
 for lab, num in (("D-", "TP2"), ("D+", "TP3")):
     x, y = B.pad_xy("U4", num)
     B.text(lab, x + (0.3 if lab == "D-" else -0.3), 0.95, layer="B.SilkS", size=0.5, bold=True)
@@ -331,15 +342,17 @@ B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 REFS = [("F1", 52.3, 14.2, 90, 0.8), ("D2", 57.7, 13.0, 90, 0.8), ("C1", 55.1, 24.2, 0, 0.8), ("D1", 56.9, 39.9, 0, 0.8), ("C2", 55.4, 44.0, 0, 0.8),
         ("R11", 41.57, 4.7, 0, 0.6), ("R12", 41.57, 5.9, 0, 0.6), ("Q1", 44.1, 11.8, 0, 0.6), ("J1", 47.5, 11.8, 0, 0.6),
-        ("J2", 45.6, 43.9, 0, 0.7), ("J3", -3.7, 43.9, 0, 0.7), ("J5", 8.3, 43.9, 0, 0.7), ("J4", -3.8, 10.4, 0, 0.7),
+        ("J2", 45.6, 43.9, 0, 0.7), ("J3", -3.7, 45.3, 0, 0.7), ("J5", 8.3, 45.3, 0, 0.7), ("J4", -3.8, 10.4, 0, 0.7),
         ("R13", -0.6, B.pad_xy("R13", 1)[1], 0, 0.7), ("C7", 0.8, 18.0, 0, 0.6), ("U5", 6.2, 20.75, 0, 0.7),
         ("R1", 2.2, 26.5, 90, 0.7), ("R3", 2.2, 30.5, 90, 0.7), ("C5", 2.2, 34.5, 90, 0.7),
         ("R2", 5.3, 26.5, 90, 0.7), ("R4", 5.3, 30.5, 90, 0.7), ("C6", 5.3, 34.5, 90, 0.7)]
 for ref, y, lab, rref, net, pin, part in LED:
-    REFS += [(ref, LX - 1.3, y - 1.6, 0, 0.6), (rref, 1.15, y + 0.15, 0, 0.6)]
+    REFS += [(ref, LX - 1.3, y - 1.6, 0, 0.6), (rref, 0.3, y + 0.15, 0, 0.6)]
 for ref, x, y, angle, size in REFS:
     t = B.refs[ref].Reference(); t.SetPosition(mm(x, y)); t.SetTextAngleDegrees(angle)
     t.SetTextSize(VECTOR2I(FromMM(size), FromMM(size))); t.SetTextThickness(FromMM(size * 0.15))
+    if ref in [l[3] for l in LED]:        # the LED resistors' references start beside their parts
+        t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_LEFT)
 for g in u1.GraphicalItems():           # U1's pin names would lie under its body
     if g.GetClass() == "PCB_TEXT" and g.GetLayer() == pcbnew.F_SilkS:
         g.SetLayer(pcbnew.F_Fab)

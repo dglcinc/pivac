@@ -14,7 +14,8 @@ face, and three snap hooks in the walls catch its back. Every connector stands i
 base. Two latch tabs in the top's side walls, at opposite corners, catch a lug each on the base; squeezing the two
 tabs releases the top, which comes away with the board and its plugs. A low rim on the base stands inside the
 top's walls and locates it. The left of the top is a terrace 4.1 mm above the board, over the six status LEDs:
-each LED shines through a 0.8 mm skin in its own cell, and its name is cut into the terrace beside it.
+and a trough in it over the LED column drops to a 0.8 mm skin 0.5 mm over the LEDs: each LED shines through the
+skin in its own cell, and its name is cut into the terrace beside it.
 
 Positions are given in the board's own frame, as gen-ah-pico-d.py leaves it (x 0.3-65.7, y 0-56 from the top
 edge, millimetres), z 0 on the board's top face and positive toward the top's face.
@@ -63,7 +64,7 @@ TER_X, TER_Y = 24.4, (11.3, 48.1)                 # the low room's edge: the Pic
                                                   # y 10.9 and the sensor headers start at y 48.5
 STEP = 2.0             # the walls from the terrace up to the face
 DECK = (2.3, 4.1)      # underside and top of the terrace, above the board
-SKIN = 0.8             # left over each LED
+SKIN = (1.4, 2.2)      # the skin over the LEDs, above the board: a trough in the terrace, 0.5 mm over an LED's top
 LED_X = 3.2
 LED = ((21.0, "PWR", "ledG"), (25.0, "FAN", "ledY"), (29.0, "Y1", "ledB"), (33.0, "Y2", "ledB"),
        (37.0, "W1", "ledR"), (41.0, "W2", "ledR"))
@@ -121,11 +122,14 @@ ty0, ty1 = TER_Y
 top = top.fuse(box(WL - 0.1, TER_X, ty0, ty1, DECK[0], ROOM + 0.1))                 # the terrace and its step walls
 top = top.cut(box(WL - WALL - 1, TER_X - STEP, ty0 + STEP, ty1 - STEP, DECK[1], ZT + 1))
 cx0, cx1, ch = CELL
-for y, name, col in LED:
-    top = top.cut(box(cx0, cx1, y - ch, y + ch, DECK[0] - 0.1, DECK[1] - SKIN))    # the cell: 0.8 mm of skin over the LED
+# the trough over the LED column: the terrace and the left wall drop to the skin, which lies 0.5 mm over the LEDs,
+# so each light shows on a surface 1.3 mm above its LED and open to the left
+tr0, tr1 = LED[0][0] - 2.5, LED[-1][0] + 2.5
+top = top.fuse(box(WL - 0.1, cx1 + 0.8, tr0, tr1, SKIN[0], DECK[0] + 0.1))
+top = top.cut(box(WL - WALL - 1, cx1 + 0.8, tr0, tr1, SKIN[1], ZT + 1))
 for y in [LED[0][0] - 2.0] + [l[0] + 2.0 for l in LED]:                             # walls between the cells
-    top = top.fuse(box(WL - 0.1, cx1, y - 0.5, y + 0.5, 0.3, DECK[0] + 0.1))
-top = top.fuse(box(cx1, cx1 + 0.8, LED[0][0] - 2.5, LED[-1][0] + 2.5, 0.9, DECK[0] + 0.1))   # and inboard, over R5-R10
+    top = top.fuse(box(WL - 0.1, cx1, y - 0.5, y + 0.5, 0.3, SKIN[0] + 0.1))
+top = top.fuse(box(cx1, cx1 + 0.8, tr0, tr1, 0.9, SKIN[0] + 0.1))                   # and inboard, over R5-R10
 for x, y in PINS:
     under = x < TER_X and ty0 < y < ty1
     top = top.fuse(cyl(x, y, 1.2, 0.1, DECK[0] + 0.1) if under else cone(x, y, 1.2, 2.6, 0.1, ROOM + 0.1))
@@ -135,7 +139,7 @@ for notches, end in ((TOP_NOTCH, "T"), (BOT_NOTCH, "B")):
         top = top.cut(box(xc - hw, xc + hw, y0, y1, ZS - 1, h))
         top = top.cut(legend(name, 2.6, xc, 3.6 if end == "T" else BL - 3.6, ZT))
 for y, name, col in LED:
-    top = top.cut(legend(name, 2.4, cx1 + 2.2, y, DECK[1], left=True))
+    top = top.cut(legend(name, 2.4, cx1 + 1.8, y, DECK[1], left=True))
 lx0, lx1, ly0, ly1, ld = LABEL
 top = top.cut(box(lx0, lx1, ly0, ly1, ZT - ld, ZT + 1))
 
@@ -198,7 +202,7 @@ BODIES = {"board": (BX0, BX1, 0, BL, -BT, 0),
           "U1": (48.39, 58.15, 17.0, 39.2, 0, 12.0), "C1": (58.8, 65.4, 26.3, 32.9, 0, 7.8),
           "D2": (60.0, 63.6, 9.5, 16.5, 0, 2.5), "F1": (52.4, 58.8, 12.2, 16.2, 0, 1.6),
           "D1 C2": (58.3, 65.4, 35.7, 43.1, 0, 2.5), "Q1 R11 R12": (47.2, 51.5, 0.5, 16.4, 0, 1.3),
-          "R5-R10": (5.5, 7.4, 19.0, 43.0, 0, 0.7), "left parts": (7.5, 23.8, 13.0, 37.0, 0, 1.8),
+          "R5-R10": (5.5, 7.4, 19.0, 43.0, 0, 0.7), "test holes": (29.0, 32.0, 12.0, 42.0, -BT - 0.1, -BT), "left parts": (7.5, 23.8, 13.0, 37.0, 0, 1.8),
           "J3": (2.9, 9.6, 48.5, 56.0, 0, 5.0), "J5": (14.5, 21.2, 48.5, 56.0, 0, 5.0), "J2": (51.9, 61.1, 48.5, 56.0, 0, 5.0),
           "J3 plug": (3.0, 9.5, 51.0, 68.0, 0, 5.2), "J5 plug": (14.6, 21.1, 51.0, 68.0, 0, 5.2),
           "J2 plug": (52.0, 61.0, 51.0, 68.0, 0, 5.2), "J1 plug": (49.5, 59.5, -13.0, 0.5, 0.4, 10.0),
@@ -317,7 +321,7 @@ v1.outline(closed)
 for y, name, col in LED:                          # where each LED shows through the skin
     a, b = v1.at(CELL[0], y - CELL[2], 0), v1.at(CELL[1], y + CELL[2], 0)
     v1.items.append(("fill", [[(a[0], a[1]), (b[0], a[1]), (b[0], b[1]), (a[0], b[1])]], LEDCOL[col]))
-v1.call(LED_X, LED[0][0], DECK[1], "LED under a 0.8 mm skin", -8, -7)
+v1.call(LED_X, LED[0][0], SKIN[1], "trough: LED under a 0.8 mm skin", -8, -7)
 v1.call(1.0, 31.0, DECK[1], "terrace, 4.1 above the board", -8, 0)
 v1.call(46.0, 28.0, ZT, "label pocket 38 x 39, 0.3 deep", 10, 38)
 v1.call(WL - WALL, 51.5, 3.0, "latch tab: press", -8, -4)
@@ -350,12 +354,13 @@ v6.outline(closed)
 v6.call(36.0, WB + WALL, -3.0, "board hook", 5, 13)
 va = View("left", "A. Section along the LED column, x 3.2", "Twice size. Each LED in its own cell.")
 section(va, -X(LED_X))
-va.call(LED_X, LED[1][0], DECK[1] - SKIN / 2, "0.8 mm skin", 3, -12)
+va.call(LED_X, LED[1][0], (SKIN[0] + SKIN[1]) / 2, "0.8 mm skin, 0.5 over the LED", 3, -12)
 va.call(LED_X, LED[2][0] + 2.0, 1.2, "cell wall", 12, 16)
 va.call(LED_X, LED[1][0], 0.5, "LED", -12, 16)
 vb = View("sensor", "B. Section across at y 33, through LED Y2 and the right hook", "Twice size.")
 section(vb, -Y(33.0))
-vb.call(LED_X, 33.0, DECK[1] - SKIN / 2, "skin over the LED", 4, -14)
+vb.call(LED_X, 33.0, (SKIN[0] + SKIN[1]) / 2, "trough and skin", 2, -16)
+vb.call(12.0, 33.0, DECK[1], "terrace: LED names", 2, -9)
 vb.call(35.0, 33.0, 3.0, "Pico W", 4, -8)
 vb.call(53.0, 33.0, 8.0, "U1", 5, -5)
 vb.call(WR - 0.6, 33.0, -BT - 0.6, "hook under the board", -8, 12)
@@ -419,7 +424,7 @@ if MODELS:
         parts.append((cbox(X(LED_X) - 1.0, X(LED_X) + 1.0, Y(y) - 0.625, Y(y) + 0.625, 0, 0.8), col))
     wrl("parts.wrl", parts)
     wrl("tray.wrl", [(base, "tray")])
-    lit = [(cbox(X(CELL[0]), X(CELL[1]), Y(y) - CELL[2], Y(y) + CELL[2], DECK[1], DECK[1] + 0.05), col) for y, name, col in LED]
+    lit = [(cbox(X(CELL[0]), X(CELL[1]), Y(y) - CELL[2], Y(y) + CELL[2], SKIN[1], SKIN[1] + 0.05), col) for y, name, col in LED]
     wrl("cap.wrl", [(top, "cap")] + lit)
     def wire(x, y0, y1, z, col, r=0.75):
         return (Part.makeCylinder(r, abs(y1 - y0), V(x, min(y0, y1), z), V(0, 1, 0)), col)
