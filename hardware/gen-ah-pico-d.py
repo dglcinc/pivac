@@ -324,6 +324,11 @@ B.text("VS to COM", XN - 2.0, yf, layer="B.SilkS", size=0.8, bold=True)
 B.text("no short", XOFF - 2.6, yf, layer="B.SilkS", size=0.8); B.text("35 V", XON, yf, layer="B.SilkS", size=0.8)
 B.text("COM to GND", XN - 2.4, yf + 1.5, layer="B.SilkS", size=0.8, bold=True)
 B.text("open", XOFF - 2.6, yf + 1.5, layer="B.SilkS", size=0.8); B.text("open", XON, yf + 1.5, layer="B.SilkS", size=0.8)
+# the USB pair, at the two filled holes under the Pico's micro-USB
+B.text("D+ to D-", XN - 1.6, yf + 3.0, layer="B.SilkS", size=0.8, bold=True)
+B.text("no short", XOFF - 2.6, yf + 3.0, layer="B.SilkS", size=0.8)
+B.text("D+, D-", XN - 1.0, yf + 4.5, layer="B.SilkS", size=0.8, bold=True)
+B.text("no short", XOFF - 2.6, yf + 4.5, layer="B.SilkS", size=0.8); B.text("0, Unico D+ 3 V", XON - 1.6, yf + 4.5, layer="B.SilkS", size=0.8)
 for lab, num in (("D-", "TP2"), ("D+", "TP3")):
     x, y = B.pad_xy("U4", num)
     B.text(lab, x + (0.3 if lab == "D-" else -0.3), 0.95, layer="B.SilkS", size=0.5, bold=True)
@@ -341,7 +346,7 @@ B.text("CC BY-NC 4.0", CX, 51.2, layer="B.SilkS", size=0.9)
 # reference designators the part bodies or their neighbours would cover
 REFS = [("F1", 52.3, 14.2, 90, 0.8), ("D2", 57.7, 13.0, 90, 0.8), ("C1", 55.1, 24.2, 0, 0.8), ("D1", 56.9, 39.9, 0, 0.8), ("C2", 55.4, 44.0, 0, 0.8),
         ("R11", 41.57, 4.7, 0, 0.6), ("R12", 41.57, 5.9, 0, 0.6), ("Q1", 44.1, 11.8, 0, 0.6), ("J1", 47.5, 11.8, 0, 0.6),
-        ("J2", 45.6, 43.9, 0, 0.7), ("J3", -3.7, 45.3, 0, 0.7), ("J5", 8.3, 45.3, 0, 0.7), ("J4", -3.8, 10.4, 0, 0.7),
+        ("J2", 44.6, 47.7, 0, 0.7), ("J3", -4.4, 47.7, 0, 0.7), ("J5", 7.1, 47.7, 0, 0.7), ("J4", -1.65, 10.4, 0, 0.7),     # each beside its own pads
         ("R13", -0.6, B.pad_xy("R13", 1)[1], 0, 0.7), ("C7", 0.8, 18.0, 0, 0.6), ("U5", 6.2, 20.75, 0, 0.7),
         ("R1", 2.2, 26.5, 90, 0.7), ("R3", 2.2, 30.5, 90, 0.7), ("C5", 2.2, 34.5, 90, 0.7),
         ("R2", 5.3, 26.5, 90, 0.7), ("R4", 5.3, 30.5, 90, 0.7), ("C6", 5.3, 34.5, 90, 0.7)]
