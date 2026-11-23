@@ -14,13 +14,13 @@ face, and three snap hooks in the walls catch its back. Every connector stands i
 base. Two latch tabs in the top's side walls, at opposite corners, catch a lug each on the base; squeezing the two
 tabs releases the top, which comes away with the board and its plugs. A low rim on the base stands inside the
 top's walls and locates it. Each of the six status LEDs stands under a shaft in a block on the left of the top,
-closed at the face by a 0.8 mm skin: the LED lights the skin, level with the printed label beside it. One pocket
+and a clear light pipe, Bivar PLPC2-500, presses into each from the face and ends 0.5 mm over its LED. One pocket
 in the face takes that label, which names the LEDs down its left edge and each port at its notch.
 
 Positions are given in the board's own frame, as gen-ah-pico-d.py leaves it (x 0.3-65.7, y 0-56 from the top
 edge, millimetres), z 0 on the board's top face and positive toward the top's face.
 """
-import os, sys
+import math, os, sys
 import FreeCAD as App
 import Part
 import MeshPart
@@ -59,12 +59,17 @@ PINS = [(2.4, 14.5), (62.6, 7.6), (2.4, 44.1), (49.5, 42.0)]
 # notches in the top's end walls, open toward the base: centre x, half width, height above the board
 TOP_NOTCH = (("USB", 14.7, 7.0, 7.5), ("PGM", 35.5, 6.3, 5.6), ("24 VAC", 54.5, 5.3, 10.6))
 BOT_NOTCH = (("SUP", 6.25, 3.9, 6.0), ("RET", 17.85, 3.9, 6.0), ("1-WIRE", 56.5, 5.1, 6.0))
-SKIN = 0.8             # the face left over each LED's shaft, which the LED lights from below
-WINDOW = 0.3           # each window is sunk this far into the face, so it shows with the LED dark
+# the light pipe over each LED: Bivar PLPC2-500, clear polycarbonate, press fit from the front (drawing PLPC2-XXX
+# rev F). Body 1.9 mm with ribs to 2.1, lens 2.3 mm on a 60 degree head 0.3 deep, 12.7 mm overall; it wants a
+# 2.0 +0/-0.1 mm hole with a 60 degree countersink 0.2 deep.
+PIPE_L, PIPE_D, PIPE_LENS, PIPE_HOLE = 12.7, 1.9, 2.3, 2.0
+PIPE_GAP = 0.5         # from the LED's top, 0.9 above the board, to the pipe's lower end
+SEAT = ZT - (0.9 + PIPE_GAP + PIPE_L)             # the pipes' lenses sit this far under the face, in a sunk strip
+GRIP = 3.0             # the 2.0 mm hole's depth under the strip; below it the shaft is wide
 LED_X = 3.2
 LED = ((21.0, "PWR", "ledG"), (25.0, "FAN", "ledY"), (29.0, "Y1", "ledB"), (33.0, "Y2", "ledB"),
        (37.0, "W1", "ledR"), (41.0, "W2", "ledR"))
-CELL = (1.0, 5.4, 1.2)                            # the shaft over each LED: x0, x1, half length along y
+CELL = (1.0, 5.4, 1.2)                            # the wide shaft over each LED: x0, x1, half length along y
 LABEL = (7.6, 65.0, -1.1, 57.1, 0.3)              # the label's pocket in the face: x0, x1, y0, y1, depth
 # snap hooks for the board: a tab cut from the wall by two slits, hanging from ROOT, with a barb under the board.
 # side ("L", "R" or "S", the sensor end), then the tab's extent along its wall
@@ -115,16 +120,22 @@ def legend(s, size, x, y, z, depth=1.0, left=False):
 # --- top
 top = rounded(EX, EY, ZS, ZT, 3.0).cut(rounded(IX, IY, ZS - 1, ROOM, 1.0))
 cx0, cx1, ch = CELL
-# the LED column: a block from the left wall to the face with a shaft over each LED, closed at the face by the
-# skin. The lit window is level with the label beside it, so a light and its printed name cannot part with the
-# angle of view. The walls between the shafts are 1.6 mm, twice the skin, to keep each light in its own window.
+# the LED column: a block from the left wall to the face with a shaft over each LED. A strip of the face over the
+# column is sunk so that a 12.7 mm pipe pressed in flush with the strip ends 0.5 mm over its LED; the lit lens is
+# then 0.9 mm under the label's surface. Each shaft is wide up to 3 mm under the strip and a 2.0 mm hole from there
+# up, so with no pipe fitted the same shaft is an open hole over the LED. The holes print undersize and are
+# drilled 2.0 mm, as Bivar's drawing asks.
 tr0, tr1 = LED[0][0] - 2.5, LED[-1][0] + 2.5
 top = top.fuse(box(WL - 0.1, cx1 + 0.8, tr0, tr1, 1.2, ROOM + 0.1))
 for y in [LED[0][0] - 2.0] + [l[0] + 2.0 for l in LED]:                             # the walls reach down between the LEDs
     top = top.fuse(box(WL - 0.1, cx1, y - 0.8, y + 0.8, 0.3, 1.3))
+top = top.cut(box(cx0 - 0.4, cx1 + 0.4, tr0 + 0.3, tr1 - 0.3, ZT - SEAT, ZT + 1))  # the sunk strip
 for y, name, col in LED:
-    top = top.cut(box(cx0, cx1, y - ch, y + ch, 0, ZT - WINDOW - SKIN))
-    top = top.cut(box(cx0, cx1, y - ch, y + ch, ZT - WINDOW, ZT + 1))
+    top = top.cut(box(cx0, cx1, y - ch, y + ch, 0, ZT - SEAT - GRIP))
+    top = top.cut(cyl(LED_X, y, PIPE_HOLE / 2, ZT - SEAT - GRIP - 0.1, ZT + 1))
+    top = top.cut(cone(LED_X, y, PIPE_HOLE / 2, PIPE_HOLE / 2 + 0.2 * 0.577, ZT - SEAT - 0.2, ZT - SEAT))
+PIPES = [(cyl(LED_X, y, PIPE_D / 2, ZT - SEAT - PIPE_L, ZT - SEAT - 0.3)
+          .fuse(cone(LED_X, y, PIPE_D / 2, PIPE_LENS / 2, ZT - SEAT - 0.3, ZT - SEAT)), col) for y, name, col in LED]
 for x, y in PINS:
     top = top.fuse(cone(x, y, 1.2, 2.6, 0.1, ROOM + 0.1))
 for notches, end in ((TOP_NOTCH, "T"), (BOT_NOTCH, "B")):
@@ -211,6 +222,9 @@ for part, (x0, x1, y0, y1, z0, z1) in BODIES.items():
         assert v < 0.01, "%s meets the %s: %.2f mm3" % (part, name, v)
     if part.startswith("screw") or "leads" in part:
         assert z1 <= -BT + 0.001 and (part.startswith("screw") and -BT - z1 > 1.0 or "leads" in part), part
+for p, col in PIPES:      # a pipe meets the top only where its 0.3 mm head beds into Bivar's 0.2 mm countersink
+    assert top.common(p).Volume < 0.6, "a light pipe meets the top: %.2f mm3" % top.common(p).Volume
+    assert p.BoundBox.ZMin - 0.9 > 0.3, "a light pipe is on its LED"
 v = top.common(base).Volume
 assert v < 0.01, "top meets base: %.2f mm3" % v
 held = top.common(box(BX0, BX1, 0, BL, -BT - 2.5, -BT - 0.1)).Volume          # the hooks' barbs under the board
@@ -313,6 +327,7 @@ def parts_shape(keys=None):
     return [box(*PARTS[k]) for k in (keys or PARTS) if k != "board"]
 GREY, DARK, PCB, TAN = "#d9dadb", "#9fa3a8", "#3f8f5a", "#c9a36a"
 LEDCOL = {"ledG": "#2fbf4f", "ledY": "#e8c020", "ledB": "#3060e0", "ledR": "#d83030"}
+CLEAR = "#bfe6f5"
 def section(v, at, clip=None):
     """Every body the plane cuts, each in its colour; clip is a box that bounds the view."""
     k = (lambda s: s.common(clip)) if clip else (lambda s: s)
@@ -326,12 +341,16 @@ def section(v, at, clip=None):
             body = k(box(*b))
             if body.Volume > 0.001:
                 v.cut(body, at, col)
+    for p, col in PIPES:
+        if not clip:
+            v.cut(p, at, CLEAR)
 
 closed = top.fuse(base)
 v1 = View("plan", "1. Closed, from above, with its printed label", "Twice size. 71.0 x 61.6 mm, 77.4 across the lugs. Power end up. Sample values on the label.")
 v1.outline(closed)
 for y, name, col in LED:                          # where each LED shows through the skin
-    v1.rect(CELL[0], y - CELL[2], CELL[1], y + CELL[2], LEDCOL[col], "#111")
+    c = v1.at(LED_X, y, 0)
+    v1.items.append(("fill", [[(c[0] + PIPE_LENS / 2 * math.cos(a * math.pi / 18), c[1] + PIPE_LENS / 2 * math.sin(a * math.pi / 18)) for a in range(36)]], LEDCOL[col]))
 # the printed label, as proposed: the AirMaster label of Arduino AirMaster/factory/label.py, laid out for this face.
 # One rectangle: each port named at its notch with its pin letters at their true positions, the LED names down the
 # left edge beside the windows, the title block, and the unit's setup details.
@@ -394,7 +413,8 @@ for i, (key, value, font) in enumerate((("WiFi", "AirMaster-7K2Q", ""), ("Passwo
     v1.text(tx, GY + i * GP, key, 1.9, "normal", "start", LGREY)
     v1.text(tx, GY + i * GP + 3.2, value, 2.8, "bold", "start", "#111", font)
 v1.text(36.0, ly1 - 0.9, "© 2026 David Lewis", 1.5, "normal", "middle", LGREY)
-v1.call(LED_X, LED[0][0], ZT, "window: 0.8 mm skin over the LED's shaft", -8, -7)
+v1.call(LED_X, LED[0][0], ZT, "light pipe, Bivar PLPC2-500: 2.3 mm lens", -8, -7)
+v1.call(cx0 - 0.4, LED[3][0], ZT, "strip sunk %.1f mm" % SEAT, -8, 0)
 v1.call(lx1 - 1.0, 40.0, ZT, "one printed label, 56.8 x 57.6, in a 0.3 mm pocket", 16, 6)
 v1.call(WL - WALL, 51.5, 3.0, "latch tab: press", -8, -4)
 v1.call(WR + WALL, 5.0, 3.0, "latch tab: press", 4, -9)
@@ -406,7 +426,7 @@ for side, a0, a1 in HOOKS:
     v2.call(p[0], p[1], -BT - 1, "board hook", {"L": -7, "R": 6, "S": 4}[side], {"L": -7, "R": 9, "S": 8}[side])
 for i, (x, y) in enumerate(PINS):
     v2.call(x, y, 0.1, "pin", 5 if x < 40 else -5, -4 if i % 2 else 4)
-v2.call(LED_X, LED[2][0], 1.2, "LED shafts", -9, 0)
+v2.call(LED_X, LED[2][0], 1.2, "LED shafts, 2.0 mm hole at the top", -9, 0)
 v3 = View("plan", "3. Base, from above", "Tape under the plate, or two #6 pan heads in the slots.")
 v3.outline(base)
 v3.call(SCREWS[0][0], SCREWS[0][1], ZS, "slot 4 x 10", 3, 14)
@@ -424,16 +444,17 @@ v5.outline(closed)
 v6 = View("sensor", "6. Sensor end, closed", "SUP, RET and 1-WIRE notches, left to right.")
 v6.outline(closed)
 v6.call(36.0, WB + WALL, -3.0, "board hook", 5, 13)
-va = View("left", "A. Section along the LED column, x 3.2", "Twice size. Each LED lights the skin at the top of its own shaft.")
+va = View("left", "A. Section along the LED column, x 3.2", "Twice size. A light pipe over each LED, pressed in from the face.")
 section(va, -X(LED_X))
-va.call(LED_X, LED[1][0], ZT - WINDOW - SKIN / 2, "0.8 mm skin, level with the label", 34, 9)
-va.call(LED_X, LED[3][0], 7.0, "shaft", 14, 4)
-va.call(LED_X, LED[2][0] + 2.0, 1.2, "1.6 mm wall", 12, 16)
+va.call(LED_X, LED[1][0], ZT - SEAT - 6.0, "light pipe, 12.7 mm", 36, 6)
+va.call(LED_X, LED[4][0], ZT - SEAT, "lens, %.1f mm under the face" % SEAT, 22, -9)
+va.call(LED_X + 0.0, LED[5][0] + 1.1, 5.0, "wide shaft", 14, 10)
+va.call(LED_X, LED[2][0], 1.15, "0.5 mm over the LED", 12, 16)
 va.call(LED_X, LED[1][0], 0.5, "LED", -12, 16)
 vb = View("sensor", "B. Section across at y 33, through LED Y2 and the right hook", "Twice size.")
 section(vb, -Y(33.0))
-vb.call(LED_X, 33.0, ZT - WINDOW - SKIN / 2, "window", -6, 5)
-vb.call(LED_X, 33.0, 7.0, "shaft", -9, 2)
+vb.call(LED_X, 33.0, ZT - SEAT - 0.2, "lens", -6, 5)
+vb.call(LED_X, 33.0, 7.0, "light pipe", -9, 2)
 vb.call(15.0, 33.0, ZT - 0.2, "label pocket", 3, 9)
 vb.call(35.0, 33.0, 3.0, "Pico W", 4, -8)
 vb.call(53.0, 33.0, 8.0, "U1", 5, -5)
@@ -498,7 +519,7 @@ if MODELS:
         parts.append((cbox(X(LED_X) - 1.0, X(LED_X) + 1.0, Y(y) - 0.625, Y(y) + 0.625, 0, 0.8), col))
     wrl("parts.wrl", parts)
     wrl("tray.wrl", [(base, "tray")])
-    lit = [(cbox(X(CELL[0]), X(CELL[1]), Y(y) - CELL[2], Y(y) + CELL[2], ZT - WINDOW, ZT - WINDOW + 0.05), col) for y, name, col in LED]
+    lit = [(Part.makeCylinder(PIPE_LENS / 2, 0.05, V(X(LED_X), Y(y), ZT - SEAT)), col) for y, name, col in LED]
     wrl("cap.wrl", [(top, "cap")] + lit)
     def wire(x, y0, y1, z, col, r=0.75):
         return (Part.makeCylinder(r, abs(y1 - y0), V(x, min(y0, y1), z), V(0, 1, 0)), col)
