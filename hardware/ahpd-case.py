@@ -66,7 +66,8 @@ BOT_NOTCH = (("SUP", 6.25, 3.9, 6.0), ("RET", 17.85, 3.9, 6.0), ("1-WIRE", 56.5,
 # board, so the case needs no drilling, no press fit and no glue.
 PIPE_L, PIPE_D, PIPE_LENS = 12.7, 1.9, 2.3
 PIPE_HOLE = 2.7        # printed: clears the 2.3 mm head at the looser limit of SLS, +/-0.3
-LIP, APERTURE = 0.6, 1.5                          # the lip at the face that stops the pipe, and the window through it
+LIP, APERTURE = 0.8, 1.5                          # the lip at the face that stops the pipe, and the window through it;
+                                                  # 0.8 mm is the printer's least wall
 FLOAT = 0.4            # the pipe's play between the lip and its LED; 0.1 to 0.7 over the print's tolerance
 SEAT = ZT - (0.9 + FLOAT + PIPE_L + LIP)          # the lip's top sits this far under the face, in a sunk strip
 GRIP = 3.0             # the guide hole's depth under the lip; below it the shaft is wide
@@ -126,10 +127,10 @@ top = rounded(EX, EY, ZS, ZT, 3.0).cut(rounded(IX, IY, ZS - 1, ROOM, 1.0))
 cx0, cx1, ch = CELL
 # the LED column: a block from the left wall to the face with a shaft over each LED. With the top face down on the
 # bench a pipe drops into each shaft, head up; pressing the board in traps all six. Each pipe then stands between a
-# 0.6 mm lip at the face, with a 1.5 mm window through it, and its LED, with 0.4 mm of play. A strip of the face is
+# 0.8 mm lip at the face, with a 1.5 mm window through it, and its LED, with 0.4 mm of play. A strip of the face is
 # sunk to put the lip at that height. With no pipe fitted the same shaft is an open hole over the LED.
 tr0, tr1 = LED[0][0] - 2.5, LED[-1][0] + 2.5
-top = top.fuse(box(WL - 0.1, cx1 + 0.8, tr0, tr1, 1.2, ROOM + 0.1))
+top = top.fuse(box(WL - 0.1, cx1 + 1.0, tr0, tr1, 1.2, ROOM + 0.1))      # 1.0 mm between a shaft and the room beside it
 for y in [LED[0][0] - 2.0] + [l[0] + 2.0 for l in LED]:                             # the walls reach down between the LEDs
     top = top.fuse(box(WL - 0.1, cx1, y - 0.8, y + 0.8, 0.3, 1.3))
 top = top.cut(box(cx0 - 0.4, cx1 + 0.4, tr0 + 0.3, tr1 - 0.3, ZT - SEAT, ZT + 1))  # the sunk strip
@@ -176,8 +177,8 @@ for side, a0, a1 in HOOKS:
 for side, a0, a1 in LATCH:
     top = tab(top, side, a0, a1, LATCH_ROOT, True, 0.3)
     top = top.fuse(wall_prism(side, [(WALL - 0.05, -3.0), (WALL + BARB, -3.0), (WALL + BARB, -3.6), (WALL - 0.05, -4.8)], a0, a1))
-    for z in (2.0, 3.5, 5.0):                     # three ribs mark where to press
-        top = top.fuse(wall_box(side, a0 + 0.6, a1 - 0.6, WALL - 0.05, WALL + 0.4, z, z + 0.6))
+    for z in (2.0, 3.7, 5.4):                     # three ribs mark where to press
+        top = top.fuse(wall_box(side, a0 + 0.6, a1 - 0.6, WALL - 0.05, WALL + 0.5, z, z + 0.8))
 top = top.removeSplitter()
 
 # --- base
@@ -451,7 +452,7 @@ v6.call(36.0, WB + WALL, -3.0, "board hook", 5, 13)
 va = View("left", "A. Section along the LED column, x 3.2", "Twice size. A loose light pipe over each LED, trapped between the lip and the board.")
 section(va, -X(LED_X))
 va.call(LED_X, LED[1][0], ZT - SEAT - 6.0, "light pipe, 12.7 mm", 36, 6)
-va.call(LED_X, LED[4][0], ZT - SEAT - LIP / 2, "0.6 mm lip, 1.5 mm window", 22, -9)
+va.call(LED_X, LED[4][0], ZT - SEAT - LIP / 2, "0.8 mm lip, 1.5 mm window", 22, -9)
 va.call(LED_X + 0.0, LED[5][0] + 1.1, 5.0, "wide shaft", 14, 10)
 va.call(LED_X, LED[2][0], 1.1, "0.4 mm of play over the LED", 12, 16)
 va.call(LED_X, LED[1][0], 0.5, "LED", -12, 16)
