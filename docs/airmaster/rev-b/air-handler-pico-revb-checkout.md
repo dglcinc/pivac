@@ -3,7 +3,7 @@
 
 # AirMaster carrier Rev B: checkout
 
-Run this on a built board (`docs/air-handler-pico-assembly.md`). Never connect a computer to the Pico's micro-USB
+Run this on a built board (`docs/airmaster/rev-b/air-handler-pico-assembly.md`). Never connect a computer to the Pico's micro-USB
 while 24 VAC is on J1: U1 and the micro-USB both feed U4 pin 40, and Rev B has no lockout.
 
 ## 1. Unpowered, micro-USB empty

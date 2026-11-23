@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright David Lewis
-"""The AirMaster Pico W carrier Rev D (docs/air-handler-pico-revd-plan.md): every part on the front, every part
+"""The AirMaster Pico W carrier Rev D (docs/airmaster/rev-d/air-handler-pico-revd-plan.md): every part on the front, every part
 one JLCPCB places or solders, for the printed case of ahpd-case.py.
 
 Run with KiCad's Python. Writes hardware/ahpd-board/ahpd-board.kicad_pcb with the parts placed, the nets assigned

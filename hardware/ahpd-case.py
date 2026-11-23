@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Copyright David Lewis
-"""The printed case of the AirMaster carrier Rev D: a base and a top (docs/air-handler-pico-revd-plan.md).
+"""The printed case of the AirMaster carrier Rev D: a base and a top (docs/airmaster/rev-d/air-handler-pico-revd-plan.md).
 
 Run with FreeCAD's command-line Python:  freecadcmd ahpd-case.py
 Writes ahpd-case/airmaster-base.{step,stl} and ahpd-case/airmaster-top.{step,stl} beside this script, the review
-drawing docs/air-handler-pico-revd-case.svg, and with AHPD_MODELS set, the VRML models of ahpd-render.sh in that
+drawing docs/airmaster/rev-d/air-handler-pico-revd-case.svg, and with AHPD_MODELS set, the VRML models of ahpd-render.sh in that
 folder (tray.wrl, cap.wrl, parts.wrl, plugs.wrl).
 
 The base is a plate that stays on the air handler, on VHB tape or two #6 screws through its slots. The top is the
@@ -28,7 +28,7 @@ import TechDraw
 V = App.Vector
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "ahpd-case")
-DOCS = os.path.join(HERE, "..", "docs")
+DOCS = os.path.join(HERE, "..", "docs", "airmaster", "rev-d")
 MODELS = os.environ.get("AHPD_MODELS")
 FONT = os.environ.get("AHPD_FONT", "/System/Library/Fonts/Supplemental/Arial Bold.ttf")
 os.makedirs(OUT, exist_ok=True)
@@ -449,7 +449,7 @@ svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="100%%" height="100%%" vie
        '<text x="48" y="9" font-size="4.6" font-weight="bold">AirMaster carrier Rev D: case, base and top</text>\n%s\n</svg>\n'
        % (width, y, "\n".join(sheet)))
 open(os.path.join(DOCS, "air-handler-pico-revd-case.svg"), "w").write(svg)
-print("wrote docs/air-handler-pico-revd-case.svg")
+print("wrote docs/airmaster/rev-d/air-handler-pico-revd-case.svg")
 
 # --- models for the render
 if MODELS:

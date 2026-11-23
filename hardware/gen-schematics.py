@@ -342,7 +342,7 @@ def build_ah():
     opto, opto_pins = box_symbol("LTV-814S", [(1, "A/K"), (2, "K/A")], [(4, "C"), (3, "E")], width=12.7,
                                  desc="Lite-On LTV-814S AC-input optocoupler, SMD-4")
     S.lib("pivac:LTV-814S", opto, opto_pins)
-    S.text("pivac air-handler node shield for the UNO R4 WiFi (docs/air-handler-shield-pcb-plan.md)", 20, 15, 3)
+    S.text("pivac air-handler node shield for the UNO R4 WiFi (docs/airmaster/rev-a/air-handler-shield-pcb-plan.md)", 20, 15, 3)
     S.text("24 VAC on TB1 (R, C, Y2, W2). F1, D2 TVS, D1 half-wave into C1: VS about 35 V against C (net COM). U1 isolates and feeds the R4's 5V pin.", 20, 21, 1.6)
     S.place("Connector_Generic:Conn_01x04", "TB1", "MC 1,5/4-G-3,81 24VAC", 30, 50, {4: "ACR", 3: "COM", 2: "Y2", 1: "W2"}, footprint="Connector_Phoenix_MC:PhoenixContact_MC_1,5_4-G-3.81_1x04_P3.81mm_Horizontal")
     S.place("Device:Fuse", "F1", "1812L020/60DR", 60, 50, {2: "ACR", 1: "ACF"}, footprint="Fuse:Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder")

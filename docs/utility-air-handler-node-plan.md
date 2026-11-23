@@ -11,8 +11,8 @@ node, all under `environment.inside.hvac.ah.utility`. The fan-optimization doc (
 one that reports airflow and lacks coil temperatures; after this install it is the one air handler with a
 complete heat balance, air side and water side at a known CFM.
 
-The board, its bench record and the sensor calibration are in `docs/air-handler-shield-pcb-plan.md`,
-`docs/air-handler-shield-assembly.md` and `docs/air-handler-probe-calibration-2026-11-01.md`. The
+The board, its bench record and the sensor calibration are in `docs/airmaster/rev-a/air-handler-shield-pcb-plan.md`,
+`docs/airmaster/rev-a/air-handler-shield-assembly.md` and `docs/air-handler-probe-calibration-2026-11-01.md`. The
 master bedroom node (`docs/mbr-air-handler-node-plan.md`) is the pattern for everything below that is not
 specific to this board or this unit; its §3 mounting rules and §6 commissioning apply unchanged.
 

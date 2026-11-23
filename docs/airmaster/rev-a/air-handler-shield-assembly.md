@@ -5,7 +5,7 @@
 
 This sheet covers the shield in `hardware/ah-board/` as fabricated: the UNO R4 WiFi shield with the 24 VAC converter,
 the Y2 and W2 optocoupler inputs, the two air-temperature dividers and the DS2482 1-wire master. The serial tap in
-`docs/air-handler-shield-pcb-plan.md` §4.3 belongs to a later revision and is not on this board.
+`docs/airmaster/rev-a/air-handler-shield-pcb-plan.md` §4.3 belongs to a later revision and is not on this board.
 
 Fit U2, leave R15 empty and leave JP1 open. The `AirHandler` sketches in `~/github/Arduino` find the DS2482 at
 0x18 at boot and read the probes through it, and fall back to D2 when nothing answers. JP1 and R15 are the rollback for

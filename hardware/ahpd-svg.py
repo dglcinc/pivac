@@ -12,7 +12,7 @@ import os, re, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 CLI = os.path.expanduser("~/Applications/KiCad.app/Contents/MacOS/kicad-cli")
 board = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "ahpd-board", "ahpd-board.kicad_pcb")
-out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "docs")
+out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "docs", "airmaster", "rev-d")
 
 def layer(name, colour, mirror, tmp):
     """KiCad's plot of one layer, as SVG groups in the given colour, and the plot's view box."""

@@ -1129,7 +1129,7 @@ def build_extc():
 
 # --------------------------------------------------------------------------- air-handler shield
 def build_ah():
-    """The air-handler node shield for the UNO R4 WiFi (docs/air-handler-shield-pcb-plan.md).
+    """The air-handler node shield for the UNO R4 WiFi (docs/airmaster/rev-a/air-handler-shield-pcb-plan.md).
 
     86.36 x 53.34: the R4's outline plus a 17.78 mm tab past its right edge carrying TB1 to TB3.
     The plan and its floor plan give positions from the bottom-left corner, y up; here y = 53.34

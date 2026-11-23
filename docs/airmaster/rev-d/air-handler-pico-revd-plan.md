@@ -2,7 +2,7 @@
 <!-- Copyright David Lewis -->
 # AirMaster carrier Rev D and its printed case
 
-Rev D is the AirMaster Pico W carrier laid out for a fabricator to assemble and for a printed case. Every part is on the front, every part is in JLCPCB's assembly stock, and the board has no holes. The circuit and the Pico's pin assignments are Rev C's (`docs/air-handler-shield-pcb-plan.md` §0), so the `AirMaster` firmware runs on it unchanged. Nothing is ordered.
+Rev D is the AirMaster Pico W carrier laid out for a fabricator to assemble and for a printed case. Every part is on the front, every part is in JLCPCB's assembly stock, and the board has no holes. The circuit and the Pico's pin assignments are Rev C's (`docs/airmaster/rev-a/air-handler-shield-pcb-plan.md` §0), so the `AirMaster` firmware runs on it unchanged. Nothing is ordered.
 
 ![Rev D from above](air-handler-pico-revd-board-top.png)
 ![Rev D](air-handler-pico-revd-board-iso.png)
@@ -102,7 +102,7 @@ The cap's four pins press the board at x 2.4, y 14.5; x 62.6, y 7.6; x 2.4, y 44
 8. Print the tray floor down and the cap face down. In MJF or SLS nylon neither needs support, and nylon suits the screws, the hooks and the lettering. The printer is JLC3DP, SLS in 1172Pro, their white unfilled PA12, about $9 a case in a lot of five (quoted 2026-11-16), with no dye or polish. Their 3201PA-F is black and 3401GB is glass-filled. Xometry quoted $18 a case in grey MJF and offers no white. The fits are sized for Xometry's SLS nylon 12 limits, the looser of the two: ±0.38 mm on a dimension, 1 mm engraving depth, 0.5 mm between mating parts. The cap's rabbet clears the tray's lap by 0.3 mm a side and the slots round the hooks are 0.8 mm. A filament printer needs support under the two hook beams. A light colour shows the LEDs through the bore walls from off axis.
 9. The script checks 26 part and plug bodies against both halves and stops if any shares volume with either.
 
-`sh hardware/ahpd-render.sh docs` renders the board and the case.
+`sh hardware/ahpd-render.sh docs/airmaster/rev-d` renders the board and the case.
 
 ## Ordering from JLCPCB
 
