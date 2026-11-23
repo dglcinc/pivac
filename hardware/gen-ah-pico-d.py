@@ -327,8 +327,8 @@ B.text("open", XOFF - 2.6, yf + 1.5, layer="B.SilkS", size=0.8); B.text("open", 
 # the USB pair, at the two filled holes under the Pico's micro-USB
 B.text("D+ to D-", XN - 1.6, yf + 3.0, layer="B.SilkS", size=0.8, bold=True)
 B.text("no short", XOFF - 2.6, yf + 3.0, layer="B.SilkS", size=0.8)
-B.text("D+, D-", XN - 1.0, yf + 4.5, layer="B.SilkS", size=0.8, bold=True)
-B.text("no short", XOFF - 2.6, yf + 4.5, layer="B.SilkS", size=0.8); B.text("0, Unico D+ 3 V", XON - 1.6, yf + 4.5, layer="B.SilkS", size=0.8)
+B.text("USB on J4", XN - 1.9, yf + 4.5, layer="B.SilkS", size=0.8, bold=True)     # the working test of both joints
+B.text("Unico shows on page", XON - 1.6, yf + 4.5, layer="B.SilkS", size=0.8)
 for lab, num in (("D-", "TP2"), ("D+", "TP3")):
     x, y = B.pad_xy("U4", num)
     B.text(lab, x + (0.3 if lab == "D-" else -0.3), 0.95, layer="B.SilkS", size=0.5, bold=True)
