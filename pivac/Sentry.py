@@ -97,10 +97,22 @@ logger = logging.getLogger(__name__)
 # the ImportError surfaces only when status() is called.
 # ---------------------------------------------------------------------------
 
+CALIBRATED_CV = "4.13"
+_cv_version_checked = False
+
+
 def _require_cv():
     try:
         import cv2
         import numpy as np
+        global _cv_version_checked
+        if not _cv_version_checked:
+            _cv_version_checked = True
+            if not cv2.__version__.startswith(CALIBRATED_CV + "."):
+                logger.warning(
+                    "OpenCV %s is installed; the reader's thresholds and quad were calibrated on %s.x, "
+                    "so recalibrate (docs/sentry-cv-notes.md) or reinstall %s",
+                    cv2.__version__, CALIBRATED_CV, CALIBRATED_CV)
         return cv2, np
     except ImportError:
         raise ImportError(

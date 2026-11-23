@@ -220,11 +220,11 @@ These hold whatever the task, whether or not a topic file is loaded.
 1. **Chiltrix Modbus is function 03 only, never 6 or 16.** Set the chiller's targets on its panel, in °C, and read them back.
 2. **Never raise the hydronic autofill regulator** or set it at or above the cold fill (20 psi). Top up with premixed glycol by hand.
 3. **Never connect the Pi's wall adapter while EXT J4 is live.** The GH link between the boards has pin 1 at the bottom of both headers; mirrored, it puts 35 V on SDA.
-4. **Never rename a Signal K path, relay, sensor or Emporia circuit to tidy it.** InfluxDB history is keyed on the name. `arduinoPSI` (.114) is the DHW board and `arduinoThermPSI` (.219) the boiler, inverted by legacy.
+4. **A rename of a Signal K path, relay, sensor or Emporia circuit is David's decision.** InfluxDB history is keyed on the name, so the old name's history stays behind as an orphan. `arduinoPSI` (.114) is the DHW board and `arduinoThermPSI` (.219) the boiler, inverted by legacy, and those two are never renamed.
 5. **Retiring or renaming any path needs a `signalk` restart** after the module restart, or Signal K holds the old path frozen at its last value.
 6. **Removing a Grafana alert rule needs a `deleteRules:` block**, left in place for good; verify against the `alert_rule` table. Ship a rule on a metric that does not exist yet as `isPaused: true`.
 7. **Never ask for the Grafana admin password** or any password. Credentials are token files under `~/.config/`; secrets never go in the repo or the chat.
-8. **OpenCV stays at 4.13** on the Pi; the Sentry reader is calibrated on it. The Sentry camera stays locked in Night mode and looks at the display at an angle.
+8. **OpenCV stays at 4.13** on the Pi; the Sentry reader is calibrated on it and logs a warning at start on any other version. The Sentry camera stays locked in Night mode and looks at the display at an angle.
 9. **Do not raise the RedLink 12 s refresh deadline, and do not restart `pivac-redlink` to clear `APIRateLimited`.**
 10. **Gate every loop ΔT on a switch, never a probe**, and identify a probe on the bus, never by its printed tag.
 11. **GPIO 26 is dead; YOFF is retired.** Make continuity checks on an I/O board off the Pi.
@@ -260,10 +260,10 @@ These hold whatever the task, whether or not a topic file is loaded.
 
 ## Python Environment
 
-Always use the pivac venv:
+Always use the pivac venv. It was built without system site packages, so `pip` inside it needs no `--break-system-packages`:
 ```bash
 source ~/pivac-venv/bin/activate
-pip install <package> --break-system-packages
+pip install <package>
 ```
 
 ## Dependencies
