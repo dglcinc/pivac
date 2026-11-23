@@ -3,7 +3,7 @@
 # Copyright David Lewis
 # Regenerate, route, check, render and export the boards named, or int and ext (rev B) when none
 # is named. "extc" is the rev C EXT board, in extc-board. Needs KiCad 10 in ~/Applications and
-# Freerouting 1.9.0 in ~/Applications/freerouting (see docs/rpi-io-boards-pcb-plan.md §6).
+# Freerouting 1.9.0 in ~/Applications/freerouting (see docs/io-boards/rev-a/rpi-io-boards-pcb-plan.md §6).
 # Freerouting is not deterministic and sometimes leaves a connection open or crosses two tracks,
 # so each board is regenerated and routed again until DRC reports no violation and nothing
 # unconnected, up to six attempts.

@@ -8,6 +8,7 @@ paths:
   - "tests/test_unico_*.py"
   - "tests/test_loop_delta.py"
   - "docs/*air-handler*"
+  - "docs/airmaster/**"
   - "docs/unico-scb-*.md"
   - "hardware/**/*ah-pico*"
 ---

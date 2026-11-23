@@ -7,8 +7,8 @@ Dependency-free (no pytest): run directly with
 
     python tests/test_io_board_pinout.py
 
-The figure in `docs/rpi-io-board-ic-pinout-{front,back}.svg` is a hand-entered
-transcription of `docs/rpi-io-board-design.md`. A wrong pin there is a rebuilt board, so
+The figure in `docs/io-boards/perfboard/rpi-io-board-ic-pinout-{front,back}.svg` is a hand-entered
+transcription of `docs/io-boards/perfboard/rpi-io-board-design.md`. A wrong pin there is a rebuilt board, so
 every entry is re-derived from the document's own tables -- the section 2.1 channel master
 map, the section 5.1 socket hole maps, and the section 5.3 rail stubs and feeders -- and
 compared against the generator's data. It also asserts the DIP numbering is the LTV-847
@@ -19,8 +19,8 @@ import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-GEN = os.path.join(ROOT, "docs", "rpi-io-board-ic-pinout.gen.py")
-DOC = os.path.join(ROOT, "docs", "rpi-io-board-design.md")
+GEN = os.path.join(ROOT, "docs", "io-boards", "perfboard", "rpi-io-board-ic-pinout.gen.py")
+DOC = os.path.join(ROOT, "docs", "io-boards", "perfboard", "rpi-io-board-design.md")
 
 # LTV-847 DIP-16: channels 1-4 are A/K on pins 1/2, 3/4, 5/6, 7/8 and E/C on 15/16, 13/14,
 # 11/12, 9/10 (design doc section 7, confirmed by diode test).

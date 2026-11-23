@@ -3,9 +3,9 @@
 
 # Raspberry Pi I/O Boards — Rev B Plan
 
-**Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). In production since 2026-10-11 19:43 EDT with the rev C EXT board, on the production Pi and its own card: bench-proven the same day (record in `docs/rpi-io-boards-assembly.md`), plugs moved position for position with J4 and the 24 VAC entry per §4 and §2, wall adapter retired. The rev A pair is the rollback. · **Owner:** David
+**Status:** Boards ordered from OSH Park and parts from Digi-Key and Amazon on 2026-09-27, from the gerbers in `hardware/` (both boards DRC-clean and fully connected). In production since 2026-10-11 19:43 EDT with the rev C EXT board, on the production Pi and its own card: bench-proven the same day (record in `docs/io-boards/rpi-io-boards-assembly.md`), plugs moved position for position with J4 and the 24 VAC entry per §4 and §2, wall adapter retired. The rev A pair is the rollback. · **Owner:** David
 
-Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/rpi-io-boards-pcb-plan.md`; this document states what rev B does, part by part.
+Rev B moves the 24 VAC entry and the sense-supply rectifier from the INT board to the EXT board, adds an isolated converter there that powers the Pi through its own USB-C, replaces the PTSM link between the boards with a latching 7-way JST GH, and gives every relay channel a plug position. The rev A boards stay in service until a rev B pair has passed the bench walk. The rev A design and the housing geometry are in `docs/io-boards/rev-a/rpi-io-boards-pcb-plan.md`; this document states what rev B does, part by part.
 
 ---
 
@@ -144,7 +144,7 @@ The monogram's paths are in `hardware/dl-monogram.svg` (viewBox −5 −5 10 10,
 
 ## 7. Parts list
 
-Quantities are for one pair of boards. Parts marked on hand came with the rev A order (`docs/rpi-io-boards-parts.md`, which carries their distributor links). Buy the 1.25 mm parts in fives, since a dropped GH lead is not found again.
+Quantities are for one pair of boards. Parts marked on hand came with the rev A order (`docs/io-boards/rev-a/rpi-io-boards-parts.md`, which carries their distributor links). Buy the 1.25 mm parts in fives, since a dropped GH lead is not found again.
 
 ### 7.1 New for rev B
 
@@ -202,7 +202,7 @@ Four connections are laid by hand as fixed tracks before the router runs, the wa
 2. **Fit check** in the KiCad 3D viewer with the Phoenix STEP models in `hardware/vendor/`: J1's plug room, J3 and the probe plugs against the housing openings, U3 and C3 against the 30 mm.
 3. **Order** three of each from OSH Park with the two zips; order the parts in §7.1 at the same time.
 4. **Populate and prove on the bench** with the retired production Pi and the transformer: 35 V at VS/COM with the Pi disconnected, 5.1 V at J4, an open circuit from COM to Pi ground, then the Pi on the pigtail and the full guided walk with `scripts/io-board-test.py`, all twelve channels including J4.1 to J4.3, and a 1-wire proof of 320 clean reads.
-5. **Install** per `docs/rpi-io-boards-reva-install.md`'s order: freeze and clone, panel breaker off, plugs across position for position (J4 changes and the J8 pigtail is retired), the transformer's secondary to J3 on EXT, the pigtail to the Pi, the wall adapter removed, the PivacPower Shelly moved to the transformer outlet, then the first-boot checks. Rev A stays intact as the rollback.
+5. **Install** per `docs/io-boards/rev-a/rpi-io-boards-reva-install.md`'s order: freeze and clone, panel breaker off, plugs across position for position (J4 changes and the J8 pigtail is retired), the transformer's secondary to J3 on EXT, the pigtail to the Pi, the wall adapter removed, the PivacPower Shelly moved to the transformer outlet, then the first-boot checks. Rev A stays intact as the rollback.
 
 Still open: David's report that the rev A 3-way sockets and 5-way link header were not aligned correctly to their edges. The design offsets are in §5.2; if the measured offset differs, the pin rows move in `gen-boards.py` before the order.
 

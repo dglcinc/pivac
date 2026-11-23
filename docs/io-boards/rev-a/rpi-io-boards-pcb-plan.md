@@ -3,11 +3,11 @@
 
 # Raspberry Pi I/O Boards on Fabricated PCBs — Plan
 
-**Status:** Rev A boards fabricated, populated and in service since the 2026-09-26 cutover. Rev B, which moves the power section to EXT, is `docs/rpi-io-boards-revb-plan.md`; `hardware/` now generates rev B. · **Owner:** David
+**Status:** Rev A boards fabricated, populated and in service since the 2026-09-26 cutover. Rev B, which moves the power section to EXT, is `docs/io-boards/rev-b/rpi-io-boards-revb-plan.md`; `hardware/` now generates rev B. · **Owner:** David
 
 Plan for replacing the two hand-wired Phoenix Contact perfboards in the RPI-BC 107,6 housing
 with fabricated printed circuit boards of the same outline, carrying the same circuits. The
-relay-input board is specified in `docs/rpi-io-board-design.md` and the 1-wire board in
+relay-input board is specified in `docs/io-boards/perfboard/rpi-io-board-design.md` and the 1-wire board in
 `docs/ds18b20-bus-topology.md`; this document does not repeat their reasoning. Both boards are
 built and in service, so this is a repeatability project: a board anyone can order and populate
 in an hour replaces two 600-line hand-wiring procedures.
@@ -28,7 +28,7 @@ a board house; assembly by hand.
 **Out of scope.** No change to `pivac`, `config.yml`, InfluxDB or Signal K: the BCM map is
 preserved, so nothing downstream notices the swap. No consolidation of the two boards into one:
 the probe sockets belong at the EXT board's end of the housing, and the relay wiring stays away
-from the 1-wire bus (`docs/rpi-io-board-design.md` Appendix A). No assembly service. No change
+from the 1-wire bus (`docs/io-boards/perfboard/rpi-io-board-design.md` Appendix A). No assembly service. No change
 to the label; `docs/PhoenixContact-BC-RPI-label.gen.py` describes plug positions, which do not
 move.
 
@@ -77,10 +77,10 @@ are fine in git at this count.
 
 ### 3.2 What already exists
 
-- Schematic: `docs/rpi-io-board-schematic.svg` and the channel master map in
-  `docs/rpi-io-board-design.md` §2.1. Schematic capture is transcription.
+- Schematic: `docs/io-boards/perfboard/rpi-io-board-schematic.svg` and the channel master map in
+  `docs/io-boards/perfboard/rpi-io-board-design.md` §2.1. Schematic capture is transcription.
 - BOM: the parts tables in both design docs (§2 above).
-- Net-to-pin map: the GPIO access-pad table in `docs/rpi-io-board-design.md` §4.2 and the
+- Net-to-pin map: the GPIO access-pad table in `docs/io-boards/perfboard/rpi-io-board-design.md` §4.2 and the
   plug table in §4.3.
 - Test procedure: steps 7 and 8 of the same document, which apply unchanged to a fabricated
   board.
@@ -156,7 +156,7 @@ prototyping grid with VCC, DATA and GND pads beside it.
 
 On the rev A boards in service the Pi runs from its USB-C wall adapter through the
 `PivacPower` Shelly plug, and the unfitted 4-way power link `J7` (VS, COM, +5V, GND) is the
-provision for feeding it from the bus. Rev B (`docs/rpi-io-boards-revb-plan.md`) takes the
+provision for feeding it from the bus. Rev B (`docs/io-boards/rev-b/rpi-io-boards-revb-plan.md`) takes the
 other route: the 24 VAC entry, the rectifier and an isolated Traco TMR 12-4811WI move to the
 EXT board, its 5.1 V reaches the Pi's own USB-C by a pigtail, VS and COM come back to INT over
 a 7-way GH link, and J7, the bridge, F1 and C1 leave INT. The single-part 24 VAC-to-5 V
@@ -215,7 +215,7 @@ the running system.
   2.56 mm from the other; `docs/ds18b20-bus-topology.md` counts 32. The band rows agree with the
   model when row 1 is the close-edge row, so the doc is short one row at the far end. Confirm
   by counting on the board.
-- The INT model has no holes in column 3, rows 1–21, where `docs/rpi-io-board-design.md` §4.2
+- The INT model has no holes in column 3, rows 1–21, where `docs/io-boards/perfboard/rpi-io-board-design.md` §4.2
   places an access pad for every even header pin. Either the model omits the fan-out pads or the
   pads are surface features; the build used column 4 for the wired even pins, so nothing in
   service depends on it. Check the board.
@@ -227,7 +227,7 @@ the running system.
   channel positions with J4.1 and J4.2 as the 24 VAC pair, so `HPCOOL` runs to the SP-C pad
   of J8 on a pigtail. Rev B moves the 24 VAC pair to EXT, which frees J4.1 and J4.2: J4 then
   carries HPCOOL, DHWX and SP-E with its COM, every channel is on a plug, each plug keeps a
-  COM, and J8 goes away (`docs/rpi-io-boards-revb-plan.md` §4). J7 cannot serve as a channel
+  COM, and J8 goes away (`docs/io-boards/rev-b/rpi-io-boards-revb-plan.md` §4). J7 cannot serve as a channel
   pigtail on rev A: its copper is VS, COM, +5V and GND.
 - The mounting of the boards in the housing: whether the perfboards are retained by the card
   guides alone, or by the header and riser as well. The STEP of the housing answers this; if the

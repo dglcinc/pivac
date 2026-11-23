@@ -10,7 +10,7 @@ Two complete views. Screen position is derived from the hole coordinate, never h
   solder side    (back)   x falls with column   (col 14 left ... col 7  right)
 Rows are unchanged by a left-right flip, so the smaller row number is the upper pin row in
 both views. Hole labels stay in the document's canonical component-side numbering throughout.
-Data source: docs/rpi-io-board-design.md sections 2.1, 5.1, 5.3 and 5.4.
+Data source: docs/io-boards/perfboard/rpi-io-board-design.md sections 2.1, 5.1, 5.3 and 5.4.
 """
 import os
 

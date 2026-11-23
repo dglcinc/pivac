@@ -493,7 +493,7 @@ own pads; none needs a breakout adapter.
 4. R15 stays unfitted (§4.5). TB4, R17, R18 and C9 wait for a water meter (§4.6); TB4 is TB3's header and plug.
 5. JP1 is a solder-jumper pad on the board and needs no part.
 6. The PTSM headers and plugs
-   are the INT and EXT boards' parts (`docs/rpi-io-boards-parts.md`, `docs/rpi-io-boards-revc-plan.md` §6), so spare
+   are the INT and EXT boards' parts (`docs/io-boards/rev-a/rpi-io-boards-parts.md`, `docs/io-boards/rev-c/rpi-io-boards-revc-plan.md` §6), so spare
    plugs may be on hand, and both headers' STEP models are in `hardware/vendor/` for the fit check.
 7. Boards: at OSH Park's $5 per square inch, 7.1 sq in buys three boards for about $36. A JLCPCB order with its
    assembly service would place every SMD part; the plan assumes hand assembly with an iron, as on EXT.

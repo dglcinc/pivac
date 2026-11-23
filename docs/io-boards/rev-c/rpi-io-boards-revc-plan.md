@@ -3,9 +3,9 @@
 
 # Raspberry Pi I/O Boards — Rev C Plan
 
-**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). In production since 2026-10-11 19:43 EDT with the rev B INT board, bench-proven the same day (record in `docs/rpi-io-boards-assembly.md`; U1 was replaced once on the bench). §9 lists what the next revision changes. · **Owner:** David
+**Status:** Boards ordered from OSH Park and connectors from Mouser on 2026-09-27, from the gerbers in `hardware/extc-board` (DRC clean, nothing unconnected). In production since 2026-10-11 19:43 EDT with the rev B INT board, bench-proven the same day (record in `docs/io-boards/rpi-io-boards-assembly.md`; U1 was replaced once on the bench). §9 lists what the next revision changes. · **Owner:** David
 
-Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/rpi-io-boards-revc-review.md`.
+Rev C replaces every edge connector on the EXT board with the surface-mount PTSM header, mounted with its entry face flush with the board edge, and replaces the 5 V output header with the vertical header of the same family. The through-hole headers on rev A fold at their pins when a plug is levered, because one row of pins is all that holds them. The surface-mount header sits flat on the board and is held at four places. The rev B design is `docs/io-boards/rev-b/rpi-io-boards-revb-plan.md`; this document states only what rev C changes. The board as generated, with its renders and copper plots, is `docs/io-boards/rev-c/rpi-io-boards-revc-review.md`.
 
 **Rule for the EXT board from rev C on: every edge connector is a PTSM 0,5/n-HH-2,5-SMD header, flush with the edge.** A new edge connector on EXT takes this part and the footprint of §3.
 
@@ -61,7 +61,7 @@ With the face on the edge, the anchor pads start 1.2 mm from the edge and the pe
 
 ## 4. EXT layout
 
-`docs/rpi-io-boards-revc-ext-layout.svg` is the layout drawing, and `hardware/extc-board/extc-board-top.png` the render of the board as generated. The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 41.1 mm of pad pattern.
+`docs/io-boards/rev-c/rpi-io-boards-revc-ext-layout.svg` is the layout drawing, and `hardware/extc-board/extc-board-top.png` the render of the board as generated. The board is 38.5 × 85 mm and the top edge carries two probe sockets. Three 3-way headers would need 41.1 mm of pad pattern.
 
 | Ref | Part | Centre x | Edge | Pins |
 |---|---|---|---|---|
@@ -171,7 +171,7 @@ Mouser's part number is the order number with the prefix `651-`. Six 3-way heade
 
 H1 and H2 are the HH header, 1778777, whose two locating pegs seat in the footprint's holes, like J3's and J4's. The footprint also takes 1808200, the HH0 version of the same header without the pegs, with the holes left empty. `hardware/fit-check.py` passes each against its own STEP model.
 
-Every other EXT part is the rev B part (`docs/rpi-io-boards-revb-plan.md` §7).
+Every other EXT part is the rev B part (`docs/io-boards/rev-b/rpi-io-boards-revb-plan.md` §7).
 
 ## 7. Soldering the header by hand
 

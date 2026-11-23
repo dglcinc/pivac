@@ -24,9 +24,9 @@ No pivac install needed. Uses `pinctrl` (Trixie, Pi 4 and Pi 5) or falls back to
 Each result is printed on its own line as it happens (ACTIVE on the short, idle
 on the release), so a detached run's log can be tailed for live feedback.
 
-The rev A map is docs/rpi-io-boards-assembly.md (SP-C and SP-E have no plug: short
-the J8 pad to the J8 COM pad). The rev B map is §4 of docs/rpi-io-boards-revb-plan.md,
-every channel on a plug. The perfboard map is §2.1 of docs/rpi-io-board-design.md.
+The rev A map is docs/io-boards/rpi-io-boards-assembly.md (SP-C and SP-E have no plug: short
+the J8 pad to the J8 COM pad). The rev B map is §4 of docs/io-boards/rev-b/rpi-io-boards-revb-plan.md,
+every channel on a plug. The perfboard map is §2.1 of docs/io-boards/perfboard/rpi-io-board-design.md.
 """
 import argparse
 import select

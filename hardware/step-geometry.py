@@ -5,7 +5,7 @@
 
 Reads the AP214 STEP files in hardware/vendor/ and prints, for each board, the
 outline, the hole grid, the off-grid connector holes and the restricted areas,
-in the frame the build docs use (docs/rpi-io-board-design.md §1 and
+in the frame the build docs use (docs/io-boards/perfboard/rpi-io-board-design.md §1 and
 docs/ds18b20-bus-topology.md §1): column 1 on the left, row 1 at the top, the
 component side facing the viewer, y increasing downward as in KiCad.
 
