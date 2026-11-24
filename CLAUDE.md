@@ -111,7 +111,7 @@ Signal K settings are at `/home/pi/.signalk/settings.json` — `pipedProviders` 
 | Great room (`greatroom`) | `AM-0002` | Rev B | 10.0.0.183, `great-room` | `28:cd:c1:14:f6:ab` | PA10 | M3036 |
 | Utility (`utility`) | `AM-0003` | Rev C | 10.0.0.184, `utility` | `28:cd:c1:17:4e:7f` | PA9 | M2430 |
 | Kids room (`kids`) | `AM-0004` | Rev C | 10.0.0.187, `kids-room` | `28:cd:c1:17:4e:83` | PA12 | M1218 |
-| Kitchen (`kitchen`) | `AM-0005` | Rev C | 10.0.0.191, `kitchen` | `28:cd:c1:17:4e:81` | PA11 | M3036 |
+| Kitchen (`kitchen`) | `AM-0005` | Rev C | 10.0.0.191, `kitchen` | `28:cd:c1:17:4e:81` | PA11A, PA7B | M3036 |
 
 The per-node offsets, stored airflows, gates and history are in `.claude/rules/air-handlers.md`.
 
