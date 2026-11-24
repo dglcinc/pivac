@@ -118,6 +118,30 @@ was in TB2 for the first window of each bath and pair 2 the plug swapped in for 
 5. **The R4 prints its ROM list and header before a monitor can open the port**, so the capture sends
    `l` on connecting. The Mac has no pyserial; the capture is a stdlib `termios` script.
 
+## In service
+
+**PA11B failed at the kitchen air handler and was replaced on 2026-11-24.** The kitchen pair was
+intermittent from its fitting on 2026-11-22: solid for a few hours at a time, partial around those,
+absent for 15 hours overnight, and gone for good at 08:01 EST on 11-24. Both probes dropped together,
+the return more often. Six supply readings on 11-23 were 38.5 °F and the return showed 38.6 °F, which
+is 32 °F plus each probe's offset: an all-zero scratchpad, which passes the CRC and means the data
+line was held low for the whole read. The air beads on the same unit never missed a sample.
+
+With the plug out of the board, PA11B measured about 300 Ω from each of its three leads to the copper
+pipe, and PA11A 1 to 2 MΩ. The DS2482 holds the data line up through about 1 kΩ, so a 300 Ω path to an
+earthed pipe pulls the line low whenever the pipe sits near the board's ground. Two spares on the same
+unit, off the pipe, listed on every poll for 13 minutes. With PA11B off the bus, PA11A answered at
+once.
+
+The return probe is now PA7B by its tag, ROM `28FF1668A316054F` (`28-0516a36816ff`), which
+`docs/ds18b20-PA1-5-calibration.md` lists as the AMB spare. Its offset on the unit is +0.46 °F,
+interpolated to 115 °F between PA7B's +0.451 K at 45 °F and +0.188 K at 140 °F; the AMB row's ice point
+alone would give +0.89 °F. The pair is one probe from each batch, so its water ΔT carries the
+difference between the two calibrations until the pair is zeroed on an idle coil. PA11A's 1 to 2 MΩ
+is short of open: measure it again before trusting it through a cooling season.
+
+A probe is checked with the plug out of the board, each lead to the pipe: open is sound.
+
 ## Rules
 
 - A new DS18B20 batch gets a three-bath session before any of it goes into service, and the ice point
