@@ -133,6 +133,36 @@ the pair at 13:02 and 13:09 cost a 52-minute cool-back run starting from 57.7 °
 carried a heat state, so read a sub-minute mode flip against the Pi's `journalctl --list-boots`
 before suspecting the HZ-432's `B` terminal.
 
+**After a power loss in cool mode the unit can sit idle with its pump off and no fault (2026-11-24).**
+Power was out from 10:37 to 11:02 EST while the compressor ran at 60 Hz in a heat-to-cool changeover,
+with the inlet at 59 °F against the 12 °C target. On power return the controller came up switched on
+(`140` = 1) in cool mode with `HPCOOL` and `HPCALL` energised from 11:06, and it held the pump command
+(`248`) at 0 for 4 h 10 min. Registers `284`, `285` and `286` read 0 throughout, and the unit drew 9 W.
+
+The inlet read 56.2 °F at 11:06. The cooling restart threshold is the target plus `P12` (2), 14 °C or
+57.2 °F, so the controller saw no load. With the pump off, the inlet sensor sat in still water
+outdoors at 45 °F and fell to 48 °F, while the tank warmed from 55 to 72 °F and `IN` to 79 °F. The
+master bedroom's cooling call ran from 11:06 to 13:03 on coil water that rose from 57 to 71 °F, and the
+room held 76 °F. At 15:14 a great room heat call energised `HPHEAT`; the pump went to 100 % at once and
+the compressor started at 15:16, with nobody touching the unit.
+
+| Register | Idle or running | Stalled after power-up |
+|---|---|---|
+| `234` | 1 | 0 |
+| `236` | 1 | 0 |
+| `248` pump command | 10 idle, 100 running | 0 |
+| `257` | 81–189 | 0 |
+| `264` | 1584 idle, about 12,400 running | 0 |
+
+After a normal run the pump idles at 10 % under `P52` = 2, which keeps loop water on the inlet
+sensor. That the idle circulation begins only after the first compressor run following power-up is
+inferred from this one event. The stall needs a power loss in cool mode, an inlet under the restart
+threshold at power-up, and outdoor air under about 57 °F, so it belongs to shoulder-season cooling. In
+summer the still sensor warms past the threshold, and in heat mode a cold inlet starts the unit; the
+2026-09-13 outages recovered because the inlet stood at 57.7 °F. `chiltrix-zero-flow` fires through
+the stall, from 11:08 that day. An off and on at the panel or a brief heat call should release it;
+neither has been tried.
+
 ## Measured heating performance, 2026-09-15 → 09-27
 
 Same method as the cooling figures: water side from registers 213, 281 and 205 with glycol at 0.98
